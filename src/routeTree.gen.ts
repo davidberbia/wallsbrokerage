@@ -10,33 +10,63 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ActifsRouteImport } from './routes/actifs'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ActifsRoute = ActifsRouteImport.update({
+  id: '/actifs',
+  path: '/actifs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvestisseursRoute = InvestisseursRouteImport.update({
+  id: '/investisseurs',
+  path: '/investisseurs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/actifs': typeof ActifsRoute
+  '/auth': typeof AuthRoute
+  '/investisseurs': typeof InvestisseursRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/actifs': typeof ActifsRoute
+  '/auth': typeof AuthRoute
+  '/investisseurs': typeof InvestisseursRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/actifs': typeof ActifsRoute
+  '/auth': typeof AuthRoute
+  '/investisseurs': typeof InvestisseursRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/actifs' | '/auth' | '/investisseurs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/actifs' | '/auth' | '/investisseurs'
+  id: '__root__' | '/' | '/actifs' | '/auth' | '/investisseurs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActifsRoute: typeof ActifsRoute
+  AuthRoute: typeof AuthRoute
+  InvestisseursRoute: typeof InvestisseursRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +78,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/actifs': {
+      id: '/actifs'
+      path: '/actifs'
+      fullPath: '/actifs'
+      preLoaderRoute: typeof ActifsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/investisseurs': {
+      id: '/investisseurs'
+      path: '/investisseurs'
+      fullPath: '/investisseurs'
+      preLoaderRoute: typeof InvestisseursRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActifsRoute: ActifsRoute,
+  AuthRoute: AuthRoute,
+  InvestisseursRoute: InvestisseursRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
