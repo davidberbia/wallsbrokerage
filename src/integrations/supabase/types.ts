@@ -14,7 +14,177 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      assets: {
+        Row: {
+          asset_class: string | null
+          brochure_url: string | null
+          city: string | null
+          created_at: string
+          description: string | null
+          id: string
+          owner_id: string
+          price: number | null
+          reference: string | null
+          region: string | null
+          status: string
+          strategy: string | null
+          surface: number | null
+          title: string
+          updated_at: string
+          yield_pct: number | null
+        }
+        Insert: {
+          asset_class?: string | null
+          brochure_url?: string | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          owner_id?: string
+          price?: number | null
+          reference?: string | null
+          region?: string | null
+          status?: string
+          strategy?: string | null
+          surface?: number | null
+          title: string
+          updated_at?: string
+          yield_pct?: number | null
+        }
+        Update: {
+          asset_class?: string | null
+          brochure_url?: string | null
+          city?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          owner_id?: string
+          price?: number | null
+          reference?: string | null
+          region?: string | null
+          status?: string
+          strategy?: string | null
+          surface?: number | null
+          title?: string
+          updated_at?: string
+          yield_pct?: number | null
+        }
+        Relationships: []
+      }
+      brochure_sends: {
+        Row: {
+          asset_id: string
+          channel: string
+          id: string
+          investor_id: string
+          notes: string | null
+          owner_id: string
+          sent_at: string
+        }
+        Insert: {
+          asset_id: string
+          channel?: string
+          id?: string
+          investor_id: string
+          notes?: string | null
+          owner_id?: string
+          sent_at?: string
+        }
+        Update: {
+          asset_id?: string
+          channel?: string
+          id?: string
+          investor_id?: string
+          notes?: string | null
+          owner_id?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brochure_sends_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brochure_sends_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investors: {
+        Row: {
+          asset_classes: string[]
+          budget_max: number | null
+          budget_min: number | null
+          city: string | null
+          company: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          financing: string | null
+          full_name: string
+          holding_horizon: string | null
+          id: string
+          min_yield: number | null
+          notes: string | null
+          owner_id: string
+          phone: string | null
+          regions: string[]
+          status: string
+          strategies: string[]
+          updated_at: string
+        }
+        Insert: {
+          asset_classes?: string[]
+          budget_max?: number | null
+          budget_min?: number | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          financing?: string | null
+          full_name: string
+          holding_horizon?: string | null
+          id?: string
+          min_yield?: number | null
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+          regions?: string[]
+          status?: string
+          strategies?: string[]
+          updated_at?: string
+        }
+        Update: {
+          asset_classes?: string[]
+          budget_max?: number | null
+          budget_min?: number | null
+          city?: string | null
+          company?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          financing?: string | null
+          full_name?: string
+          holding_horizon?: string | null
+          id?: string
+          min_yield?: number | null
+          notes?: string | null
+          owner_id?: string
+          phone?: string | null
+          regions?: string[]
+          status?: string
+          strategies?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
