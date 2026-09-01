@@ -80,6 +80,10 @@ function AuthPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup" && isPersonalEmail(email)) {
+      toast.error(PERSONAL_EMAIL_MESSAGE);
+      return;
+    }
     setBusy(true);
     try {
       if (mode === "signin") {
