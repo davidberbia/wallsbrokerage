@@ -183,14 +183,6 @@ function AuthPage() {
                 {mode === "signin" ? "Me connecter" : "M'inscrire"}
               </Button>
             </form>
-            <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="h-px flex-1 bg-border" />
-              ou
-              <span className="h-px flex-1 bg-border" />
-            </div>
-            <Button variant="outline" className="w-full" onClick={google}>
-              Continuer avec Google
-            </Button>
             <button
               type="button"
               className="mt-4 w-full text-center text-sm text-muted-foreground underline-offset-4 hover:underline"
