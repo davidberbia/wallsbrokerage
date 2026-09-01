@@ -105,16 +105,6 @@ function AuthPage() {
     }
   };
 
-  const google = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Connexion Google impossible");
-      return;
-    }
-    if (result.redirected) return;
-  };
 
   return (
     <div className="min-h-screen bg-background">
