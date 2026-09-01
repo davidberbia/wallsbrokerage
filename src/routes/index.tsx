@@ -88,37 +88,60 @@ function MatchingPage() {
       .sort((a, b) => b.score - a.score || b.reasons.length - a.reasons.length);
   }, [investorsQuery.data, criteria, strict]);
 
-  const emails = results
-    .map((r) => r.investor.email)
-    .filter((e): e is string => Boolean(e));
+  // Sélection : par défaut tous les investisseurs trouvés sont cochés.
+  const visibleIds = useMemo(() => results.map((r) => r.investor.id), [results]);
+  const isSelected = (id: string) => !selected.has(`-${id}`);
+  const toggle = (id: string) => {
+    const next = new Set(selected);
+    const key = `-${id}`;
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setSelected(next);
+  };
+  const allSelected = visibleIds.every((id) => isSelected(id)) && visibleIds.length > 0;
+  const toggleAll = () => {
+    setSelected(allSelected ? new Set(visibleIds.map((id) => `-${id}`)) : new Set());
+  };
+
+  const chosen = results.filter((r) => isSelected(r.investor.id));
+  const emails = chosen.map((r) => r.investor.email).filter((e): e is string => Boolean(e));
+  const asset = (assetsQuery.data ?? []).find((a) => a.id === assetId) ?? null;
 
   const applyAsset = (id: string) => {
+    setSelected(new Set());
     if (id === ANY) {
       setAssetId(null);
       return;
     }
-    const asset = (assetsQuery.data ?? []).find((a) => a.id === id);
-    if (!asset) return;
+    const found = (assetsQuery.data ?? []).find((a) => a.id === id);
+    if (!found) return;
     setAssetId(id);
     setCriteria({
-      price: asset.price,
-      yield_pct: asset.yield_pct,
-      asset_class: asset.asset_class,
-      strategy: asset.strategy,
-      region: asset.region,
+      price: found.price,
+      yield_pct: found.yield_pct,
+      asset_class: found.asset_class,
+      strategy: found.strategy,
+      region: found.region,
     });
   };
 
   const logSends = async () => {
-    if (!assetId) {
+    if (!assetId || !asset) {
       toast.error("Sélectionnez un actif enregistré pour tracer l'envoi.");
       return;
     }
-    const rows = results.map((r) => ({ asset_id: assetId, investor_id: r.investor.id }));
+    const rows = chosen.map((r) => ({
+      asset_id: assetId,
+      investor_id: r.investor.id,
+      email_to: r.investor.email,
+      subject: `Opportunité d'investissement — ${asset.title}`,
+      channel: "email",
+      status: "envoyé",
+    }));
     if (rows.length === 0) return;
     const { error } = await supabase.from("brochure_sends").insert(rows);
     if (error) toast.error(error.message);
-    else toast.success(`${rows.length} envoi(s) enregistré(s)`);
+    else toast.success(`${rows.length} envoi(s) enregistré(s) et horodaté(s)`);
   };
 
   return (
