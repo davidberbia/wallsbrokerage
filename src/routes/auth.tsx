@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+import { isPersonalEmail, PERSONAL_EMAIL_MESSAGE } from "@/lib/email-domains";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +80,10 @@ function AuthPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup" && isPersonalEmail(email)) {
+      toast.error(PERSONAL_EMAIL_MESSAGE);
+      return;
+    }
     setBusy(true);
     try {
       if (mode === "signin") {
@@ -101,16 +105,6 @@ function AuthPage() {
     }
   };
 
-  const google = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Connexion Google impossible");
-      return;
-    }
-    if (result.redirected) return;
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,6 +160,12 @@ function AuthPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
                 />
+                {mode === "signup" && (
+                  <p className="text-xs text-muted-foreground">
+                    Adresse professionnelle uniquement (les adresses personnelles type Gmail,
+                    Outlook, Hotmail, Yahoo, Orange, Laposte… ne sont pas acceptées).
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
@@ -183,14 +183,6 @@ function AuthPage() {
                 {mode === "signin" ? "Me connecter" : "M'inscrire"}
               </Button>
             </form>
-            <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="h-px flex-1 bg-border" />
-              ou
-              <span className="h-px flex-1 bg-border" />
-            </div>
-            <Button variant="outline" className="w-full" onClick={google}>
-              Continuer avec Google
-            </Button>
             <button
               type="button"
               className="mt-4 w-full text-center text-sm text-muted-foreground underline-offset-4 hover:underline"
