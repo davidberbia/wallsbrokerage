@@ -14,7 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ASSET_CLASSES, REGIONS } from "@/lib/taxonomy";
+import {
+  ASSET_CLASSES,
+  CITY_SCOPES,
+  PERIPHERY_SCOPES,
+  REGIONS,
+  STRATEGIES,
+} from "@/lib/taxonomy";
 import { countInterestedInvestors, submitArbitrageRequest } from "@/lib/arbitrage.functions";
 import heroImage from "@/assets/hero-wallsbroker.png";
 
@@ -40,11 +46,14 @@ export const Route = createFileRoute("/arbitrage")({
   component: ArbitragePage,
 });
 
-const OCCUPANCIES = ["Occupé", "Vacant", "Partiellement occupé"] as const;
+const OCCUPANCIES = ["Vide", "Occupé", "Partiellement occupé"] as const;
 
 type Search = {
   asset_class: string;
   occupancy: string;
+  strategy: string;
+  city_scope: string;
+  periphery_scope: string;
   price: string;
   region: string;
   surface: string;
@@ -55,6 +64,9 @@ type Search = {
 const EMPTY: Search = {
   asset_class: "",
   occupancy: "",
+  strategy: "",
+  city_scope: "",
+  periphery_scope: "",
   price: "",
   region: "",
   surface: "",
@@ -92,6 +104,9 @@ function ArbitragePage() {
           asset_class: form.asset_class,
           region: form.region,
           occupancy: form.occupancy || null,
+          strategy: form.strategy || null,
+          city_scope: form.city_scope || null,
+          periphery_scope: form.periphery_scope || null,
           price_meur: Number(form.price),
         },
       });
@@ -112,6 +127,9 @@ function ArbitragePage() {
           asset_class: form.asset_class,
           region: form.region,
           occupancy: form.occupancy || null,
+          strategy: form.strategy || null,
+          city_scope: form.city_scope || null,
+          periphery_scope: form.periphery_scope || null,
           price_meur: Number(form.price),
           surface: form.surface ? Number(form.surface) : null,
           address: form.address || null,
@@ -207,6 +225,58 @@ function ArbitragePage() {
                 </SelectContent>
               </Select>
             </Field>
+
+            <Field label="Stratégie investisseur">
+              <Select value={form.strategy} onValueChange={(v) => set("strategy", v)}>
+                <SelectTrigger className="border-0 bg-transparent px-0 text-base shadow-none">
+                  <SelectValue placeholder="Stratégie investisseur" />
+                </SelectTrigger>
+                <SelectContent>
+                  {STRATEGIES.map((strategy) => (
+                    <SelectItem key={strategy} value={strategy}>
+                      {strategy}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
+            <div className="space-y-2">
+              <Label className="text-primary-foreground">Ville et périphérie</Label>
+              <div className="grid gap-2">
+                <div className="rounded-xl bg-card px-4 py-3 text-card-foreground">
+                  <Select
+                    value={form.periphery_scope}
+                    onValueChange={(v) => set("periphery_scope", v)}
+                  >
+                    <SelectTrigger className="border-0 bg-transparent px-0 text-base shadow-none">
+                      <SelectValue placeholder="Périphérie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PERIPHERY_SCOPES.map((scope) => (
+                        <SelectItem key={scope} value={scope}>
+                          {scope}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="rounded-xl bg-card px-4 py-3 text-card-foreground">
+                  <Select value={form.city_scope} onValueChange={(v) => set("city_scope", v)}>
+                    <SelectTrigger className="border-0 bg-transparent px-0 text-base shadow-none">
+                      <SelectValue placeholder="Centre-ville" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CITY_SCOPES.map((scope) => (
+                        <SelectItem key={scope} value={scope}>
+                          {scope}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
 
             <Field label="Prix en M€ (entre 1 et 500 M€)">
               <BareInput
