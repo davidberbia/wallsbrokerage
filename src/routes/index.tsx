@@ -276,16 +276,17 @@ function MatchingPage() {
           <Button
             variant="outline"
             size="sm"
-            disabled={emails.length === 0}
-            onClick={() => {
-              window.location.href = `mailto:?bcc=${encodeURIComponent(emails.join(","))}`;
-            }}
+            disabled={chosen.length === 0}
+            onClick={logSends}
           >
-            <Mail className="size-4" /> Envoyer la brochure
+            <Mail className="size-4" /> Tracer un envoi manuel
           </Button>
-          <Button size="sm" disabled={chosen.length === 0} onClick={logSends}>
-            <Send className="size-4" /> Tracer l'envoi
-          </Button>
+          <CampaignDialog
+            asset={asset}
+            recipients={chosen.map((r) => r.investor)}
+            onLaunched={() => setSelected(new Set())}
+          />
+
         </div>
       </div>
 
