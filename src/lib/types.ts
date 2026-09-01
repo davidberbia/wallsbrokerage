@@ -1,7 +1,26 @@
+export type InvestorCriteria = {
+  id: string;
+  investor_id: string;
+  bubble_id: string | null;
+  asset_class: string;
+  investor_profile: string | null;
+  strategies: string[];
+  amount_bands: string[];
+  regions: string[];
+  city_scope: string | null;
+  periphery_scope: string | null;
+  city_targets: string[];
+};
+
 export type Investor = {
   id: string;
   full_name: string;
   first_name: string | null;
+  bubble_id?: string | null;
+  job_title?: string | null;
+  investor_profile?: string | null;
+  address?: string | null;
+  postal_code?: string | null;
   user_id: string | null;
   profile_updated_at: string;
   next_review_at: string;
