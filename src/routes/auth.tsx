@@ -32,12 +32,12 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const { session, loading } = useAuth();
+  const { session, loading, isBroker } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && session) navigate({ to: "/" });
-  }, [loading, session, navigate]);
+    if (!loading && session) navigate({ to: isBroker ? "/" : "/mon-profil" });
+  }, [loading, session, isBroker, navigate]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
