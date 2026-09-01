@@ -299,6 +299,11 @@ function MatchingPage() {
         )}
         {results.map(({ investor, score, reasons, misses }) => (
           <div key={investor.id} className="panel flex flex-wrap items-center gap-4 p-4">
+            <Checkbox
+              checked={isSelected(investor.id)}
+              onCheckedChange={() => toggle(investor.id)}
+              aria-label={`Sélectionner ${investor.full_name}`}
+            />
             <div className="min-w-56 flex-1">
               <p className="font-medium">{investor.full_name}</p>
               <p className="text-sm text-muted-foreground">
