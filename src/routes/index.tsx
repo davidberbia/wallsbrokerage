@@ -282,7 +282,7 @@ function MatchingPage() {
           >
             <Mail className="size-4" /> Envoyer la brochure
           </Button>
-          <Button size="sm" disabled={results.length === 0} onClick={logSends}>
+          <Button size="sm" disabled={chosen.length === 0} onClick={logSends}>
             <Send className="size-4" /> Tracer l'envoi
           </Button>
         </div>
