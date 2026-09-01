@@ -22,7 +22,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          owner_id: string
+          owner_id: string | null
           price: number | null
           reference: string | null
           region: string | null
@@ -40,7 +40,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          owner_id?: string
+          owner_id?: string | null
           price?: number | null
           reference?: string | null
           region?: string | null
@@ -58,7 +58,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          owner_id?: string
+          owner_id?: string | null
           price?: number | null
           reference?: string | null
           region?: string | null
@@ -75,29 +75,50 @@ export type Database = {
         Row: {
           asset_id: string
           channel: string
+          delivered_at: string | null
+          email_to: string | null
+          error: string | null
           id: string
           investor_id: string
           notes: string | null
-          owner_id: string
+          opened_at: string | null
+          owner_id: string | null
           sent_at: string
+          status: string
+          subject: string | null
+          tracking_id: string
         }
         Insert: {
           asset_id: string
           channel?: string
+          delivered_at?: string | null
+          email_to?: string | null
+          error?: string | null
           id?: string
           investor_id: string
           notes?: string | null
-          owner_id?: string
+          opened_at?: string | null
+          owner_id?: string | null
           sent_at?: string
+          status?: string
+          subject?: string | null
+          tracking_id?: string
         }
         Update: {
           asset_id?: string
           channel?: string
+          delivered_at?: string | null
+          email_to?: string | null
+          error?: string | null
           id?: string
           investor_id?: string
           notes?: string | null
-          owner_id?: string
+          opened_at?: string | null
+          owner_id?: string | null
           sent_at?: string
+          status?: string
+          subject?: string | null
+          tracking_id?: string
         }
         Relationships: [
           {
@@ -127,17 +148,21 @@ export type Database = {
           created_at: string
           email: string | null
           financing: string | null
+          first_name: string | null
           full_name: string
           holding_horizon: string | null
           id: string
           min_yield: number | null
+          next_review_at: string
           notes: string | null
-          owner_id: string
+          owner_id: string | null
           phone: string | null
+          profile_updated_at: string
           regions: string[]
           status: string
           strategies: string[]
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           asset_classes?: string[]
@@ -149,17 +174,21 @@ export type Database = {
           created_at?: string
           email?: string | null
           financing?: string | null
+          first_name?: string | null
           full_name: string
           holding_horizon?: string | null
           id?: string
           min_yield?: number | null
+          next_review_at?: string
           notes?: string | null
-          owner_id?: string
+          owner_id?: string | null
           phone?: string | null
+          profile_updated_at?: string
           regions?: string[]
           status?: string
           strategies?: string[]
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           asset_classes?: string[]
@@ -171,17 +200,42 @@ export type Database = {
           created_at?: string
           email?: string | null
           financing?: string | null
+          first_name?: string | null
           full_name?: string
           holding_horizon?: string | null
           id?: string
           min_yield?: number | null
+          next_review_at?: string
           notes?: string | null
-          owner_id?: string
+          owner_id?: string | null
           phone?: string | null
+          profile_updated_at?: string
           regions?: string[]
           status?: string
           strategies?: string[]
           updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -190,10 +244,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_role: {
+        Args: never
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "broker" | "investor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -320,6 +384,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["broker", "investor"],
+    },
   },
 } as const
