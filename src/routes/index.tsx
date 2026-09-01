@@ -245,8 +245,19 @@ function MatchingPage() {
         <h2 className="text-xl">
           {results.length} investisseur{results.length > 1 ? "s" : ""} ciblé
           {results.length > 1 ? "s" : ""}
+          <span className="ml-2 text-sm text-muted-foreground">
+            {chosen.length} sélectionné{chosen.length > 1 ? "s" : ""}
+          </span>
         </h2>
         <div className="ml-auto flex flex-wrap gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={results.length === 0}
+            onClick={toggleAll}
+          >
+            {allSelected ? "Tout décocher" : "Tout cocher"}
+          </Button>
           <Button variant="ghost" size="sm" onClick={() => setStrict(!strict)}>
             {strict ? "Voir aussi les correspondances partielles" : "Correspondances strictes"}
           </Button>
