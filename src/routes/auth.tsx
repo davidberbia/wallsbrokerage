@@ -201,16 +201,20 @@ function AuthPage() {
           </div>
         </section>
 
-        <section className="mt-16 text-center">
-          <h2 className="text-2xl text-primary">
-            Combien d'investisseurs pourraient être intéressés par votre actif ?
+        <section className="mt-16 rounded-2xl bg-primary p-10 text-center text-primary-foreground">
+          <h2 className="text-2xl text-primary-foreground md:text-3xl">
+            Combien d'investisseurs pourraient être intéressés par votre actif&nbsp;?
           </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground">
-            Pas besoin de l'adresse de l'actif, en indiquant simplement la région, la classe
+          <p className="mx-auto mt-3 max-w-2xl text-sm text-primary-foreground/80">
+            Pas besoin de l'adresse de l'actif : en indiquant simplement la région, la classe
             d'actif, la situation locative et le prix demandé, vous saurez combien d'investisseurs
             de la communauté Wallsbroker pourraient être intéressés par votre actif.
           </p>
+          <Button asChild size="lg" variant="secondary" className="mt-6">
+            <Link to="/arbitrage">Lancer la recherche</Link>
+          </Button>
         </section>
+
 
         <section className="mt-16">
           <h2 className="text-center text-3xl">Nos services</h2>

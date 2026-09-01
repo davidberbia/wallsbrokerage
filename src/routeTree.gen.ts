@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActifsRouteImport } from './routes/actifs'
+import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
@@ -27,6 +28,11 @@ const IndexRoute = IndexRouteImport.update({
 const ActifsRoute = ActifsRouteImport.update({
   id: '/actifs',
   path: '/actifs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArbitrageRoute = ArbitrageRouteImport.update({
+  id: '/arbitrage',
+  path: '/arbitrage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -68,6 +74,7 @@ const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
+  '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -79,6 +86,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
+  '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -91,6 +99,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
+  '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -104,6 +113,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/actifs'
+    | '/arbitrage'
     | '/auth'
     | '/envois'
     | '/investisseurs'
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/actifs'
+    | '/arbitrage'
     | '/auth'
     | '/envois'
     | '/investisseurs'
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/actifs'
+    | '/arbitrage'
     | '/auth'
     | '/envois'
     | '/investisseurs'
@@ -138,6 +150,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActifsRoute: typeof ActifsRoute
+  ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/actifs'
       fullPath: '/actifs'
       preLoaderRoute: typeof ActifsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arbitrage': {
+      id: '/arbitrage'
+      path: '/arbitrage'
+      fullPath: '/arbitrage'
+      preLoaderRoute: typeof ArbitrageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -218,6 +238,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActifsRoute: ActifsRoute,
+  ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
