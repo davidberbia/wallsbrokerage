@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      arbitrage_requests: {
+        Row: {
+          address: string | null
+          asset_class: string | null
+          comment: string | null
+          created_at: string
+          email: string | null
+          first_name: string | null
+          id: string
+          last_name: string | null
+          match_count: number | null
+          occupancy: string | null
+          phone: string | null
+          price_meur: number | null
+          region: string | null
+          rent_annual: number | null
+          surface: number | null
+        }
+        Insert: {
+          address?: string | null
+          asset_class?: string | null
+          comment?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          match_count?: number | null
+          occupancy?: string | null
+          phone?: string | null
+          price_meur?: number | null
+          region?: string | null
+          rent_annual?: number | null
+          surface?: number | null
+        }
+        Update: {
+          address?: string | null
+          asset_class?: string | null
+          comment?: string | null
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          match_count?: number | null
+          occupancy?: string | null
+          phone?: string | null
+          price_meur?: number | null
+          region?: string | null
+          rent_annual?: number | null
+          surface?: number | null
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           asset_class: string | null
