@@ -160,6 +160,12 @@ function AuthPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
                 />
+                {mode === "signup" && (
+                  <p className="text-xs text-muted-foreground">
+                    Adresse professionnelle uniquement (les adresses personnelles type Gmail,
+                    Outlook, Hotmail, Yahoo, Orange, Laposte… ne sont pas acceptées).
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
