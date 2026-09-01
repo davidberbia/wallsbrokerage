@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
 
@@ -30,6 +31,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnvoisRoute = EnvoisRouteImport.update({
+  id: '/envois',
+  path: '/envois',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InvestisseursRoute = InvestisseursRouteImport.update({
   id: '/investisseurs',
   path: '/investisseurs',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
   '/auth': typeof AuthRoute
+  '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
   '/auth': typeof AuthRoute
+  '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
 }
@@ -60,21 +68,31 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
   '/auth': typeof AuthRoute
+  '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/actifs' | '/auth' | '/investisseurs' | '/mon-profil'
+  fullPaths:
+    '/' | '/actifs' | '/auth' | '/envois' | '/investisseurs' | '/mon-profil'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/actifs' | '/auth' | '/investisseurs' | '/mon-profil'
-  id: '__root__' | '/' | '/actifs' | '/auth' | '/investisseurs' | '/mon-profil'
+  to: '/' | '/actifs' | '/auth' | '/envois' | '/investisseurs' | '/mon-profil'
+  id:
+    | '__root__'
+    | '/'
+    | '/actifs'
+    | '/auth'
+    | '/envois'
+    | '/investisseurs'
+    | '/mon-profil'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActifsRoute: typeof ActifsRoute
   AuthRoute: typeof AuthRoute
+  EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
 }
@@ -102,6 +120,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/envois': {
+      id: '/envois'
+      path: '/envois'
+      fullPath: '/envois'
+      preLoaderRoute: typeof EnvoisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/investisseurs': {
       id: '/investisseurs'
       path: '/investisseurs'
@@ -123,6 +148,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActifsRoute: ActifsRoute,
   AuthRoute: AuthRoute,
+  EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
 }
