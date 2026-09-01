@@ -288,7 +288,11 @@ function ArbitragePage() {
             Si vous souhaitez que nous leur présentions votre actif, c'est par ici :
           </p>
           <div className="mt-6 flex justify-center">
-            <Button size="lg" className="px-14" onClick={() => setShowContact(true)}>
+            <Button
+              size="lg"
+              className="bg-accent px-14 text-accent-foreground hover:bg-accent/90"
+              onClick={() => setShowContact(true)}
+            >
               Contact
             </Button>
           </div>
