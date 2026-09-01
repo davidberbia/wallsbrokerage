@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           address: string | null
           asset_class: string | null
+          city_scope: string | null
           comment: string | null
           created_at: string
           email: string | null
@@ -26,15 +27,18 @@ export type Database = {
           last_name: string | null
           match_count: number | null
           occupancy: string | null
+          periphery_scope: string | null
           phone: string | null
           price_meur: number | null
           region: string | null
           rent_annual: number | null
+          strategy: string | null
           surface: number | null
         }
         Insert: {
           address?: string | null
           asset_class?: string | null
+          city_scope?: string | null
           comment?: string | null
           created_at?: string
           email?: string | null
@@ -43,15 +47,18 @@ export type Database = {
           last_name?: string | null
           match_count?: number | null
           occupancy?: string | null
+          periphery_scope?: string | null
           phone?: string | null
           price_meur?: number | null
           region?: string | null
           rent_annual?: number | null
+          strategy?: string | null
           surface?: number | null
         }
         Update: {
           address?: string | null
           asset_class?: string | null
+          city_scope?: string | null
           comment?: string | null
           created_at?: string
           email?: string | null
@@ -60,10 +67,12 @@ export type Database = {
           last_name?: string | null
           match_count?: number | null
           occupancy?: string | null
+          periphery_scope?: string | null
           phone?: string | null
           price_meur?: number | null
           region?: string | null
           rent_annual?: number | null
+          strategy?: string | null
           surface?: number | null
         }
         Relationships: []

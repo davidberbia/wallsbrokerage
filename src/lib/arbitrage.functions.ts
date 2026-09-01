@@ -5,6 +5,9 @@ const searchSchema = z.object({
   asset_class: z.string().min(1),
   region: z.string().min(1),
   occupancy: z.string().nullable().optional(),
+  strategy: z.string().nullable().optional(),
+  city_scope: z.string().nullable().optional(),
+  periphery_scope: z.string().nullable().optional(),
   price_meur: z.number().positive(),
 });
 
@@ -23,7 +26,7 @@ export const countInterestedInvestors = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("investor_criteria")
-      .select("investor_id, regions, amount_bands")
+      .select("investor_id, regions, amount_bands, strategies, city_scope, periphery_scope")
       .eq("asset_class", data.asset_class);
     if (error) throw new Error(error.message);
 
@@ -32,8 +35,13 @@ export const countInterestedInvestors = createServerFn({ method: "POST" })
     for (const row of rows ?? []) {
       const regions = (row.regions ?? []) as string[];
       const bands = (row.amount_bands ?? []) as string[];
+      const strategies = (row.strategies ?? []) as string[];
       if (regions.length > 0 && !regions.includes(data.region)) continue;
       if (band && bands.length > 0 && !bands.includes(band)) continue;
+      if (data.strategy && strategies.length > 0 && !strategies.includes(data.strategy)) continue;
+      if (data.city_scope && row.city_scope && row.city_scope !== data.city_scope) continue;
+      if (data.periphery_scope && row.periphery_scope && row.periphery_scope !== data.periphery_scope)
+        continue;
       ids.add(row.investor_id as string);
     }
     return { count: ids.size };
@@ -58,6 +66,9 @@ export const submitArbitrageRequest = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("arbitrage_requests").insert({
       asset_class: data.asset_class,
       occupancy: data.occupancy ?? null,
+      strategy: data.strategy ?? null,
+      city_scope: data.city_scope ?? null,
+      periphery_scope: data.periphery_scope ?? null,
       price_meur: data.price_meur,
       region: data.region,
       surface: data.surface ?? null,
