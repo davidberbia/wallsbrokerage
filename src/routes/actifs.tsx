@@ -45,7 +45,7 @@ export const Route = createFileRoute("/actifs")({
     ],
   }),
   component: () => (
-    <AppLayout>
+    <AppLayout requireBroker>
       <AssetsPage />
     </AppLayout>
   ),
