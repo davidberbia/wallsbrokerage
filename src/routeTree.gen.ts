@@ -12,7 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
+import { Route as MonProfilRouteImport } from './routes/mon-profil'
+import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,9 +32,24 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EnvoisRoute = EnvoisRouteImport.update({
+  id: '/envois',
+  path: '/envois',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InvestisseursRoute = InvestisseursRouteImport.update({
   id: '/investisseurs',
   path: '/investisseurs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MonProfilRoute = MonProfilRouteImport.update({
+  id: '/mon-profil',
+  path: '/mon-profil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
+  id: '/api/public/t/$id',
+  path: '/api/public/t/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -39,34 +57,68 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
   '/auth': typeof AuthRoute
+  '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
+  '/mon-profil': typeof MonProfilRoute
+  '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
   '/auth': typeof AuthRoute
+  '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
+  '/mon-profil': typeof MonProfilRoute
+  '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
   '/auth': typeof AuthRoute
+  '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
+  '/mon-profil': typeof MonProfilRoute
+  '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/actifs' | '/auth' | '/investisseurs'
+  fullPaths:
+    | '/'
+    | '/actifs'
+    | '/auth'
+    | '/envois'
+    | '/investisseurs'
+    | '/mon-profil'
+    | '/api/public/t/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/actifs' | '/auth' | '/investisseurs'
-  id: '__root__' | '/' | '/actifs' | '/auth' | '/investisseurs'
+  to:
+    | '/'
+    | '/actifs'
+    | '/auth'
+    | '/envois'
+    | '/investisseurs'
+    | '/mon-profil'
+    | '/api/public/t/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/actifs'
+    | '/auth'
+    | '/envois'
+    | '/investisseurs'
+    | '/mon-profil'
+    | '/api/public/t/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActifsRoute: typeof ActifsRoute
   AuthRoute: typeof AuthRoute
+  EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
+  MonProfilRoute: typeof MonProfilRoute
+  ApiPublicTIdRoute: typeof ApiPublicTIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,11 +144,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/envois': {
+      id: '/envois'
+      path: '/envois'
+      fullPath: '/envois'
+      preLoaderRoute: typeof EnvoisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/investisseurs': {
       id: '/investisseurs'
       path: '/investisseurs'
       fullPath: '/investisseurs'
       preLoaderRoute: typeof InvestisseursRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mon-profil': {
+      id: '/mon-profil'
+      path: '/mon-profil'
+      fullPath: '/mon-profil'
+      preLoaderRoute: typeof MonProfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/t/$id': {
+      id: '/api/public/t/$id'
+      path: '/api/public/t/$id'
+      fullPath: '/api/public/t/$id'
+      preLoaderRoute: typeof ApiPublicTIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -106,7 +179,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActifsRoute: ActifsRoute,
   AuthRoute: AuthRoute,
+  EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
+  MonProfilRoute: MonProfilRoute,
+  ApiPublicTIdRoute: ApiPublicTIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

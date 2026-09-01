@@ -1,6 +1,10 @@
 export type Investor = {
   id: string;
   full_name: string;
+  first_name: string | null;
+  user_id: string | null;
+  profile_updated_at: string;
+  next_review_at: string;
   company: string | null;
   email: string | null;
   phone: string | null;

@@ -1,28 +1,40 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { Building2, LogOut, Target, Users } from "lucide-react";
+import { Building2, LogOut, Send, Target, UserCircle, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const NAV = [
+const BROKER_NAV = [
   { to: "/", label: "Matching", icon: Target },
   { to: "/investisseurs", label: "Investisseurs", icon: Users },
   { to: "/actifs", label: "Actifs", icon: Building2 },
+  { to: "/envois", label: "Envois", icon: Send },
 ] as const;
 
-export function AppLayout({ children }: { children: ReactNode }) {
-  const { session, loading } = useAuth();
+const INVESTOR_NAV = [{ to: "/mon-profil", label: "Mon profil", icon: UserCircle }] as const;
+
+export function AppLayout({
+  children,
+  requireBroker = false,
+}: {
+  children: ReactNode;
+  requireBroker?: boolean;
+}) {
+  const { session, loading, isBroker } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const NAV = isBroker ? BROKER_NAV : INVESTOR_NAV;
 
   useEffect(() => {
-    if (!loading && !session) navigate({ to: "/auth" });
-  }, [loading, session, navigate]);
+    if (loading) return;
+    if (!session) navigate({ to: "/auth" });
+    else if (requireBroker && !isBroker) navigate({ to: "/mon-profil" });
+  }, [loading, session, isBroker, requireBroker, navigate]);
 
-  if (loading || !session) {
+  if (loading || !session || (requireBroker && !isBroker)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Chargement…

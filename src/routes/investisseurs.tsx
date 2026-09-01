@@ -54,7 +54,7 @@ export const Route = createFileRoute("/investisseurs")({
     ],
   }),
   component: () => (
-    <AppLayout>
+    <AppLayout requireBroker>
       <InvestorsPage />
     </AppLayout>
   ),

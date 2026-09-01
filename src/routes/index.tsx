@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -36,7 +37,7 @@ export const Route = createFileRoute("/")({
     ],
   }),
   component: () => (
-    <AppLayout>
+    <AppLayout requireBroker>
       <MatchingPage />
     </AppLayout>
   ),
@@ -54,6 +55,7 @@ function MatchingPage() {
   });
   const [assetId, setAssetId] = useState<string | null>(null);
   const [strict, setStrict] = useState(true);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const investorsQuery = useQuery({
     queryKey: ["investors"],
@@ -87,37 +89,60 @@ function MatchingPage() {
       .sort((a, b) => b.score - a.score || b.reasons.length - a.reasons.length);
   }, [investorsQuery.data, criteria, strict]);
 
-  const emails = results
-    .map((r) => r.investor.email)
-    .filter((e): e is string => Boolean(e));
+  // Sélection : par défaut tous les investisseurs trouvés sont cochés.
+  const visibleIds = useMemo(() => results.map((r) => r.investor.id), [results]);
+  const isSelected = (id: string) => !selected.has(`-${id}`);
+  const toggle = (id: string) => {
+    const next = new Set(selected);
+    const key = `-${id}`;
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setSelected(next);
+  };
+  const allSelected = visibleIds.every((id) => isSelected(id)) && visibleIds.length > 0;
+  const toggleAll = () => {
+    setSelected(allSelected ? new Set(visibleIds.map((id) => `-${id}`)) : new Set());
+  };
+
+  const chosen = results.filter((r) => isSelected(r.investor.id));
+  const emails = chosen.map((r) => r.investor.email).filter((e): e is string => Boolean(e));
+  const asset = (assetsQuery.data ?? []).find((a) => a.id === assetId) ?? null;
 
   const applyAsset = (id: string) => {
+    setSelected(new Set());
     if (id === ANY) {
       setAssetId(null);
       return;
     }
-    const asset = (assetsQuery.data ?? []).find((a) => a.id === id);
-    if (!asset) return;
+    const found = (assetsQuery.data ?? []).find((a) => a.id === id);
+    if (!found) return;
     setAssetId(id);
     setCriteria({
-      price: asset.price,
-      yield_pct: asset.yield_pct,
-      asset_class: asset.asset_class,
-      strategy: asset.strategy,
-      region: asset.region,
+      price: found.price,
+      yield_pct: found.yield_pct,
+      asset_class: found.asset_class,
+      strategy: found.strategy,
+      region: found.region,
     });
   };
 
   const logSends = async () => {
-    if (!assetId) {
+    if (!assetId || !asset) {
       toast.error("Sélectionnez un actif enregistré pour tracer l'envoi.");
       return;
     }
-    const rows = results.map((r) => ({ asset_id: assetId, investor_id: r.investor.id }));
+    const rows = chosen.map((r) => ({
+      asset_id: assetId,
+      investor_id: r.investor.id,
+      email_to: r.investor.email,
+      subject: `Opportunité d'investissement — ${asset.title}`,
+      channel: "email",
+      status: "envoyé",
+    }));
     if (rows.length === 0) return;
     const { error } = await supabase.from("brochure_sends").insert(rows);
     if (error) toast.error(error.message);
-    else toast.success(`${rows.length} envoi(s) enregistré(s)`);
+    else toast.success(`${rows.length} envoi(s) enregistré(s) et horodaté(s)`);
   };
 
   return (
@@ -221,8 +246,19 @@ function MatchingPage() {
         <h2 className="text-xl">
           {results.length} investisseur{results.length > 1 ? "s" : ""} ciblé
           {results.length > 1 ? "s" : ""}
+          <span className="ml-2 text-sm text-muted-foreground">
+            {chosen.length} sélectionné{chosen.length > 1 ? "s" : ""}
+          </span>
         </h2>
         <div className="ml-auto flex flex-wrap gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={results.length === 0}
+            onClick={toggleAll}
+          >
+            {allSelected ? "Tout décocher" : "Tout cocher"}
+          </Button>
           <Button variant="ghost" size="sm" onClick={() => setStrict(!strict)}>
             {strict ? "Voir aussi les correspondances partielles" : "Correspondances strictes"}
           </Button>
@@ -247,7 +283,7 @@ function MatchingPage() {
           >
             <Mail className="size-4" /> Envoyer la brochure
           </Button>
-          <Button size="sm" disabled={results.length === 0} onClick={logSends}>
+          <Button size="sm" disabled={chosen.length === 0} onClick={logSends}>
             <Send className="size-4" /> Tracer l'envoi
           </Button>
         </div>
@@ -264,6 +300,11 @@ function MatchingPage() {
         )}
         {results.map(({ investor, score, reasons, misses }) => (
           <div key={investor.id} className="panel flex flex-wrap items-center gap-4 p-4">
+            <Checkbox
+              checked={isSelected(investor.id)}
+              onCheckedChange={() => toggle(investor.id)}
+              aria-label={`Sélectionner ${investor.full_name}`}
+            />
             <div className="min-w-56 flex-1">
               <p className="font-medium">{investor.full_name}</p>
               <p className="text-sm text-muted-foreground">
