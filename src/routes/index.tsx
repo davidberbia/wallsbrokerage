@@ -211,7 +211,7 @@ function MatchingPage() {
             onChange={(v) => setCriteria({ ...criteria, asset_class: v })}
           />
           <SelectField
-            label="Stratégie"
+            label="Stratégie investisseur"
             options={STRATEGIES}
             value={criteria.strategy}
             onChange={(v) => setCriteria({ ...criteria, strategy: v })}
