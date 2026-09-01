@@ -54,6 +54,7 @@ function MatchingPage() {
   });
   const [assetId, setAssetId] = useState<string | null>(null);
   const [strict, setStrict] = useState(true);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const investorsQuery = useQuery({
     queryKey: ["investors"],
