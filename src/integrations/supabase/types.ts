@@ -71,9 +71,34 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_config: {
+        Row: {
+          created_at: string
+          cron_token: string
+          id: boolean
+          recap_email: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cron_token?: string
+          id?: boolean
+          recap_email?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cron_token?: string
+          id?: boolean
+          recap_email?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       brochure_sends: {
         Row: {
           asset_id: string
+          campaign_id: string | null
           channel: string
           delivered_at: string | null
           email_to: string | null
@@ -90,6 +115,7 @@ export type Database = {
         }
         Insert: {
           asset_id: string
+          campaign_id?: string | null
           channel?: string
           delivered_at?: string | null
           email_to?: string | null
@@ -106,6 +132,7 @@ export type Database = {
         }
         Update: {
           asset_id?: string
+          campaign_id?: string | null
           channel?: string
           delivered_at?: string | null
           email_to?: string | null
@@ -129,10 +156,151 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "brochure_sends_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "brochure_sends_investor_id_fkey"
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          asset_id: string
+          body_html: string
+          brochure_name: string | null
+          brochure_path: string | null
+          created_at: string
+          ends_at: string
+          id: string
+          last_weekly_report_at: string | null
+          owner_id: string | null
+          recap_sent_at: string | null
+          report_j7_sent_at: string | null
+          started_at: string
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          body_html?: string
+          brochure_name?: string | null
+          brochure_path?: string | null
+          created_at?: string
+          ends_at?: string
+          id?: string
+          last_weekly_report_at?: string | null
+          owner_id?: string | null
+          recap_sent_at?: string | null
+          report_j7_sent_at?: string | null
+          started_at?: string
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          body_html?: string
+          brochure_name?: string | null
+          brochure_path?: string | null
+          created_at?: string
+          ends_at?: string
+          id?: string
+          last_weekly_report_at?: string | null
+          owner_id?: string | null
+          recap_sent_at?: string | null
+          report_j7_sent_at?: string | null
+          started_at?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_queue: {
+        Row: {
+          attachment_name: string | null
+          attachment_path: string | null
+          attempts: number
+          body_html: string
+          campaign_id: string | null
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          scheduled_at: string
+          send_id: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          to_email: string
+          to_name: string | null
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attempts?: number
+          body_html: string
+          campaign_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          scheduled_at?: string
+          send_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          to_email: string
+          to_name?: string | null
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          attempts?: number
+          body_html?: string
+          campaign_id?: string | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          scheduled_at?: string
+          send_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          to_email?: string
+          to_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_queue_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_queue_send_id_fkey"
+            columns: ["send_id"]
+            isOneToOne: false
+            referencedRelation: "brochure_sends"
             referencedColumns: ["id"]
           },
         ]
@@ -248,6 +416,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      email_pump_tick: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -255,6 +424,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      start_email_pump: { Args: never; Returns: undefined }
+      trigger_automation: { Args: { path: string }; Returns: undefined }
     }
     Enums: {
       app_role: "broker" | "investor"
