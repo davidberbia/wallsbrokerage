@@ -305,9 +305,67 @@ export type Database = {
           },
         ]
       }
+      investor_criteria: {
+        Row: {
+          amount_bands: string[]
+          asset_class: string
+          bubble_id: string | null
+          city_scope: string | null
+          city_targets: string[]
+          created_at: string
+          id: string
+          investor_id: string
+          investor_profile: string | null
+          periphery_scope: string | null
+          regions: string[]
+          strategies: string[]
+          updated_at: string
+        }
+        Insert: {
+          amount_bands?: string[]
+          asset_class: string
+          bubble_id?: string | null
+          city_scope?: string | null
+          city_targets?: string[]
+          created_at?: string
+          id?: string
+          investor_id: string
+          investor_profile?: string | null
+          periphery_scope?: string | null
+          regions?: string[]
+          strategies?: string[]
+          updated_at?: string
+        }
+        Update: {
+          amount_bands?: string[]
+          asset_class?: string
+          bubble_id?: string | null
+          city_scope?: string | null
+          city_targets?: string[]
+          created_at?: string
+          id?: string
+          investor_id?: string
+          investor_profile?: string | null
+          periphery_scope?: string | null
+          regions?: string[]
+          strategies?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_criteria_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investors: {
         Row: {
+          address: string | null
           asset_classes: string[]
+          bubble_id: string | null
           budget_max: number | null
           budget_min: number | null
           city: string | null
@@ -320,11 +378,14 @@ export type Database = {
           full_name: string
           holding_horizon: string | null
           id: string
+          investor_profile: string | null
+          job_title: string | null
           min_yield: number | null
           next_review_at: string
           notes: string | null
           owner_id: string | null
           phone: string | null
+          postal_code: string | null
           profile_updated_at: string
           regions: string[]
           status: string
@@ -333,7 +394,9 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          address?: string | null
           asset_classes?: string[]
+          bubble_id?: string | null
           budget_max?: number | null
           budget_min?: number | null
           city?: string | null
@@ -346,11 +409,14 @@ export type Database = {
           full_name: string
           holding_horizon?: string | null
           id?: string
+          investor_profile?: string | null
+          job_title?: string | null
           min_yield?: number | null
           next_review_at?: string
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
+          postal_code?: string | null
           profile_updated_at?: string
           regions?: string[]
           status?: string
@@ -359,7 +425,9 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          address?: string | null
           asset_classes?: string[]
+          bubble_id?: string | null
           budget_max?: number | null
           budget_min?: number | null
           city?: string | null
@@ -372,11 +440,14 @@ export type Database = {
           full_name?: string
           holding_horizon?: string | null
           id?: string
+          investor_profile?: string | null
+          job_title?: string | null
           min_yield?: number | null
           next_review_at?: string
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
+          postal_code?: string | null
           profile_updated_at?: string
           regions?: string[]
           status?: string
