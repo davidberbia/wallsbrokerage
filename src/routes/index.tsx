@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Copy, Mail, Send } from "lucide-react";
+import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
+import { CampaignDialog } from "@/components/CampaignDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -276,16 +277,17 @@ function MatchingPage() {
           <Button
             variant="outline"
             size="sm"
-            disabled={emails.length === 0}
-            onClick={() => {
-              window.location.href = `mailto:?bcc=${encodeURIComponent(emails.join(","))}`;
-            }}
+            disabled={chosen.length === 0}
+            onClick={logSends}
           >
-            <Mail className="size-4" /> Envoyer la brochure
+            <Mail className="size-4" /> Tracer un envoi manuel
           </Button>
-          <Button size="sm" disabled={chosen.length === 0} onClick={logSends}>
-            <Send className="size-4" /> Tracer l'envoi
-          </Button>
+          <CampaignDialog
+            asset={asset}
+            recipients={chosen.map((r) => r.investor)}
+            onLaunched={() => setSelected(new Set())}
+          />
+
         </div>
       </div>
 

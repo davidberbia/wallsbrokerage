@@ -15,6 +15,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
+import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
+import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
 import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +49,16 @@ const MonProfilRoute = MonProfilRouteImport.update({
   path: '/mon-profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronDailyRoute = ApiPublicCronDailyRouteImport.update({
+  id: '/api/public/cron/daily',
+  path: '/api/public/cron/daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCronEmailTickRoute = ApiPublicCronEmailTickRouteImport.update({
+  id: '/api/public/cron/email-tick',
+  path: '/api/public/cron/email-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
   id: '/api/public/t/$id',
   path: '/api/public/t/$id',
@@ -60,6 +72,8 @@ export interface FileRoutesByFullPath {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
+  '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +83,8 @@ export interface FileRoutesByTo {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
+  '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesById {
@@ -79,6 +95,8 @@ export interface FileRoutesById {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
+  '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +108,8 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/api/public/cron/daily'
+    | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +119,8 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/api/public/cron/daily'
+    | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
   id:
     | '__root__'
@@ -108,6 +130,8 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/api/public/cron/daily'
+    | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
   fileRoutesById: FileRoutesById
 }
@@ -118,6 +142,8 @@ export interface RootRouteChildren {
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
+  ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
+  ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
   ApiPublicTIdRoute: typeof ApiPublicTIdRoute
 }
 
@@ -165,6 +191,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MonProfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/daily': {
+      id: '/api/public/cron/daily'
+      path: '/api/public/cron/daily'
+      fullPath: '/api/public/cron/daily'
+      preLoaderRoute: typeof ApiPublicCronDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cron/email-tick': {
+      id: '/api/public/cron/email-tick'
+      path: '/api/public/cron/email-tick'
+      fullPath: '/api/public/cron/email-tick'
+      preLoaderRoute: typeof ApiPublicCronEmailTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/t/$id': {
       id: '/api/public/t/$id'
       path: '/api/public/t/$id'
@@ -182,6 +222,8 @@ const rootRouteChildren: RootRouteChildren = {
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
+  ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
+  ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
   ApiPublicTIdRoute: ApiPublicTIdRoute,
 }
 export const routeTree = rootRouteImport
