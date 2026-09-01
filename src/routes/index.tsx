@@ -36,7 +36,7 @@ export const Route = createFileRoute("/")({
     ],
   }),
   component: () => (
-    <AppLayout>
+    <AppLayout requireBroker>
       <MatchingPage />
     </AppLayout>
   ),

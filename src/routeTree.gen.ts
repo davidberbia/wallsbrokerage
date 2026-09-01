@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
+import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const MonProfilRoute = MonProfilRouteImport.update({
   path: '/mon-profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
+  id: '/api/public/t/$id',
+  path: '/api/public/t/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +79,27 @@ export interface FileRoutesById {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/actifs' | '/auth' | '/envois' | '/investisseurs' | '/mon-profil'
+    | '/'
+    | '/actifs'
+    | '/auth'
+    | '/envois'
+    | '/investisseurs'
+    | '/mon-profil'
+    | '/api/public/t/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/actifs' | '/auth' | '/envois' | '/investisseurs' | '/mon-profil'
+  to:
+    | '/'
+    | '/actifs'
+    | '/auth'
+    | '/envois'
+    | '/investisseurs'
+    | '/mon-profil'
+    | '/api/public/t/$id'
   id:
     | '__root__'
     | '/'
@@ -86,6 +108,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/api/public/t/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +118,7 @@ export interface RootRouteChildren {
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
+  ApiPublicTIdRoute: typeof ApiPublicTIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MonProfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/t/$id': {
+      id: '/api/public/t/$id'
+      path: '/api/public/t/$id'
+      fullPath: '/api/public/t/$id'
+      preLoaderRoute: typeof ApiPublicTIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
+  ApiPublicTIdRoute: ApiPublicTIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
