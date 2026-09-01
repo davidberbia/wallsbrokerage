@@ -66,6 +66,9 @@ export const submitArbitrageRequest = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("arbitrage_requests").insert({
       asset_class: data.asset_class,
       occupancy: data.occupancy ?? null,
+      strategy: data.strategy ?? null,
+      city_scope: data.city_scope ?? null,
+      periphery_scope: data.periphery_scope ?? null,
       price_meur: data.price_meur,
       region: data.region,
       surface: data.surface ?? null,
