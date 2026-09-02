@@ -60,9 +60,9 @@ export function CampaignDialog({
     ? `Opportunité d'investissement — ${asset.title}${asset.city ? ` (${asset.city})` : ""}`
     : "Opportunité d'investissement";
   const defaultMessage = asset
-    ? `Je me permets de vous adresser en pièce jointe la brochure de commercialisation de ${asset.title}${
+    ? `Je me permets de te présenter une opportunité d'investissement${
         asset.city ? ` à ${asset.city}` : ""
-      }.\n\nCette opportunité correspond aux critères d'investissement enregistrés dans votre profil. Je reste à votre disposition pour échanger sur le dossier et organiser une visite.`
+      }.\n\nCe dossier correspond aux critères d'investissement enregistrés dans notre CRM. Si votre stratégie a évolué, je vous invite à la corriger en 2 min sur www.wallsbrokerage.com.\n\nN'hésite pas à revenir vers moi en cas d'intérêt.`
     : "";
 
   const launch = async () => {
