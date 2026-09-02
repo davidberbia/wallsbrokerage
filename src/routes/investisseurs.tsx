@@ -235,10 +235,34 @@ function InvestorsPage() {
                     submitLabel={editing.id ? "Valider les modifications" : "Créer l’investisseur"}
                     bands={bands}
                     onBandsChange={setBands}
+                    onStrategyClick={() => setStrategyOpen(true)}
                   />
                 )}
               </DialogContent>
             </Dialog>
+          )}
+          {editing && (
+            <StrategyMatrixDialog
+              open={strategyOpen}
+              onOpenChange={setStrategyOpen}
+              value={{
+                assetClasses: editing.asset_classes ?? [],
+                bands,
+                strategies: editing.strategies ?? [],
+                regions: editing.regions ?? [],
+              }}
+              onChange={(next) => {
+                setBands(next.bands);
+                setEditing({
+                  ...editing,
+                  asset_classes: next.assetClasses,
+                  strategies: next.strategies,
+                  regions: next.regions,
+                });
+              }}
+            />
+          )}
+
           )}
         </div>
       </div>
