@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { CopyEmail } from "@/components/CopyEmail";
 import { InvestorForm, investorPayload, type InvestorDraft } from "@/components/InvestorForm";
+import type { BandsByAsset } from "@/components/AssetClassBands";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,23 @@ function InvestorsPage() {
   const { amountBands } = useLists();
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
+  const [bands, setBands] = useState<BandsByAsset>({});
+
+  const openEdit = async (investor?: Investor) => {
+    if (!investor) {
+      setBands({});
+      setEditing({ ...emptyDraft });
+      return;
+    }
+    setEditing(investor);
+    const { data } = await supabase
+      .from("investor_criteria")
+      .select("asset_class, amount_bands")
+      .eq("investor_id", investor.id);
+    const map: BandsByAsset = {};
+    for (const row of data ?? []) map[row.asset_class] = row.amount_bands ?? [];
+    setBands(map);
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["investors"],
@@ -75,10 +93,37 @@ function InvestorsPage() {
   const save = useMutation({
     mutationFn: async (draft: InvestorDraft) => {
       const payload = investorPayload(draft);
-      const { error } = draft.id
-        ? await supabase.from("investors").update(payload).eq("id", draft.id)
-        : await supabase.from("investors").insert(payload);
-      if (error) throw error;
+      let investorId = draft.id;
+      if (investorId) {
+        const { error } = await supabase.from("investors").update(payload).eq("id", investorId);
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase
+          .from("investors")
+          .insert(payload)
+          .select("id")
+          .single();
+        if (error) throw error;
+        investorId = data.id;
+      }
+      const assets = draft.asset_classes ?? [];
+      const { error: delError } = await supabase
+        .from("investor_criteria")
+        .delete()
+        .eq("investor_id", investorId);
+      if (delError) throw delError;
+      if (assets.length > 0) {
+        const rows = assets.map((asset) => ({
+          investor_id: investorId!,
+          asset_class: asset,
+          investor_profile: draft.investor_profile ?? null,
+          strategies: draft.strategies ?? [],
+          amount_bands: bands[asset] ?? [],
+          regions: draft.regions ?? [],
+        }));
+        const { error: insError } = await supabase.from("investor_criteria").insert(rows);
+        if (insError) throw insError;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["investors"] });
@@ -135,7 +180,7 @@ function InvestorsPage() {
               onOpenChange={(o) => setEditing(o ? (editing ?? { ...emptyDraft }) : null)}
             >
               <DialogTrigger asChild>
-                <Button onClick={() => setEditing({ ...emptyDraft })}>
+                <Button onClick={() => openEdit()}>
                   <Plus className="size-4" /> Nouvel investisseur
                 </Button>
               </DialogTrigger>
@@ -152,6 +197,8 @@ function InvestorsPage() {
                     onSubmit={() => save.mutate(editing)}
                     saving={save.isPending}
                     submitLabel="Valider"
+                    bands={bands}
+                    onBandsChange={setBands}
                   />
                 )}
               </DialogContent>
@@ -198,7 +245,7 @@ function InvestorsPage() {
                       variant="ghost"
                       size="icon"
                       aria-label="Modifier"
-                      onClick={() => setEditing(investor)}
+                      onClick={() => openEdit(investor)}
                     >
                       <Pencil className="size-4" />
                     </Button>

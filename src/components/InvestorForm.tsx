@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { HORIZONS, INVESTOR_STATUS, REGIONS, STRATEGIES } from "@/lib/taxonomy";
-import { matchAmountBand, parseAmountBand, useLists } from "@/lib/lists";
+import { useLists } from "@/lib/lists";
+import { AssetClassBands, type BandsByAsset } from "@/components/AssetClassBands";
 import type { Investor } from "@/lib/types";
 
 export type InvestorDraft = Partial<Investor> & { full_name: string };
@@ -33,6 +34,8 @@ export function InvestorForm({
   showStatus = true,
   submitLabel = "Valider",
   footer,
+  bands = {},
+  onBandsChange,
 }: {
   draft: InvestorDraft;
   onChange: (d: InvestorDraft) => void;
@@ -41,10 +44,11 @@ export function InvestorForm({
   showStatus?: boolean;
   submitLabel?: string;
   footer?: React.ReactNode;
+  bands?: BandsByAsset;
+  onBandsChange?: (b: BandsByAsset) => void;
 }) {
   const set = (patch: Partial<InvestorDraft>) => onChange({ ...draft, ...patch });
   const { assetClasses, investorProfiles, amountBands } = useLists();
-  const currentBand = matchAmountBand(amountBands, draft.budget_min, draft.budget_max);
 
   return (
     <form
@@ -61,7 +65,7 @@ export function InvestorForm({
             onChange={(e) => set({ first_name: e.target.value })}
           />
         </Field>
-        <Field label="Nom complet *">
+        <Field label="Nom de famille *">
           <Input
             required
             value={draft.full_name}
@@ -130,26 +134,6 @@ export function InvestorForm({
             </Select>
           </Field>
         )}
-        <Field label="Tranche d'investissement">
-          <Select
-            value={currentBand}
-            onValueChange={(v) => {
-              const { min, max } = parseAmountBand(v);
-              set({ budget_min: min, budget_max: max });
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="—" />
-            </SelectTrigger>
-            <SelectContent>
-              {amountBands.map((b) => (
-                <SelectItem key={b} value={b}>
-                  {b}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
         <Field label="Horizon de détention">
           <Select
             value={draft.holding_horizon ?? ""}
@@ -169,11 +153,16 @@ export function InvestorForm({
         </Field>
       </div>
 
-      <Field label="Classes d'actifs recherchées">
-        <MultiSelect
-          options={assetClasses}
-          value={draft.asset_classes ?? []}
-          onChange={(v) => set({ asset_classes: v })}
+      <Field label="Classes d'actifs recherchées et tranches d'investissement">
+        <AssetClassBands
+          assetClasses={assetClasses}
+          amountBands={amountBands}
+          selected={draft.asset_classes ?? []}
+          bands={bands}
+          onChange={({ selected, bands: nextBands }) => {
+            set({ asset_classes: selected });
+            onBandsChange?.(nextBands);
+          }}
         />
       </Field>
       <Field label="Stratégies">
@@ -199,7 +188,7 @@ export function InvestorForm({
       </Field>
 
       {footer ?? (
-        <div className="flex justify-end">
+        <div className="sticky bottom-0 -mx-1 flex justify-end border-t border-border bg-background/95 px-1 py-3 backdrop-blur">
           <Button type="submit" disabled={saving}>
             {submitLabel}
           </Button>
