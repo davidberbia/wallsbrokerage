@@ -62,6 +62,23 @@ function InvestorsPage() {
   const { amountBands } = useLists();
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
+  const [bands, setBands] = useState<BandsByAsset>({});
+
+  const openEdit = async (investor?: Investor) => {
+    if (!investor) {
+      setBands({});
+      setEditing({ ...emptyDraft });
+      return;
+    }
+    setEditing(investor);
+    const { data } = await supabase
+      .from("investor_criteria")
+      .select("asset_class, amount_bands")
+      .eq("investor_id", investor.id);
+    const map: BandsByAsset = {};
+    for (const row of data ?? []) map[row.asset_class] = row.amount_bands ?? [];
+    setBands(map);
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["investors"],
