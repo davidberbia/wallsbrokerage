@@ -269,7 +269,7 @@ function InvestorsPage() {
               </div>
 
               {/* Ligne 2 : type d'investisseur */}
-              <p className="text-sm text-muted-foreground">
+              <p className="min-w-0 text-sm text-muted-foreground">
                 {investor.investor_profile || "—"}
               </p>
               <div className="hidden sm:block" />
@@ -277,25 +277,25 @@ function InvestorsPage() {
               <div className="hidden sm:block" />
 
               {/* Ligne 3 : prénom/nom | tranche (label) | email */}
-              <p className="text-sm text-muted-foreground">
+              <p className="min-w-0 truncate text-sm text-muted-foreground">
                 {[investor.first_name, investor.full_name].filter(Boolean).join(" ") || "—"}
               </p>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              <p className="min-w-0 break-words text-[10px] uppercase leading-tight tracking-wide text-muted-foreground">
                 Tranche d'investissement
               </p>
-              <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                {investor.email || "—"}
+              <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
+                <span className="truncate">{investor.email || "—"}</span>
                 <CopyEmail email={investor.email} />
               </p>
               <div className="hidden sm:block" />
 
               {/* Ligne 4 : adresse | tranche (valeur) | téléphone */}
-              <p className="text-sm text-muted-foreground">
+              <p className="min-w-0 text-sm text-muted-foreground">
                 {formatInvestorAddress(investor)}
               </p>
-              <p className="text-sm font-medium">{bandOf(investor)}</p>
-              <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                {investor.phone || "—"}
+              <p className="min-w-0 text-sm font-medium">{bandOf(investor)}</p>
+              <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
+                <span className="truncate">{investor.phone || "—"}</span>
                 {investor.phone && (
                   <Button
                     type="button"
