@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { formatThousands, parseThousands } from "@/lib/format";
 import { AppLayout } from "@/components/AppLayout";
 import { CampaignDialog } from "@/components/CampaignDialog";
 import { CopyEmail } from "@/components/CopyEmail";
