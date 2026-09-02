@@ -32,8 +32,6 @@ export function InvestorForm({
   showStatus = true,
   submitLabel = "Valider",
   footer,
-  bands = {},
-  onBandsChange,
   onStrategyClick,
 }: {
   draft: InvestorDraft;
@@ -43,12 +41,10 @@ export function InvestorForm({
   showStatus?: boolean;
   submitLabel?: string;
   footer?: React.ReactNode;
-  bands?: BandsByAsset;
-  onBandsChange?: (b: BandsByAsset) => void;
   onStrategyClick?: () => void;
 }) {
   const set = (patch: Partial<InvestorDraft>) => onChange({ ...draft, ...patch });
-  const { assetClasses, investorProfiles, amountBands } = useLists();
+  const { investorProfiles } = useLists();
 
 
   return (
