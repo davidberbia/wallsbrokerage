@@ -16,6 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { PUBLIC_APP_URL } from "@/lib/app-url";
+import { brochureFileName } from "@/lib/format";
 import type { Asset, Investor } from "@/lib/types";
 
 const escapeHtml = (value: string) =>
@@ -30,6 +31,14 @@ const paragraphs = (text: string) =>
     .split(/\n{2,}/)
     .map((p) => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
     .join("");
+
+const SIGNATURE_HTML = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#16212f;margin-top:20px;">
+  <div style="font-weight:700;font-size:20px;color:#0f7a72;letter-spacing:0.5px;">WALLSBROKER</div>
+  <div>David Berbia - <strong>07 67 67 24 24</strong></div>
+  <div><a href="mailto:d.berbia@wallsbroker.com" style="color:#1a0dab;">d.berbia@wallsbroker.com</a></div>
+  <div><a href="https://www.wallsbroker.com" style="color:#1a0dab;">www.wallsbroker.com</a></div>
+  <div>Linkedin : <a href="https://www.linkedin.com/in/davidberbia" style="color:#1a0dab;">davidberbia</a></div>
+</div>`;
 
 export function CampaignDialog({
   asset,
@@ -137,7 +146,7 @@ export function CampaignDialog({
           body_html: `<div style="font-family:Arial,Helvetica,sans-serif;color:#16212f;font-size:14px;line-height:1.6;">
   <p>Bonjour ${escapeHtml(prenom)},</p>
   ${paragraphs(finalMessage)}
-  <p>Bien à vous,<br>David Berbia — Walls Brokerage</p>
+  ${SIGNATURE_HTML}
   <img src="${PUBLIC_APP_URL}/api/public/t/${send.tracking_id}.gif" width="1" height="1" alt="" style="display:none">
 </div>`,
         };
