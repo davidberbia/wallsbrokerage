@@ -14,15 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  ASSET_CLASSES,
-  CITY_SCOPES,
-  PERIPHERY_SCOPES,
-  REGIONS,
-  STRATEGIES,
-} from "@/lib/taxonomy";
+import { ASSET_CLASSES, REGIONS } from "@/lib/taxonomy";
+import { formatThousands, parseThousands } from "@/lib/format";
 import { countInterestedInvestors, submitArbitrageRequest } from "@/lib/arbitrage.functions";
 import heroImage from "@/assets/hero-wallsbroker.png";
+
 
 export const Route = createFileRoute("/arbitrage")({
   head: () => ({
