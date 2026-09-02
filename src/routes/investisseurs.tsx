@@ -240,8 +240,6 @@ function InvestorsPage() {
                     onSubmit={() => save.mutate(editing)}
                     saving={save.isPending}
                     submitLabel={editing.id ? "Valider les modifications" : "Créer l’investisseur"}
-                    bands={bands}
-                    onBandsChange={setBands}
                     onStrategyClick={() => setStrategyOpen(true)}
                   />
                 )}
