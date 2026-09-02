@@ -229,11 +229,13 @@ function InvestorsPage() {
       <div className="grid gap-3">
         {filtered.map((investor) => (
           <div key={investor.id} className="panel p-4">
-            <div className="grid items-start gap-4 lg:grid-cols-[minmax(20rem,1fr)_auto_auto]">
+            <div className="grid items-start gap-4 sm:grid-cols-[minmax(16rem,1fr)_auto_auto]">
               <div className="min-w-0">
-                <p className="font-medium">{investor.full_name}</p>
+                <p className="font-semibold">{investor.company || investor.full_name}</p>
                 <p className="text-sm text-muted-foreground">
-                  {[investor.company, investor.investor_profile].filter(Boolean).join(" · ") || "—"}
+                  {investor.company
+                    ? [investor.full_name, investor.investor_profile].filter(Boolean).join(" · ")
+                    : investor.investor_profile || "—"}
                 </p>
                 <p className="text-sm text-muted-foreground">{formatInvestorAddress(investor)}</p>
                 <p className="flex items-center gap-1 text-sm text-muted-foreground">
