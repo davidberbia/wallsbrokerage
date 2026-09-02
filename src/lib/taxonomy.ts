@@ -8,21 +8,26 @@ export const ASSET_CLASSES = [
   "Retail Park complet",
   "Galeries commerciales",
   "Centres commerciaux",
-  "Hôtels",
-  "City Hôtels (murs & fonds)",
-  "Resort Hôtels",
-  "Résidence de services",
-  "Résidence de services ou médicalisée",
+  "City Hôtel (sans fonds)",
+  "City Hôtel (murs et fonds)",
+  "Resort Hôtel (sans fonds)",
+  "Resort Hôtel (murs et fonds)",
+  "Résidence étudiants",
+  "EHPAD",
+  "Santé",
+  "Salle de sport",
+  "Buffets à volonté",
   "Immeubles de logements ou mixtes",
   "Immeubles à restructurer",
-  "Activité / Logistique",
+  "Activité",
+  "Logistique",
   "Terrains à bâtir",
 ] as const;
 
 export const STRATEGIES = ["CORE", "CORE +", "VALUE ADDED", "OPPORTUNISTE"] as const;
 
 export const REGIONS = [
-  "Ile-de-France",
+  "Île-de-France",
   "Auvergne-Rhône-Alpes",
   "Bourgogne-Franche-Comté",
   "Bretagne",
@@ -35,22 +40,51 @@ export const REGIONS = [
   "Occitanie",
   "Pays de la Loire",
   "Provence-Alpes-Côte d’Azur",
+] as const;
+
+export const COUNTRIES = [
   "Espagne",
   "Portugal",
+  "Angleterre",
+  "Italie",
+  "Grèce",
+  "Belgique",
+  "Suisse",
+  "Luxembourg",
 ] as const;
 
 export const INVESTOR_PROFILES = [
-  "Un investisseur privé",
-  "Marchand de biens / Promoteur",
-  "Une Foncière familiale ou privée",
-  "Une Foncière immobilière côtée",
-  "Une SCPI / OPCI",
-  "Une Structure d'Asset Management",
-  "Un investisseur Institutionnel",
+  "Investisseur privé",
+  "Marchand de biens",
+  "Promoteur",
+  "Foncière familiale ou privée",
+  "Family Office",
+  "Foncière immobilière",
+  "SCPI / OPCI",
+  "Structure d'Asset Management",
+  "Investisseur institutionnel",
   "Fonds d'investissement étranger",
 ] as const;
 
-export const AMOUNT_BANDS = ["1 à 5 M€", "5 à 10 M€", "10 à 20 M€", "20 à 50 M€"] as const;
+export const AMOUNT_BANDS = ["1 à 5 M€", "5 à 15 M€", "15 à 50 M€", "50 à 500 M€"] as const;
+
+export const JOB_TITLES = [
+  "Président",
+  "Gérant",
+  "Directeur immobilier",
+  "Directeur des investissements",
+  "Directeur du patrimoine",
+  "Asset Manager",
+  "Analyste",
+  "Autre",
+] as const;
+
+export const STRATEGY_DEFINITIONS: Record<(typeof STRATEGIES)[number], string> = {
+  CORE: "Actif sécurisé, loué à des locataires solides, avec des revenus stables et un risque limité.",
+  "CORE +": "Actif de qualité offrant un rendement régulier, avec un potentiel modéré d’amélioration ou de valorisation.",
+  "VALUE ADDED": "Actif nécessitant une gestion active, des travaux ou une relocation pour créer une plus-value.",
+  OPPORTUNISTE: "Opération à fort potentiel de création de valeur, avec un niveau de risque et de rendement plus élevé.",
+};
 
 export const CITY_SCOPES = [
   "Villes > 200k hab.",
