@@ -1,5 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import {
+  assetClassCandidates,
+  includesNormalized,
+  normalizeText,
+  priceInBands,
+} from "@/lib/matching";
 
 const searchSchema = z.object({
   asset_class: z.string().min(1),
@@ -11,14 +17,6 @@ const searchSchema = z.object({
   price_meur: z.number().positive(),
 });
 
-const bandFor = (priceMeur: number): string | null => {
-  if (priceMeur < 1) return null;
-  if (priceMeur <= 5) return "1 à 5 M€";
-  if (priceMeur <= 10) return "5 à 10 M€";
-  if (priceMeur <= 20) return "10 à 20 M€";
-  return "20 à 50 M€";
-};
-
 /** Retourne uniquement le NOMBRE d'investisseurs potentiellement intéressés (résultat public). */
 export const countInterestedInvestors = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => searchSchema.parse(data))
@@ -26,26 +24,37 @@ export const countInterestedInvestors = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("investor_criteria")
-      .select("investor_id, regions, amount_bands, strategies, city_scope, periphery_scope")
-      .eq("asset_class", data.asset_class);
+      .select("investor_id, asset_class, regions, amount_bands, strategies, city_scope, periphery_scope");
     if (error) throw new Error(error.message);
 
-    const band = bandFor(data.price_meur);
+    const candidates = assetClassCandidates(data.asset_class);
     const ids = new Set<string>();
     for (const row of rows ?? []) {
+      if (!includesNormalized(candidates, (row.asset_class ?? "") as string)) continue;
       const regions = (row.regions ?? []) as string[];
       const bands = (row.amount_bands ?? []) as string[];
       const strategies = (row.strategies ?? []) as string[];
-      if (regions.length > 0 && !regions.includes(data.region)) continue;
-      if (band && bands.length > 0 && !bands.includes(band)) continue;
-      if (data.strategy && strategies.length > 0 && !strategies.includes(data.strategy)) continue;
-      if (data.city_scope && row.city_scope && row.city_scope !== data.city_scope) continue;
-      if (data.periphery_scope && row.periphery_scope && row.periphery_scope !== data.periphery_scope)
+      if (regions.length > 0 && !includesNormalized(regions, data.region)) continue;
+      if (!priceInBands(data.price_meur, bands)) continue;
+      if (data.strategy && strategies.length > 0 && !includesNormalized(strategies, data.strategy))
+        continue;
+      if (
+        data.city_scope &&
+        row.city_scope &&
+        normalizeText(row.city_scope as string) !== normalizeText(data.city_scope)
+      )
+        continue;
+      if (
+        data.periphery_scope &&
+        row.periphery_scope &&
+        normalizeText(row.periphery_scope as string) !== normalizeText(data.periphery_scope)
+      )
         continue;
       ids.add(row.investor_id as string);
     }
     return { count: ids.size };
   });
+
 
 const requestSchema = searchSchema.extend({
   surface: z.number().nullable().optional(),

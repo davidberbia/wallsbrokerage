@@ -1,9 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle2, Clock, Eye } from "lucide-react";
+import { useState } from "react";
+import { CheckCircle2, Clock, Eye, FileDown } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
+import { CopyEmail } from "@/components/CopyEmail";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 export const Route = createFileRoute("/envois")({
   head: () => ({
@@ -32,6 +45,7 @@ export const Route = createFileRoute("/envois")({
 
 type SendRow = {
   id: string;
+  asset_id: string;
   sent_at: string;
   opened_at: string | null;
   email_to: string | null;
@@ -50,24 +64,82 @@ const dt = (v: string | null) =>
       })
     : "—";
 
+const ALL = "__all__";
+
 function SendsPage() {
+  const [assetId, setAssetId] = useState<string>(ALL);
+
+  const assets = useQuery({
+    queryKey: ["assets"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("assets")
+        .select("id, title, reference, city, price, yield_pct, asset_class")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const sends = useQuery({
     queryKey: ["sends"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("brochure_sends")
         .select(
-          "id, sent_at, opened_at, email_to, subject, status, channel, assets(title, reference), investors(full_name, company)",
+          "id, asset_id, sent_at, opened_at, email_to, subject, status, channel, assets(title, reference), investors(full_name, company)",
         )
         .order("sent_at", { ascending: false })
-        .limit(500);
+        .limit(2000);
       if (error) throw error;
       return data as unknown as SendRow[];
     },
   });
 
-  const rows = sends.data ?? [];
+  const rows = (sends.data ?? []).filter((r) => assetId === ALL || r.asset_id === assetId);
   const opened = rows.filter((r) => r.opened_at).length;
+  const asset = (assets.data ?? []).find((a) => a.id === assetId) ?? null;
+
+  const generateReport = async () => {
+    if (rows.length === 0) {
+      toast.error("Aucun envoi à reporter pour cette sélection.");
+      return;
+    }
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
+
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    doc.setFontSize(18);
+    doc.text("Marketing Report", 40, 50);
+    doc.setFontSize(11);
+    doc.text(asset ? asset.title : "Tous les actifs", 40, 72);
+    doc.setFontSize(9);
+    doc.text(
+      `Édité le ${new Date().toLocaleDateString("fr-FR")} · ${rows.length} envoi(s) · ${opened} ouverture(s) · taux d'ouverture ${
+        rows.length ? Math.round((opened / rows.length) * 100) : 0
+      }%`,
+      40,
+      90,
+    );
+
+    autoTable(doc, {
+      startY: 110,
+      head: [["Date", "Investisseur", "Société", "Email", "Statut", "Ouverture"]],
+      body: rows.map((r) => [
+        dt(r.sent_at),
+        r.investors?.full_name ?? "—",
+        r.investors?.company ?? "—",
+        r.email_to ?? "—",
+        r.status,
+        r.opened_at ? dt(r.opened_at) : "non ouvert",
+      ]),
+      styles: { fontSize: 8, cellPadding: 4 },
+      headStyles: { fillColor: [17, 34, 51] },
+    });
+
+    doc.save(`marketing-report-${asset ? asset.title.replace(/[^\w-]+/g, "_") : "global"}.pdf`);
+    toast.success("Marketing Report généré");
+  };
 
   return (
     <div className="space-y-8">
@@ -78,6 +150,29 @@ function SendsPage() {
           Chaque brochure envoyée est horodatée : vous pouvez prouver à quel client vous avez
           transmis quel actif, à quelle date et à quelle heure.
         </p>
+      </div>
+
+      <div className="panel flex flex-wrap items-end gap-4 p-4">
+        <div className="min-w-72 flex-1 space-y-2">
+          <Label>Actif</Label>
+          <Select value={assetId} onValueChange={setAssetId}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>Tous les actifs</SelectItem>
+              {(assets.data ?? []).map((a) => (
+                <SelectItem key={a.id} value={a.id}>
+                  {a.title}
+                  {a.city ? ` — ${a.city}` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <Button variant="outline" onClick={generateReport}>
+          <FileDown className="size-4" /> Générer Marketing Report
+        </Button>
       </div>
 
       <div className="flex flex-wrap gap-3">
@@ -123,7 +218,12 @@ function SendsPage() {
                   <p>{r.assets?.title ?? "—"}</p>
                   <p className="text-xs text-muted-foreground">{r.assets?.reference ?? ""}</p>
                 </td>
-                <td className="px-4 py-3 text-muted-foreground">{r.email_to ?? "—"}</td>
+                <td className="px-4 py-3">
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
+                    {r.email_to ?? "—"}
+                    <CopyEmail email={r.email_to} />
+                  </span>
+                </td>
                 <td className="px-4 py-3">
                   <Badge variant={r.status === "erreur" ? "outline" : "secondary"}>
                     {r.status}
@@ -146,6 +246,7 @@ function SendsPage() {
     </div>
   );
 }
+
 
 function Stat({
   label,
