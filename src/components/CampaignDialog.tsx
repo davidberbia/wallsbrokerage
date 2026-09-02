@@ -49,6 +49,10 @@ export function CampaignDialog({
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const file = brochure ?? ownFile;
+  const storedPath =
+    asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url) ? asset.brochure_url : null;
+  const storedName = storedPath ? (storedPath.split("/").pop() ?? "brochure.pdf") : null;
+  const hasAttachment = Boolean(file || storedPath);
 
   const withEmail = recipients.filter((r) => r.email);
 
@@ -66,7 +70,7 @@ export function CampaignDialog({
       toast.error("Sélectionnez un actif enregistré.");
       return;
     }
-    if (!file) {
+    if (!hasAttachment) {
       toast.error("Ajoutez la brochure PDF à joindre.");
       return;
     }
@@ -77,11 +81,16 @@ export function CampaignDialog({
 
     setBusy(true);
     try {
-      const path = `${asset.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
-      const upload = await supabase.storage
-        .from("brochures")
-        .upload(path, file, { contentType: "application/pdf" });
-      if (upload.error) throw upload.error;
+      let path = storedPath!;
+      let attachmentName = storedName ?? "brochure.pdf";
+      if (file) {
+        path = `${asset.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
+        attachmentName = file.name;
+        const upload = await supabase.storage
+          .from("brochures")
+          .upload(path, file, { contentType: "application/pdf" });
+        if (upload.error) throw upload.error;
+      }
 
       const finalSubject = subject.trim() || defaultSubject;
       const finalMessage = message.trim() || defaultMessage;
@@ -93,7 +102,7 @@ export function CampaignDialog({
           subject: finalSubject,
           body_html: paragraphs(finalMessage),
           brochure_path: path,
-          brochure_name: file.name,
+          brochure_name: attachmentName,
         })
         .select("id")
         .single();
@@ -124,7 +133,7 @@ export function CampaignDialog({
           to_name: investor.full_name,
           subject: finalSubject,
           attachment_path: path,
-          attachment_name: file.name,
+          attachment_name: attachmentName,
           body_html: `<div style="font-family:Arial,Helvetica,sans-serif;color:#16212f;font-size:14px;line-height:1.6;">
   <p>Bonjour ${escapeHtml(prenom)},</p>
   ${paragraphs(finalMessage)}
@@ -157,7 +166,7 @@ export function CampaignDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" disabled={!asset || withEmail.length === 0 || !file}>
+        <Button size="sm" disabled={!asset || withEmail.length === 0 || !hasAttachment}>
           <Send className="size-4" /> Envoyer la brochure
         </Button>
       </DialogTrigger>
@@ -201,9 +210,10 @@ export function CampaignDialog({
               Chaque mail commence par « Bonjour {"{prénom}"} » et se termine par votre signature.
             </p>
           </div>
-          {brochure ? (
+          {brochure || storedPath ? (
             <p className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm">
-              Pièce jointe : <span className="font-medium">{brochure.name}</span>
+              Pièce jointe :{" "}
+              <span className="font-medium">{brochure?.name ?? storedName}</span>
             </p>
           ) : (
             <div className="space-y-2">
