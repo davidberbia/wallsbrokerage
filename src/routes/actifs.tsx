@@ -216,7 +216,7 @@ function AssetsPage() {
               )}
 
               <Button variant="outline" size="sm" asChild>
-                <Link to="/">
+                <Link to="/" search={{ asset: asset.id }}>
                   <Target className="size-4" /> Matcher
                 </Link>
               </Button>
