@@ -5,7 +5,6 @@ import { CheckCircle2, Clock, Eye, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
-import { CopyEmail } from "@/components/CopyEmail";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -53,7 +52,7 @@ type SendRow = {
   status: string;
   channel: string;
   assets: { title: string; reference: string | null } | null;
-  investors: { full_name: string; company: string | null } | null;
+  investors: { company: string | null } | null;
 };
 
 const dt = (v: string | null) =>
@@ -87,7 +86,7 @@ function SendsPage() {
       const { data, error } = await supabase
         .from("brochure_sends")
         .select(
-          "id, asset_id, sent_at, opened_at, email_to, subject, status, channel, assets(title, reference), investors(full_name, company)",
+          "id, asset_id, sent_at, opened_at, email_to, subject, status, channel, assets(title, reference), investors(company)",
         )
         .order("sent_at", { ascending: false })
         .limit(2000);
@@ -124,12 +123,11 @@ function SendsPage() {
 
     autoTable(doc, {
       startY: 110,
-      head: [["Date", "Investisseur", "Société", "Email", "Statut", "Ouverture"]],
+      head: [["Date et heure", "Société", "Actif", "Statut", "Ouverture"]],
       body: rows.map((r) => [
         dt(r.sent_at),
-        r.investors?.full_name ?? "—",
         r.investors?.company ?? "—",
-        r.email_to ?? "—",
+        r.assets?.title ?? "—",
         r.status,
         r.opened_at ? dt(r.opened_at) : "non ouvert",
       ]),
@@ -185,9 +183,8 @@ function SendsPage() {
           <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th className="px-4 py-3">Date et heure</th>
-              <th className="px-4 py-3">Investisseur</th>
+              <th className="px-4 py-3">Société</th>
               <th className="px-4 py-3">Actif</th>
-              <th className="px-4 py-3">Destinataire</th>
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3">Ouverture</th>
             </tr>
@@ -195,14 +192,14 @@ function SendsPage() {
           <tbody>
             {sends.isLoading && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                   Chargement…
                 </td>
               </tr>
             )}
             {!sends.isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                   Aucun envoi enregistré pour le moment.
                 </td>
               </tr>
@@ -210,19 +207,10 @@ function SendsPage() {
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-border/60 last:border-0">
                 <td className="whitespace-nowrap px-4 py-3">{dt(r.sent_at)}</td>
-                <td className="px-4 py-3">
-                  <p className="font-medium">{r.investors?.full_name ?? "—"}</p>
-                  <p className="text-xs text-muted-foreground">{r.investors?.company ?? ""}</p>
-                </td>
+                <td className="px-4 py-3 font-medium">{r.investors?.company ?? "—"}</td>
                 <td className="px-4 py-3">
                   <p>{r.assets?.title ?? "—"}</p>
                   <p className="text-xs text-muted-foreground">{r.assets?.reference ?? ""}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center gap-1 text-muted-foreground">
-                    {r.email_to ?? "—"}
-                    <CopyEmail email={r.email_to} />
-                  </span>
                 </td>
                 <td className="px-4 py-3">
                   <Badge variant={r.status === "erreur" ? "outline" : "secondary"}>
