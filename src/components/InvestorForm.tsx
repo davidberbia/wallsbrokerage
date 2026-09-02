@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HORIZONS, INVESTOR_STATUS, REGIONS, STRATEGIES } from "@/lib/taxonomy";
+import { INVESTOR_STATUS, REGIONS, STRATEGIES } from "@/lib/taxonomy";
 import { useLists } from "@/lib/lists";
 import { AssetClassBands, type BandsByAsset } from "@/components/AssetClassBands";
 import type { Investor } from "@/lib/types";
@@ -52,145 +52,130 @@ export function InvestorForm({
 
   return (
     <form
-      className="space-y-4"
+      className="flex min-h-0 flex-1 flex-col"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit();
       }}
     >
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Prénom">
-          <Input
-            value={draft.first_name ?? ""}
-            onChange={(e) => set({ first_name: e.target.value })}
-          />
-        </Field>
-        <Field label="Nom de famille *">
-          <Input
-            required
-            value={draft.full_name}
-            onChange={(e) => set({ full_name: e.target.value })}
-          />
-        </Field>
-        <Field label="Société">
-          <Input value={draft.company ?? ""} onChange={(e) => set({ company: e.target.value })} />
-        </Field>
-        <Field label="Email">
-          <Input
-            type="email"
-            value={draft.email ?? ""}
-            onChange={(e) => set({ email: e.target.value })}
-          />
-        </Field>
-        <Field label="Téléphone">
-          <Input
-            type="tel"
-            value={draft.phone ?? ""}
-            onChange={(e) => set({ phone: e.target.value })}
-          />
-        </Field>
-        <Field label="Adresse">
-          <Input value={draft.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
-        </Field>
-        <Field label="Code postal">
-          <Input
-            value={draft.postal_code ?? ""}
-            onChange={(e) => set({ postal_code: e.target.value })}
-          />
-        </Field>
-        <Field label="Ville">
-          <Input value={draft.city ?? ""} onChange={(e) => set({ city: e.target.value })} />
-        </Field>
-        <Field label="Type d'investisseur">
-          <Select
-            value={draft.investor_profile ?? ""}
-            onValueChange={(v) => set({ investor_profile: v })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="—" />
-            </SelectTrigger>
-            <SelectContent>
-              {investorProfiles.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        {showStatus && (
-          <Field label="Statut">
-            <Select value={draft.status ?? "actif"} onValueChange={(v) => set({ status: v })}>
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-1 pb-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Prénom">
+            <Input
+              value={draft.first_name ?? ""}
+              onChange={(e) => set({ first_name: e.target.value })}
+            />
+          </Field>
+          <Field label="Nom de famille *">
+            <Input
+              required
+              value={draft.full_name}
+              onChange={(e) => set({ full_name: e.target.value })}
+            />
+          </Field>
+          <Field label="Société">
+            <Input value={draft.company ?? ""} onChange={(e) => set({ company: e.target.value })} />
+          </Field>
+          <Field label="Adresse email">
+            <Input
+              type="email"
+              value={draft.email ?? ""}
+              onChange={(e) => set({ email: e.target.value })}
+            />
+          </Field>
+          <Field label="Téléphone">
+            <Input
+              type="tel"
+              value={draft.phone ?? ""}
+              onChange={(e) => set({ phone: e.target.value })}
+            />
+          </Field>
+          <Field label="Adresse de la société">
+            <Input value={draft.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
+          </Field>
+          <Field label="Code postal">
+            <Input
+              value={draft.postal_code ?? ""}
+              onChange={(e) => set({ postal_code: e.target.value })}
+            />
+          </Field>
+          <Field label="Ville">
+            <Input value={draft.city ?? ""} onChange={(e) => set({ city: e.target.value })} />
+          </Field>
+          <Field label="Type d'investisseur">
+            <Select
+              value={draft.investor_profile ?? ""}
+              onValueChange={(v) => set({ investor_profile: v })}
+            >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="—" />
               </SelectTrigger>
               <SelectContent>
-                {INVESTOR_STATUS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
+                {investorProfiles.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </Field>
-        )}
-        <Field label="Horizon de détention">
-          <Select
-            value={draft.holding_horizon ?? ""}
-            onValueChange={(v) => set({ holding_horizon: v })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="—" />
-            </SelectTrigger>
-            <SelectContent>
-              {HORIZONS.map((h) => (
-                <SelectItem key={h} value={h}>
-                  {h}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {showStatus && (
+            <Field label="Statut">
+              <Select value={draft.status ?? "actif"} onValueChange={(v) => set({ status: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {INVESTOR_STATUS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
+        </div>
+
+        <Field label="Classes d'actifs recherchées et tranches d'investissement">
+          <AssetClassBands
+            assetClasses={assetClasses}
+            amountBands={amountBands}
+            selected={draft.asset_classes ?? []}
+            bands={bands}
+            onChange={({ selected, bands: nextBands }) => {
+              set({ asset_classes: selected });
+              onBandsChange?.(nextBands);
+            }}
+          />
+        </Field>
+        <Field label="Stratégies">
+          <MultiSelect
+            options={STRATEGIES}
+            value={draft.strategies ?? []}
+            onChange={(v) => set({ strategies: v })}
+          />
+        </Field>
+        <Field label="Régions ciblées">
+          <MultiSelect
+            options={REGIONS}
+            value={draft.regions ?? []}
+            onChange={(v) => set({ regions: v })}
+          />
+        </Field>
+        <Field label="Notes">
+          <Textarea
+            rows={3}
+            value={draft.notes ?? ""}
+            onChange={(e) => set({ notes: e.target.value })}
+          />
         </Field>
       </div>
 
-      <Field label="Classes d'actifs recherchées et tranches d'investissement">
-        <AssetClassBands
-          assetClasses={assetClasses}
-          amountBands={amountBands}
-          selected={draft.asset_classes ?? []}
-          bands={bands}
-          onChange={({ selected, bands: nextBands }) => {
-            set({ asset_classes: selected });
-            onBandsChange?.(nextBands);
-          }}
-        />
-      </Field>
-      <Field label="Stratégies">
-        <MultiSelect
-          options={STRATEGIES}
-          value={draft.strategies ?? []}
-          onChange={(v) => set({ strategies: v })}
-        />
-      </Field>
-      <Field label="Régions ciblées">
-        <MultiSelect
-          options={REGIONS}
-          value={draft.regions ?? []}
-          onChange={(v) => set({ regions: v })}
-        />
-      </Field>
-      <Field label="Notes">
-        <Textarea
-          rows={3}
-          value={draft.notes ?? ""}
-          onChange={(e) => set({ notes: e.target.value })}
-        />
-      </Field>
-
       {footer ?? (
-        <div className="sticky bottom-0 -mx-1 flex justify-end border-t border-border bg-background/95 px-1 py-3 backdrop-blur">
+        <div className="flex shrink-0 justify-end border-t border-border bg-background pt-4">
           <Button type="submit" disabled={saving}>
-            {submitLabel}
+            {saving ? "Enregistrement…" : submitLabel}
           </Button>
         </div>
       )}
