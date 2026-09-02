@@ -86,6 +86,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "CRM immobilier : profils investisseurs, actifs à placer et matching automatique pour l'envoi des brochures.",
       },
       { name: "author", content: "Walls Brokerage" },
+      {
+        name: "google-site-verification",
+        content: "OD3sViJXZnP9-kMQGvukwhM3MSqbxYBkXUxSC7psMkQ",
+      },
       { property: "og:title", content: "Walls Brokerage — CRM Investisseurs" },
       {
         property: "og:description",
