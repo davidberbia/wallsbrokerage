@@ -137,6 +137,15 @@ function MatchingPage() {
     });
   };
 
+  useEffect(() => {
+    if (prefilled || !assetParam) return;
+    const found = (assetsQuery.data ?? []).find((a) => a.id === assetParam);
+    if (!found) return;
+    setPrefilled(true);
+    applyAsset(assetParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assetParam, assetsQuery.data, prefilled]);
+
   const logSends = async () => {
     if (!assetId || !asset) {
       toast.error("Sélectionnez un actif enregistré pour tracer l'envoi.");
