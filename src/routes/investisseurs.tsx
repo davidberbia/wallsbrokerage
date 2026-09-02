@@ -113,8 +113,9 @@ function InvestorsPage() {
         .eq("investor_id", investorId);
       if (delError) throw delError;
       if (assets.length > 0) {
+        if (!investorId) throw new Error("Profil investisseur introuvable");
         const rows = assets.map((asset) => ({
-          investor_id: investorId!,
+          investor_id: investorId,
           asset_class: asset,
           investor_profile: draft.investor_profile ?? null,
           strategies: draft.strategies ?? [],
@@ -184,7 +185,7 @@ function InvestorsPage() {
                   <Plus className="size-4" /> Nouvel investisseur
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+              <DialogContent className="flex max-h-[90vh] w-[calc(100%-2rem)] max-w-xl flex-col overflow-hidden">
                 <DialogHeader>
                   <DialogTitle>
                     {editing?.id ? "Modifier le profil" : "Nouveau profil investisseur"}
@@ -196,7 +197,7 @@ function InvestorsPage() {
                     onChange={setEditing}
                     onSubmit={() => save.mutate(editing)}
                     saving={save.isPending}
-                    submitLabel="Valider"
+                    submitLabel={editing.id ? "Valider les modifications" : "Créer l’investisseur"}
                     bands={bands}
                     onBandsChange={setBands}
                   />
