@@ -262,8 +262,8 @@ function InvestorsPage() {
               }}
             />
           )}
+        </div>
 
-          )}
         </div>
       </div>
 
