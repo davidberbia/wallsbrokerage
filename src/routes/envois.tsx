@@ -73,7 +73,7 @@ function SendsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("assets")
-        .select("id, title, reference, city, price, yield_pct, asset_class")
+        .select("id, title, reference, city, surface, price, yield_pct, asset_class")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -113,21 +113,26 @@ function SendsPage() {
     doc.setFontSize(11);
     doc.text(asset ? asset.title : "Tous les actifs", 40, 72);
     doc.setFontSize(9);
+    if (asset) {
+      const surface = asset.surface ? `${asset.surface.toLocaleString("fr-FR")} m²` : null;
+      const city = asset.city ? asset.city : null;
+      const parts = [surface, city].filter(Boolean);
+      if (parts.length > 0) doc.text(parts.join(" — "), 40, 88);
+    }
     doc.text(
       `Édité le ${new Date().toLocaleDateString("fr-FR")} · ${rows.length} envoi(s) · ${opened} ouverture(s) · taux d'ouverture ${
         rows.length ? Math.round((opened / rows.length) * 100) : 0
       }%`,
       40,
-      90,
+      asset ? 104 : 88,
     );
 
     autoTable(doc, {
-      startY: 110,
-      head: [["Date et heure", "Société", "Actif", "Statut", "Ouverture"]],
+      startY: asset ? 120 : 104,
+      head: [["Date et heure", "Société", "Statut", "Ouverture"]],
       body: rows.map((r) => [
         dt(r.sent_at),
         r.investors?.company ?? "—",
-        r.assets?.title ?? "—",
         r.status,
         r.opened_at ? dt(r.opened_at) : "non ouvert",
       ]),
