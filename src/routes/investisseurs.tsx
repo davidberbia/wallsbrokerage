@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { CopyEmail } from "@/components/CopyEmail";
 import { InvestorForm, investorPayload, type InvestorDraft } from "@/components/InvestorForm";
+import type { BandsByAsset } from "@/components/AssetClassBands";
 import { useAuth } from "@/hooks/useAuth";
 
 import { Button } from "@/components/ui/button";
@@ -244,7 +245,7 @@ function InvestorsPage() {
                       variant="ghost"
                       size="icon"
                       aria-label="Modifier"
-                      onClick={() => setEditing(investor)}
+                      onClick={() => openEdit(investor)}
                     >
                       <Pencil className="size-4" />
                     </Button>
