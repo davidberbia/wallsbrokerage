@@ -146,6 +146,7 @@ async function sendCampaignRecap(campaignId: string) {
     html: reportHtml({
       title: `Récapitulatif d'envoi — ${label}`,
       intro: `Tous les mails de cette commercialisation ont été envoyés. Voici la liste complète des investisseurs destinataires, avec la date et l'heure d'envoi.`,
+      showOpened: false,
       sections: [{ heading: "Investisseurs destinataires", rows }],
     }),
   });

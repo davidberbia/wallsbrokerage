@@ -62,21 +62,28 @@ export type ReportRow = {
 export function reportHtml(params: {
   title: string;
   intro: string;
+  /** Affiche la colonne "Lecture" (false pour le tout premier récapitulatif d'envoi). */
+  showOpened?: boolean;
   sections: { heading: string; rows: ReportRow[]; note?: string }[];
 }): string {
+  const showOpened = params.showOpened !== false;
+  const colCount = showOpened ? 3 : 2;
   const sections = params.sections
     .map((section) => {
       const rows = section.rows
         .map(
           (r) => `<tr>
-  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;">${escapeHtml(r.name)}${
-    r.company ? `<br><span style="color:#8a8378;font-size:12px;">${escapeHtml(r.company)}</span>` : ""
+  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;">${escapeHtml(r.company || r.name)}${
+    r.company ? `<br><span style="color:#8a8378;font-size:12px;">${escapeHtml(r.name)}</span>` : ""
   }</td>
-  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;color:#5d574e;">${escapeHtml(r.email ?? "—")}</td>
-  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;white-space:nowrap;">${fmtDateTime(r.sent_at)}</td>
+  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;white-space:nowrap;">${fmtDateTime(r.sent_at)}</td>${
+    showOpened
+      ? `
   <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;white-space:nowrap;color:${
     r.opened_at ? "#1f7a4d" : "#8a8378"
-  };">${r.opened_at ? fmtDateTime(r.opened_at) : "non ouvert"}</td>
+  };">${r.opened_at ? fmtDateTime(r.opened_at) : "non ouvert"}</td>`
+      : ""
+  }
 </tr>`,
         )
         .join("");
@@ -86,13 +93,12 @@ ${section.note ? `<p style="margin:0 0 8px;color:#8a8378;font-size:13px;">${esca
 <table style="border-collapse:collapse;width:100%;font-size:13px;color:#16212f;">
   <thead>
     <tr style="text-align:left;background:#f6f3ee;">
-      <th style="padding:8px 10px;">Investisseur</th>
-      <th style="padding:8px 10px;">Email</th>
-      <th style="padding:8px 10px;">Envoi</th>
-      <th style="padding:8px 10px;">Lecture</th>
+      <th style="padding:8px 10px;">Société</th>
+      <th style="padding:8px 10px;">Envoi</th>${showOpened ? `
+      <th style="padding:8px 10px;">Lecture</th>` : ""}
     </tr>
   </thead>
-  <tbody>${rows || `<tr><td colspan="4" style="padding:12px 10px;color:#8a8378;">Aucun envoi.</td></tr>`}</tbody>
+  <tbody>${rows || `<tr><td colspan="${colCount}" style="padding:12px 10px;color:#8a8378;">Aucun envoi.</td></tr>`}</tbody>
 </table>`;
     })
     .join("");
