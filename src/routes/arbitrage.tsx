@@ -216,67 +216,12 @@ function ArbitragePage() {
               </Select>
             </Field>
 
-            <Field label="Stratégie investisseur">
-              <Select value={form.strategy} onValueChange={(v) => set("strategy", v)}>
-                <SelectTrigger className="border-0 bg-transparent px-0 text-base shadow-none">
-                  <SelectValue placeholder="Stratégie investisseur" />
-                </SelectTrigger>
-                <SelectContent>
-                  {STRATEGIES.map((strategy) => (
-                    <SelectItem key={strategy} value={strategy}>
-                      {strategy}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
-
-            <div className="space-y-2">
-              <Label className="text-primary-foreground">Ville et périphérie</Label>
-              <div className="grid gap-2">
-                <div className="rounded-xl bg-card px-4 py-3 text-card-foreground">
-                  <Select
-                    value={form.periphery_scope}
-                    onValueChange={(v) => set("periphery_scope", v)}
-                  >
-                    <SelectTrigger className="border-0 bg-transparent px-0 text-base shadow-none">
-                      <SelectValue placeholder="Périphérie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PERIPHERY_SCOPES.map((scope) => (
-                        <SelectItem key={scope} value={scope}>
-                          {scope}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="rounded-xl bg-card px-4 py-3 text-card-foreground">
-                  <Select value={form.city_scope} onValueChange={(v) => set("city_scope", v)}>
-                    <SelectTrigger className="border-0 bg-transparent px-0 text-base shadow-none">
-                      <SelectValue placeholder="Centre-ville" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CITY_SCOPES.map((scope) => (
-                        <SelectItem key={scope} value={scope}>
-                          {scope}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            <Field label="Prix en M€ (entre 1 et 500 M€)">
+            <Field label="Prix en € (entre 1 000 000 et 500 000 000 €)">
               <BareInput
-                type="number"
-                step="0.1"
-                min="1"
-                max="500"
-                placeholder="10.0"
+                inputMode="numeric"
+                placeholder="10 000 000"
                 value={form.price}
-                onChange={(e) => set("price", e.target.value)}
+                onChange={(e) => set("price", formatThousands(e.target.value))}
               />
             </Field>
 
@@ -295,14 +240,17 @@ function ArbitragePage() {
               </Select>
             </Field>
 
-
-
-
             <div className="md:col-span-2 flex justify-end">
-              <Button type="submit" variant="secondary" size="lg" disabled={busy}>
+              <Button
+                type="submit"
+                size="lg"
+                className="bg-accent px-10 text-accent-foreground hover:bg-accent/90"
+                disabled={busy}
+              >
                 {busy ? "Recherche…" : "Lancer la recherche"}
               </Button>
             </div>
+
           </form>
         </section>
       </main>
