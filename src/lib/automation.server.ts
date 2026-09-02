@@ -73,11 +73,11 @@ export function reportHtml(params: {
       const rows = section.rows
         .map(
           (r) => `<tr>
-  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;">${escapeHtml(r.company || r.name)}</td>
-  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;white-space:nowrap;">${fmtDateTime(r.sent_at)}</td>${
+  <td style="width:${showOpened ? "52%" : "65%"};padding:8px 10px;border-bottom:1px solid #e6e2db;text-align:left;">${escapeHtml(r.company || r.name)}</td>
+  <td style="width:${showOpened ? "24%" : "35%"};padding:8px 10px;border-bottom:1px solid #e6e2db;white-space:nowrap;text-align:left;">${fmtDateTime(r.sent_at)}</td>${
     showOpened
       ? `
-  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;white-space:nowrap;color:${
+  <td style="width:24%;padding:8px 10px;border-bottom:1px solid #e6e2db;white-space:nowrap;text-align:left;color:${
     r.opened_at ? "#1f7a4d" : "#8a8378"
   };">${r.opened_at ? fmtDateTime(r.opened_at) : "non ouvert"}</td>`
       : ""
@@ -88,12 +88,17 @@ export function reportHtml(params: {
 
       return `<h3 style="font-size:15px;margin:26px 0 8px;color:#16212f;">${escapeHtml(section.heading)}</h3>
 ${section.note ? `<p style="margin:0 0 8px;color:#8a8378;font-size:13px;">${escapeHtml(section.note)}</p>` : ""}
-<table style="border-collapse:collapse;width:100%;font-size:13px;color:#16212f;">
+<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;width:100%;table-layout:fixed;font-size:13px;color:#16212f;">
+  <colgroup>
+    <col style="width:${showOpened ? "52%" : "65%"};">
+    <col style="width:${showOpened ? "24%" : "35%"};">
+    ${showOpened ? '<col style="width:24%;">' : ""}
+  </colgroup>
   <thead>
     <tr style="text-align:left;background:#f6f3ee;">
-      <th style="padding:8px 10px;">Société</th>
-      <th style="padding:8px 10px;">Envoi</th>${showOpened ? `
-      <th style="padding:8px 10px;">Lecture</th>` : ""}
+      <th style="padding:8px 10px;text-align:left;">Société</th>
+      <th style="padding:8px 10px;text-align:left;">Envoi</th>${showOpened ? `
+      <th style="padding:8px 10px;text-align:left;">Lecture</th>` : ""}
     </tr>
   </thead>
   <tbody>${rows || `<tr><td colspan="${colCount}" style="padding:12px 10px;color:#8a8378;">Aucun envoi.</td></tr>`}</tbody>

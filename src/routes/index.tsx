@@ -51,6 +51,22 @@ export const Route = createFileRoute("/")({
 
 const ANY = "__any__";
 
+type InvestorCriterion = {
+  investor_id: string;
+  asset_class: string;
+  amount_bands: string[];
+};
+
+const displayInvestorName = (investor: Investor) => {
+  const firstName = (investor.first_name ?? "").trim();
+  const lastName = investor.full_name.trim();
+  if (!firstName) return lastName || "—";
+  if (lastName.toLocaleLowerCase("fr").startsWith(firstName.toLocaleLowerCase("fr"))) {
+    return lastName;
+  }
+  return `${firstName} ${lastName}`.trim();
+};
+
 function MatchingPage() {
   const { asset: assetParam } = Route.useSearch();
   const [criteria, setCriteria] = useState<Criteria>({
@@ -92,6 +108,28 @@ function MatchingPage() {
       return data as unknown as Asset[];
     },
   });
+
+  const criteriaQuery = useQuery({
+    queryKey: ["investor-criteria", "matching"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("investor_criteria")
+        .select("investor_id, asset_class, amount_bands");
+      if (error) throw error;
+      return data as InvestorCriterion[];
+    },
+  });
+
+  const bandsByInvestor = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const row of criteriaQuery.data ?? []) {
+      if (criteria.asset_class && row.asset_class !== criteria.asset_class) continue;
+      const bands = map.get(row.investor_id) ?? new Set<string>();
+      for (const band of row.amount_bands ?? []) bands.add(band);
+      map.set(row.investor_id, bands);
+    }
+    return map;
+  }, [criteria.asset_class, criteriaQuery.data]);
 
   const results = useMemo(() => {
     const investors = investorsQuery.data ?? [];
@@ -369,10 +407,10 @@ function MatchingPage() {
             <Checkbox
               checked={isSelected(investor.id)}
               onCheckedChange={() => toggle(investor.id)}
-              aria-label={`Sélectionner ${investor.full_name}`}
+               aria-label={`Sélectionner ${displayInvestorName(investor)}`}
             />
             <div className="min-w-56 flex-1">
-              <p className="font-medium">{investor.full_name}</p>
+               <p className="font-medium">{displayInvestorName(investor)}</p>
               <p className="text-sm text-muted-foreground">
                 {[investor.company, investor.city].filter(Boolean).join(" · ") || "—"}
               </p>
@@ -382,8 +420,10 @@ function MatchingPage() {
               </p>
 
             </div>
-            <div className="text-sm text-muted-foreground">
-              {formatEUR(investor.budget_min)} – {formatEUR(investor.budget_max)}
+            <div className="max-w-72 text-sm text-muted-foreground">
+              {bandsByInvestor.get(investor.id)?.size
+                ? [...(bandsByInvestor.get(investor.id) ?? [])].join(" · ")
+                : `${formatEUR(investor.budget_min)} – ${formatEUR(investor.budget_max)}`}
             </div>
             <div className="flex flex-wrap gap-1">
               {reasons.map((r) => (

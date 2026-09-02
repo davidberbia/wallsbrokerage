@@ -172,8 +172,16 @@ export function CampaignDialog({
     }
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && !open) {
+      setSubject(defaultSubject);
+      setMessage(defaultMessage);
+    }
+    setOpen(nextOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm" disabled={!asset || withEmail.length === 0 || !hasAttachment}>
           <Send className="size-4" /> Envoyer la brochure
@@ -202,7 +210,7 @@ export function CampaignDialog({
             <Input
               id="campaign-subject"
               value={subject}
-              placeholder={defaultSubject}
+              placeholder="Objet du mail"
               onChange={(e) => setSubject(e.target.value)}
             />
           </div>
@@ -212,7 +220,7 @@ export function CampaignDialog({
               id="campaign-message"
               rows={7}
               value={message}
-              placeholder={defaultMessage}
+              placeholder="Saisissez le message"
               onChange={(e) => setMessage(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
