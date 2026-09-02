@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,6 +65,8 @@ function MatchingPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [brochure, setBrochure] = useState<File | null>(null);
   const [prefilled, setPrefilled] = useState(false);
+  const [savingBrochure, setSavingBrochure] = useState(false);
+  const queryClient = useQueryClient();
 
 
   const investorsQuery = useQuery({
@@ -117,6 +119,10 @@ function MatchingPage() {
   const chosen = results.filter((r) => isSelected(r.investor.id));
   const emails = chosen.map((r) => r.investor.email).filter((e): e is string => Boolean(e));
   const asset = (assetsQuery.data ?? []).find((a) => a.id === assetId) ?? null;
+  const storedBrochureName =
+    asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url)
+      ? (asset.brochure_url.split("/").pop() ?? null)
+      : (asset?.brochure_url ?? null);
 
   const applyAsset = (id: string) => {
     setSelected(new Set());
@@ -342,7 +348,6 @@ function MatchingPage() {
             recipients={chosen.map((r) => r.investor)}
             onLaunched={() => {
               setSelected(new Set());
-              setBrochure(null);
             }}
           />
 
