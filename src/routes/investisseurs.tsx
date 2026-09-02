@@ -264,7 +264,6 @@ function InvestorsPage() {
           )}
         </div>
 
-        </div>
       </div>
 
       {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
