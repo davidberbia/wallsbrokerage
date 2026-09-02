@@ -336,7 +336,7 @@ function InvestorsPage() {
                   {investor.investor_profile || "—"}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {[investor.first_name, investor.full_name].filter(Boolean).join(" ") || "—"}
+                  {displayName(investor)}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {formatInvestorAddress(investor)}
