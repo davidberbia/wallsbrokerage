@@ -49,6 +49,10 @@ export function CampaignDialog({
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const file = brochure ?? ownFile;
+  const storedPath =
+    asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url) ? asset.brochure_url : null;
+  const storedName = storedPath ? (storedPath.split("/").pop() ?? "brochure.pdf") : null;
+  const hasAttachment = Boolean(file || storedPath);
 
   const withEmail = recipients.filter((r) => r.email);
 
