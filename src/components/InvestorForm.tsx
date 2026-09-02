@@ -36,6 +36,7 @@ export function InvestorForm({
   footer,
   bands = {},
   onBandsChange,
+  onStrategyClick,
 }: {
   draft: InvestorDraft;
   onChange: (d: InvestorDraft) => void;
@@ -46,9 +47,11 @@ export function InvestorForm({
   footer?: React.ReactNode;
   bands?: BandsByAsset;
   onBandsChange?: (b: BandsByAsset) => void;
+  onStrategyClick?: () => void;
 }) {
   const set = (patch: Partial<InvestorDraft>) => onChange({ ...draft, ...patch });
   const { assetClasses, investorProfiles, amountBands } = useLists();
+
 
   return (
     <form
