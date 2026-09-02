@@ -22,7 +22,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { formatEUR } from "@/lib/taxonomy";
-import { matchAmountBand, useLists } from "@/lib/lists";
 import type { Investor } from "@/lib/types";
 
 export const Route = createFileRoute("/investisseurs")({
@@ -93,7 +92,6 @@ const statusPill = (status: string) => STATUS_PILL[status] ?? "status-pill statu
 function InvestorsPage() {
   const qc = useQueryClient();
   const { canEdit } = useAuth();
-  const { amountBands } = useLists();
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
   const [bands, setBands] = useState<BandsByAsset>({});
@@ -197,8 +195,6 @@ function InvestorsPage() {
   }, [data, search]);
 
   const bandOf = (investor: Investor) => {
-    const band = matchAmountBand(amountBands, investor.budget_min, investor.budget_max);
-    if (band) return band;
     if (investor.budget_min == null && investor.budget_max == null) return "—";
     return `${formatEUR(investor.budget_min)} – ${formatEUR(investor.budget_max)}`;
   };
