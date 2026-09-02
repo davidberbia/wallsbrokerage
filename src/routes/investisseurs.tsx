@@ -289,7 +289,7 @@ function InvestorsPage() {
 
               {/* Ligne 3 : prénom/nom | tranche (label) | email */}
               <p className="min-w-0 truncate text-sm text-muted-foreground">
-                {[investor.first_name, investor.full_name].filter(Boolean).join(" ") || "—"}
+                {displayName(investor)}
               </p>
               <p className="min-w-0 text-xs uppercase tracking-wide text-muted-foreground">
                 Tranche d'investissement
