@@ -31,7 +31,8 @@ export function MultiSelect({
           <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="max-h-72 w-[var(--radix-popover-trigger-width)] overflow-y-auto p-1" align="start">
+      <PopoverContent className="max-h-72 overflow-y-auto p-1"
+        style={{ width: "var(--radix-popover-trigger-width)", maxWidth: "var(--radix-popover-trigger-width)" }} align="start">
         {options.map((opt) => (
           <button
             key={opt}
