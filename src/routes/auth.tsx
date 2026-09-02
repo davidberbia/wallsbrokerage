@@ -316,10 +316,14 @@ function AuthPage() {
         </section>
 
         <section className="mt-10 rounded-2xl bg-primary p-7 text-primary-foreground md:p-10">
-          <p className="eyebrow text-primary-foreground/70">Rechercher</p>
-          <h2 className="mt-1 text-2xl text-primary-foreground md:text-3xl">
-            Faites une recherche d'investisseurs
+          <h2 className="text-2xl text-primary-foreground md:text-3xl">
+            Combien d'investisseurs pourraient être intéressés par votre actif ?
           </h2>
+          <p className="mt-3 max-w-3xl text-sm text-primary-foreground/80">
+            Pas besoin de l'adresse de l'actif : en indiquant simplement la région, la classe
+            d'actif, la situation locative et le prix demandé, vous saurez combien d'investisseurs
+            de la communauté Wallsbroker pourraient être intéressés par votre actif.
+          </p>
 
           <form onSubmit={search} className="mt-8 grid gap-4 md:grid-cols-2">
             <Field label="Classe d'actif">
