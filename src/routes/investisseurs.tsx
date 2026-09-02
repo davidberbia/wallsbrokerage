@@ -68,6 +68,16 @@ function formatInvestorAddress(investor: Investor) {
   return [address, postalCity].filter(Boolean).join(", ") || "—";
 }
 
+function displayName(investor: Investor) {
+  const first = (investor.first_name ?? "").trim();
+  const full = (investor.full_name ?? "").trim();
+  if (!first && !full) return "—";
+  if (!first) return full;
+  if (!full) return first;
+  if (full.toLowerCase().startsWith(first.toLowerCase())) return full;
+  return `${first} ${full}`;
+}
+
 function InvestorsPage() {
   const qc = useQueryClient();
   const { canEdit } = useAuth();
