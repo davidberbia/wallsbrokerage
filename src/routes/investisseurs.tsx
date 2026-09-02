@@ -22,7 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { formatEUR } from "@/lib/taxonomy";
-import type { Investor } from "@/lib/types";
+import type { Investor, InvestorCriteria } from "@/lib/types";
 
 export const Route = createFileRoute("/investisseurs")({
   head: () => ({
@@ -130,6 +130,17 @@ function InvestorsPage() {
     },
   });
 
+  const { data: allCriteria } = useQuery({
+    queryKey: ["investor-criteria", "investor-list"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("investor_criteria")
+        .select("id, investor_id, bubble_id, asset_class, investor_profile, strategies, amount_bands, regions, city_scope, periphery_scope, city_targets");
+      if (error) throw error;
+      return data as InvestorCriteria[];
+    },
+  });
+
   const save = useMutation({
     mutationFn: async (draft: InvestorDraft) => {
       const payload = investorPayload(draft);
@@ -202,6 +213,14 @@ function InvestorsPage() {
   }, [data, search]);
 
   const bandOf = (investor: Investor) => {
+    const detailedBands = [
+      ...new Set(
+        (allCriteria ?? [])
+          .filter((criterion) => criterion.investor_id === investor.id)
+          .flatMap((criterion) => criterion.amount_bands ?? []),
+      ),
+    ];
+    if (detailedBands.length > 0) return detailedBands.join(" · ");
     if (investor.budget_min == null && investor.budget_max == null) return "—";
     return `${formatEUR(investor.budget_min)} – ${formatEUR(investor.budget_max)}`;
   };
