@@ -56,6 +56,18 @@ const emptyDraft: InvestorDraft = {
   status: "actif",
 };
 
+function formatInvestorAddress(investor: Investor) {
+  const postalCity = [investor.postal_code, investor.city].filter(Boolean).join(" ");
+  let address = (investor.address ?? "").replace(/,?\s*France,?\s*$/i, "").trim();
+
+  if (postalCity) {
+    const escapedPostalCity = postalCity.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    address = address.replace(new RegExp(`,?\\s*${escapedPostalCity}$`, "i"), "").trim();
+  }
+
+  return [address, postalCity].filter(Boolean).join(", ") || "—";
+}
+
 function InvestorsPage() {
   const qc = useQueryClient();
   const { canEdit } = useAuth();
@@ -223,11 +235,7 @@ function InvestorsPage() {
                 <p className="text-sm text-muted-foreground">
                   {[investor.company, investor.investor_profile].filter(Boolean).join(" · ") || "—"}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {[investor.address, investor.postal_code, investor.city]
-                    .filter(Boolean)
-                    .join(", ") || "—"}
-                </p>
+                <p className="text-sm text-muted-foreground">{formatInvestorAddress(investor)}</p>
                 <p className="flex items-center gap-1 text-sm text-muted-foreground">
                   {investor.email || "—"}
                   <CopyEmail email={investor.email} />
