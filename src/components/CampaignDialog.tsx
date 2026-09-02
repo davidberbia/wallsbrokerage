@@ -166,7 +166,7 @@ export function CampaignDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" disabled={!asset || withEmail.length === 0 || !file}>
+        <Button size="sm" disabled={!asset || withEmail.length === 0 || !hasAttachment}>
           <Send className="size-4" /> Envoyer la brochure
         </Button>
       </DialogTrigger>
