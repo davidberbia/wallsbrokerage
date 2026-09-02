@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, Pencil, Plus, Target, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { formatThousands, parseThousands } from "@/lib/format";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -296,9 +297,9 @@ function AssetForm({
         </Field>
         <Field label="Prix (€)">
           <Input
-            type="number"
-            value={draft.price ?? ""}
-            onChange={(e) => set({ price: e.target.value ? Number(e.target.value) : null })}
+            inputMode="numeric"
+            value={formatThousands(draft.price)}
+            onChange={(e) => set({ price: parseThousands(e.target.value) })}
           />
         </Field>
         <Field label="Rendement (%)">

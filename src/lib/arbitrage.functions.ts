@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import {
   assetClassCandidates,
@@ -6,6 +7,23 @@ import {
   normalizeText,
   priceInBands,
 } from "@/lib/matching";
+
+/** Limitation de débit anti-scraping, par IP appelante. */
+async function guard(scope: string, limit: number, windowSeconds: number) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const request = getRequest();
+  const ip =
+    request?.headers.get("cf-connecting-ip") ??
+    request?.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown";
+  const { data, error } = await supabaseAdmin.rpc("rate_limit_hit", {
+    _key: `${scope}:${ip}`,
+    _limit: limit,
+    _window_seconds: windowSeconds,
+  });
+  if (error) return;
+  if (data === false) throw new Error("Trop de requêtes, réessayez plus tard.");
+}
 
 const searchSchema = z.object({
   asset_class: z.string().min(1),
@@ -21,6 +39,7 @@ const searchSchema = z.object({
 export const countInterestedInvestors = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => searchSchema.parse(data))
   .handler(async ({ data }) => {
+    await guard("arbitrage-search", 30, 3600);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("investor_criteria")
@@ -71,6 +90,7 @@ const requestSchema = searchSchema.extend({
 export const submitArbitrageRequest = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => requestSchema.parse(data))
   .handler(async ({ data }) => {
+    await guard("arbitrage-submit", 5, 3600);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("arbitrage_requests").insert({
       asset_class: data.asset_class,

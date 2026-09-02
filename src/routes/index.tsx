@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { formatThousands, parseThousands } from "@/lib/format";
 import { AppLayout } from "@/components/AppLayout";
 import { CampaignDialog } from "@/components/CampaignDialog";
 import { CopyEmail } from "@/components/CopyEmail";
@@ -184,13 +185,12 @@ function MatchingPage() {
             <Label htmlFor="price">Prix (€)</Label>
             <Input
               id="price"
-              type="number"
-              value={criteria.price ?? ""}
-              onChange={(e) =>
-                setCriteria({ ...criteria, price: e.target.value ? Number(e.target.value) : null })
-              }
+              inputMode="numeric"
+              value={formatThousands(criteria.price)}
+              onChange={(e) => setCriteria({ ...criteria, price: parseThousands(e.target.value) })}
               placeholder="2 500 000"
             />
+
           </div>
           <div className="space-y-2">
             <Label htmlFor="yield">Rendement (%)</Label>
