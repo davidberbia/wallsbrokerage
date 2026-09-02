@@ -70,7 +70,7 @@ export function CampaignDialog({
       toast.error("Sélectionnez un actif enregistré.");
       return;
     }
-    if (!file) {
+    if (!hasAttachment) {
       toast.error("Ajoutez la brochure PDF à joindre.");
       return;
     }
