@@ -1,4 +1,3 @@
-import { MultiSelect } from "@/components/MultiSelect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,9 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { INVESTOR_STATUS, REGIONS, STRATEGIES } from "@/lib/taxonomy";
+import { INVESTOR_STATUS } from "@/lib/taxonomy";
 import { useLists } from "@/lib/lists";
-import { AssetClassBands, type BandsByAsset } from "@/components/AssetClassBands";
 import type { Investor } from "@/lib/types";
 
 export type InvestorDraft = Partial<Investor> & { full_name: string };
