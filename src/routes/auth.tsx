@@ -44,40 +44,6 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const SERVICES = [
-  {
-    title: "Conseil en investissement",
-    items: [
-      "Conseil à la vente ou à l'acquisition (gré à gré)",
-      "Pilotage de consultation restreinte (appel d'offres)",
-      "Sale and leaseback",
-    ],
-  },
-  {
-    title: "Commercialisation exclusive",
-    items: [
-      "Optimisation du revenu locatif",
-      "Recherche de locataire",
-      "Négociation de bail commercial",
-    ],
-  },
-  {
-    title: "Valorisation immobilière",
-    items: [
-      "Avis de valeur",
-      "Etude de déplafonnement de loyer ou éviction",
-      "Conseil en restructuration",
-    ],
-  },
-  {
-    title: "Marketing",
-    items: [
-      "Analyse de passage piéton ou véhicules",
-      "Réalisation de plans Autocad",
-      "Vidéos par drone",
-    ],
-  },
-];
 
 const OCCUPANCIES = ["Vide", "Occupé", "Partiellement occupé"] as const;
 
@@ -393,21 +359,6 @@ function AuthPage() {
           </form>
         </section>
 
-        <section className="mt-16">
-          <h2 className="text-center text-3xl">Nos services</h2>
-          <div className="mt-8 grid gap-8 sm:grid-cols-2">
-            {SERVICES.map((s) => (
-              <div key={s.title} className="border-t border-border pt-5">
-                <h3 className="text-lg">{s.title}</h3>
-                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
-                  {s.items.map((i) => (
-                    <li key={i}>{i}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </section>
       </main>
 
       <footer className="border-t border-border py-6 text-center text-sm text-muted-foreground">
