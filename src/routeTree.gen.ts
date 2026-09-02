@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
+import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
 import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
@@ -55,6 +56,11 @@ const MonProfilRoute = MonProfilRouteImport.update({
   path: '/mon-profil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ParametresRoute = ParametresRouteImport.update({
+  id: '/parametres',
+  path: '/parametres',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronDailyRoute = ApiPublicCronDailyRouteImport.update({
   id: '/api/public/cron/daily',
   path: '/api/public/cron/daily',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/parametres': typeof ParametresRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/parametres': typeof ParametresRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/parametres': typeof ParametresRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/parametres'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/parametres'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/parametres'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
@@ -155,6 +167,7 @@ export interface RootRouteChildren {
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
+  ParametresRoute: typeof ParametresRoute
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
   ApiPublicTIdRoute: typeof ApiPublicTIdRoute
@@ -211,6 +224,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MonProfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/parametres': {
+      id: '/parametres'
+      path: '/parametres'
+      fullPath: '/parametres'
+      preLoaderRoute: typeof ParametresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/daily': {
       id: '/api/public/cron/daily'
       path: '/api/public/cron/daily'
@@ -243,6 +263,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
+  ParametresRoute: ParametresRoute,
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
   ApiPublicTIdRoute: ApiPublicTIdRoute,
