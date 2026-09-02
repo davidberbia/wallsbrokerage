@@ -210,9 +210,10 @@ export function CampaignDialog({
               Chaque mail commence par « Bonjour {"{prénom}"} » et se termine par votre signature.
             </p>
           </div>
-          {brochure ? (
+          {brochure || storedPath ? (
             <p className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm">
-              Pièce jointe : <span className="font-medium">{brochure.name}</span>
+              Pièce jointe :{" "}
+              <span className="font-medium">{brochure?.name ?? storedName}</span>
             </p>
           ) : (
             <div className="space-y-2">
