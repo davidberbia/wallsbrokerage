@@ -188,9 +188,16 @@ function InvestorsPage() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    if (!q) return data ?? [];
-    return (data ?? []).filter((i) =>
-      [i.full_name, i.company, i.email, i.city].some((v) => v?.toLowerCase().includes(q)),
+    const list = q
+      ? (data ?? []).filter((i) =>
+          [i.full_name, i.company, i.email, i.city].some((v) => v?.toLowerCase().includes(q)),
+        )
+      : (data ?? []);
+    // Tri alphabétique sur le libellé affiché (société, sinon nom du contact).
+    return [...list].sort((a, b) =>
+      (a.company || displayName(a)).localeCompare(b.company || displayName(b), "fr", {
+        sensitivity: "base",
+      }),
     );
   }, [data, search]);
 
@@ -283,7 +290,7 @@ function InvestorsPage() {
               {/* Colonne 1 : société / type / contact / adresse */}
               <div className="min-w-0 flex-1 space-y-0.5">
                 <p className="truncate font-semibold">
-                  {investor.company || investor.full_name}
+                  {investor.company || displayName(investor)}
                 </p>
                 <p className="truncate text-sm text-muted-foreground">
                   {investor.investor_profile || "—"}
@@ -356,7 +363,7 @@ function InvestorsPage() {
             <div className="grid items-start gap-4 md:hidden sm:grid-cols-[1fr_auto]">
               <div className="min-w-0 space-y-1">
                 <p className="truncate font-semibold">
-                  {investor.company || investor.full_name}
+                  {investor.company || displayName(investor)}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {investor.investor_profile || "—"}

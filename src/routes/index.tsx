@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { formatThousands, parseThousands } from "@/lib/format";
+import { brochureFileName, formatThousands, parseThousands } from "@/lib/format";
 import { AppLayout } from "@/components/AppLayout";
 import { CampaignDialog } from "@/components/CampaignDialog";
 import { CopyEmail } from "@/components/CopyEmail";
@@ -121,7 +121,7 @@ function MatchingPage() {
   const asset = (assetsQuery.data ?? []).find((a) => a.id === assetId) ?? null;
   const storedBrochureName =
     asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url)
-      ? (asset.brochure_url.split("/").pop() ?? null)
+      ? brochureFileName(asset.brochure_url)
       : (asset?.brochure_url ?? null);
 
   const applyAsset = (id: string) => {
@@ -266,7 +266,7 @@ function MatchingPage() {
                 if (f && asset) {
                   setSavingBrochure(true);
                   try {
-                    const path = `actifs/${crypto.randomUUID()}-${f.name.replace(/[^\w.-]+/g, "_")}`;
+                    const path = `actifs/${crypto.randomUUID()}/${f.name.replace(/[\\/]+/g, "_")}`;
                     const upload = await supabase.storage
                       .from("brochures")
                       .upload(path, f, { contentType: "application/pdf" });
