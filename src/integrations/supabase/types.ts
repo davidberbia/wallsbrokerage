@@ -584,7 +584,7 @@ export type Database = {
       trigger_automation: { Args: { path: string }; Returns: undefined }
     }
     Enums: {
-      app_role: "broker" | "investor"
+      app_role: "broker" | "investor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -712,7 +712,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["broker", "investor"],
+      app_role: ["broker", "investor", "viewer"],
     },
   },
 } as const
