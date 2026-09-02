@@ -188,9 +188,16 @@ function InvestorsPage() {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    if (!q) return data ?? [];
-    return (data ?? []).filter((i) =>
-      [i.full_name, i.company, i.email, i.city].some((v) => v?.toLowerCase().includes(q)),
+    const list = q
+      ? (data ?? []).filter((i) =>
+          [i.full_name, i.company, i.email, i.city].some((v) => v?.toLowerCase().includes(q)),
+        )
+      : (data ?? []);
+    // Tri alphabétique sur le libellé affiché (société, sinon nom du contact).
+    return [...list].sort((a, b) =>
+      (a.company || displayName(a)).localeCompare(b.company || displayName(b), "fr", {
+        sensitivity: "base",
+      }),
     );
   }, [data, search]);
 
