@@ -106,7 +106,7 @@ export const HORIZONS = ["< 3 ans", "3 à 7 ans", "7 à 12 ans", "> 12 ans"] as 
 
 export const FINANCINGS = ["Fonds propres", "Crédit bancaire", "Mixte", "Club deal / SCPI"] as const;
 
-export const INVESTOR_STATUS = ["actif", "à qualifier", "en veille", "inactif"] as const;
+export const INVESTOR_STATUS = ["actif", "à qualifier", "en veille", "inactif", "black listé"] as const;
 
 export const ASSET_STATUS = ["disponible", "sous offre", "vendu", "retiré"] as const;
 

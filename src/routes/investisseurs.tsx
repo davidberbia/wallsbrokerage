@@ -12,7 +12,6 @@ import { useAuth } from "@/hooks/useAuth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -56,6 +55,18 @@ const emptyDraft: InvestorDraft = {
   regions: [],
   status: "actif",
 };
+
+function formatInvestorAddress(investor: Investor) {
+  const postalCity = [investor.postal_code, investor.city].filter(Boolean).join(" ");
+  let address = (investor.address ?? "").replace(/,?\s*France,?\s*$/i, "").trim();
+
+  if (postalCity) {
+    const escapedPostalCity = postalCity.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    address = address.replace(new RegExp(`,?\\s*${escapedPostalCity}$`, "i"), "").trim();
+  }
+
+  return [address, postalCity].filter(Boolean).join(", ") || "—";
+}
 
 function InvestorsPage() {
   const qc = useQueryClient();
@@ -218,28 +229,33 @@ function InvestorsPage() {
       <div className="grid gap-3">
         {filtered.map((investor) => (
           <div key={investor.id} className="panel p-4">
-            <div className="flex flex-wrap items-start gap-4">
-              <div className="min-w-56 flex-1">
+            <div className="grid items-start gap-4 lg:grid-cols-[minmax(20rem,1fr)_auto_auto]">
+              <div className="min-w-0">
                 <p className="font-medium">{investor.full_name}</p>
                 <p className="text-sm text-muted-foreground">
                   {[investor.company, investor.investor_profile].filter(Boolean).join(" · ") || "—"}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {[investor.address, investor.postal_code, investor.city]
-                    .filter(Boolean)
-                    .join(", ") || "—"}
-                </p>
+                <p className="text-sm text-muted-foreground">{formatInvestorAddress(investor)}</p>
                 <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                  {[investor.email, investor.phone].filter(Boolean).join(" · ") || "—"}
+                  {investor.email || "—"}
                   <CopyEmail email={investor.email} />
                 </p>
+                <p className="text-sm text-muted-foreground">{investor.phone || "—"}</p>
               </div>
               <div className="text-sm">
                 <p className="eyebrow">Tranche d'investissement</p>
                 <p>{bandOf(investor)}</p>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary">{investor.status}</Badge>
+                <span
+                  className={
+                    investor.status === "black listé"
+                      ? "inline-flex items-center rounded-md border border-transparent bg-destructive px-2.5 py-1 text-xs font-semibold text-destructive-foreground"
+                      : "inline-flex items-center rounded-md border border-transparent bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground"
+                  }
+                >
+                  {investor.status}
+                </span>
                 {canEdit && (
                   <>
                     <Button
@@ -261,13 +277,6 @@ function InvestorsPage() {
                   </>
                 )}
               </div>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-1">
-              {[...investor.asset_classes, ...investor.strategies, ...investor.regions].map((t) => (
-                <Badge key={t} variant="outline">
-                  {t}
-                </Badge>
-              ))}
             </div>
           </div>
         ))}
