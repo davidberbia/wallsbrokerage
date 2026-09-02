@@ -188,7 +188,7 @@ export function InvestorForm({
       </Field>
 
       {footer ?? (
-        <div className="flex justify-end">
+        <div className="sticky bottom-0 -mx-1 flex justify-end border-t border-border bg-background/95 px-1 py-3 backdrop-blur">
           <Button type="submit" disabled={saving}>
             {submitLabel}
           </Button>
