@@ -81,11 +81,16 @@ export function CampaignDialog({
 
     setBusy(true);
     try {
-      const path = `${asset.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
-      const upload = await supabase.storage
-        .from("brochures")
-        .upload(path, file, { contentType: "application/pdf" });
-      if (upload.error) throw upload.error;
+      let path = storedPath!;
+      let attachmentName = storedName ?? "brochure.pdf";
+      if (file) {
+        path = `${asset.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
+        attachmentName = file.name;
+        const upload = await supabase.storage
+          .from("brochures")
+          .upload(path, file, { contentType: "application/pdf" });
+        if (upload.error) throw upload.error;
+      }
 
       const finalSubject = subject.trim() || defaultSubject;
       const finalMessage = message.trim() || defaultMessage;
