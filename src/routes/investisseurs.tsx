@@ -229,7 +229,7 @@ function InvestorsPage() {
       <div className="grid gap-3">
         {filtered.map((investor) => (
           <div key={investor.id} className="panel p-4">
-            <div className="grid items-start gap-x-6 gap-y-1 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
+            <div className="grid items-start gap-x-4 gap-y-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(0,auto)_auto]">
               {/* Ligne 1 : société + actions */}
               <p className="truncate font-semibold">
                 {investor.company || investor.full_name}
