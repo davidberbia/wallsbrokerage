@@ -176,12 +176,24 @@ export function InvestorForm({
       </div>
 
       {footer ?? (
-        <div className="flex shrink-0 justify-end border-t border-border bg-background pt-4">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-background pt-4">
+          {onStrategyClick ? (
+            <Button
+              type="button"
+              onClick={onStrategyClick}
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+            >
+              STRATÉGIE
+            </Button>
+          ) : (
+            <span />
+          )}
           <Button type="submit" disabled={saving}>
             {saving ? "Enregistrement…" : submitLabel}
           </Button>
         </div>
       )}
+
     </form>
   );
 }
