@@ -65,7 +65,7 @@ export function InvestorForm({
             onChange={(e) => set({ first_name: e.target.value })}
           />
         </Field>
-        <Field label="Nom complet *">
+        <Field label="Nom de famille *">
           <Input
             required
             value={draft.full_name}
