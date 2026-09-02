@@ -47,9 +47,6 @@ const OCCUPANCIES = ["Vide", "Occupé", "Partiellement occupé"] as const;
 type Search = {
   asset_class: string;
   occupancy: string;
-  strategy: string;
-  city_scope: string;
-  periphery_scope: string;
   price: string;
   region: string;
 };
@@ -57,12 +54,10 @@ type Search = {
 const EMPTY: Search = {
   asset_class: "",
   occupancy: "",
-  strategy: "",
-  city_scope: "",
-  periphery_scope: "",
   price: "",
   region: "",
 };
+
 
 
 function ArbitragePage() {
