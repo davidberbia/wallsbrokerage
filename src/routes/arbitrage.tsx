@@ -56,9 +56,6 @@ type Search = {
   periphery_scope: string;
   price: string;
   region: string;
-  surface: string;
-  address: string;
-  rent: string;
 };
 
 const EMPTY: Search = {
@@ -69,10 +66,8 @@ const EMPTY: Search = {
   periphery_scope: "",
   price: "",
   region: "",
-  surface: "",
-  address: "",
-  rent: "",
 };
+
 
 function ArbitragePage() {
   const [form, setForm] = useState<Search>(EMPTY);
@@ -131,9 +126,10 @@ function ArbitragePage() {
           city_scope: form.city_scope || null,
           periphery_scope: form.periphery_scope || null,
           price_meur: Number(form.price),
-          surface: form.surface ? Number(form.surface) : null,
-          address: form.address || null,
-          rent_annual: form.rent ? Number(form.rent) : null,
+          surface: null,
+          address: null,
+          rent_annual: null,
+
           first_name: contact.first_name,
           last_name: contact.last_name,
           email: contact.email,
@@ -305,31 +301,8 @@ function ArbitragePage() {
               </Select>
             </Field>
 
-            <Field label="Surface totale en m2">
-              <BareInput
-                type="number"
-                placeholder="Surface totale en m2"
-                value={form.surface}
-                onChange={(e) => set("surface", e.target.value)}
-              />
-            </Field>
 
-            <Field label="Adresse">
-              <BareInput
-                placeholder="Adresse"
-                value={form.address}
-                onChange={(e) => set("address", e.target.value)}
-              />
-            </Field>
 
-            <Field label="Loyer HC-HT / an" className="md:col-span-2">
-              <BareInput
-                type="number"
-                placeholder="Loyer HC-HT / an"
-                value={form.rent}
-                onChange={(e) => set("rent", e.target.value)}
-              />
-            </Field>
 
             <div className="md:col-span-2 flex justify-end">
               <Button type="submit" variant="secondary" size="lg" disabled={busy}>

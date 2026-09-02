@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { CampaignDialog } from "@/components/CampaignDialog";
+import { CopyEmail } from "@/components/CopyEmail";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +59,8 @@ function MatchingPage() {
   const [assetId, setAssetId] = useState<string | null>(null);
   const [strict, setStrict] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [brochure, setBrochure] = useState<File | null>(null);
+
 
   const investorsQuery = useQuery({
     queryKey: ["investors"],
@@ -240,8 +244,33 @@ function MatchingPage() {
               Réinitialiser
             </Button>
           </div>
+
+          <div className="space-y-2 lg:col-span-3">
+            <Label htmlFor="brochure-upload">Upload brochure (PDF, 9 Mo max.)</Label>
+            <Input
+              id="brochure-upload"
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => {
+                const f = e.target.files?.[0] ?? null;
+                if (f && f.size > 9 * 1024 * 1024) {
+                  toast.error("La brochure ne doit pas dépasser 9 Mo.");
+                  e.target.value = "";
+                  setBrochure(null);
+                  return;
+                }
+                setBrochure(f);
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              {brochure
+                ? `Brochure prête : ${brochure.name} — le bouton « Envoyer la brochure » est activé.`
+                : "Ajoutez la brochure pour activer l'envoi aux investisseurs sélectionnés."}
+            </p>
+          </div>
         </div>
       </div>
+
 
       <div className="flex flex-wrap items-center gap-3">
         <h2 className="text-xl">
@@ -284,9 +313,14 @@ function MatchingPage() {
           </Button>
           <CampaignDialog
             asset={asset}
+            brochure={brochure}
             recipients={chosen.map((r) => r.investor)}
-            onLaunched={() => setSelected(new Set())}
+            onLaunched={() => {
+              setSelected(new Set());
+              setBrochure(null);
+            }}
           />
+
 
         </div>
       </div>
@@ -312,7 +346,11 @@ function MatchingPage() {
               <p className="text-sm text-muted-foreground">
                 {[investor.company, investor.city].filter(Boolean).join(" · ") || "—"}
               </p>
-              <p className="text-sm text-muted-foreground">{investor.email ?? "sans email"}</p>
+              <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                {investor.email ?? "sans email"}
+                <CopyEmail email={investor.email} />
+              </p>
+
             </div>
             <div className="text-sm text-muted-foreground">
               {formatEUR(investor.budget_min)} – {formatEUR(investor.budget_max)}

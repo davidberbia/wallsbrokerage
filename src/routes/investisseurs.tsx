@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { MultiSelect } from "@/components/MultiSelect";
+import { CopyEmail } from "@/components/CopyEmail";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -193,9 +195,11 @@ function InvestorsPage() {
                 <p className="text-sm text-muted-foreground">
                   {[investor.company, investor.city].filter(Boolean).join(" · ") || "—"}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="flex items-center gap-1 text-sm text-muted-foreground">
                   {[investor.email, investor.phone].filter(Boolean).join(" · ") || "—"}
+                  <CopyEmail email={investor.email} />
                 </p>
+
               </div>
               <div className="text-sm">
                 <p className="eyebrow">Budget</p>

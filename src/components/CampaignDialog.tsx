@@ -35,18 +35,23 @@ export function CampaignDialog({
   asset,
   recipients,
   onLaunched,
+  brochure = null,
 }: {
   asset: Asset | null;
   recipients: Investor[];
   onLaunched?: () => void;
+  /** Brochure fournie depuis la page (champ « Upload brochure »). */
+  brochure?: File | null;
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [ownFile, setOwnFile] = useState<File | null>(null);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const file = brochure ?? ownFile;
 
   const withEmail = recipients.filter((r) => r.email);
+
   const defaultSubject = asset
     ? `Opportunité d'investissement — ${asset.title}${asset.city ? ` (${asset.city})` : ""}`
     : "Opportunité d'investissement";
@@ -138,7 +143,7 @@ export function CampaignDialog({
         `Commercialisation lancée : ${queue.length} mail(s) en file, envoi à raison d'1 par minute.`,
       );
       setOpen(false);
-      setFile(null);
+      setOwnFile(null);
       setSubject("");
       setMessage("");
       onLaunched?.();
@@ -152,7 +157,7 @@ export function CampaignDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" disabled={!asset || withEmail.length === 0}>
+        <Button size="sm" disabled={!asset || withEmail.length === 0 || !file}>
           <Send className="size-4" /> Envoyer la brochure
         </Button>
       </DialogTrigger>
@@ -196,15 +201,22 @@ export function CampaignDialog({
               Chaque mail commence par « Bonjour {"{prénom}"} » et se termine par votre signature.
             </p>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="campaign-file">Brochure PDF (pièce jointe)</Label>
-            <Input
-              id="campaign-file"
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-          </div>
+          {brochure ? (
+            <p className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm">
+              Pièce jointe : <span className="font-medium">{brochure.name}</span>
+            </p>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="campaign-file">Brochure PDF (pièce jointe)</Label>
+              <Input
+                id="campaign-file"
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setOwnFile(e.target.files?.[0] ?? null)}
+              />
+            </div>
+          )}
+
         </div>
 
         <DialogFooter>

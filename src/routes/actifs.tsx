@@ -57,6 +57,7 @@ const emptyDraft: Draft = { title: "", status: "disponible" };
 function AssetsPage() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Draft | null>(null);
+  const [brochureFile, setBrochureFile] = useState<File | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["assets"],
@@ -70,8 +71,35 @@ function AssetsPage() {
     },
   });
 
+  const openBrochure = async (value: string) => {
+    if (/^https?:\/\//.test(value)) {
+      window.open(value, "_blank", "noreferrer");
+      return;
+    }
+    const { data, error } = await supabase.storage
+      .from("brochures")
+      .createSignedUrl(value, 60 * 10);
+    if (error || !data) {
+      toast.error("Brochure introuvable");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noreferrer");
+  };
+
   const save = useMutation({
     mutationFn: async (draft: Draft) => {
+      let brochurePath = draft.brochure_url ?? null;
+      if (brochureFile) {
+        if (brochureFile.type !== "application/pdf") throw new Error("La brochure doit être un PDF.");
+        if (brochureFile.size > 9 * 1024 * 1024)
+          throw new Error("La brochure ne doit pas dépasser 9 Mo.");
+        const path = `actifs/${crypto.randomUUID()}-${brochureFile.name.replace(/[^\w.-]+/g, "_")}`;
+        const upload = await supabase.storage
+          .from("brochures")
+          .upload(path, brochureFile, { contentType: "application/pdf" });
+        if (upload.error) throw upload.error;
+        brochurePath = path;
+      }
       const payload = {
         title: draft.title,
         reference: draft.reference ?? null,
@@ -82,7 +110,7 @@ function AssetsPage() {
         price: draft.price ?? null,
         yield_pct: draft.yield_pct ?? null,
         surface: draft.surface ?? null,
-        brochure_url: draft.brochure_url ?? null,
+        brochure_url: brochurePath,
         description: draft.description ?? null,
         status: draft.status ?? "disponible",
       };
@@ -94,10 +122,12 @@ function AssetsPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["assets"] });
       setEditing(null);
+      setBrochureFile(null);
       toast.success("Actif enregistré");
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
@@ -131,10 +161,13 @@ function AssetsPage() {
               <AssetForm
                 draft={editing}
                 onChange={setEditing}
+                brochureFile={brochureFile}
+                onBrochureFile={setBrochureFile}
                 onSubmit={() => save.mutate(editing)}
                 saving={save.isPending}
               />
             )}
+
           </DialogContent>
         </Dialog>
       </div>
@@ -171,12 +204,16 @@ function AssetsPage() {
             </div>
             <div className="flex items-center gap-2">
               {asset.brochure_url && (
-                <Button variant="ghost" size="icon" asChild aria-label="Ouvrir la brochure">
-                  <a href={asset.brochure_url} target="_blank" rel="noreferrer">
-                    <ExternalLink className="size-4" />
-                  </a>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Ouvrir la brochure"
+                  onClick={() => openBrochure(asset.brochure_url!)}
+                >
+                  <ExternalLink className="size-4" />
                 </Button>
               )}
+
               <Button variant="outline" size="sm" asChild>
                 <Link to="/">
                   <Target className="size-4" /> Matcher
@@ -204,15 +241,20 @@ function AssetsPage() {
 function AssetForm({
   draft,
   onChange,
+  brochureFile,
+  onBrochureFile,
   onSubmit,
   saving,
 }: {
   draft: Draft;
   onChange: (d: Draft) => void;
+  brochureFile: File | null;
+  onBrochureFile: (f: File | null) => void;
   onSubmit: () => void;
   saving: boolean;
 }) {
   const set = (patch: Partial<Draft>) => onChange({ ...draft, ...patch });
+
 
   return (
     <form
@@ -282,14 +324,36 @@ function AssetForm({
           />
         </Field>
       </div>
-      <Field label="Lien de la brochure">
+      <Field label="Brochure de l'actif (PDF, 9 Mo max.)">
         <Input
-          type="url"
-          placeholder="https://…"
-          value={draft.brochure_url ?? ""}
-          onChange={(e) => set({ brochure_url: e.target.value })}
+          type="file"
+          accept="application/pdf"
+          onChange={(e) => {
+            const f = e.target.files?.[0] ?? null;
+            if (f && f.type !== "application/pdf") {
+              toast.error("Seuls les fichiers PDF sont acceptés.");
+              e.target.value = "";
+              onBrochureFile(null);
+              return;
+            }
+            if (f && f.size > 9 * 1024 * 1024) {
+              toast.error("La brochure ne doit pas dépasser 9 Mo.");
+              e.target.value = "";
+              onBrochureFile(null);
+              return;
+            }
+            onBrochureFile(f);
+          }}
         />
+        <p className="mt-1 text-xs text-muted-foreground">
+          {brochureFile
+            ? `Nouveau fichier : ${brochureFile.name}`
+            : draft.brochure_url
+              ? "Une brochure est déjà associée à cet actif."
+              : "Aucune brochure pour le moment."}
+        </p>
       </Field>
+
       <Field label="Description">
         <Textarea
           rows={3}

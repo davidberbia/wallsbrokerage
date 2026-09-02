@@ -46,10 +46,12 @@ export function AppLayout({
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-sidebar text-sidebar-foreground">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-5">
-          <Link to="/" className="flex items-baseline gap-2">
-            <span className="font-display text-lg font-semibold tracking-tight">Walls</span>
-            <span className="eyebrow text-sidebar-primary">Brokerage</span>
+          <Link to="/" className="flex items-baseline">
+            <span className="font-display text-lg font-semibold tracking-tight text-accent">
+              WALLSBROKERAGE
+            </span>
           </Link>
+
           <nav className="flex items-center gap-1">
             {NAV.map((item) => {
               const active = pathname === item.to;
