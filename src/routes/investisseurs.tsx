@@ -284,17 +284,55 @@ function InvestorsPage() {
       <div className="grid gap-3">
         {filtered.map((investor) => (
           <div key={investor.id} className="panel p-4">
-            {/* ── Desktop : mise en page demandée (4 colonnes) ── */}
-            <div className="hidden items-start gap-x-4 gap-y-1 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(0,auto)_auto]">
-              {/* Ligne 1 : société + actions */}
-              <p className="min-w-0 truncate font-semibold">
-                {investor.company || investor.full_name}
-              </p>
-              <div />
-              <div />
-              <div className="flex items-start justify-end gap-2">
-                <span className={statusPill(investor.status)}>
+            {/* ── Desktop : mise en page comme l'image (3 colonnes) ── */}
+            <div className="hidden items-start gap-6 md:flex">
+              {/* Colonne 1 : société / type / contact / adresse */}
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="truncate font-semibold">
+                  {investor.company || investor.full_name}
+                </p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {investor.investor_profile || "—"}
+                </p>
+                <p className="truncate pt-3 text-sm text-muted-foreground">
+                  {displayName(investor)}
+                </p>
+                <p className="truncate text-sm text-muted-foreground">
+                  {formatInvestorAddress(investor)}
+                </p>
+              </div>
 
+              {/* Colonne 2 : tranche / email / téléphone */}
+              <div className="shrink-0 space-y-0.5">
+                <p className="eyebrow">Tranche d'investissement</p>
+                <p className="text-sm font-medium">{bandOf(investor)}</p>
+                <p className="flex items-center gap-1 pt-3 text-sm text-muted-foreground">
+                  <span className="truncate">{investor.email || "—"}</span>
+                  <CopyEmail email={investor.email} />
+                </p>
+                <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <span>{investor.phone || "—"}</span>
+                  {investor.phone && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-6 text-muted-foreground hover:text-foreground"
+                      asChild
+                      aria-label="Appeler"
+                      title="Appeler"
+                    >
+                      <a href={`tel:${investor.phone}`}>
+                        <Phone className="size-3.5" />
+                      </a>
+                    </Button>
+                  )}
+                </p>
+              </div>
+
+              {/* Colonne 3 : statut + actions */}
+              <div className="flex shrink-0 items-center gap-2">
+                <span className={statusPill(investor.status)}>
                   {investor.status}
                 </span>
                 {canEdit && (
@@ -318,52 +356,6 @@ function InvestorsPage() {
                   </>
                 )}
               </div>
-
-              {/* Ligne 2 : type d'investisseur */}
-              <p className="min-w-0 text-sm text-muted-foreground">
-                {investor.investor_profile || "—"}
-              </p>
-              <div />
-              <div />
-              <div />
-
-              {/* Ligne 3 : prénom/nom | tranche (label) | email */}
-              <p className="min-w-0 truncate text-sm text-muted-foreground">
-                {displayName(investor)}
-              </p>
-              <p className="min-w-0 text-xs uppercase tracking-wide text-muted-foreground">
-                Tranche d'investissement
-              </p>
-              <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
-                <span className="truncate">{investor.email || "—"}</span>
-                <CopyEmail email={investor.email} />
-              </p>
-              <div />
-
-              {/* Ligne 4 : adresse | tranche (valeur) | téléphone */}
-              <p className="min-w-0 text-sm text-muted-foreground">
-                {formatInvestorAddress(investor)}
-              </p>
-              <p className="min-w-0 text-sm font-medium">{bandOf(investor)}</p>
-              <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
-                <span className="truncate">{investor.phone || "—"}</span>
-                {investor.phone && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-6 text-muted-foreground hover:text-foreground"
-                    asChild
-                    aria-label="Appeler"
-                    title="Appeler"
-                  >
-                    <a href={`tel:${investor.phone}`}>
-                      <Phone className="size-3.5" />
-                    </a>
-                  </Button>
-                )}
-              </p>
-              <div />
             </div>
 
             {/* ── Tablette / mobile : 2 colonnes ── */}
