@@ -80,6 +80,16 @@ function displayName(investor: Investor) {
   return `${first} ${full}`;
 }
 
+const STATUS_PILL: Record<string, string> = {
+  actif: "status-pill status-actif",
+  "à qualifier": "status-pill status-a-qualifier",
+  "en veille": "status-pill status-en-veille",
+  inactif: "status-pill status-inactif",
+  "black listé": "status-pill status-blackliste",
+};
+
+const statusPill = (status: string) => STATUS_PILL[status] ?? "status-pill status-en-veille";
+
 function InvestorsPage() {
   const qc = useQueryClient();
   const { canEdit } = useAuth();
@@ -87,6 +97,8 @@ function InvestorsPage() {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
   const [bands, setBands] = useState<BandsByAsset>({});
+  const [strategyOpen, setStrategyOpen] = useState(false);
+
 
   const openEdit = async (investor?: Investor) => {
     if (!investor) {
