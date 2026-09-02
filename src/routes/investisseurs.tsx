@@ -8,7 +8,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { CopyEmail } from "@/components/CopyEmail";
 import { InvestorForm, investorPayload, type InvestorDraft } from "@/components/InvestorForm";
 import type { BandsByAsset } from "@/components/AssetClassBands";
-import { StrategyMatrixDialog } from "@/components/StrategyMatrixDialog";
+import { StrategyMatrixDialog, type StrategiesByAsset } from "@/components/StrategyMatrixDialog";
 import { useAuth } from "@/hooks/useAuth";
 
 
@@ -97,23 +97,30 @@ function InvestorsPage() {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
   const [bands, setBands] = useState<BandsByAsset>({});
+  const [assetStrategies, setAssetStrategies] = useState<StrategiesByAsset>({});
   const [strategyOpen, setStrategyOpen] = useState(false);
 
 
   const openEdit = async (investor?: Investor) => {
     if (!investor) {
       setBands({});
+      setAssetStrategies({});
       setEditing({ ...emptyDraft });
       return;
     }
     setEditing(investor);
     const { data } = await supabase
       .from("investor_criteria")
-      .select("asset_class, amount_bands")
+      .select("asset_class, amount_bands, strategies")
       .eq("investor_id", investor.id);
     const map: BandsByAsset = {};
-    for (const row of data ?? []) map[row.asset_class] = row.amount_bands ?? [];
+    const stratMap: StrategiesByAsset = {};
+    for (const row of data ?? []) {
+      map[row.asset_class] = row.amount_bands ?? [];
+      stratMap[row.asset_class] = row.strategies ?? [];
+    }
     setBands(map);
+    setAssetStrategies(stratMap);
   };
 
   const { data, isLoading } = useQuery({
@@ -153,7 +160,7 @@ function InvestorsPage() {
           investor_id: investorId,
           asset_class: asset,
           investor_profile: draft.investor_profile ?? null,
-          strategies: draft.strategies ?? [],
+          strategies: assetStrategies[asset] ?? [],
           amount_bands: bands[asset] ?? [],
           regions: draft.regions ?? [],
         }));
@@ -248,15 +255,16 @@ function InvestorsPage() {
               value={{
                 assetClasses: editing.asset_classes ?? [],
                 bands,
-                strategies: editing.strategies ?? [],
+                strategiesByAsset: assetStrategies,
                 regions: editing.regions ?? [],
               }}
               onChange={(next) => {
                 setBands(next.bands);
+                setAssetStrategies(next.strategiesByAsset);
                 setEditing({
                   ...editing,
                   asset_classes: next.assetClasses,
-                  strategies: next.strategies,
+                  strategies: [...new Set(Object.values(next.strategiesByAsset).flat())],
                   regions: next.regions,
                 });
               }}
