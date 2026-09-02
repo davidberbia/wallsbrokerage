@@ -17,6 +17,7 @@ import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as ParametresRouteImport } from './routes/parametres'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
 import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
@@ -61,6 +62,11 @@ const ParametresRoute = ParametresRouteImport.update({
   path: '/parametres',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronDailyRoute = ApiPublicCronDailyRouteImport.update({
   id: '/api/public/cron/daily',
   path: '/api/public/cron/daily',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
   '/parametres': typeof ParametresRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
   '/parametres': typeof ParametresRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
   '/parametres': typeof ParametresRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/investisseurs'
     | '/mon-profil'
     | '/parametres'
+    | '/sitemap.xml'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/investisseurs'
     | '/mon-profil'
     | '/parametres'
+    | '/sitemap.xml'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/investisseurs'
     | '/mon-profil'
     | '/parametres'
+    | '/sitemap.xml'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
@@ -168,6 +180,7 @@ export interface RootRouteChildren {
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
   ParametresRoute: typeof ParametresRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
   ApiPublicTIdRoute: typeof ApiPublicTIdRoute
@@ -231,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParametresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/daily': {
       id: '/api/public/cron/daily'
       path: '/api/public/cron/daily'
@@ -264,6 +284,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
   ParametresRoute: ParametresRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
   ApiPublicTIdRoute: ApiPublicTIdRoute,
