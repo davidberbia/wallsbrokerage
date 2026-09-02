@@ -153,11 +153,16 @@ export function InvestorForm({
         </Field>
       </div>
 
-      <Field label="Classes d'actifs recherchées">
-        <MultiSelect
-          options={assetClasses}
-          value={draft.asset_classes ?? []}
-          onChange={(v) => set({ asset_classes: v })}
+      <Field label="Classes d'actifs recherchées et tranches d'investissement">
+        <AssetClassBands
+          assetClasses={assetClasses}
+          amountBands={amountBands}
+          selected={draft.asset_classes ?? []}
+          bands={bands}
+          onChange={({ selected, bands: nextBands }) => {
+            set({ asset_classes: selected });
+            onBandsChange?.(nextBands);
+          }}
         />
       </Field>
       <Field label="Stratégies">
