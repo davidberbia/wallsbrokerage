@@ -229,14 +229,15 @@ function InvestorsPage() {
       <div className="grid gap-3">
         {filtered.map((investor) => (
           <div key={investor.id} className="panel p-4">
-            <div className="grid items-start gap-x-4 gap-y-1 sm:grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(0,auto)_auto]">
+            {/* ── Desktop : mise en page demandée (4 colonnes) ── */}
+            <div className="hidden items-start gap-x-4 gap-y-1 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,auto)_minmax(0,auto)_auto]">
               {/* Ligne 1 : société + actions */}
               <p className="min-w-0 truncate font-semibold">
                 {investor.company || investor.full_name}
               </p>
-              <div className="hidden sm:block" />
-              <div className="hidden sm:block" />
-              <div className="flex items-start justify-end gap-2 max-sm:col-start-1 max-sm:row-start-1">
+              <div />
+              <div />
+              <div className="flex items-start justify-end gap-2">
                 <span
                   className={
                     investor.status === "black listé"
@@ -272,22 +273,22 @@ function InvestorsPage() {
               <p className="min-w-0 text-sm text-muted-foreground">
                 {investor.investor_profile || "—"}
               </p>
-              <div className="hidden sm:block" />
-              <div className="hidden sm:block" />
-              <div className="hidden sm:block" />
+              <div />
+              <div />
+              <div />
 
               {/* Ligne 3 : prénom/nom | tranche (label) | email */}
               <p className="min-w-0 truncate text-sm text-muted-foreground">
                 {[investor.first_name, investor.full_name].filter(Boolean).join(" ") || "—"}
               </p>
-              <p className="min-w-0 break-words text-[10px] uppercase leading-tight tracking-wide text-muted-foreground">
+              <p className="min-w-0 text-xs uppercase tracking-wide text-muted-foreground">
                 Tranche d'investissement
               </p>
               <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
                 <span className="truncate">{investor.email || "—"}</span>
                 <CopyEmail email={investor.email} />
               </p>
-              <div className="hidden sm:block" />
+              <div />
 
               {/* Ligne 4 : adresse | tranche (valeur) | téléphone */}
               <p className="min-w-0 text-sm text-muted-foreground">
@@ -312,7 +313,82 @@ function InvestorsPage() {
                   </Button>
                 )}
               </p>
-              <div className="hidden sm:block" />
+              <div />
+            </div>
+
+            {/* ── Tablette / mobile : 2 colonnes ── */}
+            <div className="grid items-start gap-4 md:hidden sm:grid-cols-[1fr_auto]">
+              <div className="min-w-0 space-y-1">
+                <p className="truncate font-semibold">
+                  {investor.company || investor.full_name}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {investor.investor_profile || "—"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {[investor.first_name, investor.full_name].filter(Boolean).join(" ") || "—"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {formatInvestorAddress(investor)}
+                </p>
+              </div>
+              <div className="min-w-0 space-y-1 text-sm">
+                <p className="eyebrow">Tranche d'investissement</p>
+                <p>{bandOf(investor)}</p>
+                <p className="flex items-center gap-1 text-muted-foreground">
+                  <span className="truncate">{investor.email || "—"}</span>
+                  <CopyEmail email={investor.email} />
+                </p>
+                <p className="flex items-center gap-1 text-muted-foreground">
+                  <span className="truncate">{investor.phone || "—"}</span>
+                  {investor.phone && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-6 text-muted-foreground hover:text-foreground"
+                      asChild
+                      aria-label="Appeler"
+                      title="Appeler"
+                    >
+                      <a href={`tel:${investor.phone}`}>
+                        <Phone className="size-3.5" />
+                      </a>
+                    </Button>
+                  )}
+                </p>
+                <div className="flex items-center gap-2 pt-1">
+                  <span
+                    className={
+                      investor.status === "black listé"
+                        ? "inline-flex items-center rounded-md border border-transparent bg-destructive px-2.5 py-1 text-xs font-semibold text-destructive-foreground"
+                        : "inline-flex items-center rounded-md border border-transparent bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground"
+                    }
+                  >
+                    {investor.status}
+                  </span>
+                  {canEdit && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Modifier"
+                        onClick={() => openEdit(investor)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => remove.mutate(investor.id)}
+                        aria-label="Supprimer"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         ))}
