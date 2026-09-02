@@ -134,26 +134,6 @@ export function InvestorForm({
             </Select>
           </Field>
         )}
-        <Field label="Tranche d'investissement">
-          <Select
-            value={currentBand}
-            onValueChange={(v) => {
-              const { min, max } = parseAmountBand(v);
-              set({ budget_min: min, budget_max: max });
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="—" />
-            </SelectTrigger>
-            <SelectContent>
-              {amountBands.map((b) => (
-                <SelectItem key={b} value={b}>
-                  {b}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
         <Field label="Horizon de détention">
           <Select
             value={draft.holding_horizon ?? ""}
