@@ -285,13 +285,8 @@ function InvestorsPage() {
               <div />
               <div />
               <div className="flex items-start justify-end gap-2">
-                <span
-                  className={
-                    investor.status === "black listé"
-                      ? "inline-flex items-center rounded-md border border-transparent bg-destructive px-2.5 py-1 text-xs font-semibold text-destructive-foreground"
-                      : "inline-flex items-center rounded-md border border-transparent bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground"
-                  }
-                >
+                <span className={statusPill(investor.status)}>
+
                   {investor.status}
                 </span>
                 {canEdit && (
