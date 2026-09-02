@@ -102,7 +102,7 @@ export function CampaignDialog({
           subject: finalSubject,
           body_html: paragraphs(finalMessage),
           brochure_path: path,
-          brochure_name: file.name,
+          brochure_name: attachmentName,
         })
         .select("id")
         .single();
@@ -133,7 +133,7 @@ export function CampaignDialog({
           to_name: investor.full_name,
           subject: finalSubject,
           attachment_path: path,
-          attachment_name: file.name,
+          attachment_name: attachmentName,
           body_html: `<div style="font-family:Arial,Helvetica,sans-serif;color:#16212f;font-size:14px;line-height:1.6;">
   <p>Bonjour ${escapeHtml(prenom)},</p>
   ${paragraphs(finalMessage)}
