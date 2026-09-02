@@ -8,7 +8,9 @@ import { AppLayout } from "@/components/AppLayout";
 import { CopyEmail } from "@/components/CopyEmail";
 import { InvestorForm, investorPayload, type InvestorDraft } from "@/components/InvestorForm";
 import type { BandsByAsset } from "@/components/AssetClassBands";
+import { StrategyMatrixDialog } from "@/components/StrategyMatrixDialog";
 import { useAuth } from "@/hooks/useAuth";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,6 +80,16 @@ function displayName(investor: Investor) {
   return `${first} ${full}`;
 }
 
+const STATUS_PILL: Record<string, string> = {
+  actif: "status-pill status-actif",
+  "à qualifier": "status-pill status-a-qualifier",
+  "en veille": "status-pill status-en-veille",
+  inactif: "status-pill status-inactif",
+  "black listé": "status-pill status-blackliste",
+};
+
+const statusPill = (status: string) => STATUS_PILL[status] ?? "status-pill status-en-veille";
+
 function InvestorsPage() {
   const qc = useQueryClient();
   const { canEdit } = useAuth();
@@ -85,6 +97,8 @@ function InvestorsPage() {
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
   const [bands, setBands] = useState<BandsByAsset>({});
+  const [strategyOpen, setStrategyOpen] = useState(false);
+
 
   const openEdit = async (investor?: Investor) => {
     if (!investor) {
@@ -221,12 +235,35 @@ function InvestorsPage() {
                     submitLabel={editing.id ? "Valider les modifications" : "Créer l’investisseur"}
                     bands={bands}
                     onBandsChange={setBands}
+                    onStrategyClick={() => setStrategyOpen(true)}
                   />
                 )}
               </DialogContent>
             </Dialog>
           )}
+          {editing && (
+            <StrategyMatrixDialog
+              open={strategyOpen}
+              onOpenChange={setStrategyOpen}
+              value={{
+                assetClasses: editing.asset_classes ?? [],
+                bands,
+                strategies: editing.strategies ?? [],
+                regions: editing.regions ?? [],
+              }}
+              onChange={(next) => {
+                setBands(next.bands);
+                setEditing({
+                  ...editing,
+                  asset_classes: next.assetClasses,
+                  strategies: next.strategies,
+                  regions: next.regions,
+                });
+              }}
+            />
+          )}
         </div>
+
       </div>
 
       {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
@@ -248,13 +285,8 @@ function InvestorsPage() {
               <div />
               <div />
               <div className="flex items-start justify-end gap-2">
-                <span
-                  className={
-                    investor.status === "black listé"
-                      ? "inline-flex items-center rounded-md border border-transparent bg-destructive px-2.5 py-1 text-xs font-semibold text-destructive-foreground"
-                      : "inline-flex items-center rounded-md border border-transparent bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground"
-                  }
-                >
+                <span className={statusPill(investor.status)}>
+
                   {investor.status}
                 </span>
                 {canEdit && (
@@ -368,13 +400,8 @@ function InvestorsPage() {
                   )}
                 </p>
                 <div className="flex items-center gap-2 pt-1">
-                  <span
-                    className={
-                      investor.status === "black listé"
-                        ? "inline-flex items-center rounded-md border border-transparent bg-destructive px-2.5 py-1 text-xs font-semibold text-destructive-foreground"
-                        : "inline-flex items-center rounded-md border border-transparent bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground"
-                    }
-                  >
+                  <span className={statusPill(investor.status)}>
+
                     {investor.status}
                   </span>
                   {canEdit && (

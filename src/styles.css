@@ -168,3 +168,39 @@
   color: var(--color-muted-foreground);
   font-weight: 600;
 }
+
+/* Pastilles de statut investisseur */
+@utility status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+@utility status-actif {
+  background-color: oklch(0.55 0.14 150);
+  color: oklch(0.99 0 0);
+}
+
+@utility status-a-qualifier {
+  background-color: oklch(0.72 0.16 62);
+  color: oklch(0.2 0.03 60);
+}
+
+@utility status-en-veille {
+  background-color: oklch(0.75 0.01 255);
+  color: oklch(0.24 0.03 255);
+}
+
+@utility status-inactif {
+  background-color: oklch(0.24 0.01 255);
+  color: oklch(0.97 0 0);
+}
+
+@utility status-blackliste {
+  background-color: oklch(0.4 0.13 20);
+  color: oklch(0.98 0 0);
+}
