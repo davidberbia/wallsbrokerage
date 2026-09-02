@@ -1,4 +1,3 @@
-import { MultiSelect } from "@/components/MultiSelect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,9 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { INVESTOR_STATUS, REGIONS, STRATEGIES } from "@/lib/taxonomy";
+import { INVESTOR_STATUS } from "@/lib/taxonomy";
 import { useLists } from "@/lib/lists";
-import { AssetClassBands, type BandsByAsset } from "@/components/AssetClassBands";
 import type { Investor } from "@/lib/types";
 
 export type InvestorDraft = Partial<Investor> & { full_name: string };
@@ -34,8 +32,6 @@ export function InvestorForm({
   showStatus = true,
   submitLabel = "Valider",
   footer,
-  bands = {},
-  onBandsChange,
   onStrategyClick,
 }: {
   draft: InvestorDraft;
@@ -45,12 +41,10 @@ export function InvestorForm({
   showStatus?: boolean;
   submitLabel?: string;
   footer?: React.ReactNode;
-  bands?: BandsByAsset;
-  onBandsChange?: (b: BandsByAsset) => void;
   onStrategyClick?: () => void;
 }) {
   const set = (patch: Partial<InvestorDraft>) => onChange({ ...draft, ...patch });
-  const { assetClasses, investorProfiles, amountBands } = useLists();
+  const { investorProfiles } = useLists();
 
 
   return (
@@ -140,32 +134,6 @@ export function InvestorForm({
           )}
         </div>
 
-        <Field label="Classes d'actifs recherchées et tranches d'investissement">
-          <AssetClassBands
-            assetClasses={assetClasses}
-            amountBands={amountBands}
-            selected={draft.asset_classes ?? []}
-            bands={bands}
-            onChange={({ selected, bands: nextBands }) => {
-              set({ asset_classes: selected });
-              onBandsChange?.(nextBands);
-            }}
-          />
-        </Field>
-        <Field label="Stratégies">
-          <MultiSelect
-            options={STRATEGIES}
-            value={draft.strategies ?? []}
-            onChange={(v) => set({ strategies: v })}
-          />
-        </Field>
-        <Field label="Régions ciblées">
-          <MultiSelect
-            options={REGIONS}
-            value={draft.regions ?? []}
-            onChange={(v) => set({ regions: v })}
-          />
-        </Field>
         <Field label="Notes">
           <Textarea
             rows={3}
