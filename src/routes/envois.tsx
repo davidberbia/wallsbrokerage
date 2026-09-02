@@ -73,7 +73,7 @@ function SendsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("assets")
-        .select("id, title, reference, city, price, yield_pct, asset_class")
+        .select("id, title, reference, city, surface, price, yield_pct, asset_class")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
