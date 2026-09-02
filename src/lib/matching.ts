@@ -43,7 +43,8 @@ const bandRange = (band: string): [number, number] | null => {
 
 /** Le prix (en M€) tombe-t-il dans l'une des tranches de l'investisseur ? */
 export const priceInBands = (priceMeur: number, bands: string[]): boolean => {
-  if (bands.length === 0) return true;
+  // Aucune tranche renseignée = critère non exploitable (même règle que l'ancien outil).
+  if (bands.length === 0) return false;
   return bands.some((band) => {
     const range = bandRange(band);
     if (!range) return true;
