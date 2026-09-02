@@ -179,6 +179,7 @@ function InvestorsPage() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["investors"] });
+      qc.invalidateQueries({ queryKey: ["investor-criteria"] });
       setEditing(null);
       toast.success("Profil enregistré");
     },
