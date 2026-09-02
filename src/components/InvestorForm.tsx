@@ -10,14 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  ASSET_CLASSES,
-  FINANCINGS,
-  HORIZONS,
-  INVESTOR_STATUS,
-  REGIONS,
-  STRATEGIES,
-} from "@/lib/taxonomy";
+import { HORIZONS, INVESTOR_STATUS, REGIONS, STRATEGIES } from "@/lib/taxonomy";
+import { matchAmountBand, parseAmountBand, useLists } from "@/lib/lists";
 import type { Investor } from "@/lib/types";
 
 export type InvestorDraft = Partial<Investor> & { full_name: string };
@@ -37,7 +31,7 @@ export function InvestorForm({
   onSubmit,
   saving,
   showStatus = true,
-  submitLabel = "Enregistrer",
+  submitLabel = "Valider",
   footer,
 }: {
   draft: InvestorDraft;
@@ -49,6 +43,8 @@ export function InvestorForm({
   footer?: React.ReactNode;
 }) {
   const set = (patch: Partial<InvestorDraft>) => onChange({ ...draft, ...patch });
+  const { assetClasses, investorProfiles, amountBands } = useLists();
+  const currentBand = matchAmountBand(amountBands, draft.budget_min, draft.budget_max);
 
   return (
     <form
@@ -83,10 +79,40 @@ export function InvestorForm({
           />
         </Field>
         <Field label="Téléphone">
-          <Input value={draft.phone ?? ""} onChange={(e) => set({ phone: e.target.value })} />
+          <Input
+            type="tel"
+            value={draft.phone ?? ""}
+            onChange={(e) => set({ phone: e.target.value })}
+          />
+        </Field>
+        <Field label="Adresse">
+          <Input value={draft.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
+        </Field>
+        <Field label="Code postal">
+          <Input
+            value={draft.postal_code ?? ""}
+            onChange={(e) => set({ postal_code: e.target.value })}
+          />
         </Field>
         <Field label="Ville">
           <Input value={draft.city ?? ""} onChange={(e) => set({ city: e.target.value })} />
+        </Field>
+        <Field label="Type d'investisseur">
+          <Select
+            value={draft.investor_profile ?? ""}
+            onValueChange={(v) => set({ investor_profile: v })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="—" />
+            </SelectTrigger>
+            <SelectContent>
+              {investorProfiles.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
         {showStatus && (
           <Field label="Statut">
@@ -104,27 +130,25 @@ export function InvestorForm({
             </Select>
           </Field>
         )}
-        <Field label="Budget minimum (€)">
-          <Input
-            type="number"
-            value={draft.budget_min ?? ""}
-            onChange={(e) => set({ budget_min: e.target.value ? Number(e.target.value) : null })}
-          />
-        </Field>
-        <Field label="Budget maximum (€)">
-          <Input
-            type="number"
-            value={draft.budget_max ?? ""}
-            onChange={(e) => set({ budget_max: e.target.value ? Number(e.target.value) : null })}
-          />
-        </Field>
-        <Field label="Rendement minimum (%)">
-          <Input
-            type="number"
-            step="0.1"
-            value={draft.min_yield ?? ""}
-            onChange={(e) => set({ min_yield: e.target.value ? Number(e.target.value) : null })}
-          />
+        <Field label="Tranche d'investissement">
+          <Select
+            value={currentBand}
+            onValueChange={(v) => {
+              const { min, max } = parseAmountBand(v);
+              set({ budget_min: min, budget_max: max });
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="—" />
+            </SelectTrigger>
+            <SelectContent>
+              {amountBands.map((b) => (
+                <SelectItem key={b} value={b}>
+                  {b}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
         <Field label="Horizon de détention">
           <Select
@@ -143,25 +167,11 @@ export function InvestorForm({
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Financement">
-          <Select value={draft.financing ?? ""} onValueChange={(v) => set({ financing: v })}>
-            <SelectTrigger>
-              <SelectValue placeholder="—" />
-            </SelectTrigger>
-            <SelectContent>
-              {FINANCINGS.map((f) => (
-                <SelectItem key={f} value={f}>
-                  {f}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
       </div>
 
       <Field label="Classes d'actifs recherchées">
         <MultiSelect
-          options={ASSET_CLASSES}
+          options={assetClasses}
           value={draft.asset_classes ?? []}
           onChange={(v) => set({ asset_classes: v })}
         />
