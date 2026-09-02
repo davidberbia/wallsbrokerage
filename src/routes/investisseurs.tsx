@@ -8,7 +8,9 @@ import { AppLayout } from "@/components/AppLayout";
 import { CopyEmail } from "@/components/CopyEmail";
 import { InvestorForm, investorPayload, type InvestorDraft } from "@/components/InvestorForm";
 import type { BandsByAsset } from "@/components/AssetClassBands";
+import { StrategyMatrixDialog } from "@/components/StrategyMatrixDialog";
 import { useAuth } from "@/hooks/useAuth";
+
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
