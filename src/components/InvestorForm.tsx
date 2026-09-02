@@ -11,7 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { HORIZONS, INVESTOR_STATUS, REGIONS, STRATEGIES } from "@/lib/taxonomy";
-import { matchAmountBand, parseAmountBand, useLists } from "@/lib/lists";
+import { useLists } from "@/lib/lists";
+import { AssetClassBands, type BandsByAsset } from "@/components/AssetClassBands";
 import type { Investor } from "@/lib/types";
 
 export type InvestorDraft = Partial<Investor> & { full_name: string };
