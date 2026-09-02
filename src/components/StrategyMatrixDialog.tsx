@@ -99,7 +99,7 @@ export function StrategyMatrixDialog({
   value: StrategyMatrixValue;
   onChange: (next: StrategyMatrixValue) => void;
 }) {
-  const { assetClasses, amountBands } = useLists();
+  const { assetClasses, amountBands, countries } = useLists();
 
   const toggleAsset = (asset: string) => {
     const on = value.assetClasses.includes(asset);
@@ -276,6 +276,11 @@ export function StrategyMatrixDialog({
           <div>
             <p className="eyebrow mb-2">Régions ciblées</p>
             <Chips options={REGIONS} value={value.regions} onToggle={toggleRegion} />
+          </div>
+
+          <div>
+            <p className="eyebrow mb-2">Pays ciblés</p>
+            <Chips options={countries} value={value.regions} onToggle={toggleRegion} />
           </div>
         </div>
 
