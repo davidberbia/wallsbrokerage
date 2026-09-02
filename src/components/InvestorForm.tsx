@@ -34,6 +34,8 @@ export function InvestorForm({
   showStatus = true,
   submitLabel = "Valider",
   footer,
+  bands = {},
+  onBandsChange,
 }: {
   draft: InvestorDraft;
   onChange: (d: InvestorDraft) => void;
@@ -42,10 +44,11 @@ export function InvestorForm({
   showStatus?: boolean;
   submitLabel?: string;
   footer?: React.ReactNode;
+  bands?: BandsByAsset;
+  onBandsChange?: (b: BandsByAsset) => void;
 }) {
   const set = (patch: Partial<InvestorDraft>) => onChange({ ...draft, ...patch });
   const { assetClasses, investorProfiles, amountBands } = useLists();
-  const currentBand = matchAmountBand(amountBands, draft.budget_min, draft.budget_max);
 
   return (
     <form
