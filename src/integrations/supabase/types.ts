@@ -538,6 +538,36 @@ export type Database = {
         }
         Relationships: []
       }
+      taxonomy_items: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          kind: string
+          label: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind: string
+          label: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind?: string
+          label?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -584,7 +614,7 @@ export type Database = {
       trigger_automation: { Args: { path: string }; Returns: undefined }
     }
     Enums: {
-      app_role: "broker" | "investor"
+      app_role: "broker" | "investor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -712,7 +742,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["broker", "investor"],
+      app_role: ["broker", "investor", "viewer"],
     },
   },
 } as const

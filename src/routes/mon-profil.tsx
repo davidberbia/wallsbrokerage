@@ -15,11 +15,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { investorPayload, type InvestorDraft } from "@/components/InvestorForm";
 import { useAuth } from "@/hooks/useAuth";
 import { sendProfileConfirmation } from "@/lib/profile.functions";
+import { useLists } from "@/lib/lists";
 import {
-  AMOUNT_BANDS,
-  ASSET_CLASSES,
-  COUNTRIES,
-  INVESTOR_PROFILES,
   JOB_TITLES,
   REGIONS,
   STRATEGIES,
@@ -195,6 +192,7 @@ function FormField({ label, children }: { label: string; children: React.ReactNo
 
 function IdentityStep({ draft, setDraft, customJob, setCustomJob }: { draft: InvestorDraft; setDraft: (value: InvestorDraft) => void; customJob: string; setCustomJob: (value: string) => void }) {
   const set = (patch: Partial<InvestorDraft>) => setDraft({ ...draft, ...patch });
+  const { investorProfiles } = useLists();
   return <div><h2 className="text-xl">Vos coordonnées</h2><p className="mt-1 text-sm text-muted-foreground">Tous les champs sont obligatoires.</p><div className="mt-6 grid gap-5 sm:grid-cols-2">
     <FormField label="Prénom"><Input required value={draft.first_name ?? ""} onChange={(event) => set({ first_name: event.target.value })} /></FormField>
     <FormField label="Nom"><Input required value={draft.full_name} onChange={(event) => set({ full_name: event.target.value })} /></FormField>
@@ -205,7 +203,7 @@ function IdentityStep({ draft, setDraft, customJob, setCustomJob }: { draft: Inv
     <FormField label="Code postal"><Input required value={draft.postal_code ?? ""} onChange={(event) => set({ postal_code: event.target.value })} /></FormField>
     <FormField label="Ville"><Input required value={draft.city ?? ""} onChange={(event) => set({ city: event.target.value })} /></FormField>
     <FormField label="Fonction"><Select value={draft.job_title ?? ""} onValueChange={(value) => set({ job_title: value })}><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent>{JOB_TITLES.map((title) => <SelectItem key={title} value={title}>{title}</SelectItem>)}</SelectContent></Select>{draft.job_title === "Autre" && <Input className="mt-2" required placeholder="Précisez votre fonction" value={customJob} onChange={(event) => setCustomJob(event.target.value)} />}</FormField>
-    <FormField label="Type d’investisseur"><Select value={draft.investor_profile ?? ""} onValueChange={(value) => set({ investor_profile: value })}><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent>{INVESTOR_PROFILES.map((profile) => <SelectItem key={profile} value={profile}>{profile}</SelectItem>)}</SelectContent></Select></FormField>
+    <FormField label="Type d’investisseur"><Select value={draft.investor_profile ?? ""} onValueChange={(value) => set({ investor_profile: value })}><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger><SelectContent>{investorProfiles.map((profile) => <SelectItem key={profile} value={profile}>{profile}</SelectItem>)}</SelectContent></Select></FormField>
   </div></div>;
 }
 
@@ -215,19 +213,22 @@ function ChoiceBox({ checked, onChange, label }: { checked: boolean; onChange: (
 
 function StrategyStep({ criteria, toggleAsset, updateCriteria }: { criteria: CriteriaMap; toggleAsset: (asset: string) => void; updateCriteria: (asset: string, patch: Partial<CriteriaChoice>) => void }) {
   const selected = Object.keys(criteria);
+  const { assetClasses } = useLists();
   const toggleStrategy = (asset: string, strategy: string) => { const values = criteria[asset]?.strategies ?? []; updateCriteria(asset, { strategies: values.includes(strategy) ? values.filter((value) => value !== strategy) : [...values, strategy] }); };
-  return <TooltipProvider><div><h2 className="text-xl">Vos classes d’actifs</h2><p className="mt-1 text-sm text-muted-foreground">Cochez vos actifs, puis au moins une stratégie pour chacun.</p><div className="mt-5 grid gap-x-8 gap-y-3 rounded-md border p-4 sm:grid-cols-2">{ASSET_CLASSES.map((asset) => <ChoiceBox key={asset} label={asset} checked={Boolean(criteria[asset])} onChange={() => toggleAsset(asset)} />)}</div>{selected.length > 0 && <div className="mt-8 overflow-x-auto"><table className="w-full min-w-[720px] border-collapse text-sm"><thead><tr><th className="border-b p-3 text-left">Classe d’actif</th>{STRATEGIES.map((strategy) => <th key={strategy} className="border-b p-3 text-center"><Tooltip><TooltipTrigger className="inline-flex items-center gap-1 font-semibold">{strategy}<Info className="size-3.5" /></TooltipTrigger><TooltipContent className="max-w-72"><p>{STRATEGY_DEFINITIONS[strategy]}</p></TooltipContent></Tooltip></th>)}</tr></thead><tbody>{selected.map((asset) => <tr key={asset} className="border-b last:border-0"><th className="p-3 text-left font-medium">{asset}</th>{STRATEGIES.map((strategy) => <td key={strategy} className="p-3 text-center"><Checkbox checked={Boolean(criteria[asset]?.strategies.includes(strategy))} onCheckedChange={() => toggleStrategy(asset, strategy)} aria-label={`${asset}, ${strategy}`} /></td>)}</tr>)}</tbody></table></div>}</div></TooltipProvider>;
+  return <TooltipProvider><div><h2 className="text-xl">Vos classes d’actifs</h2><p className="mt-1 text-sm text-muted-foreground">Cochez vos actifs, puis au moins une stratégie pour chacun.</p><div className="mt-5 grid gap-x-8 gap-y-3 rounded-md border p-4 sm:grid-cols-2">{assetClasses.map((asset) => <ChoiceBox key={asset} label={asset} checked={Boolean(criteria[asset])} onChange={() => toggleAsset(asset)} />)}</div>{selected.length > 0 && <div className="mt-8 overflow-x-auto"><table className="w-full min-w-[720px] border-collapse text-sm"><thead><tr><th className="border-b p-3 text-left">Classe d’actif</th>{STRATEGIES.map((strategy) => <th key={strategy} className="border-b p-3 text-center"><Tooltip><TooltipTrigger className="inline-flex items-center gap-1 font-semibold">{strategy}<Info className="size-3.5" /></TooltipTrigger><TooltipContent className="max-w-72"><p>{STRATEGY_DEFINITIONS[strategy]}</p></TooltipContent></Tooltip></th>)}</tr></thead><tbody>{selected.map((asset) => <tr key={asset} className="border-b last:border-0"><th className="p-3 text-left font-medium">{asset}</th>{STRATEGIES.map((strategy) => <td key={strategy} className="p-3 text-center"><Checkbox checked={Boolean(criteria[asset]?.strategies.includes(strategy))} onCheckedChange={() => toggleStrategy(asset, strategy)} aria-label={`${asset}, ${strategy}`} /></td>)}</tr>)}</tbody></table></div>}</div></TooltipProvider>;
 }
 
 function AmountStep({ criteria, updateCriteria }: { criteria: CriteriaMap; updateCriteria: (asset: string, patch: Partial<CriteriaChoice>) => void }) {
+  const { amountBands } = useLists();
   const toggle = (asset: string, band: string) => { const values = criteria[asset]?.amountBands ?? []; updateCriteria(asset, { amountBands: values.includes(band) ? values.filter((value) => value !== band) : [...values, band] }); };
-  return <div><h2 className="text-xl">Montant par opportunité d’investissement</h2><p className="mt-1 text-sm text-muted-foreground">Sélectionnez au moins une tranche pour chaque classe d’actif.</p><div className="mt-6 overflow-x-auto"><table className="w-full min-w-[680px] border-collapse text-sm"><thead><tr><th className="border-b p-3 text-left">Classe d’actif</th>{AMOUNT_BANDS.map((band) => <th key={band} className="border-b p-3 text-center">{band}</th>)}</tr></thead><tbody>{Object.keys(criteria).map((asset) => <tr key={asset} className="border-b last:border-0"><th className="p-3 text-left font-medium">{asset}</th>{AMOUNT_BANDS.map((band) => <td key={band} className="p-3 text-center"><Checkbox checked={Boolean(criteria[asset]?.amountBands.includes(band))} onCheckedChange={() => toggle(asset, band)} aria-label={`${asset}, ${band}`} /></td>)}</tr>)}</tbody></table></div></div>;
+  return <div><h2 className="text-xl">Montant par opportunité d’investissement</h2><p className="mt-1 text-sm text-muted-foreground">Sélectionnez au moins une tranche pour chaque classe d’actif.</p><div className="mt-6 overflow-x-auto"><table className="w-full min-w-[680px] border-collapse text-sm"><thead><tr><th className="border-b p-3 text-left">Classe d’actif</th>{amountBands.map((band) => <th key={band} className="border-b p-3 text-center">{band}</th>)}</tr></thead><tbody>{Object.keys(criteria).map((asset) => <tr key={asset} className="border-b last:border-0"><th className="p-3 text-left font-medium">{asset}</th>{amountBands.map((band) => <td key={band} className="p-3 text-center"><Checkbox checked={Boolean(criteria[asset]?.amountBands.includes(band))} onCheckedChange={() => toggle(asset, band)} aria-label={`${asset}, ${band}`} /></td>)}</tr>)}</tbody></table></div></div>;
 }
 
 function GeographyStep({ value, onChange }: { value: string[]; onChange: (value: string[]) => void }) {
+  const { countries } = useLists();
   const toggle = (zone: string) => onChange(value.includes(zone) ? value.filter((item) => item !== zone) : [...value, zone]);
   const group = (title: string, zones: readonly string[]) => <div><h3 className="mb-3 text-base">{title}</h3><div className="grid gap-3 sm:grid-cols-2">{zones.map((zone) => <label key={zone} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-md border p-3 ${value.includes(zone) ? "border-accent bg-accent/10" : "bg-background"}`}><Checkbox checked={value.includes(zone)} onCheckedChange={() => toggle(zone)} /><span className="text-sm font-medium">{zone}</span></label>)}</div></div>;
-  return <div><h2 className="text-xl">Vos zones géographiques</h2><p className="mt-1 text-sm text-muted-foreground">Sélectionnez au moins une région ou un pays.</p><div className="mt-6 space-y-8">{group("Régions de France", REGIONS)}{group("Pays", COUNTRIES)}</div></div>;
+  return <div><h2 className="text-xl">Vos zones géographiques</h2><p className="mt-1 text-sm text-muted-foreground">Sélectionnez au moins une région ou un pays.</p><div className="mt-6 space-y-8">{group("Régions de France", REGIONS)}{group("Pays", countries)}</div></div>;
 }
 
 function SummaryStep({ draft, criteria, customJob }: { draft: InvestorDraft; criteria: CriteriaMap; customJob: string }) {

@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { Building2, LogOut, Send, Target, UserCircle, Users } from "lucide-react";
+import { Building2, LogOut, Send, Settings, Target, UserCircle, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -14,27 +14,32 @@ const BROKER_NAV = [
   { to: "/envois", label: "Envois", icon: Send },
 ] as const;
 
+const ADMIN_NAV = [{ to: "/parametres", label: "Paramètres", icon: Settings }] as const;
+
 const INVESTOR_NAV = [{ to: "/mon-profil", label: "Mon profil", icon: UserCircle }] as const;
 
 export function AppLayout({
   children,
   requireBroker = false,
+  requireAdmin = false,
 }: {
   children: ReactNode;
   requireBroker?: boolean;
+  requireAdmin?: boolean;
 }) {
-  const { session, loading, isBroker } = useAuth();
+  const { session, loading, isBroker, isStaff } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const NAV = isBroker ? BROKER_NAV : INVESTOR_NAV;
+  const NAV = isStaff ? [...BROKER_NAV, ...(isBroker ? ADMIN_NAV : [])] : [...INVESTOR_NAV];
 
   useEffect(() => {
     if (loading) return;
     if (!session) navigate({ to: "/auth" });
-    else if (requireBroker && !isBroker) navigate({ to: "/mon-profil" });
-  }, [loading, session, isBroker, requireBroker, navigate]);
+    else if (requireAdmin && !isBroker) navigate({ to: "/" });
+    else if (requireBroker && !isStaff) navigate({ to: "/mon-profil" });
+  }, [loading, session, isBroker, isStaff, requireBroker, requireAdmin, navigate]);
 
-  if (loading || !session || (requireBroker && !isBroker)) {
+  if (loading || !session || (requireBroker && !isStaff) || (requireAdmin && !isBroker)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Chargement…
@@ -46,7 +51,7 @@ export function AppLayout({
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-sidebar text-sidebar-foreground">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-5">
-          <Link to="/" className="flex items-baseline">
+          <Link to={isStaff ? "/" : "/mon-profil"} className="flex items-baseline">
             <span className="font-display text-lg font-semibold tracking-tight text-accent">
               WALLSBROKERAGE
             </span>
