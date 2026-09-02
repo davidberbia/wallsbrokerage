@@ -25,9 +25,8 @@ import { ASSET_CLASSES, REGIONS, STRATEGIES, formatEUR } from "@/lib/taxonomy";
 import { matchInvestor, type Asset, type Criteria, type Investor } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    asset: typeof search['asset'] === "string" ? (search['asset'] as string) : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { asset?: string } =>
+    typeof search['asset'] === "string" ? { asset: search['asset'] as string } : {},
   head: () => ({
     meta: [
       { title: "Matching investisseurs — Walls Brokerage CRM" },
