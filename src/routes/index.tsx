@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,6 +65,8 @@ function MatchingPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [brochure, setBrochure] = useState<File | null>(null);
   const [prefilled, setPrefilled] = useState(false);
+  const [savingBrochure, setSavingBrochure] = useState(false);
+  const queryClient = useQueryClient();
 
 
   const investorsQuery = useQuery({
@@ -117,6 +119,10 @@ function MatchingPage() {
   const chosen = results.filter((r) => isSelected(r.investor.id));
   const emails = chosen.map((r) => r.investor.email).filter((e): e is string => Boolean(e));
   const asset = (assetsQuery.data ?? []).find((a) => a.id === assetId) ?? null;
+  const storedBrochureName =
+    asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url)
+      ? (asset.brochure_url.split("/").pop() ?? null)
+      : (asset?.brochure_url ?? null);
 
   const applyAsset = (id: string) => {
     setSelected(new Set());
@@ -248,7 +254,7 @@ function MatchingPage() {
               id="brochure-upload"
               type="file"
               accept="application/pdf"
-              onChange={(e) => {
+              onChange={async (e) => {
                 const f = e.target.files?.[0] ?? null;
                 if (f && f.size > 9 * 1024 * 1024) {
                   toast.error("La brochure ne doit pas dépasser 9 Mo.");
@@ -257,14 +263,42 @@ function MatchingPage() {
                   return;
                 }
                 setBrochure(f);
+                if (f && asset) {
+                  setSavingBrochure(true);
+                  try {
+                    const path = `actifs/${crypto.randomUUID()}-${f.name.replace(/[^\w.-]+/g, "_")}`;
+                    const upload = await supabase.storage
+                      .from("brochures")
+                      .upload(path, f, { contentType: "application/pdf" });
+                    if (upload.error) throw upload.error;
+                    const { error } = await supabase
+                      .from("assets")
+                      .update({ brochure_url: path })
+                      .eq("id", asset.id);
+                    if (error) throw error;
+                    await queryClient.invalidateQueries({ queryKey: ["assets"] });
+                    toast.success("Brochure enregistrée sur l'actif");
+                  } catch (err) {
+                    toast.error(
+                      err instanceof Error ? err.message : "Échec de l'enregistrement de la brochure",
+                    );
+                  } finally {
+                    setSavingBrochure(false);
+                  }
+                }
               }}
             />
             <p className="text-xs text-muted-foreground">
-              {brochure
-                ? `Brochure prête : ${brochure.name} — le bouton « Envoyer la brochure » est activé.`
-                : "Ajoutez la brochure pour activer l'envoi aux investisseurs sélectionnés."}
+              {savingBrochure
+                ? "Enregistrement de la brochure…"
+                : brochure
+                  ? `Brochure prête : ${brochure.name} — le bouton « Envoyer la brochure » est activé.`
+                  : storedBrochureName
+                    ? `Brochure déjà associée à cet actif : ${storedBrochureName} — elle sera envoyée automatiquement.`
+                    : "Ajoutez la brochure pour activer l'envoi aux investisseurs sélectionnés."}
             </p>
           </div>
+
         </div>
       </div>
 
@@ -314,7 +348,6 @@ function MatchingPage() {
             recipients={chosen.map((r) => r.investor)}
             onLaunched={() => {
               setSelected(new Set());
-              setBrochure(null);
             }}
           />
 
