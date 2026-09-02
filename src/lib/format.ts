@@ -11,3 +11,14 @@ export const parseThousands = (value: string) => {
   const digits = value.replace(/[^\d]/g, "");
   return digits ? Number(digits) : null;
 };
+
+/** Nom de fichier lisible d'une brochure stockée (le dossier porte l'identifiant). */
+export function brochureFileName(path: string | null | undefined) {
+  if (!path) return null;
+  const last = path.split("/").pop() ?? path;
+  // Compatibilité avec l'ancien format « <uuid>-nom.pdf ».
+  return last.replace(
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-/i,
+    "",
+  );
+}
