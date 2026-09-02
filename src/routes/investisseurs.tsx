@@ -179,7 +179,7 @@ function InvestorsPage() {
               onOpenChange={(o) => setEditing(o ? (editing ?? { ...emptyDraft }) : null)}
             >
               <DialogTrigger asChild>
-                <Button onClick={() => setEditing({ ...emptyDraft })}>
+                <Button onClick={() => openEdit()}>
                   <Plus className="size-4" /> Nouvel investisseur
                 </Button>
               </DialogTrigger>
@@ -196,6 +196,8 @@ function InvestorsPage() {
                     onSubmit={() => save.mutate(editing)}
                     saving={save.isPending}
                     submitLabel="Valider"
+                    bands={bands}
+                    onBandsChange={setBands}
                   />
                 )}
               </DialogContent>
