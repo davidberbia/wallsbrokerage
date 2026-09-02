@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +25,9 @@ import { ASSET_CLASSES, REGIONS, STRATEGIES, formatEUR } from "@/lib/taxonomy";
 import { matchInvestor, type Asset, type Criteria, type Investor } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    asset: typeof search['asset'] === "string" ? (search['asset'] as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Matching investisseurs — Walls Brokerage CRM" },
@@ -50,6 +53,7 @@ export const Route = createFileRoute("/")({
 const ANY = "__any__";
 
 function MatchingPage() {
+  const { asset: assetParam } = Route.useSearch();
   const [criteria, setCriteria] = useState<Criteria>({
     price: null,
     yield_pct: null,
@@ -61,6 +65,7 @@ function MatchingPage() {
   const [strict, setStrict] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [brochure, setBrochure] = useState<File | null>(null);
+  const [prefilled, setPrefilled] = useState(false);
 
 
   const investorsQuery = useQuery({
@@ -168,10 +173,10 @@ function MatchingPage() {
             <Label>Pré-remplir depuis un actif enregistré</Label>
             <Select value={assetId ?? ANY} onValueChange={applyAsset}>
               <SelectTrigger>
-                <SelectValue placeholder="Saisie libre" />
+                <SelectValue placeholder="Choisir un dossier" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ANY}>Saisie libre</SelectItem>
+                <SelectItem value={ANY}>Choisir un dossier</SelectItem>
                 {(assetsQuery.data ?? []).map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.title} {a.city ? `— ${a.city}` : ""}
@@ -191,22 +196,6 @@ function MatchingPage() {
               placeholder="2 500 000"
             />
 
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="yield">Rendement (%)</Label>
-            <Input
-              id="yield"
-              type="number"
-              step="0.1"
-              value={criteria.yield_pct ?? ""}
-              onChange={(e) =>
-                setCriteria({
-                  ...criteria,
-                  yield_pct: e.target.value ? Number(e.target.value) : null,
-                })
-              }
-              placeholder="6.5"
-            />
           </div>
           <SelectField
             label="Classe d'actif"
