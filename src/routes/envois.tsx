@@ -53,7 +53,7 @@ type SendRow = {
   status: string;
   channel: string;
   assets: { title: string; reference: string | null } | null;
-  investors: { full_name: string; company: string | null } | null;
+  investors: { company: string | null } | null;
 };
 
 const dt = (v: string | null) =>
@@ -87,7 +87,7 @@ function SendsPage() {
       const { data, error } = await supabase
         .from("brochure_sends")
         .select(
-          "id, asset_id, sent_at, opened_at, email_to, subject, status, channel, assets(title, reference), investors(full_name, company)",
+          "id, asset_id, sent_at, opened_at, email_to, subject, status, channel, assets(title, reference), investors(company)",
         )
         .order("sent_at", { ascending: false })
         .limit(2000);

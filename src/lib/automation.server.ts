@@ -73,9 +73,7 @@ export function reportHtml(params: {
       const rows = section.rows
         .map(
           (r) => `<tr>
-  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;">${escapeHtml(r.company || r.name)}${
-    r.company ? `<br><span style="color:#8a8378;font-size:12px;">${escapeHtml(r.name)}</span>` : ""
-  }</td>
+  <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;">${escapeHtml(r.company || r.name)}</td>
   <td style="padding:8px 10px;border-bottom:1px solid #e6e2db;white-space:nowrap;">${fmtDateTime(r.sent_at)}</td>${
     showOpened
       ? `
