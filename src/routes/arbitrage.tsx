@@ -77,10 +77,12 @@ function ArbitragePage() {
   const sendRequest = useServerFn(submitArbitrageRequest);
   const set = (k: keyof Search, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
+  const priceEuros = parseThousands(form.price);
+
   const search = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.asset_class || !form.region || !form.price) {
-      toast.error("Classe d'actif, région et prix sont nécessaires.");
+    if (!form.asset_class || !form.region || !form.occupancy || !priceEuros) {
+      toast.error("Tous les champs sont obligatoires.");
       return;
     }
     setBusy(true);
@@ -90,10 +92,10 @@ function ArbitragePage() {
           asset_class: form.asset_class,
           region: form.region,
           occupancy: form.occupancy || null,
-          strategy: form.strategy || null,
-          city_scope: form.city_scope || null,
-          periphery_scope: form.periphery_scope || null,
-          price_meur: Number(form.price),
+          strategy: null,
+          city_scope: null,
+          periphery_scope: null,
+          price_meur: priceEuros / 1_000_000,
         },
       });
       setCount(res.count);
@@ -113,13 +115,14 @@ function ArbitragePage() {
           asset_class: form.asset_class,
           region: form.region,
           occupancy: form.occupancy || null,
-          strategy: form.strategy || null,
-          city_scope: form.city_scope || null,
-          periphery_scope: form.periphery_scope || null,
-          price_meur: Number(form.price),
+          strategy: null,
+          city_scope: null,
+          periphery_scope: null,
+          price_meur: (priceEuros ?? 0) / 1_000_000,
           surface: null,
           address: null,
           rent_annual: null,
+
 
           first_name: contact.first_name,
           last_name: contact.last_name,
