@@ -113,6 +113,58 @@ function SendsPage() {
   const opened = rows.filter((r) => r.opened_at).length;
   const asset = (assets.data ?? []).find((a) => a.id === assetId) ?? null;
 
+  const resend = async (row: SendRow) => {
+    const email = row.email_to ?? row.investors?.email;
+    if (!email) {
+      toast.error("Cet investisseur n'a pas d'adresse email.");
+      return;
+    }
+    if (!row.campaigns) {
+      toast.error("Impossible de retrouver le dossier d'origine de cet envoi.");
+      return;
+    }
+    setResending(row.id);
+    try {
+      const prenom =
+        row.investors?.first_name || row.investors?.full_name.split(" ")[0] || "";
+      const subject = row.subject ?? row.campaigns.subject;
+      const { error: queueError } = await supabase.from("email_queue").insert({
+        campaign_id: row.campaign_id,
+        send_id: row.id,
+        kind: "brochure",
+        to_email: email,
+        to_name: row.investors?.full_name ?? null,
+        subject,
+        attachment_path: row.campaigns.brochure_path,
+        attachment_name: row.campaigns.brochure_name,
+        body_html: `<div style="font-family:Arial,Helvetica,sans-serif;color:#16212f;font-size:14px;line-height:1.6;">
+  <p>Bonjour ${escapeHtml(prenom)},</p>
+  ${row.campaigns.body_html}
+  ${SIGNATURE_HTML}
+  <img src="${PUBLIC_APP_URL}/api/public/t/${row.tracking_id}.gif" width="1" height="1" alt="" style="display:none">
+</div>`,
+      });
+      if (queueError) throw queueError;
+
+      const now = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from("brochure_sends")
+        .update({ resent_at: now })
+        .eq("id", row.id);
+      if (updateError) throw updateError;
+
+      const { error: pumpError } = await supabase.rpc("start_email_pump");
+      if (pumpError) throw pumpError;
+
+      await sends.refetch();
+      toast.success("Dossier renvoyé.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Échec du renvoi");
+    } finally {
+      setResending(null);
+    }
+  };
+
   const generateReport = async () => {
     if (rows.length === 0) {
       toast.error("Aucun envoi à reporter pour cette sélection.");
