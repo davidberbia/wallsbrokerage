@@ -17,7 +17,15 @@ import {
 } from "@/components/ui/dialog";
 import { PUBLIC_APP_URL } from "@/lib/app-url";
 import { brochureFileName } from "@/lib/format";
-import type { Asset, Investor } from "@/lib/types";
+import type { Asset } from "@/lib/types";
+
+/** Destinataire d'une campagne : investisseur du CRM ou prospect importé. */
+export type Recipient = {
+  id: string;
+  email: string | null;
+  full_name: string;
+  first_name?: string | null;
+};
 
 export const escapeHtml = (value: string) =>
   value
@@ -45,12 +53,15 @@ export function CampaignDialog({
   recipients,
   onLaunched,
   brochure = null,
+  recipientKind = "investor",
 }: {
   asset: Asset | null;
-  recipients: Investor[];
+  recipients: Recipient[];
   onLaunched?: () => void;
   /** Brochure fournie depuis la page (champ « Upload brochure »). */
   brochure?: File | null;
+  /** Type de destinataires : investisseurs du CRM ou prospects importés. */
+  recipientKind?: "investor" | "prospect";
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -117,13 +128,14 @@ export function CampaignDialog({
         .single();
       if (campaignError) throw campaignError;
 
-      const sends = withEmail.map((investor) => ({
+      const sends = withEmail.map((recipient) => ({
         id: crypto.randomUUID(),
         tracking_id: crypto.randomUUID(),
         campaign_id: campaign.id,
         asset_id: asset.id,
-        investor_id: investor.id,
-        email_to: investor.email,
+        investor_id: recipientKind === "investor" ? recipient.id : null,
+        prospect_contact_id: recipientKind === "prospect" ? recipient.id : null,
+        email_to: recipient.email,
         subject: finalSubject,
         channel: "email",
         status: "en file",

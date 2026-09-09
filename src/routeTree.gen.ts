@@ -17,6 +17,7 @@ import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as ParametresRouteImport } from './routes/parametres'
+import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
@@ -62,6 +63,11 @@ const ParametresRoute = ParametresRouteImport.update({
   path: '/parametres',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProspectsRoute = ProspectsRouteImport.update({
+  id: '/prospects',
+  path: '/prospects',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
   '/parametres': typeof ParametresRoute
+  '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
   '/parametres': typeof ParametresRoute
+  '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
   '/parametres': typeof ParametresRoute
+  '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/investisseurs'
     | '/mon-profil'
     | '/parametres'
+    | '/prospects'
     | '/sitemap.xml'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/investisseurs'
     | '/mon-profil'
     | '/parametres'
+    | '/prospects'
     | '/sitemap.xml'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/investisseurs'
     | '/mon-profil'
     | '/parametres'
+    | '/prospects'
     | '/sitemap.xml'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
   ParametresRoute: typeof ParametresRoute
+  ProspectsRoute: typeof ProspectsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ParametresRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/prospects': {
+      id: '/prospects'
+      path: '/prospects'
+      fullPath: '/prospects'
+      preLoaderRoute: typeof ProspectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
   ParametresRoute: ParametresRoute,
+  ProspectsRoute: ProspectsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,

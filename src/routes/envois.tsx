@@ -63,6 +63,12 @@ type SendRow = {
     full_name: string;
     email: string | null;
   } | null;
+  prospect_contacts: {
+    full_name: string;
+    first_name: string | null;
+    email: string | null;
+    prospect_companies: { name: string } | null;
+  } | null;
   campaigns: {
     subject: string;
     body_html: string;
@@ -70,6 +76,9 @@ type SendRow = {
     brochure_name: string | null;
   } | null;
 };
+
+const companyOf = (r: SendRow) =>
+  r.investors?.company ?? r.prospect_contacts?.prospect_companies?.name ?? "—";
 
 const dt = (v: string | null) =>
   v
@@ -103,7 +112,7 @@ function SendsPage() {
       const { data, error } = await supabase
         .from("brochure_sends")
         .select(
-          "id, asset_id, campaign_id, tracking_id, sent_at, opened_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), campaigns(subject, body_html, brochure_path, brochure_name)",
+          "id, asset_id, campaign_id, tracking_id, sent_at, opened_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), prospect_contacts(full_name, first_name, email, prospect_companies(name)), campaigns(subject, body_html, brochure_path, brochure_name)",
         )
         .order("sent_at", { ascending: false })
         .limit(2000);
@@ -117,7 +126,7 @@ function SendsPage() {
   const asset = (assets.data ?? []).find((a) => a.id === assetId) ?? null;
 
   const resend = async (row: SendRow) => {
-    const email = row.email_to ?? row.investors?.email;
+    const email = row.email_to ?? row.investors?.email ?? row.prospect_contacts?.email;
     if (!email) {
       toast.error("Cet investisseur n'a pas d'adresse email.");
       return;
@@ -128,15 +137,15 @@ function SendsPage() {
     }
     setResending(row.id);
     try {
-      const prenom =
-        row.investors?.first_name || row.investors?.full_name.split(" ")[0] || "";
+      const person = row.investors ?? row.prospect_contacts;
+      const prenom = person?.first_name || person?.full_name.split(" ")[0] || "";
       const subject = row.subject ?? row.campaigns.subject;
       const { error: queueError } = await supabase.from("email_queue").insert({
         campaign_id: row.campaign_id,
         send_id: row.id,
         kind: "brochure",
         to_email: email,
-        to_name: row.investors?.full_name ?? null,
+        to_name: person?.full_name ?? null,
         subject,
         attachment_path: row.campaigns.brochure_path,
         attachment_name: row.campaigns.brochure_name,
@@ -201,7 +210,7 @@ function SendsPage() {
       head: [["Date et heure d'envoi", "Société", "Statut", "Ouverture", "Renvoi"]],
       body: rows.map((r) => [
         dt(r.sent_at),
-        r.investors?.company ?? "—",
+        companyOf(r),
         r.status,
         r.opened_at ? dt(r.opened_at) : "non ouvert",
         r.resent_at ? dt(r.resent_at) : "—",
@@ -283,7 +292,7 @@ function SendsPage() {
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-border/60 last:border-0">
                 <td className="whitespace-nowrap px-4 py-3">{dt(r.sent_at)}</td>
-                <td className="px-4 py-3 font-medium">{r.investors?.company ?? "—"}</td>
+                <td className="px-4 py-3 font-medium">{companyOf(r)}</td>
                 <td className="px-4 py-3">
                   <p>{r.assets?.title ?? "—"}</p>
                   <p className="text-xs text-muted-foreground">{r.assets?.reference ?? ""}</p>
