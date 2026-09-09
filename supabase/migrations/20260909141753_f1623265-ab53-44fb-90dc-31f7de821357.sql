@@ -1,0 +1,1 @@
+ALTER TABLE public.brochure_sends ADD COLUMN IF NOT EXISTS resent_at timestamp with time zone;

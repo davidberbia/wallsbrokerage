@@ -171,6 +171,7 @@ export type Database = {
           notes: string | null
           opened_at: string | null
           owner_id: string | null
+          resent_at: string | null
           sent_at: string
           status: string
           subject: string | null
@@ -188,6 +189,7 @@ export type Database = {
           notes?: string | null
           opened_at?: string | null
           owner_id?: string | null
+          resent_at?: string | null
           sent_at?: string
           status?: string
           subject?: string | null
@@ -205,6 +207,7 @@ export type Database = {
           notes?: string | null
           opened_at?: string | null
           owner_id?: string | null
+          resent_at?: string | null
           sent_at?: string
           status?: string
           subject?: string | null
