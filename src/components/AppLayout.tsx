@@ -1,7 +1,16 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { Building2, LogOut, Send, Settings, Target, UserCircle, Users } from "lucide-react";
+import {
+  Building2,
+  Contact,
+  LogOut,
+  Send,
+  Settings,
+  Target,
+  UserCircle,
+  Users,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -10,6 +19,7 @@ import { cn } from "@/lib/utils";
 const BROKER_NAV = [
   { to: "/", label: "Matching", icon: Target },
   { to: "/investisseurs", label: "Investisseurs", icon: Users },
+  { to: "/prospects", label: "Prospects", icon: Contact },
   { to: "/actifs", label: "Actifs", icon: Building2 },
   { to: "/envois", label: "Envois", icon: Send },
 ] as const;
