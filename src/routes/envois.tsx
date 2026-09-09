@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { CheckCircle2, Clock, Eye, FileDown } from "lucide-react";
+import { CheckCircle2, Clock, Eye, FileDown, RotateCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PUBLIC_APP_URL } from "@/lib/app-url";
+import { escapeHtml, SIGNATURE_HTML } from "@/components/CampaignDialog";
 
 
 export const Route = createFileRoute("/envois")({
@@ -45,14 +47,28 @@ export const Route = createFileRoute("/envois")({
 type SendRow = {
   id: string;
   asset_id: string;
+  campaign_id: string | null;
+  tracking_id: string;
   sent_at: string;
   opened_at: string | null;
+  resent_at: string | null;
   email_to: string | null;
   subject: string | null;
   status: string;
   channel: string;
   assets: { title: string; reference: string | null } | null;
-  investors: { company: string | null } | null;
+  investors: {
+    company: string | null;
+    first_name: string | null;
+    full_name: string;
+    email: string | null;
+  } | null;
+  campaigns: {
+    subject: string;
+    body_html: string;
+    brochure_path: string | null;
+    brochure_name: string | null;
+  } | null;
 };
 
 const dt = (v: string | null) =>
@@ -67,6 +83,7 @@ const ALL = "__all__";
 
 function SendsPage() {
   const [assetId, setAssetId] = useState<string>(ALL);
+  const [resending, setResending] = useState<string | null>(null);
 
   const assets = useQuery({
     queryKey: ["assets"],
@@ -86,7 +103,7 @@ function SendsPage() {
       const { data, error } = await supabase
         .from("brochure_sends")
         .select(
-          "id, asset_id, sent_at, opened_at, email_to, subject, status, channel, assets(title, reference), investors(company)",
+          "id, asset_id, campaign_id, tracking_id, sent_at, opened_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), campaigns(subject, body_html, brochure_path, brochure_name)",
         )
         .order("sent_at", { ascending: false })
         .limit(2000);
@@ -98,6 +115,58 @@ function SendsPage() {
   const rows = (sends.data ?? []).filter((r) => assetId === ALL || r.asset_id === assetId);
   const opened = rows.filter((r) => r.opened_at).length;
   const asset = (assets.data ?? []).find((a) => a.id === assetId) ?? null;
+
+  const resend = async (row: SendRow) => {
+    const email = row.email_to ?? row.investors?.email;
+    if (!email) {
+      toast.error("Cet investisseur n'a pas d'adresse email.");
+      return;
+    }
+    if (!row.campaigns) {
+      toast.error("Impossible de retrouver le dossier d'origine de cet envoi.");
+      return;
+    }
+    setResending(row.id);
+    try {
+      const prenom =
+        row.investors?.first_name || row.investors?.full_name.split(" ")[0] || "";
+      const subject = row.subject ?? row.campaigns.subject;
+      const { error: queueError } = await supabase.from("email_queue").insert({
+        campaign_id: row.campaign_id,
+        send_id: row.id,
+        kind: "brochure",
+        to_email: email,
+        to_name: row.investors?.full_name ?? null,
+        subject,
+        attachment_path: row.campaigns.brochure_path,
+        attachment_name: row.campaigns.brochure_name,
+        body_html: `<div style="font-family:Arial,Helvetica,sans-serif;color:#16212f;font-size:14px;line-height:1.6;">
+  <p>Bonjour ${escapeHtml(prenom)},</p>
+  ${row.campaigns.body_html}
+  ${SIGNATURE_HTML}
+  <img src="${PUBLIC_APP_URL}/api/public/t/${row.tracking_id}.gif" width="1" height="1" alt="" style="display:none">
+</div>`,
+      });
+      if (queueError) throw queueError;
+
+      const now = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from("brochure_sends")
+        .update({ resent_at: now })
+        .eq("id", row.id);
+      if (updateError) throw updateError;
+
+      const { error: pumpError } = await supabase.rpc("start_email_pump");
+      if (pumpError) throw pumpError;
+
+      await sends.refetch();
+      toast.success("Dossier renvoyé.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Échec du renvoi");
+    } finally {
+      setResending(null);
+    }
+  };
 
   const generateReport = async () => {
     if (rows.length === 0) {
@@ -129,12 +198,13 @@ function SendsPage() {
 
     autoTable(doc, {
       startY: asset ? 120 : 104,
-      head: [["Date et heure", "Société", "Statut", "Ouverture"]],
+      head: [["Date et heure d'envoi", "Société", "Statut", "Ouverture", "Renvoi"]],
       body: rows.map((r) => [
         dt(r.sent_at),
         r.investors?.company ?? "—",
         r.status,
         r.opened_at ? dt(r.opened_at) : "non ouvert",
+        r.resent_at ? dt(r.resent_at) : "—",
       ]),
       styles: { fontSize: 8, cellPadding: 4 },
       headStyles: { fillColor: [17, 34, 51] },
@@ -187,24 +257,25 @@ function SendsPage() {
         <table className="w-full text-sm">
           <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
-              <th className="px-4 py-3">Date et heure</th>
+              <th className="px-4 py-3">Date et heure d'envoi</th>
               <th className="px-4 py-3">Société</th>
               <th className="px-4 py-3">Actif</th>
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3">Ouverture</th>
+              <th className="px-4 py-3">Renvoyer</th>
             </tr>
           </thead>
           <tbody>
             {sends.isLoading && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   Chargement…
                 </td>
               </tr>
             )}
             {!sends.isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   Aucun envoi enregistré pour le moment.
                 </td>
               </tr>
@@ -229,6 +300,22 @@ function SendsPage() {
                     </span>
                   ) : (
                     <span className="text-muted-foreground">non ouvert</span>
+                  )}
+                </td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  {r.resent_at ? (
+                    <span className="inline-flex items-center gap-1 text-foreground">
+                      <RotateCw className="size-4" /> {dt(r.resent_at)}
+                    </span>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={resending === r.id}
+                      onClick={() => resend(r)}
+                    >
+                      <RotateCw className="size-4" /> Renvoyer
+                    </Button>
                   )}
                 </td>
               </tr>

@@ -19,7 +19,7 @@ import { PUBLIC_APP_URL } from "@/lib/app-url";
 import { brochureFileName } from "@/lib/format";
 import type { Asset, Investor } from "@/lib/types";
 
-const escapeHtml = (value: string) =>
+export const escapeHtml = (value: string) =>
   value
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -32,7 +32,7 @@ const paragraphs = (text: string) =>
     .map((p) => `<p>${escapeHtml(p).replace(/\n/g, "<br>")}</p>`)
     .join("");
 
-const SIGNATURE_HTML = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#16212f;margin-top:20px;">
+export const SIGNATURE_HTML = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#16212f;margin-top:20px;">
   <div style="font-weight:700;font-size:20px;color:#0f7a72;letter-spacing:0.5px;">WALLSBROKER</div>
   <div>David Berbia - <strong>07 67 67 24 24</strong></div>
   <div><a href="mailto:d.berbia@wallsbroker.com" style="color:#1a0dab;">d.berbia@wallsbroker.com</a></div>
