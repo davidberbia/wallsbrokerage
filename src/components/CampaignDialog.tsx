@@ -53,12 +53,15 @@ export function CampaignDialog({
   recipients,
   onLaunched,
   brochure = null,
+  recipientKind = "investor",
 }: {
   asset: Asset | null;
-  recipients: Investor[];
+  recipients: Recipient[];
   onLaunched?: () => void;
   /** Brochure fournie depuis la page (champ « Upload brochure »). */
   brochure?: File | null;
+  /** Type de destinataires : investisseurs du CRM ou prospects importés. */
+  recipientKind?: "investor" | "prospect";
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
