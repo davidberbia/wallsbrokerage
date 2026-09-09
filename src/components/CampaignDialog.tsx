@@ -17,7 +17,15 @@ import {
 } from "@/components/ui/dialog";
 import { PUBLIC_APP_URL } from "@/lib/app-url";
 import { brochureFileName } from "@/lib/format";
-import type { Asset, Investor } from "@/lib/types";
+import type { Asset } from "@/lib/types";
+
+/** Destinataire d'une campagne : investisseur du CRM ou prospect importé. */
+export type Recipient = {
+  id: string;
+  email: string | null;
+  full_name: string;
+  first_name?: string | null;
+};
 
 export const escapeHtml = (value: string) =>
   value
