@@ -254,24 +254,25 @@ function SendsPage() {
         <table className="w-full text-sm">
           <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
-              <th className="px-4 py-3">Date et heure</th>
+              <th className="px-4 py-3">Date et heure d'envoi</th>
               <th className="px-4 py-3">Société</th>
               <th className="px-4 py-3">Actif</th>
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3">Ouverture</th>
+              <th className="px-4 py-3">Renvoyer</th>
             </tr>
           </thead>
           <tbody>
             {sends.isLoading && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   Chargement…
                 </td>
               </tr>
             )}
             {!sends.isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                   Aucun envoi enregistré pour le moment.
                 </td>
               </tr>
