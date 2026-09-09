@@ -167,10 +167,11 @@ export type Database = {
           email_to: string | null
           error: string | null
           id: string
-          investor_id: string
+          investor_id: string | null
           notes: string | null
           opened_at: string | null
           owner_id: string | null
+          prospect_contact_id: string | null
           resent_at: string | null
           sent_at: string
           status: string
@@ -185,10 +186,11 @@ export type Database = {
           email_to?: string | null
           error?: string | null
           id?: string
-          investor_id: string
+          investor_id?: string | null
           notes?: string | null
           opened_at?: string | null
           owner_id?: string | null
+          prospect_contact_id?: string | null
           resent_at?: string | null
           sent_at?: string
           status?: string
@@ -203,10 +205,11 @@ export type Database = {
           email_to?: string | null
           error?: string | null
           id?: string
-          investor_id?: string
+          investor_id?: string | null
           notes?: string | null
           opened_at?: string | null
           owner_id?: string | null
+          prospect_contact_id?: string | null
           resent_at?: string | null
           sent_at?: string
           status?: string
@@ -233,6 +236,13 @@ export type Database = {
             columns: ["investor_id"]
             isOneToOne: false
             referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brochure_sends_prospect_contact_id_fkey"
+            columns: ["prospect_contact_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_contacts"
             referencedColumns: ["id"]
           },
         ]
@@ -522,6 +532,83 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      prospect_companies: {
+        Row: {
+          city: string | null
+          created_at: string
+          id: string
+          name: string
+          sector: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          sector?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          sector?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      prospect_contacts: {
+        Row: {
+          company_id: string
+          created_at: string
+          email: string | null
+          first_name: string | null
+          full_name: string
+          id: string
+          job_title: string | null
+          phone: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          full_name: string
+          id?: string
+          job_title?: string | null
+          phone?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          email?: string | null
+          first_name?: string | null
+          full_name?: string
+          id?: string
+          job_title?: string | null
+          phone?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospect_contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limits: {
         Row: {
