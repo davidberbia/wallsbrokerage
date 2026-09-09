@@ -236,7 +236,14 @@ function ProspectsPage() {
             phone: iPhone >= 0 ? r[iPhone] || null : null,
           };
         })
-        .filter(Boolean) as Array<Record<string, unknown>>;
+        .filter(Boolean) as Array<{
+          company_id: string;
+          full_name: string;
+          first_name: string | null;
+          job_title: string | null;
+          email: string | null;
+          phone: string | null;
+        }>;
 
       let inserted = 0;
       for (let i = 0; i < contactRows.length; i += 300) {
