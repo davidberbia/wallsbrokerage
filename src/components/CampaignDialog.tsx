@@ -128,13 +128,14 @@ export function CampaignDialog({
         .single();
       if (campaignError) throw campaignError;
 
-      const sends = withEmail.map((investor) => ({
+      const sends = withEmail.map((recipient) => ({
         id: crypto.randomUUID(),
         tracking_id: crypto.randomUUID(),
         campaign_id: campaign.id,
         asset_id: asset.id,
-        investor_id: investor.id,
-        email_to: investor.email,
+        investor_id: recipientKind === "investor" ? recipient.id : null,
+        prospect_contact_id: recipientKind === "prospect" ? recipient.id : null,
+        email_to: recipient.email,
         subject: finalSubject,
         channel: "email",
         status: "en file",
