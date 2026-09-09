@@ -195,12 +195,13 @@ function SendsPage() {
 
     autoTable(doc, {
       startY: asset ? 120 : 104,
-      head: [["Date et heure", "Société", "Statut", "Ouverture"]],
+      head: [["Date et heure d'envoi", "Société", "Statut", "Ouverture", "Renvoi"]],
       body: rows.map((r) => [
         dt(r.sent_at),
         r.investors?.company ?? "—",
         r.status,
         r.opened_at ? dt(r.opened_at) : "non ouvert",
+        r.resent_at ? dt(r.resent_at) : "—",
       ]),
       styles: { fontSize: 8, cellPadding: 4 },
       headStyles: { fillColor: [17, 34, 51] },
