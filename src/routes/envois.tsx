@@ -299,6 +299,22 @@ function SendsPage() {
                     <span className="text-muted-foreground">non ouvert</span>
                   )}
                 </td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  {r.resent_at ? (
+                    <span className="inline-flex items-center gap-1 text-foreground">
+                      <RotateCw className="size-4" /> {dt(r.resent_at)}
+                    </span>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={resending === r.id}
+                      onClick={() => resend(r)}
+                    >
+                      <RotateCw className="size-4" /> Renvoyer
+                    </Button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
