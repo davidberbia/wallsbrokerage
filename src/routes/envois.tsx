@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PUBLIC_APP_URL } from "@/lib/app-url";
+import { escapeHtml, SIGNATURE_HTML } from "@/components/CampaignDialog";
 
 
 export const Route = createFileRoute("/envois")({
