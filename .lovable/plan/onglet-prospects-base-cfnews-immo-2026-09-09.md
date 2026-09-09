@@ -13,9 +13,13 @@ Un nouvel onglet **Prospects** dans le back-office, alimenté par les sociétés
 
 ## Récupération des données
 
-Connexion à CFNews Immo avec tes identifiants, puis parcours des pages de résultats du lien fourni (2 721 acteurs) et de chaque fiche société pour extraire les collaborateurs.
+Connexion à CFNews Immo avec tes identifiants, puis parcours des pages de résultats du lien fourni (2 721 acteurs) et de chaque fiche société pour extraire les collaborateurs.  
+  
+identifiant : [d.berbia@wallsbroker.com](mailto:d.berbia@wallsbroker.com)  
+Mot de passe : Agent2012+
 
 Réserves honnêtes :
+
 - Je ne récupère que ce que ton compte affiche réellement (certains emails/téléphones peuvent être masqués).
 - Le volume est important : l'extraction se fait par lots, avec des pauses pour ne pas déclencher de blocage. Prévoir plusieurs passes.
 - Si le site impose un anti-robot (captcha), je te le signale et on adapte.
