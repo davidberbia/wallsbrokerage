@@ -100,7 +100,7 @@ function SendsPage() {
       const { data, error } = await supabase
         .from("brochure_sends")
         .select(
-          "id, asset_id, sent_at, opened_at, email_to, subject, status, channel, assets(title, reference), investors(company)",
+          "id, asset_id, campaign_id, tracking_id, sent_at, opened_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), campaigns(subject, body_html, brochure_path, brochure_name)",
         )
         .order("sent_at", { ascending: false })
         .limit(2000);
