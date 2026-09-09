@@ -45,14 +45,28 @@ export const Route = createFileRoute("/envois")({
 type SendRow = {
   id: string;
   asset_id: string;
+  campaign_id: string | null;
+  tracking_id: string;
   sent_at: string;
   opened_at: string | null;
+  resent_at: string | null;
   email_to: string | null;
   subject: string | null;
   status: string;
   channel: string;
   assets: { title: string; reference: string | null } | null;
-  investors: { company: string | null } | null;
+  investors: {
+    company: string | null;
+    first_name: string | null;
+    full_name: string;
+    email: string | null;
+  } | null;
+  campaigns: {
+    subject: string;
+    body_html: string;
+    brochure_path: string | null;
+    brochure_name: string | null;
+  } | null;
 };
 
 const dt = (v: string | null) =>
