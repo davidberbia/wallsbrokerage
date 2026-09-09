@@ -83,6 +83,7 @@ const ALL = "__all__";
 
 function SendsPage() {
   const [assetId, setAssetId] = useState<string>(ALL);
+  const [resending, setResending] = useState<string | null>(null);
 
   const assets = useQuery({
     queryKey: ["assets"],
