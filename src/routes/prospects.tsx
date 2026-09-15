@@ -278,6 +278,8 @@ function ProspectsPage() {
         </p>
       </div>
 
+      <CfnewsPanel />
+
       <div className="panel grid gap-4 p-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="q-company">Rechercher une société</Label>
