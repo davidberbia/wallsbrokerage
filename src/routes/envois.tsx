@@ -158,7 +158,9 @@ function SendsPage() {
     },
   });
 
-  const rows = (sends.data ?? []).filter((r) => assetId === ALL || r.asset_id === assetId);
+  const rows = mergeRows(
+    (sends.data ?? []).filter((r) => assetId === ALL || r.asset_id === assetId),
+  );
   const opened = rows.filter((r) => r.opened_at).length;
   const asset = (assets.data ?? []).find((a) => a.id === assetId) ?? null;
 
