@@ -46,14 +46,21 @@ export const Route = createFileRoute("/api/public/sender-events")({
           const messageId = pick(body["message_id"]) ?? pick(body["id"]) ?? pick(event.message_id);
           if (!type || (!email && !messageId)) continue;
 
-          const patch: Record<string, unknown> = { provider_status: type };
-          if (type.includes("open")) patch["opened_at"] = now;
-          if (type.includes("click")) patch["clicked_at"] = now;
+          const patch: {
+            provider_status: string;
+            opened_at?: string;
+            clicked_at?: string;
+            bounced_at?: string;
+            delivered_at?: string;
+            status?: string;
+          } = { provider_status: type };
+          if (type.includes("open")) patch.opened_at = now;
+          if (type.includes("click")) patch.clicked_at = now;
           if (type.includes("bounce") || type.includes("complaint") || type.includes("spam")) {
-            patch["bounced_at"] = now;
-            patch["status"] = "erreur";
+            patch.bounced_at = now;
+            patch.status = "erreur";
           }
-          if (type.includes("deliver")) patch["delivered_at"] = now;
+          if (type.includes("deliver")) patch.delivered_at = now;
 
           // À défaut d'identifiant de message, on vise le dernier envoi fait à cette adresse.
           let targetId: string | null = null;
