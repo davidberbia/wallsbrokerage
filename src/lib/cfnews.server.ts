@@ -87,12 +87,15 @@ export type ParsedCompany = { name: string; path: string };
 
 export function parseCompanyLinks(html: string): ParsedCompany[] {
   const out = new Map<string, string>();
-  const re =
-    /<a[^>]+href="(\/Annuaires-base-de-deals\/Acteurs\/[^"/]+\/[^"/?#]+)"[^>]*>([\s\S]{0,200}?)<\/a>/g;
+  const re = /href="(\/Annuaires-base-de-deals\/Acteurs\/[^"/]+\/[^"/?#]+)"([^>]*)>/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(html))) {
     const path = m[1]!;
-    const label = cleanText(m[2] ?? "");
+    const titleAttr = /title="([^"]+)"/.exec(m[2] ?? "");
+    const after = html.slice(re.lastIndex, re.lastIndex + 1500);
+    const end = after.indexOf("</a>");
+    const inner = end >= 0 ? cleanText(after.slice(0, end)) : "";
+    const label = cleanText(titleAttr?.[1] ?? "") || inner;
     const prev = out.get(path);
     if (!prev || (label && label.length > prev.length)) out.set(path, label);
   }
