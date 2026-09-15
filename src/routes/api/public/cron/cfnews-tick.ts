@@ -69,13 +69,14 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
               if (companies.length === 0 || page > LISTING_LAST_PAGE) {
                 phase = "companies";
               } else {
-                await admin.from("prospect_companies").upsert(
+                const up = await admin.from("prospect_companies").upsert(
                   companies.map((c) => ({
                     name: c.name,
                     source_url: `https://www.cfnewsimmo.net${c.path}`,
                   })),
                   { onConflict: "source_url", ignoreDuplicates: true },
                 );
+                if (up.error) throw new Error(`Enregistrement sociétés: ${up.error.message}`);
                 page += 1;
                 done += 1;
               }
@@ -98,7 +99,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
               requests += 1;
               const members = parseTeam(html);
               if (members.length > 0) {
-                await admin.from("prospect_contacts").upsert(
+                const upc = await admin.from("prospect_contacts").upsert(
                   members.map((m) => ({
                     company_id: company.id,
                     full_name: m.fullName,
@@ -107,6 +108,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
                   })),
                   { onConflict: "source_url", ignoreDuplicates: true },
                 );
+                if (upc.error) throw new Error(`Enregistrement contacts: ${upc.error.message}`);
               }
               await admin
                 .from("prospect_companies")
