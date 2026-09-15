@@ -170,7 +170,7 @@ export function CampaignDialog({
       if (pumpError) throw pumpError;
 
       toast.success(
-        `Commercialisation lancée : ${queue.length} mail(s) en file, envoi à raison d'1 par minute.`,
+        `Commercialisation lancée : ${queue.length} mail(s) en file, envoi immédiat.`,
       );
       setOpen(false);
       setOwnFile(null);
