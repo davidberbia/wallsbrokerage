@@ -73,7 +73,11 @@ export function reportHtml(params: {
       const rows = section.rows
         .map(
           (r) => `<tr>
-  <td style="width:${showOpened ? "52%" : "65%"};padding:8px 10px;border-bottom:1px solid #e6e2db;text-align:left;">${escapeHtml(r.company || r.name)}</td>
+  <td style="width:${showOpened ? "52%" : "65%"};padding:8px 10px;border-bottom:1px solid #e6e2db;text-align:left;">${escapeHtml(r.company || r.name)}${
+    r.company && r.name && r.company !== r.name
+      ? `<span style="display:block;color:#8a8378;font-size:12px;">${escapeHtml(r.name)}</span>`
+      : ""
+  }</td>
   <td style="width:${showOpened ? "24%" : "35%"};padding:8px 10px;border-bottom:1px solid #e6e2db;white-space:nowrap;text-align:left;">${fmtDateTime(r.sent_at)}</td>${
     showOpened
       ? `

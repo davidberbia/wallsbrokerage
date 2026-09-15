@@ -80,6 +80,43 @@ type SendRow = {
 const companyOf = (r: SendRow) =>
   r.investors?.company ?? r.prospect_contacts?.prospect_companies?.name ?? "—";
 
+const contactOf = (r: SendRow) =>
+  r.investors?.full_name ?? r.prospect_contacts?.full_name ?? r.email_to ?? "—";
+
+const emailOf = (r: SendRow) =>
+  (r.email_to ?? r.investors?.email ?? r.prospect_contacts?.email ?? "").toLowerCase();
+
+/**
+ * Un même destinataire peut avoir plusieurs lignes pour un même actif (renvois).
+ * On regroupe par actif + destinataire : une seule ligne, l'envoi le plus récent,
+ * et l'ouverture dès qu'elle a eu lieu sur l'une des tentatives.
+ */
+type MergedRow = SendRow & { attempts: number };
+
+function mergeRows(list: SendRow[]): MergedRow[] {
+  const map = new Map<string, MergedRow>();
+  for (const r of list) {
+    const key = `${r.asset_id}|${emailOf(r) || r.id}`;
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, { ...r, attempts: 1 });
+      continue;
+    }
+    const newer = new Date(r.sent_at) > new Date(existing.sent_at);
+    const merged: MergedRow = {
+      ...(newer ? r : existing),
+      attempts: existing.attempts + 1,
+      opened_at: existing.opened_at ?? r.opened_at ?? null,
+      resent_at:
+        existing.resent_at ?? r.resent_at ?? (newer ? existing.sent_at : r.sent_at) ?? null,
+    };
+    map.set(key, merged);
+  }
+  return [...map.values()].sort(
+    (a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime(),
+  );
+}
+
 const dt = (v: string | null) =>
   v
     ? new Date(v).toLocaleString("fr-FR", {
@@ -121,7 +158,9 @@ function SendsPage() {
     },
   });
 
-  const rows = (sends.data ?? []).filter((r) => assetId === ALL || r.asset_id === assetId);
+  const rows = mergeRows(
+    (sends.data ?? []).filter((r) => assetId === ALL || r.asset_id === assetId),
+  );
   const opened = rows.filter((r) => r.opened_at).length;
   const asset = (assets.data ?? []).find((a) => a.id === assetId) ?? null;
 
@@ -207,10 +246,11 @@ function SendsPage() {
 
     autoTable(doc, {
       startY: asset ? 120 : 104,
-      head: [["Date et heure d'envoi", "Société", "Statut", "Ouverture", "Renvoi"]],
+      head: [["Date et heure d'envoi", "Société", "Contact", "Statut", "Ouverture", "Renvoi"]],
       body: rows.map((r) => [
         dt(r.sent_at),
         companyOf(r),
+        contactOf(r),
         r.status,
         r.opened_at ? dt(r.opened_at) : "non ouvert",
         r.resent_at ? dt(r.resent_at) : "—",
@@ -268,6 +308,7 @@ function SendsPage() {
             <tr>
               <th className="px-4 py-3">Date et heure d'envoi</th>
               <th className="px-4 py-3">Société</th>
+              <th className="px-4 py-3">Contact</th>
               <th className="px-4 py-3">Actif</th>
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3">Ouverture</th>
@@ -277,22 +318,33 @@ function SendsPage() {
           <tbody>
             {sends.isLoading && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                   Chargement…
                 </td>
               </tr>
             )}
             {!sends.isLoading && rows.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                   Aucun envoi enregistré pour le moment.
                 </td>
               </tr>
             )}
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-border/60 last:border-0">
-                <td className="whitespace-nowrap px-4 py-3">{dt(r.sent_at)}</td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  {dt(r.sent_at)}
+                  {r.attempts > 1 ? (
+                    <span className="block text-xs text-muted-foreground">
+                      {r.attempts} envois cumulés
+                    </span>
+                  ) : null}
+                </td>
                 <td className="px-4 py-3 font-medium">{companyOf(r)}</td>
+                <td className="px-4 py-3">
+                  <p>{contactOf(r)}</p>
+                  <p className="text-xs text-muted-foreground">{emailOf(r)}</p>
+                </td>
                 <td className="px-4 py-3">
                   <p>{r.assets?.title ?? "—"}</p>
                   <p className="text-xs text-muted-foreground">{r.assets?.reference ?? ""}</p>
@@ -313,19 +365,18 @@ function SendsPage() {
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   {r.resent_at ? (
-                    <span className="inline-flex items-center gap-1 text-foreground">
-                      <RotateCw className="size-4" /> {dt(r.resent_at)}
+                    <span className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
+                      <RotateCw className="size-3" /> renvoyé le {dt(r.resent_at)}
                     </span>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={resending === r.id}
-                      onClick={() => resend(r)}
-                    >
-                      <RotateCw className="size-4" /> Renvoyer
-                    </Button>
-                  )}
+                  ) : null}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={resending === r.id}
+                    onClick={() => resend(r)}
+                  >
+                    <RotateCw className="size-4" /> Renvoyer
+                  </Button>
                 </td>
               </tr>
             ))}
