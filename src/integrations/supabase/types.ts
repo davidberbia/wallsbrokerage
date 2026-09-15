@@ -161,8 +161,10 @@ export type Database = {
       brochure_sends: {
         Row: {
           asset_id: string
+          bounced_at: string | null
           campaign_id: string | null
           channel: string
+          clicked_at: string | null
           delivered_at: string | null
           email_to: string | null
           error: string | null
@@ -172,6 +174,9 @@ export type Database = {
           opened_at: string | null
           owner_id: string | null
           prospect_contact_id: string | null
+          provider: string | null
+          provider_message_id: string | null
+          provider_status: string | null
           resent_at: string | null
           sent_at: string
           status: string
@@ -180,8 +185,10 @@ export type Database = {
         }
         Insert: {
           asset_id: string
+          bounced_at?: string | null
           campaign_id?: string | null
           channel?: string
+          clicked_at?: string | null
           delivered_at?: string | null
           email_to?: string | null
           error?: string | null
@@ -191,6 +198,9 @@ export type Database = {
           opened_at?: string | null
           owner_id?: string | null
           prospect_contact_id?: string | null
+          provider?: string | null
+          provider_message_id?: string | null
+          provider_status?: string | null
           resent_at?: string | null
           sent_at?: string
           status?: string
@@ -199,8 +209,10 @@ export type Database = {
         }
         Update: {
           asset_id?: string
+          bounced_at?: string | null
           campaign_id?: string | null
           channel?: string
+          clicked_at?: string | null
           delivered_at?: string | null
           email_to?: string | null
           error?: string | null
@@ -210,6 +222,9 @@ export type Database = {
           opened_at?: string | null
           owner_id?: string | null
           prospect_contact_id?: string | null
+          provider?: string | null
+          provider_message_id?: string | null
+          provider_status?: string | null
           resent_at?: string | null
           sent_at?: string
           status?: string

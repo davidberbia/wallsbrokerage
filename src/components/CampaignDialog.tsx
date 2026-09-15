@@ -170,7 +170,7 @@ export function CampaignDialog({
       if (pumpError) throw pumpError;
 
       toast.success(
-        `Commercialisation lancée : ${queue.length} mail(s) en file, envoi à raison d'1 par minute.`,
+        `Commercialisation lancée : ${queue.length} mail(s) en file, envoi immédiat.`,
       );
       setOpen(false);
       setOwnFile(null);
@@ -203,9 +203,9 @@ export function CampaignDialog({
         <DialogHeader>
           <DialogTitle>Lancer la commercialisation</DialogTitle>
           <DialogDescription>
-            Les mails partent de votre boîte d.berbia@wallsbroker.com, à raison d'un par minute,
-            personnalisés au prénom et avec accusé de lecture. La commercialisation se clôture
-            automatiquement au bout de 2 mois.
+            Les mails partent à votre nom, avec d.berbia@wallsbroker.com en expéditeur et en
+            adresse de réponse, personnalisés au prénom et avec accusé de lecture. La
+            commercialisation se clôture automatiquement au bout de 2 mois.
           </DialogDescription>
         </DialogHeader>
 
@@ -213,8 +213,7 @@ export function CampaignDialog({
           <div className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm">
             <p className="font-medium">{asset?.title ?? "Aucun actif sélectionné"}</p>
             <p className="text-muted-foreground">
-              {withEmail.length} destinataire{withEmail.length > 1 ? "s" : ""} — durée d'envoi
-              estimée : {withEmail.length} minute{withEmail.length > 1 ? "s" : ""}
+              {withEmail.length} destinataire{withEmail.length > 1 ? "s" : ""}
             </p>
           </div>
           <div className="space-y-2">
