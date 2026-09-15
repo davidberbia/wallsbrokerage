@@ -332,8 +332,19 @@ function SendsPage() {
             )}
             {rows.map((r) => (
               <tr key={r.id} className="border-b border-border/60 last:border-0">
-                <td className="whitespace-nowrap px-4 py-3">{dt(r.sent_at)}</td>
+                <td className="whitespace-nowrap px-4 py-3">
+                  {dt(r.sent_at)}
+                  {r.attempts > 1 ? (
+                    <span className="block text-xs text-muted-foreground">
+                      {r.attempts} envois cumulés
+                    </span>
+                  ) : null}
+                </td>
                 <td className="px-4 py-3 font-medium">{companyOf(r)}</td>
+                <td className="px-4 py-3">
+                  <p>{contactOf(r)}</p>
+                  <p className="text-xs text-muted-foreground">{emailOf(r)}</p>
+                </td>
                 <td className="px-4 py-3">
                   <p>{r.assets?.title ?? "—"}</p>
                   <p className="text-xs text-muted-foreground">{r.assets?.reference ?? ""}</p>
