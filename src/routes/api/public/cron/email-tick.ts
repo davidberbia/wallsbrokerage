@@ -137,13 +137,21 @@ async function sendCampaignRecap(campaignId: string) {
 
   const { data: sends } = await admin
     .from("brochure_sends")
-    .select("sent_at, opened_at, email_to, investors(full_name, company)")
+    .select("sent_at, opened_at, email_to, investors(full_name, company), prospect_contacts(full_name, prospect_companies(name))")
     .eq("campaign_id", campaignId)
     .order("sent_at", { ascending: true });
 
   const rows: ReportRow[] = (sends ?? []).map((s) => ({
-    name: (s.investors as { full_name: string } | null)?.full_name ?? "—",
-    company: (s.investors as { company: string | null } | null)?.company ?? null,
+    name:
+      (s.investors as { full_name: string } | null)?.full_name ??
+      (s.prospect_contacts as { full_name: string } | null)?.full_name ??
+      s.email_to ??
+      "—",
+    company:
+      (s.investors as { company: string | null } | null)?.company ??
+      (s.prospect_contacts as { prospect_companies: { name: string } | null } | null)
+        ?.prospect_companies?.name ??
+      null,
     email: s.email_to,
     sent_at: s.sent_at,
     opened_at: s.opened_at,

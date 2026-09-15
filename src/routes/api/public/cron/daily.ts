@@ -14,12 +14,20 @@ type SendRow = {
   opened_at: string | null;
   email_to: string | null;
   investors: { full_name: string; company: string | null } | null;
+  prospect_contacts: {
+    full_name: string;
+    prospect_companies: { name: string } | null;
+  } | null;
 };
+
+const SEND_SELECT =
+  "sent_at, opened_at, email_to, investors(full_name, company), prospect_contacts(full_name, prospect_companies(name))";
 
 const toRows = (sends: SendRow[]): ReportRow[] =>
   sends.map((s) => ({
-    name: s.investors?.full_name ?? "—",
-    company: s.investors?.company ?? null,
+    name: s.investors?.full_name ?? s.prospect_contacts?.full_name ?? s.email_to ?? "—",
+    company:
+      s.investors?.company ?? s.prospect_contacts?.prospect_companies?.name ?? null,
     email: s.email_to,
     sent_at: s.sent_at,
     opened_at: s.opened_at,
@@ -62,7 +70,7 @@ export const Route = createFileRoute("/api/public/cron/daily")({
 
           const { data: sends } = await admin
             .from("brochure_sends")
-            .select("sent_at, opened_at, email_to, investors(full_name, company)")
+            .select(SEND_SELECT)
             .eq("campaign_id", campaign.id)
             .order("sent_at", { ascending: true });
 
@@ -104,16 +112,28 @@ export const Route = createFileRoute("/api/public/cron/daily")({
           for (const campaign of active) {
             const { data: sends } = await admin
               .from("brochure_sends")
-              .select("sent_at, opened_at, email_to, investors(full_name, company)")
+              .select(SEND_SELECT)
               .eq("campaign_id", campaign.id)
               .order("sent_at", { ascending: true });
             const rows = toRows((sends ?? []) as unknown as SendRow[]);
+            const opened = rows
+              .filter((r) => r.opened_at)
+              .sort(
+                (a, b) =>
+                  new Date(b.opened_at as string).getTime() -
+                  new Date(a.opened_at as string).getTime(),
+              );
             const asset = campaign.assets as { title: string; city: string | null } | null;
             const label = asset ? `${asset.title}${asset.city ? ` — ${asset.city}` : ""}` : "Actif";
             sections.push({
-              heading: label,
+              heading: `${label} — qui a ouvert la brochure`,
+              rows: opened,
+              note: `${opened.length} ouverture(s) sur ${rows.length} envoi(s) — investisseurs ayant ouvert la brochure, avec la date et l'heure de lecture.`,
+            });
+            sections.push({
+              heading: `${label} — diffusion complète`,
               rows,
-              note: `${rows.filter((r) => r.opened_at).length} ouverture(s) sur ${rows.length} envoi(s) — commercialisation clôturée le ${new Date(
+              note: `Ensemble des destinataires — commercialisation clôturée le ${new Date(
                 campaign.ends_at,
               ).toLocaleDateString("fr-FR")}.`,
             });
