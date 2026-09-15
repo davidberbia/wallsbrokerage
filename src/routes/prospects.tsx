@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CfnewsPanel } from "@/components/CfnewsPanel";
 import type { Asset } from "@/lib/types";
 
 export const Route = createFileRoute("/prospects")({
