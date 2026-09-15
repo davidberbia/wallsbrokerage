@@ -80,6 +80,43 @@ type SendRow = {
 const companyOf = (r: SendRow) =>
   r.investors?.company ?? r.prospect_contacts?.prospect_companies?.name ?? "—";
 
+const contactOf = (r: SendRow) =>
+  r.investors?.full_name ?? r.prospect_contacts?.full_name ?? r.email_to ?? "—";
+
+const emailOf = (r: SendRow) =>
+  (r.email_to ?? r.investors?.email ?? r.prospect_contacts?.email ?? "").toLowerCase();
+
+/**
+ * Un même destinataire peut avoir plusieurs lignes pour un même actif (renvois).
+ * On regroupe par actif + destinataire : une seule ligne, l'envoi le plus récent,
+ * et l'ouverture dès qu'elle a eu lieu sur l'une des tentatives.
+ */
+type MergedRow = SendRow & { attempts: number };
+
+function mergeRows(list: SendRow[]): MergedRow[] {
+  const map = new Map<string, MergedRow>();
+  for (const r of list) {
+    const key = `${r.asset_id}|${emailOf(r) || r.id}`;
+    const existing = map.get(key);
+    if (!existing) {
+      map.set(key, { ...r, attempts: 1 });
+      continue;
+    }
+    const newer = new Date(r.sent_at) > new Date(existing.sent_at);
+    const merged: MergedRow = {
+      ...(newer ? r : existing),
+      attempts: existing.attempts + 1,
+      opened_at: existing.opened_at ?? r.opened_at ?? null,
+      resent_at:
+        existing.resent_at ?? r.resent_at ?? (newer ? existing.sent_at : r.sent_at) ?? null,
+    };
+    map.set(key, merged);
+  }
+  return [...map.values()].sort(
+    (a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime(),
+  );
+}
+
 const dt = (v: string | null) =>
   v
     ? new Date(v).toLocaleString("fr-FR", {
