@@ -246,10 +246,11 @@ function SendsPage() {
 
     autoTable(doc, {
       startY: asset ? 120 : 104,
-      head: [["Date et heure d'envoi", "Société", "Statut", "Ouverture", "Renvoi"]],
+      head: [["Date et heure d'envoi", "Société", "Contact", "Statut", "Ouverture", "Renvoi"]],
       body: rows.map((r) => [
         dt(r.sent_at),
         companyOf(r),
+        contactOf(r),
         r.status,
         r.opened_at ? dt(r.opened_at) : "non ouvert",
         r.resent_at ? dt(r.resent_at) : "—",
