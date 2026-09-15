@@ -308,6 +308,7 @@ function SendsPage() {
             <tr>
               <th className="px-4 py-3">Date et heure d'envoi</th>
               <th className="px-4 py-3">Société</th>
+              <th className="px-4 py-3">Contact</th>
               <th className="px-4 py-3">Actif</th>
               <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3">Ouverture</th>
