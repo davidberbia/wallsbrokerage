@@ -55,11 +55,24 @@ export const Route = createFileRoute("/api/public/sender-events")({
           }
           if (type.includes("deliver")) patch["delivered_at"] = now;
 
-          let query = admin.from("brochure_sends").update(patch);
-          query = messageId
+          // À défaut d'identifiant de message, on vise le dernier envoi fait à cette adresse.
+          let targetId: string | null = null;
+          if (!messageId && email) {
+            const { data: last } = await admin
+              .from("brochure_sends")
+              .select("id")
+              .eq("email_to", email)
+              .order("sent_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            targetId = last?.id ?? null;
+            if (!targetId) continue;
+          }
+
+          const query = admin.from("brochure_sends").update(patch);
+          const { error } = await (messageId
             ? query.eq("provider_message_id", messageId)
-            : query.eq("email_to", email!);
-          const { error } = await query;
+            : query.eq("id", targetId!));
           if (error) console.error("sender webhook update", error);
         }
 
