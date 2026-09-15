@@ -137,12 +137,17 @@ export type ParsedPerson = {
 };
 
 function dottedField(html: string, label: string): string | null {
-  const re = new RegExp(
-    `dotted-overflow"[^>]*>\\s*${label}[\\s\\S]{0,120}?dotted-value"[^>]*>([\\s\\S]{0,400}?)</span>\\s*(?:<span|</li>)`,
-    "i",
-  );
+  const re = new RegExp(`dotted-overflow"[^>]*>\\s*${label}\\s*<`, "i");
   const m = re.exec(html);
-  const value = m ? cleanText(m[1] ?? "") : "";
+  if (!m) return null;
+  const rest = html.slice(m.index);
+  const start = rest.indexOf('dotted-value"');
+  if (start < 0) return null;
+  const end = rest.indexOf("</li>", start);
+  const value = cleanText(rest.slice(start, end < 0 ? start + 2000 : end))
+    .replace(/^[^>]*>/, "")
+    .split(/Copier|CFNEWS IMMO|email scoring/i)[0]!
+    .trim();
   return value || null;
 }
 
