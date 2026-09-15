@@ -99,9 +99,9 @@ export function parseCompanyLinks(html: string): ParsedCompany[] {
     const prev = out.get(path);
     if (!prev || (label && label.length > prev.length)) out.set(path, label);
   }
-  return [...out.entries()].map(([path, label]) => ({
+  return [...out.entries()].map(([path]) => ({
     path,
-    name: label || decodeURIComponent(path.split("/").pop() ?? "").replace(/-/g, " "),
+    name: cleanText(decodeURIComponent(path.split("/").pop() ?? "").replace(/-/g, " ")),
   }));
 }
 
