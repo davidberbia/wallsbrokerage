@@ -7,7 +7,7 @@ import {
   reportHtml,
   type ReportRow,
 } from "@/lib/automation.server";
-import { sendOutlookMail } from "@/lib/outlook.server";
+import { sendSenderMail } from "@/lib/sender.server";
 
 type SendRow = {
   sent_at: string;
@@ -71,7 +71,7 @@ export const Route = createFileRoute("/api/public/cron/daily")({
           const asset = campaign.assets as { title: string; city: string | null } | null;
           const label = asset ? `${asset.title}${asset.city ? ` — ${asset.city}` : ""}` : "Actif";
 
-          await sendOutlookMail({
+          await sendSenderMail({
             to: recapEmail,
             subject: `Marketing Report J+7 — ${label}`,
             html: reportHtml({
@@ -119,7 +119,7 @@ export const Route = createFileRoute("/api/public/cron/daily")({
             });
           }
 
-          await sendOutlookMail({
+          await sendSenderMail({
             to: recapEmail,
             subject: `Récap hebdomadaire — ${active.length} commercialisation(s) en cours`,
             html: reportHtml({

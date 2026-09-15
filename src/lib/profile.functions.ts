@@ -15,9 +15,9 @@ export const sendProfileConfirmation = createServerFn({ method: "POST" })
 
     if (error || !profile?.email) throw new Error("Profil ou adresse email introuvable.");
 
-    const { sendOutlookMail } = await import("@/lib/outlook.server");
+    const { sendSenderMail } = await import("@/lib/sender.server");
     const name = profile.first_name?.trim() || profile.full_name.trim();
-    await sendOutlookMail({
+    await sendSenderMail({
       to: profile.email,
       toName: name,
       subject: "Bienvenue dans la communauté d’investisseurs Wallsbroker",
