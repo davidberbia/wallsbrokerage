@@ -213,8 +213,7 @@ export function CampaignDialog({
           <div className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm">
             <p className="font-medium">{asset?.title ?? "Aucun actif sélectionné"}</p>
             <p className="text-muted-foreground">
-              {withEmail.length} destinataire{withEmail.length > 1 ? "s" : ""} — durée d'envoi
-              estimée : {withEmail.length} minute{withEmail.length > 1 ? "s" : ""}
+              {withEmail.length} destinataire{withEmail.length > 1 ? "s" : ""}
             </p>
           </div>
           <div className="space-y-2">
