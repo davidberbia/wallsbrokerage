@@ -203,9 +203,9 @@ export function CampaignDialog({
         <DialogHeader>
           <DialogTitle>Lancer la commercialisation</DialogTitle>
           <DialogDescription>
-            Les mails partent de votre boîte d.berbia@wallsbroker.com, à raison d'un par minute,
-            personnalisés au prénom et avec accusé de lecture. La commercialisation se clôture
-            automatiquement au bout de 2 mois.
+            Les mails partent à votre nom, avec d.berbia@wallsbroker.com en expéditeur et en
+            adresse de réponse, personnalisés au prénom et avec accusé de lecture. La
+            commercialisation se clôture automatiquement au bout de 2 mois.
           </DialogDescription>
         </DialogHeader>
 
