@@ -309,6 +309,48 @@ export type Database = {
           },
         ]
       }
+      cfnews_scrape: {
+        Row: {
+          cookie: string | null
+          cookie_at: string | null
+          id: boolean
+          last_error: string | null
+          lease_until: string | null
+          page: number
+          pages_done: number
+          phase: string
+          requests_done: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cookie?: string | null
+          cookie_at?: string | null
+          id?: boolean
+          last_error?: string | null
+          lease_until?: string | null
+          page?: number
+          pages_done?: number
+          phase?: string
+          requests_done?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cookie?: string | null
+          cookie_at?: string | null
+          id?: boolean
+          last_error?: string | null
+          lease_until?: string | null
+          page?: number
+          pages_done?: number
+          phase?: string
+          requests_done?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_queue: {
         Row: {
           attachment_name: string | null
@@ -536,6 +578,7 @@ export type Database = {
       prospect_companies: {
         Row: {
           city: string | null
+          contacts_scraped_at: string | null
           created_at: string
           id: string
           name: string
@@ -545,6 +588,7 @@ export type Database = {
         }
         Insert: {
           city?: string | null
+          contacts_scraped_at?: string | null
           created_at?: string
           id?: string
           name: string
@@ -554,6 +598,7 @@ export type Database = {
         }
         Update: {
           city?: string | null
+          contacts_scraped_at?: string | null
           created_at?: string
           id?: string
           name?: string
@@ -568,6 +613,7 @@ export type Database = {
           company_id: string
           created_at: string
           email: string | null
+          email_checked_at: string | null
           first_name: string | null
           full_name: string
           id: string
@@ -580,6 +626,7 @@ export type Database = {
           company_id: string
           created_at?: string
           email?: string | null
+          email_checked_at?: string | null
           first_name?: string | null
           full_name: string
           id?: string
@@ -592,6 +639,7 @@ export type Database = {
           company_id?: string
           created_at?: string
           email?: string | null
+          email_checked_at?: string | null
           first_name?: string | null
           full_name?: string
           id?: string
@@ -684,6 +732,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cfnews_scrape_schedule: { Args: { _on: boolean }; Returns: undefined }
       claim_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]

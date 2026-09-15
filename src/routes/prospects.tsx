@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CfnewsPanel } from "@/components/CfnewsPanel";
 import type { Asset } from "@/lib/types";
 
 export const Route = createFileRoute("/prospects")({
@@ -277,6 +278,8 @@ function ProspectsPage() {
           actif avec le même process que pour les investisseurs.
         </p>
       </div>
+
+      <CfnewsPanel />
 
       <div className="panel grid gap-4 p-4 sm:grid-cols-2">
         <div className="space-y-2">

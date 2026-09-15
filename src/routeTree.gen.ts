@@ -19,6 +19,7 @@ import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
 import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
@@ -73,6 +74,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronCfnewsTickRoute = ApiPublicCronCfnewsTickRouteImport.update({
+  id: '/api/public/cron/cfnews-tick',
+  path: '/api/public/cron/cfnews-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronDailyRoute = ApiPublicCronDailyRouteImport.update({
   id: '/api/public/cron/daily',
   path: '/api/public/cron/daily',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
+    | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
+    | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
+    | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/t/$id'
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   ParametresRoute: typeof ParametresRoute
   ProspectsRoute: typeof ProspectsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
   ApiPublicTIdRoute: typeof ApiPublicTIdRoute
@@ -271,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/cfnews-tick': {
+      id: '/api/public/cron/cfnews-tick'
+      path: '/api/public/cron/cfnews-tick'
+      fullPath: '/api/public/cron/cfnews-tick'
+      preLoaderRoute: typeof ApiPublicCronCfnewsTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/daily': {
       id: '/api/public/cron/daily'
       path: '/api/public/cron/daily'
@@ -306,6 +326,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParametresRoute: ParametresRoute,
   ProspectsRoute: ProspectsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
   ApiPublicTIdRoute: ApiPublicTIdRoute,
