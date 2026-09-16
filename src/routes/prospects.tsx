@@ -117,6 +117,43 @@ const norm = (v: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z]/g, "");
 
+/**
+ * Correspondance entre les « types d'actifs » génériques importés (CFNews, Excel)
+ * et les classes d'actifs de la taxonomie, pour pré-cocher la matrice de stratégie.
+ */
+const ASSET_CLASS_ALIASES: Record<string, string> = {
+  bureaux: "Immeubles de bureaux",
+  commerce: "Murs de commerces de pied d'immeuble",
+  commerces: "Murs de commerces de pied d'immeuble",
+  retail: "Murs de commerces de pied d'immeuble",
+  hotellerie: "City Hôtel (sans fonds)",
+  hotel: "City Hôtel (sans fonds)",
+  hotels: "City Hôtel (sans fonds)",
+  logement: "Immeubles de logements ou mixtes",
+  residentiel: "Immeubles de logements ou mixtes",
+  logistiqueindustriel: "Logistique",
+  industriel: "Logistique",
+  sante: "Santé",
+  activite: "Activité",
+};
+
+/** Traduit les types d'actifs stockés en classes de la taxonomie (dédupliquées). */
+function toTaxonomyClasses(stored: string[], taxonomy: readonly string[]): string[] {
+  const out: string[] = [];
+  for (const value of stored) {
+    const exact = taxonomy.find((t) => t === value);
+    const aliased = ASSET_CLASS_ALIASES[norm(value)];
+    const fuzzy = taxonomy.find((t) => {
+      const n = norm(t);
+      const v = norm(value);
+      return v.length >= 4 && (n.includes(v) || v.includes(n));
+    });
+    const match = exact ?? aliased ?? fuzzy ?? null;
+    if (match && !out.includes(match)) out.push(match);
+  }
+  return out;
+}
+
 function ProspectsPage() {
   const [companyQuery, setCompanyQuery] = useState("");
   const [nameQuery, setNameQuery] = useState("");
@@ -139,7 +176,7 @@ function ProspectsPage() {
     regions: string[];
   }>({ assetClasses: [], bands: {}, strategiesByAsset: {}, regions: [] });
 
-  const { investorProfiles } = useLists();
+  const { investorProfiles, assetClasses: taxonomyClasses } = useLists();
 
   const companies = useQuery({
     queryKey: ["prospect-companies", companyQuery, nameQuery, cityQuery, emailFilter, profileFilter, sort],
@@ -235,17 +272,27 @@ function ProspectsPage() {
   );
 
   // Charge l'adresse et la stratégie de la société dépliée.
+  // Les « types d'actifs » génériques sont pré-cochés dans la matrice via leur
+  // correspondance taxonomie ; les classes déjà enregistrées dans la stratégie
+  // (clés de bands / strategies_by_asset) sont conservées.
   useEffect(() => {
     if (!openCompany) return;
     setAddress(openCompany.address ?? "");
     setProfile(openCompany.investor_profile ?? "");
+    const bands = openCompany.bands ?? {};
+    const strategiesByAsset = openCompany.strategies_by_asset ?? {};
+    const known = [
+      ...toTaxonomyClasses(openCompany.asset_classes ?? [], taxonomyClasses),
+      ...Object.keys(bands),
+      ...Object.keys(strategiesByAsset),
+    ];
     setMatrix({
-      assetClasses: openCompany.asset_classes ?? [],
-      bands: openCompany.bands ?? {},
-      strategiesByAsset: openCompany.strategies_by_asset ?? {},
+      assetClasses: [...new Set(known)],
+      bands,
+      strategiesByAsset,
       regions: openCompany.regions ?? [],
     });
-  }, [openCompany]);
+  }, [openCompany, taxonomyClasses]);
 
   const companyEmails = useMemo(
     () => (contacts.data ?? []).map((c) => c.email).filter(Boolean) as string[],
