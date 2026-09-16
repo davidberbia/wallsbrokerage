@@ -122,6 +122,15 @@ function ProspectsPage() {
   const [selected, setSelected] = useState<Record<string, Selected>>({});
   const [assetId, setAssetId] = useState<string>("");
   const [importing, setImporting] = useState(false);
+  const qc = useQueryClient();
+  const [address, setAddress] = useState("");
+  const [strategyOpen, setStrategyOpen] = useState(false);
+  const [matrix, setMatrix] = useState<{
+    assetClasses: string[];
+    bands: BandsByAsset;
+    strategiesByAsset: StrategiesByAsset;
+    regions: string[];
+  }>({ assetClasses: [], bands: {}, strategiesByAsset: {}, regions: [] });
 
   const companies = useQuery({
     queryKey: ["prospect-companies", companyQuery, nameQuery],
