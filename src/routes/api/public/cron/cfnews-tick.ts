@@ -8,6 +8,7 @@ import {
   cfnewsGet,
   cfnewsLogin,
   cleanText,
+  parseCompanyDetails,
   parseCompanyLinks,
   parsePerson,
   parseTeam,
@@ -159,6 +160,21 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
                     );
                     if (result.error) throw new Error(`Enregistrement contacts: ${result.error.message}`);
                   }
+                  const details = parseCompanyDetails(html);
+                  if (details.address) {
+                    await admin
+                      .from("prospect_companies")
+                      .update({ address: details.address })
+                      .eq("id", companyId)
+                      .is("address", null);
+                  }
+                  if (details.city) {
+                    await admin
+                      .from("prospect_companies")
+                      .update({ city: details.city })
+                      .eq("id", companyId)
+                      .is("city", null);
+                  }
                   await admin.from("prospect_companies").update({ contacts_scraped_at: new Date().toISOString() }).eq("id", companyId);
                 } else if (failure.kind === "contact" && failure.contact_id) {
                   const person = parsePerson(html);
@@ -276,6 +292,21 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
                   { onConflict: "source_url", ignoreDuplicates: true },
                 );
                 if (upc.error) throw new Error(`Enregistrement contacts: ${upc.error.message}`);
+              }
+              const details = parseCompanyDetails(html);
+              if (details.address) {
+                await admin
+                  .from("prospect_companies")
+                  .update({ address: details.address })
+                  .eq("id", company.id)
+                  .is("address", null);
+              }
+              if (details.city) {
+                await admin
+                  .from("prospect_companies")
+                  .update({ city: details.city })
+                  .eq("id", company.id)
+                  .is("city", null);
               }
               await admin
                 .from("prospect_companies")

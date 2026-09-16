@@ -134,6 +134,17 @@ export function parseCompanyLinks(html: string): ParsedCompany[] {
   }));
 }
 
+export type ParsedCompanyDetails = { address: string | null; city: string | null };
+
+/** Adresse postale de la fiche société (Adresse + Code Postal + Ville). */
+export function parseCompanyDetails(html: string): ParsedCompanyDetails {
+  const street = dottedField(html, "Adresse");
+  const zip = dottedField(html, "Code Postal");
+  const city = dottedField(html, "Ville");
+  const address = [street, zip, city].filter(Boolean).join(" ").trim();
+  return { address: address || null, city: city || null };
+}
+
 export type ParsedMember = { fullName: string; jobTitle: string | null; path: string };
 
 export function parseTeam(html: string): ParsedMember[] {

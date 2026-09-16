@@ -523,8 +523,8 @@ function ProspectsPage() {
                 )}
                 <Building2 className="size-4 shrink-0 text-muted-foreground" />
                 <span className="font-medium">{company.name}</span>
-                <span className="text-sm text-muted-foreground">
-                  {[company.city, company.sector].filter(Boolean).join(" · ")}
+                <span className="truncate text-sm text-muted-foreground">
+                  {[company.address ?? company.city, company.sector].filter(Boolean).join(" · ")}
                 </span>
               </button>
 
