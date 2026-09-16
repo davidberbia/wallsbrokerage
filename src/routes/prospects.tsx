@@ -272,17 +272,27 @@ function ProspectsPage() {
   );
 
   // Charge l'adresse et la stratégie de la société dépliée.
+  // Les « types d'actifs » génériques sont pré-cochés dans la matrice via leur
+  // correspondance taxonomie ; les classes déjà enregistrées dans la stratégie
+  // (clés de bands / strategies_by_asset) sont conservées.
   useEffect(() => {
     if (!openCompany) return;
     setAddress(openCompany.address ?? "");
     setProfile(openCompany.investor_profile ?? "");
+    const bands = openCompany.bands ?? {};
+    const strategiesByAsset = openCompany.strategies_by_asset ?? {};
+    const known = [
+      ...toTaxonomyClasses(openCompany.asset_classes ?? [], taxonomyClasses),
+      ...Object.keys(bands),
+      ...Object.keys(strategiesByAsset),
+    ];
     setMatrix({
-      assetClasses: openCompany.asset_classes ?? [],
-      bands: openCompany.bands ?? {},
-      strategiesByAsset: openCompany.strategies_by_asset ?? {},
+      assetClasses: [...new Set(known)],
+      bands,
+      strategiesByAsset,
       regions: openCompany.regions ?? [],
     });
-  }, [openCompany]);
+  }, [openCompany, taxonomyClasses]);
 
   const companyEmails = useMemo(
     () => (contacts.data ?? []).map((c) => c.email).filter(Boolean) as string[],
