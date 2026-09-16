@@ -77,6 +77,11 @@ export function CfnewsPanel() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {blocked && (
+            <Button onClick={() => retryPageMutation.mutate()} disabled={retryPageMutation.isPending}>
+              <RotateCcw className="mr-2 size-4" /> Réessayer la page en erreur
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={() => retryMutation.mutate()}
@@ -114,7 +119,15 @@ export function CfnewsPanel() {
           <Stat
             label="État"
             value={
-              data.retryOnly && running ? "Relance ciblée" : finished ? "Terminé" : running ? "En cours" : "En pause"
+              blocked
+                ? `Bloqué page ${data.page}`
+                : data.retryOnly && running
+                  ? "Relance ciblée"
+                  : finished
+                    ? "Terminé"
+                    : running
+                      ? "En cours"
+                      : "En pause"
             }
           />
           <Stat label="Étape" value={PHASES[data.phase] ?? data.phase} />
