@@ -4,6 +4,7 @@ import {
   LISTING_LAST_PAGE,
   LISTING_URL,
   CfnewsHttpError,
+  isTransientStatus,
   cfnewsGet,
   cfnewsLogin,
   cleanText,
@@ -360,6 +361,27 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
         } catch (err) {
           const message = err instanceof Error ? err.message : "Erreur inconnue";
           console.error("cfnews tick", message);
+          const blocking = err instanceof CfnewsHttpError && isTransientStatus(err.status);
+          if (blocking) {
+            // 3 nouvelles tentatives ont échoué : on s'arrête exactement à cet endroit.
+            const detail = `Page ${page} — ${err.target} — HTTP ${err.status} après ${err.attempts} tentative(s). Import mis en pause, reprise possible sur cette page.`;
+            await admin
+              .from("cfnews_scrape")
+              .update({
+                phase,
+                page,
+                requests_done: requests,
+                pages_done: state.pages_done + done,
+                lease_until: null,
+                status: "bloqué",
+                last_error: detail,
+                cookie,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", true);
+            await admin.rpc("cfnews_scrape_schedule", { _on: false });
+            return Response.json({ ok: false, paused: true, error: detail }, { status: 200 });
+          }
           await admin
             .from("cfnews_scrape")
             .update({

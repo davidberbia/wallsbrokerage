@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   getCfnewsStatus,
   retryCfnewsFailures,
+  retryCfnewsPage,
   setCfnewsRunning,
 } from "@/lib/cfnews.functions";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ export function CfnewsPanel() {
   const fetchStatus = useServerFn(getCfnewsStatus);
   const toggle = useServerFn(setCfnewsRunning);
   const retryFailures = useServerFn(retryCfnewsFailures);
+  const retryPage = useServerFn(retryCfnewsPage);
   const qc = useQueryClient();
 
   const status = useQuery({
@@ -50,9 +52,19 @@ export function CfnewsPanel() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const retryPageMutation = useMutation({
+    mutationFn: () => retryPage(),
+    onSuccess: (result) => {
+      toast.success(`Reprise de l'import à la page ${result.page}`);
+      void qc.invalidateQueries({ queryKey: ["cfnews-status"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const data = status.data;
   const running = data?.status === "running";
   const finished = data?.status === "terminé";
+  const blocked = data?.status === "bloqué";
 
   return (
     <div className="panel space-y-3 p-4">
@@ -65,6 +77,11 @@ export function CfnewsPanel() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {blocked && (
+            <Button onClick={() => retryPageMutation.mutate()} disabled={retryPageMutation.isPending}>
+              <RotateCcw className="mr-2 size-4" /> Réessayer la page en erreur
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={() => retryMutation.mutate()}
@@ -102,7 +119,15 @@ export function CfnewsPanel() {
           <Stat
             label="État"
             value={
-              data.retryOnly && running ? "Relance ciblée" : finished ? "Terminé" : running ? "En cours" : "En pause"
+              blocked
+                ? `Bloqué page ${data.page}`
+                : data.retryOnly && running
+                  ? "Relance ciblée"
+                  : finished
+                    ? "Terminé"
+                    : running
+                      ? "En cours"
+                      : "En pause"
             }
           />
           <Stat label="Étape" value={PHASES[data.phase] ?? data.phase} />

@@ -81,16 +81,35 @@ export class CfnewsHttpError extends Error {
   constructor(
     public readonly status: number,
     public readonly target: string,
+    public readonly attempts: number = 1,
   ) {
-    super(`CFNews ${status} sur ${target}`);
+    super(`CFNews ${status} sur ${target} (${attempts} tentative${attempts > 1 ? "s" : ""})`);
     this.name = "CfnewsHttpError";
   }
 }
 
+/** Erreurs temporaires (Cloudflare / limitation) : on retente avec un délai progressif. */
+const TRANSIENT_STATUSES = new Set([429, 500, 502, 503, 504, 520, 521, 522, 523, 524, 525, 526, 527]);
+export const isTransientStatus = (status: number) => TRANSIENT_STATUSES.has(status);
+const RETRY_DELAYS_MS = [10_000, 30_000, 60_000];
+
 export async function cfnewsGet(path: string, cookie: string): Promise<string> {
-  const res = await fetch(zenUrl(path), { headers: { Cookie: cookie } });
-  if (!res.ok) throw new CfnewsHttpError(res.status, path);
-  return await res.text();
+  let attempt = 0;
+  // 1 tentative initiale + 3 nouvelles tentatives espacées de 10 s, 30 s puis 60 s.
+  for (;;) {
+    attempt += 1;
+    const res = await fetch(zenUrl(path), { headers: { Cookie: cookie } });
+    if (res.ok) return await res.text();
+    if (!isTransientStatus(res.status) || attempt > RETRY_DELAYS_MS.length) {
+      console.warn(`CFNews échec ${res.status} sur ${path} — tentative ${attempt}`);
+      throw new CfnewsHttpError(res.status, path, attempt);
+    }
+    const wait = RETRY_DELAYS_MS[attempt - 1]!;
+    console.warn(
+      `CFNews ${res.status} sur ${path} — tentative ${attempt}, nouvel essai dans ${wait / 1000} s`,
+    );
+    await sleep(wait);
+  }
 }
 
 export type ParsedCompany = { name: string; path: string };
