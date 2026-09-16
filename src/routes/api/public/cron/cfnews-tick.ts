@@ -293,6 +293,21 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
                 );
                 if (upc.error) throw new Error(`Enregistrement contacts: ${upc.error.message}`);
               }
+              const details = parseCompanyDetails(html);
+              if (details.address) {
+                await admin
+                  .from("prospect_companies")
+                  .update({ address: details.address })
+                  .eq("id", company.id)
+                  .is("address", null);
+              }
+              if (details.city) {
+                await admin
+                  .from("prospect_companies")
+                  .update({ city: details.city })
+                  .eq("id", company.id)
+                  .is("city", null);
+              }
               await admin
                 .from("prospect_companies")
                 .update({ contacts_scraped_at: new Date().toISOString() })
