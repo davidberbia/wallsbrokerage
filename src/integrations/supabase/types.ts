@@ -661,36 +661,65 @@ export type Database = {
       }
       prospect_companies: {
         Row: {
+          address: string | null
+          asset_classes: string[]
+          bands: Json
           city: string | null
           contacts_scraped_at: string | null
+          converted_at: string | null
+          converted_investor_id: string | null
           created_at: string
           id: string
           name: string
+          regions: string[]
           sector: string | null
           source_url: string | null
+          strategies_by_asset: Json
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          asset_classes?: string[]
+          bands?: Json
           city?: string | null
           contacts_scraped_at?: string | null
+          converted_at?: string | null
+          converted_investor_id?: string | null
           created_at?: string
           id?: string
           name: string
+          regions?: string[]
           sector?: string | null
           source_url?: string | null
+          strategies_by_asset?: Json
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          asset_classes?: string[]
+          bands?: Json
           city?: string | null
           contacts_scraped_at?: string | null
+          converted_at?: string | null
+          converted_investor_id?: string | null
           created_at?: string
           id?: string
           name?: string
+          regions?: string[]
           sector?: string | null
           source_url?: string | null
+          strategies_by_asset?: Json
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "prospect_companies_converted_investor_id_fkey"
+            columns: ["converted_investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prospect_contacts: {
         Row: {

@@ -1,7 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Building2, ChevronDown, ChevronRight, Upload, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Building2,
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  MapPin,
+  SlidersHorizontal,
+  Upload,
+  X,
+} from "lucide-react";
+import type { BandsByAsset } from "@/components/AssetClassBands";
+import {
+  StrategyMatrixDialog,
+  type StrategiesByAsset,
+} from "@/components/StrategyMatrixDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
@@ -61,6 +75,12 @@ type Company = {
   name: string;
   city: string | null;
   sector: string | null;
+  address: string | null;
+  asset_classes: string[] | null;
+  regions: string[] | null;
+  bands: BandsByAsset | null;
+  strategies_by_asset: StrategiesByAsset | null;
+  converted_investor_id: string | null;
 };
 
 type Selected = Recipient & { company: string };
@@ -102,6 +122,15 @@ function ProspectsPage() {
   const [selected, setSelected] = useState<Record<string, Selected>>({});
   const [assetId, setAssetId] = useState<string>("");
   const [importing, setImporting] = useState(false);
+  const qc = useQueryClient();
+  const [address, setAddress] = useState("");
+  const [strategyOpen, setStrategyOpen] = useState(false);
+  const [matrix, setMatrix] = useState<{
+    assetClasses: string[];
+    bands: BandsByAsset;
+    strategiesByAsset: StrategiesByAsset;
+    regions: string[];
+  }>({ assetClasses: [], bands: {}, strategiesByAsset: {}, regions: [] });
 
   const companies = useQuery({
     queryKey: ["prospect-companies", companyQuery, nameQuery],
@@ -119,7 +148,10 @@ function ProspectsPage() {
       }
       let q = supabase
         .from("prospect_companies")
-        .select("id, name, city, sector")
+        .select(
+          "id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, converted_investor_id",
+        )
+        .is("converted_investor_id", null)
         .order("name")
         .limit(200);
       if (companyQuery.trim()) q = q.ilike("name", `%${companyQuery.trim()}%`);
@@ -161,6 +193,121 @@ function ProspectsPage() {
     [assets.data, assetId],
   );
   const recipients = useMemo(() => Object.values(selected), [selected]);
+
+  const openCompany = useMemo(
+    () => (companies.data ?? []).find((c) => c.id === open) ?? null,
+    [companies.data, open],
+  );
+
+  // Charge l'adresse et la stratégie de la société dépliée.
+  useEffect(() => {
+    if (!openCompany) return;
+    setAddress(openCompany.address ?? "");
+    setMatrix({
+      assetClasses: openCompany.asset_classes ?? [],
+      bands: openCompany.bands ?? {},
+      strategiesByAsset: openCompany.strategies_by_asset ?? {},
+      regions: openCompany.regions ?? [],
+    });
+  }, [openCompany]);
+
+  const companyEmails = useMemo(
+    () => (contacts.data ?? []).map((c) => c.email).filter(Boolean) as string[],
+    [contacts.data],
+  );
+
+  const hasStrategy =
+    matrix.assetClasses.length > 0 &&
+    Object.values(matrix.strategiesByAsset).some((s) => (s ?? []).length > 0);
+
+  /** Enregistre adresse + stratégie, puis bascule le prospect en investisseur si possible. */
+  const saveCompany = useMutation({
+    mutationFn: async () => {
+      const company = openCompany;
+      if (!company) throw new Error("Société introuvable");
+      const list = contacts.data ?? [];
+      const withEmail = list.filter((c) => c.email);
+      const strategies = [...new Set(Object.values(matrix.strategiesByAsset).flat())];
+
+      const { error: upError } = await supabase
+        .from("prospect_companies")
+        .update({
+          address: address.trim() || null,
+          asset_classes: matrix.assetClasses,
+          regions: matrix.regions,
+          bands: matrix.bands,
+          strategies_by_asset: matrix.strategiesByAsset,
+        })
+        .eq("id", company.id);
+      if (upError) throw upError;
+
+      const ready =
+        matrix.assetClasses.length > 0 &&
+        Object.values(matrix.strategiesByAsset).some((s) => (s ?? []).length > 0) &&
+        withEmail.length > 0;
+      if (!ready) return { converted: false as const };
+
+      const primary = withEmail[0]!;
+      const notes = list
+        .map((c) =>
+          [c.full_name, c.job_title, c.email, c.phone].filter(Boolean).join(" — "),
+        )
+        .join("\n");
+
+      const { data: investor, error: invError } = await supabase
+        .from("investors")
+        .insert({
+          full_name: primary.full_name,
+          first_name: primary.first_name,
+          job_title: primary.job_title,
+          company: company.name,
+          email: primary.email,
+          phone: primary.phone,
+          address: address.trim() || null,
+          city: company.city,
+          asset_classes: matrix.assetClasses,
+          strategies,
+          regions: matrix.regions,
+          status: "à qualifier",
+          notes,
+        })
+        .select("id")
+        .single();
+      if (invError) throw invError;
+
+      if (matrix.assetClasses.length > 0) {
+        const rows = matrix.assetClasses.map((assetClass) => ({
+          investor_id: investor.id,
+          asset_class: assetClass,
+          strategies: matrix.strategiesByAsset[assetClass] ?? [],
+          amount_bands: matrix.bands[assetClass] ?? [],
+          regions: matrix.regions,
+        }));
+        const { error: critError } = await supabase.from("investor_criteria").insert(rows);
+        if (critError) throw critError;
+      }
+
+      const { error: markError } = await supabase
+        .from("prospect_companies")
+        .update({ converted_investor_id: investor.id, converted_at: new Date().toISOString() })
+        .eq("id", company.id);
+      if (markError) throw markError;
+
+      return { converted: true as const };
+    },
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["prospect-companies"] });
+      qc.invalidateQueries({ queryKey: ["investors"] });
+      qc.invalidateQueries({ queryKey: ["investor-criteria"] });
+      if (res.converted) {
+        setOpen(null);
+        toast.success("Prospect basculé dans l'onglet Investisseurs");
+      } else {
+        toast.success("Fiche enregistrée");
+      }
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const toggle = (contact: Contact, companyName: string) => {
     setSelected((prev) => {
@@ -383,6 +530,50 @@ function ProspectsPage() {
 
               {isOpen && (
                 <div className="border-t border-border/60 bg-muted/20 px-4 py-2">
+                  <div className="grid gap-3 border-b border-border/40 py-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                    <div className="space-y-2">
+                      <Label htmlFor={`address-${company.id}`} className="flex items-center gap-2">
+                        <MapPin className="size-4 text-muted-foreground" /> Adresse
+                      </Label>
+                      <Input
+                        id={`address-${company.id}`}
+                        value={address}
+                        placeholder="Adresse de la société"
+                        onChange={(e) => setAddress(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button type="button" variant="outline" onClick={() => setStrategyOpen(true)}>
+                        <SlidersHorizontal className="size-4" /> Stratégie
+                      </Button>
+                      <Button
+                        type="button"
+                        disabled={saveCompany.isPending}
+                        onClick={() => saveCompany.mutate()}
+                      >
+                        {saveCompany.isPending ? "Enregistrement…" : "Enregistrer"}
+                      </Button>
+                      {companyEmails.length > 0 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(companyEmails.join("; "));
+                            toast.success(`${companyEmails.length} adresse(s) copiée(s)`);
+                          }}
+                        >
+                          <Copy className="size-4" /> Copier les emails
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground sm:col-span-2">
+                      {hasStrategy
+                        ? companyEmails.length > 0
+                          ? "Stratégie renseignée et email disponible : à l'enregistrement, ce prospect passe dans l'onglet Investisseurs."
+                          : "Stratégie renseignée, mais aucun email sur la fiche : le prospect reste ici."
+                        : "Complétez la stratégie et ajoutez au moins un email pour basculer ce prospect dans les investisseurs."}
+                    </p>
+                  </div>
                   {contacts.isLoading && (
                     <p className="py-3 text-sm text-muted-foreground">Chargement…</p>
                   )}
@@ -400,8 +591,17 @@ function ProspectsPage() {
                         <p className="font-medium">{c.full_name}</p>
                         <p className="text-xs text-muted-foreground">{c.job_title ?? "—"}</p>
                       </div>
-                      <div className="min-w-52 text-sm">
-                        {c.email ? <CopyEmail email={c.email} /> : <span className="text-muted-foreground">—</span>}
+                      <div className="flex min-w-64 items-center gap-1 text-sm">
+                        {c.email ? (
+                          <>
+                            <span className="truncate" title={c.email}>
+                              {c.email}
+                            </span>
+                            <CopyEmail email={c.email} />
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
                       </div>
                       <div className="min-w-32 text-sm text-muted-foreground">{c.phone ?? "—"}</div>
                       <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm">
@@ -420,6 +620,15 @@ function ProspectsPage() {
           );
         })}
       </div>
+
+      <StrategyMatrixDialog
+        open={strategyOpen}
+        onOpenChange={setStrategyOpen}
+        value={matrix}
+        onChange={setMatrix}
+      />
+
+
 
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-end gap-4 px-5 py-4">
