@@ -12,6 +12,8 @@ export type CfnewsStatus = {
   companies: number;
   contacts: number;
   emails: number;
+  skipped: number;
+  retryOnly: boolean;
 };
 
 async function assertBroker(context: { supabase: any; userId: string }) {
@@ -39,6 +41,10 @@ export const getCfnewsStatus = createServerFn({ method: "GET" })
         .from("prospect_contacts")
         .select("id", { count: "exact", head: true })
         .not("email", "is", null),
+      supabaseAdmin
+        .from("cfnews_failed_urls")
+        .select("id", { count: "exact", head: true })
+        .is("resolved_at", null),
     ]);
     return {
       status: data?.status ?? "idle",
@@ -51,6 +57,8 @@ export const getCfnewsStatus = createServerFn({ method: "GET" })
       companies: counts[0].count ?? 0,
       contacts: counts[1].count ?? 0,
       emails: counts[2].count ?? 0,
+      skipped: counts[3].count ?? 0,
+      retryOnly: data?.retry_only ?? false,
     };
   });
 
@@ -66,9 +74,38 @@ export const setCfnewsRunning = createServerFn({ method: "POST" })
         status: data.running ? "running" : "idle",
         last_error: null,
         lease_until: null,
+        retry_only: false,
         updated_at: new Date().toISOString(),
       })
       .eq("id", true);
     await supabaseAdmin.rpc("cfnews_scrape_schedule", { _on: data.running });
     return { ok: true };
+  });
+
+export const retryCfnewsFailures = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertBroker(context as never);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const requestedAt = new Date().toISOString();
+    const { count, error } = await supabaseAdmin
+      .from("cfnews_failed_urls")
+      .update({ retry_requested_at: requestedAt }, { count: "exact" })
+      .is("resolved_at", null);
+    if (error) throw new Error(error.message);
+    if (!count) return { ok: true, count: 0 };
+
+    const { error: stateError } = await supabaseAdmin
+      .from("cfnews_scrape")
+      .update({
+        status: "running",
+        retry_only: true,
+        last_error: null,
+        lease_until: null,
+        updated_at: requestedAt,
+      })
+      .eq("id", true);
+    if (stateError) throw new Error(stateError.message);
+    await supabaseAdmin.rpc("cfnews_scrape_schedule", { _on: true });
+    return { ok: true, count };
   });
