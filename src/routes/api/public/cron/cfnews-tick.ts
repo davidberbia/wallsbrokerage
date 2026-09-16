@@ -144,11 +144,12 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
                     if (result.error) throw new Error(`Enregistrement sociétés: ${result.error.message}`);
                   }
                 } else if (failure.kind === "company" && failure.company_id) {
+                  const companyId = failure.company_id;
                   const members = parseTeam(html);
                   if (members.length > 0) {
                     const result = await admin.from("prospect_contacts").upsert(
                       members.map((member) => ({
-                        company_id: failure.company_id,
+                        company_id: companyId,
                         full_name: member.fullName,
                         job_title: member.jobTitle,
                         source_url: `${BASE}${member.path}`,
@@ -157,7 +158,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
                     );
                     if (result.error) throw new Error(`Enregistrement contacts: ${result.error.message}`);
                   }
-                  await admin.from("prospect_companies").update({ contacts_scraped_at: new Date().toISOString() }).eq("id", failure.company_id);
+                  await admin.from("prospect_companies").update({ contacts_scraped_at: new Date().toISOString() }).eq("id", companyId);
                 } else if (failure.kind === "contact" && failure.contact_id) {
                   const person = parsePerson(html);
                   const fullName = person.firstName && person.lastName ? cleanText(`${person.firstName} ${person.lastName}`) : null;
@@ -176,7 +177,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
                 if (err instanceof CfnewsHttpError && err.status === 404) {
                   await logNotFound(admin, {
                     url: failure.url,
-                    kind: failure.kind,
+                    kind: failure.kind as FailureKind,
                     page: failure.page ?? undefined,
                     companyId: failure.company_id ?? undefined,
                     contactId: failure.contact_id ?? undefined,
