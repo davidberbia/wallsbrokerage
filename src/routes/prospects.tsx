@@ -139,7 +139,10 @@ function ProspectsPage() {
       }
       let q = supabase
         .from("prospect_companies")
-        .select("id, name, city, sector")
+        .select(
+          "id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, converted_investor_id",
+        )
+        .is("converted_investor_id", null)
         .order("name")
         .limit(200);
       if (companyQuery.trim()) q = q.ilike("name", `%${companyQuery.trim()}%`);
