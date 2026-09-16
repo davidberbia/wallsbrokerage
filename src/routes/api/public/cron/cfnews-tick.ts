@@ -178,9 +178,9 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
                   await logNotFound(admin, {
                     url: failure.url,
                     kind: failure.kind as FailureKind,
-                    page: failure.page ?? undefined,
-                    companyId: failure.company_id ?? undefined,
-                    contactId: failure.contact_id ?? undefined,
+                    ...(failure.page == null ? {} : { page: failure.page }),
+                    ...(failure.company_id == null ? {} : { companyId: failure.company_id }),
+                    ...(failure.contact_id == null ? {} : { contactId: failure.contact_id }),
                   });
                   continue;
                 }

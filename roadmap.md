@@ -5,4 +5,4 @@
 - [x] Arrêter proprement la pagination après trois 404 consécutives.
 - [x] Afficher le nombre d’URLs ignorées.
 - [x] Permettre une relance ciblée des seules URLs ignorées.
-- [ ] Vérifier la compilation et le panneau dans l’aperçu.
+- [x] Vérifier la compilation et le panneau dans l’aperçu.
