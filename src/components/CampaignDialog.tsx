@@ -72,7 +72,6 @@ export function CampaignDialog({
   const storedPath =
     asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url) ? asset.brochure_url : null;
   const storedName = storedPath ? (brochureFileName(storedPath) ?? "brochure.pdf") : null;
-  const hasAttachment = Boolean(file || storedPath);
 
   const withEmail = recipients.filter((r) => r.email);
 
