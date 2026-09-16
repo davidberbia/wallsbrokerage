@@ -655,23 +655,46 @@ function ProspectsPage() {
                 <Building2 className="size-4 shrink-0 text-muted-foreground" />
                 <span className="font-medium">{company.name}</span>
                 <span className="truncate text-sm text-muted-foreground">
-                  {[company.address ?? company.city, company.sector].filter(Boolean).join(" · ")}
+                  {[company.address ?? company.city, company.investor_profile, company.sector]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </span>
               </button>
 
               {isOpen && (
                 <div className="border-t border-border/60 bg-muted/20 px-4 py-2">
                   <div className="grid gap-3 border-b border-border/40 py-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                    <div className="space-y-2">
-                      <Label htmlFor={`address-${company.id}`} className="flex items-center gap-2">
-                        <MapPin className="size-4 text-muted-foreground" /> Adresse
-                      </Label>
-                      <Input
-                        id={`address-${company.id}`}
-                        value={address}
-                        placeholder="Adresse de la société"
-                        onChange={(e) => setAddress(e.target.value)}
-                      />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor={`address-${company.id}`} className="flex items-center gap-2">
+                          <MapPin className="size-4 text-muted-foreground" /> Adresse
+                        </Label>
+                        <Input
+                          id={`address-${company.id}`}
+                          value={address}
+                          placeholder="Adresse de la société"
+                          onChange={(e) => setAddress(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Catégorie d'investisseur</Label>
+                        <Select
+                          value={profile || "none"}
+                          onValueChange={(v) => setProfile(v === "none" ? "" : v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="—" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">—</SelectItem>
+                            {investorProfiles.map((p) => (
+                              <SelectItem key={p} value={p}>
+                                {p}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <Button type="button" variant="outline" onClick={() => setStrategyOpen(true)}>
