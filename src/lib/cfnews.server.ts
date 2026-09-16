@@ -57,12 +57,22 @@ export async function cfnewsLogin(): Promise<string> {
     LoginButton: "Connexion",
   });
 
-  const res = await fetch(zenUrl("/cfni/login/index.php?url=login"), {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(),
-  });
-  if (!res.ok) throw new Error(`Connexion CFNews impossible (${res.status})`);
+  // La connexion peut renvoyer un 520/429 passager : on retente 3 fois (10 s, 30 s, 60 s).
+  let res: Response | null = null;
+  for (let attempt = 1; ; attempt += 1) {
+    res = await fetch(zenUrl("/cfni/login/index.php?url=login"), {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    if (res.ok) break;
+    if (!isTransientStatus(res.status) || attempt > RETRY_DELAYS_MS.length) {
+      throw new Error(`Connexion CFNews impossible (${res.status}, ${attempt} tentatives)`);
+    }
+    const wait = RETRY_DELAYS_MS[attempt - 1]!;
+    console.warn(`Connexion CFNews ${res.status} — nouvel essai dans ${wait / 1000} s`);
+    await sleep(wait);
+  }
 
   const raw = res.headers.get("Zr-Cookies") ?? res.headers.get("Zr-Set-Cookie") ?? "";
   const jar = new Map<string, string>();
