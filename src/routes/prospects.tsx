@@ -178,14 +178,37 @@ function ProspectsPage() {
     });
   };
 
-  const importCsv = async (file: File) => {
+  /** Lit un CSV ou un classeur Excel et renvoie les lignes brutes. */
+  const readRows = async (file: File): Promise<string[][]> => {
+    const isExcel = /\.(xlsx|xlsm|xlsb|xls)$/i.test(file.name);
+    if (isExcel) {
+      const XLSX = await import("xlsx");
+      const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+      const sheetName = wb.SheetNames[0];
+      if (!sheetName) throw new Error("Classeur vide");
+      const grid = XLSX.utils.sheet_to_json<unknown[]>(wb.Sheets[sheetName]!, {
+        header: 1,
+        blankrows: false,
+        defval: "",
+        raw: false,
+      });
+      return grid
+        .map((r) => r.map((c) => String(c ?? "").trim()))
+        .filter((r) => r.some((c) => c));
+    }
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    if (!lines[0]) return [];
+    const sep = (lines[0].match(/;/g)?.length ?? 0) >= (lines[0].match(/,/g)?.length ?? 0) ? ";" : ",";
+    return lines.map((l) => splitCsvLine(l, sep));
+  };
+
+  const importFile = async (file: File) => {
     setImporting(true);
     try {
-      const text = await file.text();
-      const lines = text.split(/\r?\n/).filter((l) => l.trim());
-      if (lines.length < 2) throw new Error("Fichier vide");
-      const sep = (lines[0]!.match(/;/g)?.length ?? 0) >= (lines[0]!.match(/,/g)?.length ?? 0) ? ";" : ",";
-      const header = splitCsvLine(lines[0]!, sep).map(norm);
+      const allRows = await readRows(file);
+      if (allRows.length < 2) throw new Error("Fichier vide");
+      const header = allRows[0]!.map(norm);
       const idx = (...keys: string[]) => header.findIndex((h) => keys.some((k) => h.includes(k)));
       const iCompany = idx("societe", "company", "entreprise");
       const iName = idx("nom", "name", "collaborateur");
