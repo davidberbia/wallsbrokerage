@@ -324,16 +324,18 @@ function ProspectsPage() {
           />
         </div>
         <div className="space-y-2 sm:col-span-2">
-          <Label htmlFor="import-csv">Importer une base (CSV : Société, Nom, Titre, Email, Téléphone)</Label>
+          <Label htmlFor="import-csv">
+            Importer une base (CSV ou Excel : Société, Nom, Titre, Email, Téléphone)
+          </Label>
           <div className="flex items-center gap-3">
             <Input
               id="import-csv"
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,text/csv,.xlsx,.xlsm,.xlsb,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               disabled={importing}
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) void importCsv(f);
+                if (f) void importFile(f);
                 e.target.value = "";
               }}
             />
