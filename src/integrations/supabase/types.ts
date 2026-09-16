@@ -324,8 +324,72 @@ export type Database = {
           },
         ]
       }
+      cfnews_failed_urls: {
+        Row: {
+          attempts: number
+          company_id: string | null
+          contact_id: string | null
+          created_at: string
+          id: string
+          kind: string
+          last_error: string | null
+          last_status: number | null
+          page: number | null
+          resolved_at: string | null
+          retry_requested_at: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          attempts?: number
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          last_error?: string | null
+          last_status?: number | null
+          page?: number | null
+          resolved_at?: string | null
+          retry_requested_at?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          attempts?: number
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          last_error?: string | null
+          last_status?: number | null
+          page?: number | null
+          resolved_at?: string | null
+          retry_requested_at?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cfnews_failed_urls_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cfnews_failed_urls_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cfnews_scrape: {
         Row: {
+          consecutive_listing_404s: number
           cookie: string | null
           cookie_at: string | null
           id: boolean
@@ -339,6 +403,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          consecutive_listing_404s?: number
           cookie?: string | null
           cookie_at?: string | null
           id?: boolean
@@ -352,6 +417,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          consecutive_listing_404s?: number
           cookie?: string | null
           cookie_at?: string | null
           id?: boolean
