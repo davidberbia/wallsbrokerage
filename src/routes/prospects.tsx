@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CfnewsPanel } from "@/components/CfnewsPanel";
+import { useLists } from "@/lib/lists";
 import type { Asset } from "@/lib/types";
 
 export const Route = createFileRoute("/prospects")({
@@ -80,6 +81,7 @@ type Company = {
   regions: string[] | null;
   bands: BandsByAsset | null;
   strategies_by_asset: StrategiesByAsset | null;
+  investor_profile: string | null;
   converted_investor_id: string | null;
 };
 
