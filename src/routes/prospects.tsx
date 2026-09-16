@@ -75,6 +75,12 @@ type Company = {
   name: string;
   city: string | null;
   sector: string | null;
+  address: string | null;
+  asset_classes: string[] | null;
+  regions: string[] | null;
+  bands: BandsByAsset | null;
+  strategies_by_asset: StrategiesByAsset | null;
+  converted_investor_id: string | null;
 };
 
 type Selected = Recipient & { company: string };
