@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import {
   getCfnewsStatus,
   retryCfnewsFailures,
+  retryCfnewsPage,
   setCfnewsRunning,
 } from "@/lib/cfnews.functions";
 import { Button } from "@/components/ui/button";
