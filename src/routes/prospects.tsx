@@ -238,6 +238,7 @@ function ProspectsPage() {
   useEffect(() => {
     if (!openCompany) return;
     setAddress(openCompany.address ?? "");
+    setProfile(openCompany.investor_profile ?? "");
     setMatrix({
       assetClasses: openCompany.asset_classes ?? [],
       bands: openCompany.bands ?? {},
@@ -268,6 +269,7 @@ function ProspectsPage() {
         .from("prospect_companies")
         .update({
           address: address.trim() || null,
+          investor_profile: profile || null,
           asset_classes: matrix.assetClasses,
           regions: matrix.regions,
           bands: matrix.bands,
@@ -300,6 +302,7 @@ function ProspectsPage() {
           phone: primary.phone,
           address: address.trim() || null,
           city: company.city,
+          investor_profile: profile || null,
           asset_classes: matrix.assetClasses,
           strategies,
           regions: matrix.regions,
@@ -490,7 +493,7 @@ function ProspectsPage() {
       <CfnewsPanel />
 
       <div className="panel space-y-4 p-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <div className="space-y-2">
             <Label htmlFor="q-company">Société</Label>
             <Input
@@ -531,6 +534,23 @@ function ProspectsPage() {
                 <SelectItem value="tous">Tous les prospects</SelectItem>
                 <SelectItem value="avec">Avec email</SelectItem>
                 <SelectItem value="sans">Sans email</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Catégorie d'investisseur</Label>
+            <Select value={profileFilter} onValueChange={setProfileFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tous">Toutes les catégories</SelectItem>
+                <SelectItem value="sans_profil">Sans catégorie</SelectItem>
+                {investorProfiles.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
