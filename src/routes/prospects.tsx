@@ -219,7 +219,7 @@ function ProspectsPage() {
       if (iCompany < 0 || iName < 0)
         throw new Error("Colonnes « Société » et « Nom » introuvables dans le fichier.");
 
-      const rows = lines.slice(1).map((l) => splitCsvLine(l, sep));
+      const rows = allRows.slice(1);
       const companyNames = [...new Set(rows.map((r) => r[iCompany]?.trim()).filter(Boolean))] as string[];
 
       // Sociétés existantes
