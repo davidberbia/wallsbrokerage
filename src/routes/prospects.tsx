@@ -117,6 +117,43 @@ const norm = (v: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z]/g, "");
 
+/**
+ * Correspondance entre les « types d'actifs » génériques importés (CFNews, Excel)
+ * et les classes d'actifs de la taxonomie, pour pré-cocher la matrice de stratégie.
+ */
+const ASSET_CLASS_ALIASES: Record<string, string> = {
+  bureaux: "Immeubles de bureaux",
+  commerce: "Murs de commerces de pied d'immeuble",
+  commerces: "Murs de commerces de pied d'immeuble",
+  retail: "Murs de commerces de pied d'immeuble",
+  hotellerie: "City Hôtel (sans fonds)",
+  hotel: "City Hôtel (sans fonds)",
+  hotels: "City Hôtel (sans fonds)",
+  logement: "Immeubles de logements ou mixtes",
+  residentiel: "Immeubles de logements ou mixtes",
+  logistiqueindustriel: "Logistique",
+  industriel: "Logistique",
+  sante: "Santé",
+  activite: "Activité",
+};
+
+/** Traduit les types d'actifs stockés en classes de la taxonomie (dédupliquées). */
+function toTaxonomyClasses(stored: string[], taxonomy: readonly string[]): string[] {
+  const out: string[] = [];
+  for (const value of stored) {
+    const exact = taxonomy.find((t) => t === value);
+    const aliased = ASSET_CLASS_ALIASES[norm(value)];
+    const fuzzy = taxonomy.find((t) => {
+      const n = norm(t);
+      const v = norm(value);
+      return v.length >= 4 && (n.includes(v) || v.includes(n));
+    });
+    const match = exact ?? aliased ?? fuzzy ?? null;
+    if (match && !out.includes(match)) out.push(match);
+  }
+  return out;
+}
+
 function ProspectsPage() {
   const [companyQuery, setCompanyQuery] = useState("");
   const [nameQuery, setNameQuery] = useState("");
