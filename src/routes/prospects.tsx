@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CfnewsPanel } from "@/components/CfnewsPanel";
+import { useLists } from "@/lib/lists";
 import type { Asset } from "@/lib/types";
 
 export const Route = createFileRoute("/prospects")({
@@ -80,6 +81,7 @@ type Company = {
   regions: string[] | null;
   bands: BandsByAsset | null;
   strategies_by_asset: StrategiesByAsset | null;
+  investor_profile: string | null;
   converted_investor_id: string | null;
 };
 
@@ -120,6 +122,7 @@ function ProspectsPage() {
   const [nameQuery, setNameQuery] = useState("");
   const [cityQuery, setCityQuery] = useState("");
   const [emailFilter, setEmailFilter] = useState<"tous" | "avec" | "sans">("tous");
+  const [profileFilter, setProfileFilter] = useState<string>("tous");
   const [sort, setSort] = useState<"name" | "city">("name");
   const [open, setOpen] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, Selected>>({});
@@ -127,6 +130,7 @@ function ProspectsPage() {
   const [importing, setImporting] = useState(false);
   const qc = useQueryClient();
   const [address, setAddress] = useState("");
+  const [profile, setProfile] = useState("");
   const [strategyOpen, setStrategyOpen] = useState(false);
   const [matrix, setMatrix] = useState<{
     assetClasses: string[];
@@ -135,8 +139,10 @@ function ProspectsPage() {
     regions: string[];
   }>({ assetClasses: [], bands: {}, strategiesByAsset: {}, regions: [] });
 
+  const { investorProfiles } = useLists();
+
   const companies = useQuery({
-    queryKey: ["prospect-companies", companyQuery, nameQuery, cityQuery, emailFilter, sort],
+    queryKey: ["prospect-companies", companyQuery, nameQuery, cityQuery, emailFilter, profileFilter, sort],
     queryFn: async () => {
       let ids: string[] | null = null;
       if (nameQuery.trim()) {
@@ -166,7 +172,7 @@ function ProspectsPage() {
       let q = supabase
         .from("prospect_companies")
         .select(
-          "id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, converted_investor_id",
+          "id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, investor_profile, converted_investor_id",
         )
         .is("converted_investor_id", null)
         .limit(1000);
@@ -177,6 +183,8 @@ function ProspectsPage() {
         q = q.or(`city.ilike.${v},address.ilike.${v}`);
       }
       if (ids) q = q.in("id", ids);
+      if (profileFilter === "sans_profil") q = q.is("investor_profile", null);
+      else if (profileFilter !== "tous") q = q.eq("investor_profile", profileFilter);
       if (sort === "city") q = q.order("city", { ascending: true, nullsFirst: false }).order("name");
       else q = q.order("name");
       const { data, error } = await q;
@@ -230,6 +238,7 @@ function ProspectsPage() {
   useEffect(() => {
     if (!openCompany) return;
     setAddress(openCompany.address ?? "");
+    setProfile(openCompany.investor_profile ?? "");
     setMatrix({
       assetClasses: openCompany.asset_classes ?? [],
       bands: openCompany.bands ?? {},
@@ -260,6 +269,7 @@ function ProspectsPage() {
         .from("prospect_companies")
         .update({
           address: address.trim() || null,
+          investor_profile: profile || null,
           asset_classes: matrix.assetClasses,
           regions: matrix.regions,
           bands: matrix.bands,
@@ -292,6 +302,7 @@ function ProspectsPage() {
           phone: primary.phone,
           address: address.trim() || null,
           city: company.city,
+          investor_profile: profile || null,
           asset_classes: matrix.assetClasses,
           strategies,
           regions: matrix.regions,
@@ -482,7 +493,7 @@ function ProspectsPage() {
       <CfnewsPanel />
 
       <div className="panel space-y-4 p-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <div className="space-y-2">
             <Label htmlFor="q-company">Société</Label>
             <Input
@@ -523,6 +534,23 @@ function ProspectsPage() {
                 <SelectItem value="tous">Tous les prospects</SelectItem>
                 <SelectItem value="avec">Avec email</SelectItem>
                 <SelectItem value="sans">Sans email</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Catégorie d'investisseur</Label>
+            <Select value={profileFilter} onValueChange={setProfileFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tous">Toutes les catégories</SelectItem>
+                <SelectItem value="sans_profil">Sans catégorie</SelectItem>
+                {investorProfiles.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -627,23 +655,46 @@ function ProspectsPage() {
                 <Building2 className="size-4 shrink-0 text-muted-foreground" />
                 <span className="font-medium">{company.name}</span>
                 <span className="truncate text-sm text-muted-foreground">
-                  {[company.address ?? company.city, company.sector].filter(Boolean).join(" · ")}
+                  {[company.address ?? company.city, company.investor_profile, company.sector]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </span>
               </button>
 
               {isOpen && (
                 <div className="border-t border-border/60 bg-muted/20 px-4 py-2">
                   <div className="grid gap-3 border-b border-border/40 py-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                    <div className="space-y-2">
-                      <Label htmlFor={`address-${company.id}`} className="flex items-center gap-2">
-                        <MapPin className="size-4 text-muted-foreground" /> Adresse
-                      </Label>
-                      <Input
-                        id={`address-${company.id}`}
-                        value={address}
-                        placeholder="Adresse de la société"
-                        onChange={(e) => setAddress(e.target.value)}
-                      />
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label htmlFor={`address-${company.id}`} className="flex items-center gap-2">
+                          <MapPin className="size-4 text-muted-foreground" /> Adresse
+                        </Label>
+                        <Input
+                          id={`address-${company.id}`}
+                          value={address}
+                          placeholder="Adresse de la société"
+                          onChange={(e) => setAddress(e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Catégorie d'investisseur</Label>
+                        <Select
+                          value={profile || "none"}
+                          onValueChange={(v) => setProfile(v === "none" ? "" : v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="—" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">—</SelectItem>
+                            {investorProfiles.map((p) => (
+                              <SelectItem key={p} value={p}>
+                                {p}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <Button type="button" variant="outline" onClick={() => setStrategyOpen(true)}>

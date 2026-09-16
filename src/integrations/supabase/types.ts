@@ -670,6 +670,7 @@ export type Database = {
           converted_investor_id: string | null
           created_at: string
           id: string
+          investor_profile: string | null
           name: string
           regions: string[]
           sector: string | null
@@ -687,6 +688,7 @@ export type Database = {
           converted_investor_id?: string | null
           created_at?: string
           id?: string
+          investor_profile?: string | null
           name: string
           regions?: string[]
           sector?: string | null
@@ -704,6 +706,7 @@ export type Database = {
           converted_investor_id?: string | null
           created_at?: string
           id?: string
+          investor_profile?: string | null
           name?: string
           regions?: string[]
           sector?: string | null

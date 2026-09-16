@@ -1,0 +1,1 @@
+ALTER TABLE public.prospect_companies ADD COLUMN IF NOT EXISTS investor_profile text;
