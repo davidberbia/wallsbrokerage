@@ -176,7 +176,7 @@ function ProspectsPage() {
     regions: string[];
   }>({ assetClasses: [], bands: {}, strategiesByAsset: {}, regions: [] });
 
-  const { investorProfiles } = useLists();
+  const { investorProfiles, assetClasses: taxonomyClasses } = useLists();
 
   const companies = useQuery({
     queryKey: ["prospect-companies", companyQuery, nameQuery, cityQuery, emailFilter, profileFilter, sort],
