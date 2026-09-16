@@ -20,6 +20,7 @@ export function CfnewsPanel() {
   const fetchStatus = useServerFn(getCfnewsStatus);
   const toggle = useServerFn(setCfnewsRunning);
   const retryFailures = useServerFn(retryCfnewsFailures);
+  const retryPage = useServerFn(retryCfnewsPage);
   const qc = useQueryClient();
 
   const status = useQuery({
@@ -51,9 +52,19 @@ export function CfnewsPanel() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const retryPageMutation = useMutation({
+    mutationFn: () => retryPage(),
+    onSuccess: (result) => {
+      toast.success(`Reprise de l'import à la page ${result.page}`);
+      void qc.invalidateQueries({ queryKey: ["cfnews-status"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const data = status.data;
   const running = data?.status === "running";
   const finished = data?.status === "terminé";
+  const blocked = data?.status === "bloqué";
 
   return (
     <div className="panel space-y-3 p-4">
