@@ -122,6 +122,7 @@ function ProspectsPage() {
   const [nameQuery, setNameQuery] = useState("");
   const [cityQuery, setCityQuery] = useState("");
   const [emailFilter, setEmailFilter] = useState<"tous" | "avec" | "sans">("tous");
+  const [profileFilter, setProfileFilter] = useState<string>("tous");
   const [sort, setSort] = useState<"name" | "city">("name");
   const [open, setOpen] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, Selected>>({});
@@ -129,6 +130,7 @@ function ProspectsPage() {
   const [importing, setImporting] = useState(false);
   const qc = useQueryClient();
   const [address, setAddress] = useState("");
+  const [profile, setProfile] = useState("");
   const [strategyOpen, setStrategyOpen] = useState(false);
   const [matrix, setMatrix] = useState<{
     assetClasses: string[];
@@ -137,8 +139,10 @@ function ProspectsPage() {
     regions: string[];
   }>({ assetClasses: [], bands: {}, strategiesByAsset: {}, regions: [] });
 
+  const { investorProfiles } = useLists();
+
   const companies = useQuery({
-    queryKey: ["prospect-companies", companyQuery, nameQuery, cityQuery, emailFilter, sort],
+    queryKey: ["prospect-companies", companyQuery, nameQuery, cityQuery, emailFilter, profileFilter, sort],
     queryFn: async () => {
       let ids: string[] | null = null;
       if (nameQuery.trim()) {
@@ -168,7 +172,7 @@ function ProspectsPage() {
       let q = supabase
         .from("prospect_companies")
         .select(
-          "id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, converted_investor_id",
+          "id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, investor_profile, converted_investor_id",
         )
         .is("converted_investor_id", null)
         .limit(1000);
@@ -179,6 +183,8 @@ function ProspectsPage() {
         q = q.or(`city.ilike.${v},address.ilike.${v}`);
       }
       if (ids) q = q.in("id", ids);
+      if (profileFilter === "sans_profil") q = q.is("investor_profile", null);
+      else if (profileFilter !== "tous") q = q.eq("investor_profile", profileFilter);
       if (sort === "city") q = q.order("city", { ascending: true, nullsFirst: false }).order("name");
       else q = q.order("name");
       const { data, error } = await q;
