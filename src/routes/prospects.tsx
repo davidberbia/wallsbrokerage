@@ -247,7 +247,10 @@ function ProspectsPage() {
       const contactRows = rows
         .map((r) => {
           const companyName = r[iCompany]?.trim();
-          const fullName = r[iName]?.trim();
+          const email = iEmail >= 0 ? r[iEmail]?.trim() || null : null;
+          const phone = iPhone >= 0 ? r[iPhone]?.trim() || null : null;
+          // Lignes sans nom de collaborateur : on conserve quand même l'email/téléphone de la société.
+          const fullName = r[iName]?.trim() || (email || phone ? "Contact général" : "");
           if (!companyName || !fullName) return null;
           const companyId = existing.get(companyName.toLowerCase());
           if (!companyId) return null;
