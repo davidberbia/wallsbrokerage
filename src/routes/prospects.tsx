@@ -259,8 +259,8 @@ function ProspectsPage() {
             full_name: fullName,
             first_name: fullName.split(" ")[0] ?? null,
             job_title: iTitle >= 0 ? r[iTitle] || null : null,
-            email: iEmail >= 0 ? r[iEmail] || null : null,
-            phone: iPhone >= 0 ? r[iPhone] || null : null,
+            email,
+            phone,
           };
         })
         .filter(Boolean) as Array<{
