@@ -8,6 +8,7 @@ import {
   cfnewsGet,
   cfnewsLogin,
   cleanText,
+  parseCompanyDetails,
   parseCompanyLinks,
   parsePerson,
   parseTeam,
