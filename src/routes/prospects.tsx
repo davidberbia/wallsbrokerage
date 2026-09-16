@@ -621,6 +621,15 @@ function ProspectsPage() {
         })}
       </div>
 
+      <StrategyMatrixDialog
+        open={strategyOpen}
+        onOpenChange={setStrategyOpen}
+        value={matrix}
+        onChange={setMatrix}
+      />
+
+
+
       <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-end gap-4 px-5 py-4">
           <div className="min-w-64 flex-1 space-y-2">
