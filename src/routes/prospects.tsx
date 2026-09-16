@@ -448,76 +448,129 @@ function ProspectsPage() {
       const iEmail = idx("mail", "email");
       const iPhone = idx("tel", "phone");
       const iCity = idx("ville", "city");
-      if (iCompany < 0 || iName < 0)
-        throw new Error("Colonnes « Société » et « Nom » introuvables dans le fichier.");
+      const iAddress = idx("adresse", "address");
+      const iZip = idx("codepostal", "cp", "zip");
+      const iProfile = idx("typedinvestisseur", "typeinvestisseur", "categorie");
+      const iAssets = idx("typedactifs", "typeactifs", "actifs");
+      if (iCompany < 0) throw new Error("Colonne « Société » introuvable dans le fichier.");
 
-      const rows = allRows.slice(1);
-      const companyNames = [...new Set(rows.map((r) => r[iCompany]?.trim()).filter(Boolean))] as string[];
+      const cell = (r: string[], i: number) => (i >= 0 ? (r[i] ?? "").trim() || null : null);
+      const rows = allRows.slice(1).filter((r) => (r[iCompany] ?? "").trim());
+      const companyNames = [...new Set(rows.map((r) => r[iCompany]!.trim()))];
 
-      // Sociétés existantes
+      // Toutes les sociétés existantes (comparaison insensible à la casse)
       const existing = new Map<string, string>();
-      for (let i = 0; i < companyNames.length; i += 200) {
-        const chunk = companyNames.slice(i, i + 200);
+      {
+        const { data, error } = await supabase.from("prospect_companies").select("id, name").limit(10000);
+        if (error) throw error;
+        (data ?? []).forEach((c) => existing.set(c.name.toLowerCase(), c.id));
+      }
+
+      const infoOf = (name: string) => {
+        const row = rows.find((r) => r[iCompany]!.trim() === name)!;
+        const address =
+          [cell(row, iAddress), cell(row, iZip), cell(row, iCity)].filter(Boolean).join(" ").trim() || null;
+        const assets = cell(row, iAssets);
+        return {
+          city: cell(row, iCity),
+          address,
+          sector: cell(row, iProfile),
+          investor_profile: cell(row, iProfile),
+          asset_classes: assets ? assets.split(/[|,]/).map((s) => s.trim()).filter(Boolean) : [],
+        };
+      };
+
+      // Création des sociétés manquantes
+      const toCreate = companyNames.filter((n) => !existing.has(n.toLowerCase()));
+      let created = 0;
+      for (const name of toCreate) {
         const { data, error } = await supabase
           .from("prospect_companies")
+          .insert({ name, ...infoOf(name) })
           .select("id, name")
-          .in("name", chunk);
-        if (error) throw error;
-        (data ?? []).forEach((c) => existing.set(c.name.toLowerCase(), c.id));
-      }
-      const toCreate = companyNames.filter((n) => !existing.has(n.toLowerCase()));
-      for (let i = 0; i < toCreate.length; i += 200) {
-        const chunk = toCreate.slice(i, i + 200).map((name) => {
-          const row = rows.find((r) => r[iCompany]?.trim() === name);
-          return { name, city: iCity >= 0 ? (row?.[iCity] ?? null) : null };
-        });
-        const { data, error } = await supabase.from("prospect_companies").insert(chunk).select("id, name");
-        if (error) throw error;
-        (data ?? []).forEach((c) => existing.set(c.name.toLowerCase(), c.id));
+          .maybeSingle();
+        if (error) continue;
+        if (data) {
+          existing.set(data.name.toLowerCase(), data.id);
+          created += 1;
+        }
       }
 
-      const contactRows = rows
-        .map((r) => {
-          const companyName = r[iCompany]?.trim();
-          const email = iEmail >= 0 ? r[iEmail]?.trim() || null : null;
-          const phone = iPhone >= 0 ? r[iPhone]?.trim() || null : null;
-          // Lignes sans nom de collaborateur : on conserve quand même l'email/téléphone de la société.
-          const fullName = r[iName]?.trim() || (email || phone ? "Contact général" : "");
-          if (!companyName || !fullName) return null;
-          const companyId = existing.get(companyName.toLowerCase());
-          if (!companyId) return null;
-          return {
-            company_id: companyId,
-            full_name: fullName,
-            first_name: fullName.split(" ")[0] ?? null,
-            job_title: iTitle >= 0 ? r[iTitle] || null : null,
-            email,
-            phone,
-          };
-        })
-        .filter(Boolean) as Array<{
-          company_id: string;
-          full_name: string;
-          first_name: string | null;
-          job_title: string | null;
-          email: string | null;
-          phone: string | null;
-        }>;
+      // Complément des fiches existantes (sans écraser les données déjà saisies)
+      let updated = 0;
+      for (const name of companyNames) {
+        const id = existing.get(name.toLowerCase());
+        if (!id) continue;
+        const info = infoOf(name);
+        const patch: Record<string, unknown> = {};
+        if (info.address) patch.address = info.address;
+        if (info.city) patch.city = info.city;
+        if (info.sector) patch.sector = info.sector;
+        if (info.investor_profile) patch.investor_profile = info.investor_profile;
+        if (info.asset_classes.length) patch.asset_classes = info.asset_classes;
+        if (!Object.keys(patch).length) continue;
+        const { error } = await supabase.from("prospect_companies").update(patch).eq("id", id);
+        if (!error) updated += 1;
+      }
+
+      // Contacts existants, pour éviter les doublons (contrainte company_id + nom)
+      const companyIds = [...new Set(companyNames.map((n) => existing.get(n.toLowerCase())).filter(Boolean))] as string[];
+      const seen = new Set<string>();
+      for (let i = 0; i < companyIds.length; i += 200) {
+        const { data, error } = await supabase
+          .from("prospect_contacts")
+          .select("company_id, full_name")
+          .in("company_id", companyIds.slice(i, i + 200))
+          .limit(10000);
+        if (error) throw error;
+        (data ?? []).forEach((c) => seen.add(`${c.company_id}|${c.full_name.toLowerCase()}`));
+      }
+
+      const contactRows: Array<{
+        company_id: string;
+        full_name: string;
+        first_name: string | null;
+        job_title: string | null;
+        email: string | null;
+        phone: string | null;
+      }> = [];
+      for (const r of rows) {
+        const companyId = existing.get(r[iCompany]!.trim().toLowerCase());
+        if (!companyId) continue;
+        const email = cell(r, iEmail);
+        const phone = cell(r, iPhone);
+        const fullName = (iName >= 0 ? (r[iName] ?? "").trim() : "") || (email || phone ? "Contact général" : "");
+        if (!fullName) continue;
+        const key = `${companyId}|${fullName.toLowerCase()}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        contactRows.push({
+          company_id: companyId,
+          full_name: fullName,
+          first_name: fullName.split(" ")[0] ?? null,
+          job_title: cell(r, iTitle),
+          email,
+          phone,
+        });
+      }
 
       let inserted = 0;
-      for (let i = 0; i < contactRows.length; i += 300) {
-        const chunk = contactRows.slice(i, i + 300);
-        const { error } = await supabase
-          .from("prospect_contacts")
-          .upsert(chunk, { onConflict: "company_id,full_name", ignoreDuplicates: true });
+      for (let i = 0; i < contactRows.length; i += 200) {
+        const chunk = contactRows.slice(i, i + 200);
+        const { error } = await supabase.from("prospect_contacts").insert(chunk);
         if (error) {
-          const { error: insertError } = await supabase.from("prospect_contacts").insert(chunk);
-          if (insertError) throw insertError;
+          for (const row of chunk) {
+            const { error: rowError } = await supabase.from("prospect_contacts").insert(row);
+            if (!rowError) inserted += 1;
+          }
+        } else {
+          inserted += chunk.length;
         }
-        inserted += chunk.length;
       }
 
-      toast.success(`${companyNames.length} société(s) et ${inserted} collaborateur(s) importés.`);
+      toast.success(
+        `${created} société(s) créée(s), ${updated} complétée(s), ${inserted} collaborateur(s) ajouté(s).`,
+      );
       await companies.refetch();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Échec de l'import");
