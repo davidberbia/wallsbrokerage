@@ -72,7 +72,6 @@ export function CampaignDialog({
   const storedPath =
     asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url) ? asset.brochure_url : null;
   const storedName = storedPath ? (brochureFileName(storedPath) ?? "brochure.pdf") : null;
-  const hasAttachment = Boolean(file || storedPath);
 
   const withEmail = recipients.filter((r) => r.email);
 
@@ -90,10 +89,6 @@ export function CampaignDialog({
       toast.error("Sélectionnez un actif enregistré.");
       return;
     }
-    if (!hasAttachment) {
-      toast.error("Ajoutez la brochure PDF à joindre.");
-      return;
-    }
     if (withEmail.length === 0) {
       toast.error("Aucun investisseur sélectionné avec une adresse email.");
       return;
@@ -101,8 +96,9 @@ export function CampaignDialog({
 
     setBusy(true);
     try {
-      let path = storedPath!;
-      let attachmentName = storedName ?? "brochure.pdf";
+      // Pièce jointe facultative : sans brochure, le mail part sans annexe.
+      let path: string | null = storedPath;
+      let attachmentName: string | null = storedName;
       if (file) {
         path = `${asset.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
         attachmentName = file.name;
@@ -195,7 +191,7 @@ export function CampaignDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button size="sm" disabled={!asset || withEmail.length === 0 || !hasAttachment}>
+        <Button size="sm" disabled={!asset || withEmail.length === 0}>
           <Send className="size-4" /> Envoyer la brochure
         </Button>
       </DialogTrigger>
@@ -245,13 +241,16 @@ export function CampaignDialog({
             </p>
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="campaign-file">Brochure PDF (pièce jointe)</Label>
+              <Label htmlFor="campaign-file">Brochure PDF (pièce jointe facultative)</Label>
               <Input
                 id="campaign-file"
                 type="file"
                 accept="application/pdf"
                 onChange={(e) => setOwnFile(e.target.files?.[0] ?? null)}
               />
+              <p className="text-xs text-muted-foreground">
+                Sans brochure sélectionnée, le mail partira sans pièce jointe.
+              </p>
             </div>
           )}
 

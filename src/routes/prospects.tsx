@@ -118,6 +118,9 @@ const norm = (v: string) =>
 function ProspectsPage() {
   const [companyQuery, setCompanyQuery] = useState("");
   const [nameQuery, setNameQuery] = useState("");
+  const [cityQuery, setCityQuery] = useState("");
+  const [emailFilter, setEmailFilter] = useState<"tous" | "avec" | "sans">("tous");
+  const [sort, setSort] = useState<"name" | "city">("name");
   const [open, setOpen] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, Selected>>({});
   const [assetId, setAssetId] = useState<string>("");
@@ -133,7 +136,7 @@ function ProspectsPage() {
   }>({ assetClasses: [], bands: {}, strategiesByAsset: {}, regions: [] });
 
   const companies = useQuery({
-    queryKey: ["prospect-companies", companyQuery, nameQuery],
+    queryKey: ["prospect-companies", companyQuery, nameQuery, cityQuery, emailFilter, sort],
     queryFn: async () => {
       let ids: string[] | null = null;
       if (nameQuery.trim()) {
@@ -146,19 +149,43 @@ function ProspectsPage() {
         ids = [...new Set((data ?? []).map((r) => r.company_id))];
         if (ids.length === 0) return [] as Company[];
       }
+
+      // Sociétés ayant au moins un collaborateur avec une adresse email.
+      let withEmailIds: string[] = [];
+      if (emailFilter !== "tous") {
+        const { data, error } = await supabase
+          .from("prospect_contacts")
+          .select("company_id")
+          .not("email", "is", null)
+          .limit(10000);
+        if (error) throw error;
+        withEmailIds = [...new Set((data ?? []).map((r) => r.company_id))];
+        if (emailFilter === "avec" && withEmailIds.length === 0) return [] as Company[];
+      }
+
       let q = supabase
         .from("prospect_companies")
         .select(
           "id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, converted_investor_id",
         )
         .is("converted_investor_id", null)
-        .order("name")
-        .limit(200);
+        .limit(1000);
       if (companyQuery.trim()) q = q.ilike("name", `%${companyQuery.trim()}%`);
+      if (cityQuery.trim()) {
+        // Les virgules cassent le filtre combiné : on les remplace par des espaces.
+        const v = `%${cityQuery.trim().replace(/,/g, " ")}%`;
+        q = q.or(`city.ilike.${v},address.ilike.${v}`);
+      }
       if (ids) q = q.in("id", ids);
+      if (sort === "city") q = q.order("city", { ascending: true, nullsFirst: false }).order("name");
+      else q = q.order("name");
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as Company[];
+      let rows = (data ?? []) as Company[];
+      if (emailFilter === "avec") rows = rows.filter((c) => withEmailIds.includes(c.id));
+      else if (emailFilter === "sans" && withEmailIds.length > 0)
+        rows = rows.filter((c) => !withEmailIds.includes(c.id));
+      return rows;
     },
   });
 
@@ -442,7 +469,7 @@ function ProspectsPage() {
   };
 
   return (
-    <div className="space-y-8 pb-40">
+    <div className="space-y-8 pb-10">
       <div>
         <p className="eyebrow">Prospection</p>
         <h1 className="mt-1 text-3xl">Prospects</h1>
@@ -454,26 +481,102 @@ function ProspectsPage() {
 
       <CfnewsPanel />
 
-      <div className="panel grid gap-4 p-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="q-company">Rechercher une société</Label>
-          <Input
-            id="q-company"
-            value={companyQuery}
-            placeholder="Nom de la société"
-            onChange={(e) => setCompanyQuery(e.target.value)}
-          />
+      <div className="panel space-y-4 p-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="space-y-2">
+            <Label htmlFor="q-company">Société</Label>
+            <Input
+              id="q-company"
+              value={companyQuery}
+              placeholder="Nom de la société"
+              onChange={(e) => setCompanyQuery(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="q-name">Collaborateur</Label>
+            <Input
+              id="q-name"
+              value={nameQuery}
+              placeholder="Nom du collaborateur"
+              onChange={(e) => setNameQuery(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="q-city">Ville</Label>
+            <Input
+              id="q-city"
+              value={cityQuery}
+              placeholder="Ville ou adresse"
+              onChange={(e) => setCityQuery(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Email</Label>
+            <Select
+              value={emailFilter}
+              onValueChange={(v) => setEmailFilter(v as "tous" | "avec" | "sans")}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tous">Tous les prospects</SelectItem>
+                <SelectItem value="avec">Avec email</SelectItem>
+                <SelectItem value="sans">Sans email</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label>Trier par</Label>
+            <Select value={sort} onValueChange={(v) => setSort(v as "name" | "city")}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Nom</SelectItem>
+                <SelectItem value="city">Ville</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="q-name">Rechercher un collaborateur</Label>
-          <Input
-            id="q-name"
-            value={nameQuery}
-            placeholder="Nom du collaborateur"
-            onChange={(e) => setNameQuery(e.target.value)}
-          />
+
+        <div className="flex flex-wrap items-end gap-4 border-t border-border/60 pt-4">
+          <div className="min-w-64 flex-1 space-y-2">
+            <Label>Actif à envoyer</Label>
+            <Select value={assetId} onValueChange={setAssetId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choisir un dossier" />
+              </SelectTrigger>
+              <SelectContent>
+                {(assets.data ?? []).map((a) => (
+                  <SelectItem key={a.id} value={a.id}>
+                    {a.title}
+                    {a.city ? ` — ${a.city}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-muted-foreground">
+              {recipients.length} destinataire{recipients.length > 1 ? "s" : ""} sélectionné
+              {recipients.length > 1 ? "s" : ""}
+            </span>
+            {recipients.length > 0 && (
+              <Button variant="ghost" size="sm" onClick={() => setSelected({})}>
+                <X className="size-4" /> Vider
+              </Button>
+            )}
+            <CampaignDialog
+              asset={asset}
+              recipients={recipients}
+              recipientKind="prospect"
+              onLaunched={() => setSelected({})}
+            />
+          </div>
         </div>
-        <div className="space-y-2 sm:col-span-2">
+
+        <div className="space-y-2">
           <Label htmlFor="import-csv">
             Importer une base (CSV ou Excel : Société, Nom, Titre, Email, Téléphone)
           </Label>
@@ -627,46 +730,6 @@ function ProspectsPage() {
         value={matrix}
         onChange={setMatrix}
       />
-
-
-
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-end gap-4 px-5 py-4">
-          <div className="min-w-64 flex-1 space-y-2">
-            <Label>Actif à envoyer</Label>
-            <Select value={assetId} onValueChange={setAssetId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir un dossier" />
-              </SelectTrigger>
-              <SelectContent>
-                {(assets.data ?? []).map((a) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {a.title}
-                    {a.city ? ` — ${a.city}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">
-              {recipients.length} destinataire{recipients.length > 1 ? "s" : ""} sélectionné
-              {recipients.length > 1 ? "s" : ""}
-            </span>
-            {recipients.length > 0 && (
-              <Button variant="ghost" size="sm" onClick={() => setSelected({})}>
-                <X className="size-4" /> Vider
-              </Button>
-            )}
-            <CampaignDialog
-              asset={asset}
-              recipients={recipients}
-              recipientKind="prospect"
-              onLaunched={() => setSelected({})}
-            />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
