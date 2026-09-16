@@ -4,6 +4,7 @@ import {
   LISTING_LAST_PAGE,
   LISTING_URL,
   CfnewsHttpError,
+  isTransientStatus,
   cfnewsGet,
   cfnewsLogin,
   cleanText,

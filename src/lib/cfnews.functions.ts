@@ -82,6 +82,31 @@ export const setCfnewsRunning = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Reprend l'import exactement sur la page en erreur, sans rien perdre. */
+export const retryCfnewsPage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertBroker(context as never);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin
+      .from("cfnews_scrape")
+      .select("page")
+      .eq("id", true)
+      .maybeSingle();
+    await supabaseAdmin
+      .from("cfnews_scrape")
+      .update({
+        status: "running",
+        retry_only: false,
+        last_error: null,
+        lease_until: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", true);
+    await supabaseAdmin.rpc("cfnews_scrape_schedule", { _on: true });
+    return { ok: true, page: data?.page ?? 1 };
+  });
+
 export const retryCfnewsFailures = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
