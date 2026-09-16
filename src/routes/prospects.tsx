@@ -194,6 +194,121 @@ function ProspectsPage() {
   );
   const recipients = useMemo(() => Object.values(selected), [selected]);
 
+  const openCompany = useMemo(
+    () => (companies.data ?? []).find((c) => c.id === open) ?? null,
+    [companies.data, open],
+  );
+
+  // Charge l'adresse et la stratégie de la société dépliée.
+  useEffect(() => {
+    if (!openCompany) return;
+    setAddress(openCompany.address ?? "");
+    setMatrix({
+      assetClasses: openCompany.asset_classes ?? [],
+      bands: openCompany.bands ?? {},
+      strategiesByAsset: openCompany.strategies_by_asset ?? {},
+      regions: openCompany.regions ?? [],
+    });
+  }, [openCompany]);
+
+  const companyEmails = useMemo(
+    () => (contacts.data ?? []).map((c) => c.email).filter(Boolean) as string[],
+    [contacts.data],
+  );
+
+  const hasStrategy =
+    matrix.assetClasses.length > 0 &&
+    Object.values(matrix.strategiesByAsset).some((s) => (s ?? []).length > 0);
+
+  /** Enregistre adresse + stratégie, puis bascule le prospect en investisseur si possible. */
+  const saveCompany = useMutation({
+    mutationFn: async () => {
+      const company = openCompany;
+      if (!company) throw new Error("Société introuvable");
+      const list = contacts.data ?? [];
+      const withEmail = list.filter((c) => c.email);
+      const strategies = [...new Set(Object.values(matrix.strategiesByAsset).flat())];
+
+      const { error: upError } = await supabase
+        .from("prospect_companies")
+        .update({
+          address: address.trim() || null,
+          asset_classes: matrix.assetClasses,
+          regions: matrix.regions,
+          bands: matrix.bands,
+          strategies_by_asset: matrix.strategiesByAsset,
+        })
+        .eq("id", company.id);
+      if (upError) throw upError;
+
+      const ready =
+        matrix.assetClasses.length > 0 &&
+        Object.values(matrix.strategiesByAsset).some((s) => (s ?? []).length > 0) &&
+        withEmail.length > 0;
+      if (!ready) return { converted: false as const };
+
+      const primary = withEmail[0]!;
+      const notes = list
+        .map((c) =>
+          [c.full_name, c.job_title, c.email, c.phone].filter(Boolean).join(" — "),
+        )
+        .join("\n");
+
+      const { data: investor, error: invError } = await supabase
+        .from("investors")
+        .insert({
+          full_name: primary.full_name,
+          first_name: primary.first_name,
+          job_title: primary.job_title,
+          company: company.name,
+          email: primary.email,
+          phone: primary.phone,
+          address: address.trim() || null,
+          city: company.city,
+          asset_classes: matrix.assetClasses,
+          strategies,
+          regions: matrix.regions,
+          status: "à qualifier",
+          notes,
+        })
+        .select("id")
+        .single();
+      if (invError) throw invError;
+
+      if (matrix.assetClasses.length > 0) {
+        const rows = matrix.assetClasses.map((assetClass) => ({
+          investor_id: investor.id,
+          asset_class: assetClass,
+          strategies: matrix.strategiesByAsset[assetClass] ?? [],
+          amount_bands: matrix.bands[assetClass] ?? [],
+          regions: matrix.regions,
+        }));
+        const { error: critError } = await supabase.from("investor_criteria").insert(rows);
+        if (critError) throw critError;
+      }
+
+      const { error: markError } = await supabase
+        .from("prospect_companies")
+        .update({ converted_investor_id: investor.id, converted_at: new Date().toISOString() })
+        .eq("id", company.id);
+      if (markError) throw markError;
+
+      return { converted: true as const };
+    },
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ["prospect-companies"] });
+      qc.invalidateQueries({ queryKey: ["investors"] });
+      qc.invalidateQueries({ queryKey: ["investor-criteria"] });
+      if (res.converted) {
+        setOpen(null);
+        toast.success("Prospect basculé dans l'onglet Investisseurs");
+      } else {
+        toast.success("Fiche enregistrée");
+      }
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const toggle = (contact: Contact, companyName: string) => {
     setSelected((prev) => {
       const next = { ...prev };
