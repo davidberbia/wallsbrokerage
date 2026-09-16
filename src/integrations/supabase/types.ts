@@ -399,6 +399,7 @@ export type Database = {
           pages_done: number
           phase: string
           requests_done: number
+          retry_only: boolean
           status: string
           updated_at: string
         }
@@ -413,6 +414,7 @@ export type Database = {
           pages_done?: number
           phase?: string
           requests_done?: number
+          retry_only?: boolean
           status?: string
           updated_at?: string
         }
@@ -427,6 +429,7 @@ export type Database = {
           pages_done?: number
           phase?: string
           requests_done?: number
+          retry_only?: boolean
           status?: string
           updated_at?: string
         }
