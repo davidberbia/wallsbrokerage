@@ -502,7 +502,13 @@ function ProspectsPage() {
         const id = existing.get(name.toLowerCase());
         if (!id) continue;
         const info = infoOf(name);
-        const patch: Record<string, unknown> = {};
+        const patch: {
+          address?: string;
+          city?: string;
+          sector?: string;
+          investor_profile?: string;
+          asset_classes?: string[];
+        } = {};
         if (info.address) patch.address = info.address;
         if (info.city) patch.city = info.city;
         if (info.sector) patch.sector = info.sector;
