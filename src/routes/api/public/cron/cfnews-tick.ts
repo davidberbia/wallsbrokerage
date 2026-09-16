@@ -3,6 +3,7 @@ import { authorizeCron, getAdmin } from "@/lib/automation.server";
 import {
   LISTING_LAST_PAGE,
   LISTING_URL,
+  CfnewsHttpError,
   cfnewsGet,
   cfnewsLogin,
   cleanText,
@@ -16,6 +17,52 @@ import {
 const PAGES_PER_TICK = 2;
 const COOKIE_MAX_AGE_MS = 40 * 60 * 1000;
 const LEASE_MS = 5 * 60 * 1000;
+const MAX_CONSECUTIVE_LISTING_404S = 3;
+const BASE = "https://www.cfnewsimmo.net";
+
+type FailureKind = "listing" | "company" | "contact";
+
+async function logNotFound(
+  admin: any,
+  failure: {
+    url: string;
+    kind: FailureKind;
+    page?: number;
+    companyId?: string;
+    contactId?: string;
+  },
+) {
+  const { data: existing } = await admin
+    .from("cfnews_failed_urls")
+    .select("attempts")
+    .eq("url", failure.url)
+    .maybeSingle();
+  const { error } = await admin.from("cfnews_failed_urls").upsert(
+    {
+      url: failure.url,
+      kind: failure.kind,
+      page: failure.page ?? null,
+      company_id: failure.companyId ?? null,
+      contact_id: failure.contactId ?? null,
+      last_status: 404,
+      last_error: `CFNews 404 sur ${failure.url}`,
+      attempts: (existing?.attempts ?? 0) + 1,
+      retry_requested_at: null,
+      resolved_at: null,
+    },
+    { onConflict: "url" },
+  );
+  if (error) throw new Error(`Journal CFNews: ${error.message}`);
+  console.warn("CFNews URL ignorée (404)", failure.url);
+}
+
+async function resolveFailure(admin: any, url: string) {
+  await admin
+    .from("cfnews_failed_urls")
+    .update({ resolved_at: new Date().toISOString(), retry_requested_at: null, last_error: null })
+    .eq("url", url)
+    .is("resolved_at", null);
+}
 
 export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
   server: {
@@ -46,6 +93,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
         let phase = state.phase;
         let page = state.page;
         let done = 0;
+        let listing404s = state.consecutive_listing_404s ?? 0;
 
         try {
           const stale =
@@ -59,12 +107,116 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
               .eq("id", true);
           }
 
+          if (state.retry_only) {
+            for (let i = 0; i < PAGES_PER_TICK; i++) {
+              if (i > 0) await sleep(12_000);
+              const { data: failure } = await admin
+                .from("cfnews_failed_urls")
+                .select("*")
+                .is("resolved_at", null)
+                .not("retry_requested_at", "is", null)
+                .order("retry_requested_at")
+                .limit(1)
+                .maybeSingle();
+
+              if (!failure) {
+                await admin
+                  .from("cfnews_scrape")
+                  .update({ status: "idle", retry_only: false, lease_until: null, updated_at: new Date().toISOString() })
+                  .eq("id", true);
+                await admin.rpc("cfnews_scrape_schedule", { _on: false });
+                return Response.json({ ok: true, retryFinished: true });
+              }
+
+              try {
+                const html = await cfnewsGet(failure.url, cookie);
+                requests += 1;
+                if (failure.kind === "listing") {
+                  const companies = parseCompanyLinks(html);
+                  if (companies.length > 0) {
+                    const result = await admin.from("prospect_companies").upsert(
+                      companies.map((company) => ({
+                        name: company.name,
+                        source_url: `${BASE}${company.path}`,
+                      })),
+                      { onConflict: "source_url", ignoreDuplicates: true },
+                    );
+                    if (result.error) throw new Error(`Enregistrement sociétés: ${result.error.message}`);
+                  }
+                } else if (failure.kind === "company" && failure.company_id) {
+                  const members = parseTeam(html);
+                  if (members.length > 0) {
+                    const result = await admin.from("prospect_contacts").upsert(
+                      members.map((member) => ({
+                        company_id: failure.company_id,
+                        full_name: member.fullName,
+                        job_title: member.jobTitle,
+                        source_url: `${BASE}${member.path}`,
+                      })),
+                      { onConflict: "source_url", ignoreDuplicates: true },
+                    );
+                    if (result.error) throw new Error(`Enregistrement contacts: ${result.error.message}`);
+                  }
+                  await admin.from("prospect_companies").update({ contacts_scraped_at: new Date().toISOString() }).eq("id", failure.company_id);
+                } else if (failure.kind === "contact" && failure.contact_id) {
+                  const person = parsePerson(html);
+                  const fullName = person.firstName && person.lastName ? cleanText(`${person.firstName} ${person.lastName}`) : null;
+                  await admin.from("prospect_contacts").update({
+                    email: person.email,
+                    phone: person.phone,
+                    job_title: person.jobTitle,
+                    first_name: person.firstName,
+                    ...(fullName ? { full_name: fullName } : {}),
+                    email_checked_at: new Date().toISOString(),
+                  }).eq("id", failure.contact_id);
+                }
+                await resolveFailure(admin, failure.url);
+              } catch (err) {
+                requests += 1;
+                if (err instanceof CfnewsHttpError && err.status === 404) {
+                  await logNotFound(admin, {
+                    url: failure.url,
+                    kind: failure.kind,
+                    page: failure.page ?? undefined,
+                    companyId: failure.company_id ?? undefined,
+                    contactId: failure.contact_id ?? undefined,
+                  });
+                  continue;
+                }
+                throw err;
+              }
+            }
+
+            await admin
+              .from("cfnews_scrape")
+              .update({ requests_done: requests, lease_until: null, last_error: null, updated_at: new Date().toISOString() })
+              .eq("id", true);
+            return Response.json({ ok: true, retrying: true });
+          }
+
           for (let i = 0; i < PAGES_PER_TICK; i++) {
             if (i > 0) await sleep(12_000);
 
             if (phase === "listing") {
-              const html = await cfnewsGet(`${LISTING_URL}${page}`, cookie);
-              requests += 1;
+              const path = `${LISTING_URL}${page}`;
+              let html: string;
+              try {
+                html = await cfnewsGet(path, cookie);
+                requests += 1;
+                listing404s = 0;
+                await resolveFailure(admin, `${BASE}${path}`);
+              } catch (err) {
+                requests += 1;
+                if (!(err instanceof CfnewsHttpError) || err.status !== 404) throw err;
+                await logNotFound(admin, { url: `${BASE}${path}`, kind: "listing", page });
+                page += 1;
+                listing404s += 1;
+                done += 1;
+                if (listing404s >= MAX_CONSECUTIVE_LISTING_404S || page > LISTING_LAST_PAGE) {
+                  phase = "companies";
+                }
+                continue;
+              }
               const companies = parseCompanyLinks(html);
               if (companies.length === 0 || page > LISTING_LAST_PAGE) {
                 phase = "companies";
@@ -95,8 +247,21 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
                 phase = "emails";
                 continue;
               }
-              const html = await cfnewsGet(company.source_url!, cookie);
-              requests += 1;
+              const companyUrl = company.source_url;
+              if (!companyUrl) continue;
+              let html: string;
+              try {
+                html = await cfnewsGet(companyUrl, cookie);
+                requests += 1;
+                await resolveFailure(admin, companyUrl);
+              } catch (err) {
+                requests += 1;
+                if (!(err instanceof CfnewsHttpError) || err.status !== 404) throw err;
+                await logNotFound(admin, { url: companyUrl, kind: "company", companyId: company.id });
+                await admin.from("prospect_companies").update({ contacts_scraped_at: new Date().toISOString() }).eq("id", company.id);
+                done += 1;
+                continue;
+              }
               const members = parseTeam(html);
               if (members.length > 0) {
                 const upc = await admin.from("prospect_contacts").upsert(
@@ -135,8 +300,21 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
               return Response.json({ ok: true, finished: true });
             }
 
-            const html = await cfnewsGet(contact.source_url!, cookie);
-            requests += 1;
+            const contactUrl = contact.source_url;
+            if (!contactUrl) continue;
+            let html: string;
+            try {
+              html = await cfnewsGet(contactUrl, cookie);
+              requests += 1;
+              await resolveFailure(admin, contactUrl);
+            } catch (err) {
+              requests += 1;
+              if (!(err instanceof CfnewsHttpError) || err.status !== 404) throw err;
+              await logNotFound(admin, { url: contactUrl, kind: "contact", companyId: contact.company_id, contactId: contact.id });
+              await admin.from("prospect_contacts").update({ email_checked_at: new Date().toISOString() }).eq("id", contact.id);
+              done += 1;
+              continue;
+            }
             const person = parsePerson(html);
             const fullName =
               person.firstName && person.lastName
@@ -170,6 +348,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
               page,
               requests_done: requests,
               pages_done: state.pages_done + done,
+              consecutive_listing_404s: listing404s,
               lease_until: null,
               last_error: null,
               updated_at: new Date().toISOString(),

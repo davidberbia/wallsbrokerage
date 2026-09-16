@@ -77,9 +77,19 @@ export async function cfnewsLogin(): Promise<string> {
   return cookie;
 }
 
+export class CfnewsHttpError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly target: string,
+  ) {
+    super(`CFNews ${status} sur ${target}`);
+    this.name = "CfnewsHttpError";
+  }
+}
+
 export async function cfnewsGet(path: string, cookie: string): Promise<string> {
   const res = await fetch(zenUrl(path), { headers: { Cookie: cookie } });
-  if (!res.ok) throw new Error(`CFNews ${res.status} sur ${path}`);
+  if (!res.ok) throw new CfnewsHttpError(res.status, path);
   return await res.text();
 }
 

@@ -1,8 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Play, Pause, RefreshCw } from "lucide-react";
+import { Play, Pause, RefreshCw, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
-import { getCfnewsStatus, setCfnewsRunning } from "@/lib/cfnews.functions";
+import {
+  getCfnewsStatus,
+  retryCfnewsFailures,
+  setCfnewsRunning,
+} from "@/lib/cfnews.functions";
 import { Button } from "@/components/ui/button";
 
 const PHASES: Record<string, string> = {
@@ -14,6 +18,7 @@ const PHASES: Record<string, string> = {
 export function CfnewsPanel() {
   const fetchStatus = useServerFn(getCfnewsStatus);
   const toggle = useServerFn(setCfnewsRunning);
+  const retryFailures = useServerFn(retryCfnewsFailures);
   const qc = useQueryClient();
 
   const status = useQuery({
@@ -28,6 +33,19 @@ export function CfnewsPanel() {
       toast.success(running ? "Import automatique lancé" : "Import mis en pause");
       void qc.invalidateQueries({ queryKey: ["cfnews-status"] });
       void qc.invalidateQueries({ queryKey: ["prospect-companies"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const retryMutation = useMutation({
+    mutationFn: () => retryFailures(),
+    onSuccess: (result) => {
+      toast.success(
+        result.count > 0
+          ? `${result.count.toLocaleString("fr-FR")} URL(s) remise(s) en attente`
+          : "Aucune URL ignorée à relancer",
+      );
+      void qc.invalidateQueries({ queryKey: ["cfnews-status"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -47,6 +65,13 @@ export function CfnewsPanel() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => retryMutation.mutate()}
+            disabled={retryMutation.isPending || running || !data?.skipped}
+          >
+            <RotateCcw className="mr-2 size-4" /> Relancer les pages ignorées
+          </Button>
           <Button
             variant="outline"
             size="icon"
@@ -73,14 +98,20 @@ export function CfnewsPanel() {
       </div>
 
       {data && (
-        <div className="grid gap-3 text-sm sm:grid-cols-4">
-          <Stat label="État" value={finished ? "Terminé" : running ? "En cours" : "En pause"} />
+        <div className="grid gap-3 text-sm sm:grid-cols-5">
+          <Stat
+            label="État"
+            value={
+              data.retryOnly && running ? "Relance ciblée" : finished ? "Terminé" : running ? "En cours" : "En pause"
+            }
+          />
           <Stat label="Étape" value={PHASES[data.phase] ?? data.phase} />
           <Stat label="Sociétés" value={data.companies.toLocaleString("fr-FR")} />
           <Stat
             label="Collaborateurs (avec email)"
             value={`${data.contacts.toLocaleString("fr-FR")} (${data.emails.toLocaleString("fr-FR")})`}
           />
+          <Stat label="URLs ignorées" value={data.skipped.toLocaleString("fr-FR")} />
         </div>
       )}
 
