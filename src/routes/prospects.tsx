@@ -469,7 +469,7 @@ function ProspectsPage() {
   };
 
   return (
-    <div className="space-y-8 pb-40">
+    <div className="space-y-8 pb-10">
       <div>
         <p className="eyebrow">Prospection</p>
         <h1 className="mt-1 text-3xl">Prospects</h1>
@@ -730,46 +730,6 @@ function ProspectsPage() {
         value={matrix}
         onChange={setMatrix}
       />
-
-
-
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-end gap-4 px-5 py-4">
-          <div className="min-w-64 flex-1 space-y-2">
-            <Label>Actif à envoyer</Label>
-            <Select value={assetId} onValueChange={setAssetId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir un dossier" />
-              </SelectTrigger>
-              <SelectContent>
-                {(assets.data ?? []).map((a) => (
-                  <SelectItem key={a.id} value={a.id}>
-                    {a.title}
-                    {a.city ? ` — ${a.city}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">
-              {recipients.length} destinataire{recipients.length > 1 ? "s" : ""} sélectionné
-              {recipients.length > 1 ? "s" : ""}
-            </span>
-            {recipients.length > 0 && (
-              <Button variant="ghost" size="sm" onClick={() => setSelected({})}>
-                <X className="size-4" /> Vider
-              </Button>
-            )}
-            <CampaignDialog
-              asset={asset}
-              recipients={recipients}
-              recipientKind="prospect"
-              onLaunched={() => setSelected({})}
-            />
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
