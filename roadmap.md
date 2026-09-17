@@ -7,4 +7,5 @@
 - [x] Permettre une relance ciblée des seules URLs ignorées.
 - [x] Vérifier la compilation et le panneau dans l’aperçu.
 - [x] Arrêter définitivement les envois via Sender et conserver les 49 emails sans nouvel essai.
-- [ ] Choisir puis intégrer un nouveau prestataire d’emailing sans modifier les autres fonctionnalités.
+- [x] Choisir puis intégrer Brevo sans modifier les autres fonctionnalités.
+- [ ] Publier Brevo, configurer le suivi et relancer les 49 emails après validation du test.

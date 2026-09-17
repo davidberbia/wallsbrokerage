@@ -7,7 +7,7 @@ import {
   reportHtml,
   type ReportRow,
 } from "@/lib/automation.server";
-import { sendSenderMail } from "@/lib/sender.server";
+import { sendBrevoMail } from "@/lib/brevo.server";
 
 type SendRow = {
   sent_at: string;
@@ -79,7 +79,7 @@ export const Route = createFileRoute("/api/public/cron/daily")({
           const asset = campaign.assets as { title: string; city: string | null } | null;
           const label = asset ? `${asset.title}${asset.city ? ` — ${asset.city}` : ""}` : "Actif";
 
-          await sendSenderMail({
+          await sendBrevoMail({
             to: recapEmail,
             subject: `Marketing Report J+7 — ${label}`,
             html: reportHtml({
@@ -139,7 +139,7 @@ export const Route = createFileRoute("/api/public/cron/daily")({
             });
           }
 
-          await sendSenderMail({
+          await sendBrevoMail({
             to: recapEmail,
             subject: `Récap hebdomadaire — ${active.length} commercialisation(s) en cours`,
             html: reportHtml({

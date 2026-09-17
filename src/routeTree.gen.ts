@@ -19,7 +19,7 @@ import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as ApiPublicSenderEventsRouteImport } from './routes/api/public/sender-events'
+import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
 import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
@@ -75,9 +75,9 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSenderEventsRoute = ApiPublicSenderEventsRouteImport.update({
-  id: '/api/public/sender-events',
-  path: '/api/public/sender-events',
+const ApiPublicBrevoEventsRoute = ApiPublicBrevoEventsRouteImport.update({
+  id: '/api/public/brevo-events',
+  path: '/api/public/brevo-events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicCronCfnewsTickRoute = ApiPublicCronCfnewsTickRouteImport.update({
@@ -112,7 +112,7 @@ export interface FileRoutesByFullPath {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/api/public/sender-events': typeof ApiPublicSenderEventsRoute
+  '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
@@ -129,7 +129,7 @@ export interface FileRoutesByTo {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/api/public/sender-events': typeof ApiPublicSenderEventsRoute
+  '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
@@ -147,7 +147,7 @@ export interface FileRoutesById {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/api/public/sender-events': typeof ApiPublicSenderEventsRoute
+  '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
@@ -166,7 +166,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
-    | '/api/public/sender-events'
+    | '/api/public/brevo-events'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
@@ -183,7 +183,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
-    | '/api/public/sender-events'
+    | '/api/public/brevo-events'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
@@ -200,7 +200,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
-    | '/api/public/sender-events'
+    | '/api/public/brevo-events'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
@@ -218,7 +218,7 @@ export interface RootRouteChildren {
   ParametresRoute: typeof ParametresRoute
   ProspectsRoute: typeof ProspectsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  ApiPublicSenderEventsRoute: typeof ApiPublicSenderEventsRoute
+  ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
@@ -297,11 +297,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/sender-events': {
-      id: '/api/public/sender-events'
-      path: '/api/public/sender-events'
-      fullPath: '/api/public/sender-events'
-      preLoaderRoute: typeof ApiPublicSenderEventsRouteImport
+    '/api/public/brevo-events': {
+      id: '/api/public/brevo-events'
+      path: '/api/public/brevo-events'
+      fullPath: '/api/public/brevo-events'
+      preLoaderRoute: typeof ApiPublicBrevoEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/cron/cfnews-tick': {
@@ -346,7 +346,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParametresRoute: ParametresRoute,
   ProspectsRoute: ProspectsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  ApiPublicSenderEventsRoute: ApiPublicSenderEventsRoute,
+  ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
