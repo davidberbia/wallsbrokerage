@@ -393,7 +393,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
         } catch (err) {
           const message = err instanceof Error ? err.message : "Erreur inconnue";
           console.error("cfnews tick", message);
-          const blocking = err instanceof CfnewsHttpError && isTransientStatus(err.status);
+          const blocking = err instanceof CfnewsHttpError && isTransientStatus(err.status) && phase === "listing";
           if (blocking) {
             // 3 nouvelles tentatives ont échoué : on s'arrête exactement à cet endroit.
             const detail = `Page ${page} — ${err.target} — HTTP ${err.status} après ${err.attempts} tentative(s). Import mis en pause, reprise possible sur cette page.`;
