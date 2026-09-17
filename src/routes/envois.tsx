@@ -340,7 +340,7 @@ function SendsPage() {
                     </span>
                   ) : null}
                 </td>
-                <td className="px-4 py-3 font-medium">{companyOf(r)}</td>
+                <td className="py-3 pl-4 pr-8 font-medium">{companyOf(r)}</td>
                 <td className="px-4 py-3">
                   <p>{contactOf(r)}</p>
                   <p className="text-xs text-muted-foreground">{emailOf(r)}</p>
