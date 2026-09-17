@@ -307,7 +307,7 @@ function SendsPage() {
           <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
               <th className="px-4 py-3">Date et heure d'envoi</th>
-              <th className="px-4 py-3">Société</th>
+              <th className="py-3 pl-4 pr-8">Société</th>
               <th className="px-4 py-3">Contact</th>
               <th className="px-4 py-3">Actif</th>
               <th className="px-4 py-3">Statut</th>
