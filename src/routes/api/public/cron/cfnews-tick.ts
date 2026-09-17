@@ -16,7 +16,8 @@ import {
 } from "@/lib/cfnews.server";
 
 // Une exécution par minute : 2 pages CFNews maximum, espacées, pour rester discret.
-const PAGES_PER_TICK = 2;
+const PAGES_PER_TICK = 6;
+const STEP_DELAY_MS = 7_000;
 const COOKIE_MAX_AGE_MS = 40 * 60 * 1000;
 const LEASE_MS = 5 * 60 * 1000;
 const MAX_CONSECUTIVE_LISTING_404S = 3;
@@ -111,7 +112,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
 
           if (state.retry_only) {
             for (let i = 0; i < PAGES_PER_TICK; i++) {
-              if (i > 0) await sleep(12_000);
+              if (i > 0) await sleep(STEP_DELAY_MS);
               const { data: failure } = await admin
                 .from("cfnews_failed_urls")
                 .select("*")
@@ -213,7 +214,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
           }
 
           for (let i = 0; i < PAGES_PER_TICK; i++) {
-            if (i > 0) await sleep(12_000);
+            if (i > 0) await sleep(STEP_DELAY_MS);
 
             if (phase === "listing") {
               const path = `${LISTING_URL}${page}`;
@@ -392,7 +393,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
         } catch (err) {
           const message = err instanceof Error ? err.message : "Erreur inconnue";
           console.error("cfnews tick", message);
-          const blocking = err instanceof CfnewsHttpError && isTransientStatus(err.status);
+          const blocking = err instanceof CfnewsHttpError && isTransientStatus(err.status) && phase === "listing";
           if (blocking) {
             // 3 nouvelles tentatives ont échoué : on s'arrête exactement à cet endroit.
             const detail = `Page ${page} — ${err.target} — HTTP ${err.status} après ${err.attempts} tentative(s). Import mis en pause, reprise possible sur cette page.`;
