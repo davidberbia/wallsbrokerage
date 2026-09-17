@@ -6,3 +6,5 @@
 - [x] Afficher le nombre d’URLs ignorées.
 - [x] Permettre une relance ciblée des seules URLs ignorées.
 - [x] Vérifier la compilation et le panneau dans l’aperçu.
+- [ ] Arrêter définitivement les envois via Sender et conserver les 49 emails sans nouvel essai.
+- [ ] Choisir puis intégrer un nouveau prestataire d’emailing sans modifier les autres fonctionnalités.
