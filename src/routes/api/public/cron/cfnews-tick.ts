@@ -112,7 +112,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
 
           if (state.retry_only) {
             for (let i = 0; i < PAGES_PER_TICK; i++) {
-              if (i > 0) await sleep(12_000);
+              if (i > 0) await sleep(STEP_DELAY_MS);
               const { data: failure } = await admin
                 .from("cfnews_failed_urls")
                 .select("*")
@@ -214,7 +214,7 @@ export const Route = createFileRoute("/api/public/cron/cfnews-tick")({
           }
 
           for (let i = 0; i < PAGES_PER_TICK; i++) {
-            if (i > 0) await sleep(12_000);
+            if (i > 0) await sleep(STEP_DELAY_MS);
 
             if (phase === "listing") {
               const path = `${LISTING_URL}${page}`;
