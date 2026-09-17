@@ -6,12 +6,12 @@ import {
   reportHtml,
   type ReportRow,
 } from "@/lib/automation.server";
-import { sendSenderMail } from "@/lib/sender.server";
+import { sendBrevoMail } from "@/lib/brevo.server";
 
-// La file est vidée par Sender : aucune limitation artificielle de volume,
+// La file est vidée par Brevo : aucune limitation artificielle de volume,
 // on traite simplement un lot raisonnable à chaque passage (toutes les minutes).
 const BATCH_SIZE = 25;
-// Durée de validité du lien de pièce jointe téléchargé par Sender.
+// Durée de validité du lien de pièce jointe téléchargé côté serveur.
 const ATTACHMENT_URL_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 export const Route = createFileRoute("/api/public/cron/email-tick")({
@@ -67,7 +67,7 @@ export const Route = createFileRoute("/api/public/cron/email-tick")({
 
           const sentAt = new Date().toISOString();
           try {
-            const result = await sendSenderMail({
+            const result = await sendBrevoMail({
               to: next.to_email,
               toName: next.to_name,
               subject: next.subject,
@@ -86,7 +86,7 @@ export const Route = createFileRoute("/api/public/cron/email-tick")({
                   status: "envoyé",
                   sent_at: sentAt,
                   delivered_at: sentAt,
-                  provider: "sender",
+                  provider: "brevo",
                   provider_message_id: result.messageId,
                   provider_status: "envoyé",
                 })
@@ -102,7 +102,7 @@ export const Route = createFileRoute("/api/public/cron/email-tick")({
             if (failed && next.send_id) {
               await admin
                 .from("brochure_sends")
-                .update({ status: "erreur", error: message, provider: "sender" })
+                .update({ status: "erreur", error: message, provider: "brevo" })
                 .eq("id", next.send_id);
             }
           }
@@ -160,7 +160,7 @@ async function sendCampaignRecap(campaignId: string) {
   const asset = campaign.assets as { title: string; city: string | null } | null;
   const label = asset ? `${asset.title}${asset.city ? ` — ${asset.city}` : ""}` : "Actif";
 
-  await sendSenderMail({
+  await sendBrevoMail({
     to: await getRecapEmail(),
     subject: `Récapitulatif d'envoi — ${label} (${rows.length} investisseurs)`,
     html: reportHtml({

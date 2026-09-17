@@ -15,9 +15,9 @@ export const sendProfileConfirmation = createServerFn({ method: "POST" })
 
     if (error || !profile?.email) throw new Error("Profil ou adresse email introuvable.");
 
-    const { sendSenderMail } = await import("@/lib/sender.server");
+    const { sendBrevoMail } = await import("@/lib/brevo.server");
     const name = profile.first_name?.trim() || profile.full_name.trim();
-    await sendSenderMail({
+    await sendBrevoMail({
       to: profile.email,
       toName: name,
       subject: "Bienvenue dans la communauté d’investisseurs Wallsbroker",
