@@ -16,7 +16,8 @@ import {
 } from "@/lib/cfnews.server";
 
 // Une exécution par minute : 2 pages CFNews maximum, espacées, pour rester discret.
-const PAGES_PER_TICK = 2;
+const PAGES_PER_TICK = 6;
+const STEP_DELAY_MS = 7_000;
 const COOKIE_MAX_AGE_MS = 40 * 60 * 1000;
 const LEASE_MS = 5 * 60 * 1000;
 const MAX_CONSECUTIVE_LISTING_404S = 3;
