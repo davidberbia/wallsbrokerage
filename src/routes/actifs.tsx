@@ -140,7 +140,7 @@ function AssetsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
         <div>
           <p className="eyebrow">Portefeuille</p>
           <h1 className="mt-1 text-3xl">Actifs à placer</h1>
@@ -150,7 +150,7 @@ function AssetsPage() {
           onOpenChange={(o) => setEditing(o ? (editing ?? { ...emptyDraft }) : null)}
         >
           <DialogTrigger asChild>
-            <Button className="ml-auto" onClick={() => setEditing({ ...emptyDraft })}>
+            <Button className="min-h-11 shrink-0" onClick={() => setEditing({ ...emptyDraft })}>
               <Plus className="size-4" /> Nouvel actif
             </Button>
           </DialogTrigger>
@@ -182,8 +182,8 @@ function AssetsPage() {
 
       <div className="grid gap-3">
         {(data ?? []).map((asset) => (
-          <div key={asset.id} className="panel flex flex-wrap items-center gap-4 p-4">
-            <div className="min-w-56 flex-1">
+          <div key={asset.id} className="panel grid gap-4 p-4 sm:flex sm:flex-wrap sm:items-center">
+            <div className="min-w-0 flex-1">
               <p className="font-medium">{asset.title}</p>
               <p className="text-sm text-muted-foreground">
                 {[asset.reference, asset.city, asset.region].filter(Boolean).join(" · ") || "—"}
@@ -203,13 +203,15 @@ function AssetsPage() {
                 <p className="text-muted-foreground">Rendement {asset.yield_pct}%</p>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {asset.brochure_url && (
                 <Button
                   variant="ghost"
                   size="icon"
                   aria-label="Ouvrir la brochure"
-                  onClick={() => openBrochure(asset.brochure_url!)}
+                  onClick={() => {
+                    if (asset.brochure_url) void openBrochure(asset.brochure_url);
+                  }}
                 >
                   <ExternalLink className="size-4" />
                 </Button>

@@ -274,8 +274,8 @@ function SendsPage() {
         </p>
       </div>
 
-      <div className="panel flex flex-wrap items-end gap-3 p-4 sm:gap-4">
-        <div className="min-w-[240px] flex-1 space-y-2">
+      <div className="panel flex flex-col gap-3 p-4 sm:flex-row sm:flex-wrap sm:items-end sm:gap-4">
+        <div className="w-full min-w-0 flex-1 space-y-2">
           <Label>Actif</Label>
           <Select value={assetId} onValueChange={setAssetId}>
             <SelectTrigger>
@@ -292,17 +292,17 @@ function SendsPage() {
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" onClick={generateReport}>
+        <Button className="min-h-11 w-full sm:w-auto" variant="outline" onClick={generateReport}>
           <FileDown className="size-4" /> Générer Marketing Report
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
         <Stat label="Envois" value={rows.length} icon={<Clock className="size-4" />} />
         <Stat label="Ouverts" value={opened} icon={<Eye className="size-4" />} />
       </div>
 
-      <div className="panel overflow-x-auto">
+      <div className="hidden panel overflow-x-auto md:block">
         <table className="w-full text-sm">
           <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
             <tr>
@@ -383,6 +383,29 @@ function SendsPage() {
           </tbody>
         </table>
       </div>
+      <div className="grid gap-3 md:hidden">
+        {sends.isLoading && <div className="panel p-6 text-center text-sm text-muted-foreground">Chargement…</div>}
+        {!sends.isLoading && rows.length === 0 && <div className="panel p-6 text-center text-sm text-muted-foreground">Aucun envoi enregistré pour le moment.</div>}
+        {rows.map((r) => (
+          <article key={r.id} className="panel space-y-4 p-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+              <div className="min-w-0">
+                <p className="break-words font-semibold">{companyOf(r)}</p>
+                <p className="break-words text-sm">{contactOf(r)}</p>
+                <p className="break-all text-xs text-muted-foreground">{emailOf(r)}</p>
+              </div>
+              <Badge variant={r.status === "erreur" ? "outline" : "secondary"}>{r.status}</Badge>
+            </div>
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              <div><dt className="eyebrow">Envoi</dt><dd className="mt-1">{dt(r.sent_at)}</dd>{r.attempts > 1 && <dd className="text-xs text-muted-foreground">{r.attempts} envois cumulés</dd>}</div>
+              <div><dt className="eyebrow">Ouverture</dt><dd className="mt-1">{r.opened_at ? dt(r.opened_at) : "non ouvert"}</dd></div>
+              <div className="col-span-2"><dt className="eyebrow">Actif</dt><dd className="mt-1 break-words">{r.assets?.title ?? "—"}</dd>{r.assets?.reference && <dd className="text-xs text-muted-foreground">{r.assets.reference}</dd>}</div>
+            </dl>
+            {r.resent_at && <p className="flex items-center gap-1 text-xs text-muted-foreground"><RotateCw className="size-3" /> renvoyé le {dt(r.resent_at)}</p>}
+            <Button className="min-h-11 w-full" size="sm" variant="outline" disabled={resending === r.id} onClick={() => resend(r)}><RotateCw className="size-4" /> Renvoyer</Button>
+          </article>
+        ))}
+      </div>
     </div>
   );
 }
@@ -398,7 +421,7 @@ function Stat({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="panel flex items-center gap-3 px-5 py-4">
+    <div className="panel flex min-w-0 items-center gap-3 px-4 py-4 sm:px-5">
       <span className="text-muted-foreground">{icon}</span>
       <div>
         <p className="font-display text-2xl leading-none">{value}</p>
