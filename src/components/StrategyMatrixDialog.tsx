@@ -38,14 +38,14 @@ function Cell({
       aria-pressed={checked}
       onClick={onClick}
       className={cn(
-        "flex size-5 items-center justify-center rounded border border-input transition-colors",
+        "flex size-6 sm:size-5 items-center justify-center rounded border border-input transition-colors touch-none",
         checked
           ? "border-accent bg-accent text-accent-foreground"
           : "bg-background hover:bg-muted",
       )}
       title={label}
     >
-      {checked && <Check className="size-3.5" />}
+      {checked && <Check className="size-4 sm:size-3.5" />}
     </button>
   );
 }
@@ -69,7 +69,7 @@ function Chips({
             type="button"
             onClick={() => onToggle(opt)}
             className={cn(
-              "rounded-full border border-input px-2.5 py-1 text-xs transition-colors",
+              "rounded-full border border-input px-3 py-1.5 sm:px-2.5 sm:py-1 text-xs transition-colors",
               on
                 ? "border-accent bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-muted",
@@ -83,11 +83,6 @@ function Chips({
   );
 }
 
-/**
- * Tableau compact permettant au broker de corriger rapidement toute la
- * stratégie d'investissement d'un client : classes d'actifs × tranches,
- * stratégies par classe d'actif, et régions.
- */
 export function StrategyMatrixDialog({
   open,
   onOpenChange,
@@ -122,7 +117,6 @@ export function StrategyMatrixDialog({
     });
   };
 
-  /** Active la classe d'actif si une case de sa ligne est cochée. */
   const ensureAsset = (asset: string) =>
     value.assetClasses.includes(asset)
       ? value.assetClasses
@@ -162,21 +156,21 @@ export function StrategyMatrixDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92vh] w-[calc(100%-1.5rem)] max-w-5xl flex-col overflow-hidden">
+      <DialogContent className="flex max-h-[92vh] w-[calc(100%-1rem)] sm:w-[calc(100%-1.5rem)] max-w-5xl flex-col overflow-hidden p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Stratégie d'investissement</DialogTitle>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-1 pb-2">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-0.5 pb-2">
           <div>
             <p className="eyebrow mb-2">Classes d'actifs, tranches & stratégies</p>
-            <div className="overflow-x-auto rounded-lg border border-border">
+            <div className="overflow-x-auto rounded-lg border border-border shadow-sm">
               <table className="w-full border-collapse text-sm">
                 <thead className="bg-muted/60">
                   <tr>
                     <th
                       rowSpan={2}
-                      className="sticky left-0 z-10 bg-muted/60 px-2 py-1.5 text-left text-xs font-semibold align-bottom"
+                      className="sticky left-0 z-10 bg-muted px-2 py-1.5 text-left text-xs font-semibold align-bottom border-r border-border/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]"
                     >
                       Classe d'actif
                     </th>
@@ -223,21 +217,21 @@ export function StrategyMatrixDialog({
                         key={asset}
                         className={cn("border-t border-border", on && "bg-accent/5")}
                       >
-                        <td className="sticky left-0 z-10 bg-inherit px-2 py-1">
+                        <td className="sticky left-0 z-10 bg-background px-2 py-2 border-r border-border/50 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
                           <button
                             type="button"
                             onClick={() => toggleAsset(asset)}
-                            className="flex w-full items-center gap-2 text-left"
+                            className="flex w-full items-center gap-2 text-left min-h-[32px]"
                           >
                             <span
                               className={cn(
-                                "flex size-4 shrink-0 items-center justify-center rounded border border-input",
+                                "flex size-5 shrink-0 items-center justify-center rounded border border-input",
                                 on && "border-accent bg-accent text-accent-foreground",
                               )}
                             >
-                              {on && <Check className="size-3" />}
+                              {on && <Check className="size-3.5" />}
                             </span>
-                            <span className={cn("text-xs", on && "font-medium")}>{asset}</span>
+                            <span className={cn("text-xs leading-tight", on && "font-medium")}>{asset}</span>
                           </button>
                         </td>
                         {amountBands.map((band) => (
@@ -284,10 +278,10 @@ export function StrategyMatrixDialog({
           </div>
         </div>
 
-        <div className="flex shrink-0 justify-end border-t border-border pt-3">
+        <div className="flex shrink-0 justify-end border-t border-border pt-4">
           <Button
             type="button"
-            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            className="w-full sm:w-auto bg-accent text-accent-foreground hover:bg-accent/90 h-11 sm:h-9"
             onClick={() => onOpenChange(false)}
           >
             Terminer

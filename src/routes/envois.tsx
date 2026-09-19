@@ -274,8 +274,8 @@ function SendsPage() {
         </p>
       </div>
 
-      <div className="panel flex flex-wrap items-end gap-4 p-4">
-        <div className="min-w-72 flex-1 space-y-2">
+      <div className="panel flex flex-wrap items-end gap-3 p-4 sm:gap-4">
+        <div className="min-w-[240px] flex-1 space-y-2">
           <Label>Actif</Label>
           <Select value={assetId} onValueChange={setAssetId}>
             <SelectTrigger>
@@ -341,15 +341,15 @@ function SendsPage() {
                   ) : null}
                 </td>
                 <td className="py-3 pl-4 pr-8 font-medium">{companyOf(r)}</td>
-                <td className="px-4 py-3">
+                <td className="min-w-[140px] px-4 py-3">
                   <p>{contactOf(r)}</p>
                   <p className="text-xs text-muted-foreground">{emailOf(r)}</p>
                 </td>
-                <td className="px-4 py-3">
+                <td className="min-w-[140px] px-4 py-3">
                   <p>{r.assets?.title ?? "—"}</p>
                   <p className="text-xs text-muted-foreground">{r.assets?.reference ?? ""}</p>
                 </td>
-                <td className="px-4 py-3">
+                <td className="min-w-[140px] px-4 py-3">
                   <Badge variant={r.status === "erreur" ? "outline" : "secondary"}>
                     {r.status}
                   </Badge>
