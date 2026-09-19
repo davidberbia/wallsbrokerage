@@ -1,10 +1,11 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Building2,
   Contact,
   LogOut,
+  Menu,
   Send,
   Settings,
   Target,
@@ -15,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const BROKER_NAV = [
   { to: "/", label: "Matching", icon: Target },
@@ -40,6 +42,7 @@ export function AppLayout({
   const { session, loading, isBroker, isStaff } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const NAV = isStaff ? [...BROKER_NAV, ...(isBroker ? ADMIN_NAV : [])] : [...INVESTOR_NAV];
 
   useEffect(() => {
@@ -48,6 +51,10 @@ export function AppLayout({
     else if (requireAdmin && !isBroker) navigate({ to: "/" });
     else if (requireBroker && !isStaff) navigate({ to: "/mon-profil" });
   }, [loading, session, isBroker, isStaff, requireBroker, requireAdmin, navigate]);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   if (loading || !session || (requireBroker && !isStaff) || (requireAdmin && !isBroker)) {
     return (
@@ -60,14 +67,50 @@ export function AppLayout({
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b border-border bg-sidebar text-sidebar-foreground">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-8 px-5">
-          <Link to={isStaff ? "/" : "/mon-profil"} className="flex items-baseline">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:gap-8 sm:px-5">
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="size-5" />
+                <span className="sr-only">Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] bg-sidebar p-0 text-sidebar-foreground">
+              <SheetHeader className="border-b border-border p-4 text-left">
+                <SheetTitle className="font-display text-lg font-semibold tracking-tight text-accent">
+                  WALLSBROKERAGE
+                </SheetTitle>
+              </SheetHeader>
+              <nav className="flex flex-col gap-1 p-2">
+                {NAV.map((item) => {
+                  const active = pathname === item.to;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-3 text-sm transition-colors",
+                        active
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60",
+                      )}
+                    >
+                      <item.icon className="size-5" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </SheetContent>
+          </Sheet>
+
+          <Link to={isStaff ? "/" : "/mon-profil"} className="flex items-baseline shrink-0">
             <span className="font-display text-lg font-semibold tracking-tight text-accent">
               WALLSBROKERAGE
             </span>
           </Link>
 
-          <nav className="flex items-center gap-1">
+          <nav className="hidden items-center gap-1 md:flex">
             {NAV.map((item) => {
               const active = pathname === item.to;
               return (
@@ -87,8 +130,8 @@ export function AppLayout({
               );
             })}
           </nav>
-          <div className="ml-auto flex items-center gap-3">
-            <span className="hidden text-xs text-sidebar-foreground/60 sm:block">
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <span className="hidden text-xs text-sidebar-foreground/60 lg:block">
               {session.user.email}
             </span>
             <Button
@@ -106,7 +149,7 @@ export function AppLayout({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-5 py-10">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-10">{children}</main>
     </div>
   );
 }

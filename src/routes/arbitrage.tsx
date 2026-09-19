@@ -357,9 +357,9 @@ function Overlay({
   className?: string;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/50 p-4 sm:p-8">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/50 p-2 sm:p-4 md:p-8">
       <div
-        className={`relative w-full max-w-3xl rounded-2xl p-8 shadow-lift md:p-12 ${className}`}
+        className={`relative w-full max-w-3xl rounded-2xl p-5 shadow-lift sm:p-8 md:p-12 ${className}`}
       >
         <button
           type="button"

@@ -147,7 +147,7 @@ function UsersPanel() {
               placeholder="8 caractères minimum"
             />
           </div>
-          <div className="flex items-end">
+          <div className="flex items-end sm:flex-initial">
             <Button type="submit" disabled={create.isPending}>
               <Plus className="size-4" /> Créer l'utilisateur
             </Button>
@@ -164,7 +164,7 @@ function UsersPanel() {
               key={u.id}
               className="flex items-center gap-3 rounded-md border border-border px-3 py-2"
             >
-              <span className="flex-1 text-sm">{u.email}</span>
+              <span className="flex-1 truncate text-sm">{u.email}</span>
               <Badge variant={u.role === "broker" ? "secondary" : "outline"}>
                 {u.role === "broker" ? "Administrateur" : "Lecture seule"}
               </Badge>
