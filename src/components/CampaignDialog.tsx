@@ -19,7 +19,6 @@ import { PUBLIC_APP_URL } from "@/lib/app-url";
 import { brochureFileName } from "@/lib/format";
 import type { Asset } from "@/lib/types";
 
-/** Destinataire d'une campagne : investisseur du CRM ou prospect importé. */
 export type Recipient = {
   id: string;
   email: string | null;
@@ -58,9 +57,7 @@ export function CampaignDialog({
   asset: Asset | null;
   recipients: Recipient[];
   onLaunched?: () => void;
-  /** Brochure fournie depuis la page (champ « Upload brochure »). */
   brochure?: File | null;
-  /** Type de destinataires : investisseurs du CRM ou prospects importés. */
   recipientKind?: "investor" | "prospect";
 }) {
   const [open, setOpen] = useState(false);
@@ -96,7 +93,6 @@ export function CampaignDialog({
 
     setBusy(true);
     try {
-      // Pièce jointe facultative : sans brochure, le mail part sans annexe.
       let path: string | null = storedPath;
       let attachmentName: string | null = storedName;
       if (file) {
@@ -192,76 +188,72 @@ export function CampaignDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button size="sm" disabled={!asset || withEmail.length === 0}>
-          <Send className="size-4" /> Envoyer la brochure
+          <Send className="size-4" /> <span className="ml-2">Envoyer la brochure</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
+      <DialogContent className="max-h-[92vh] w-[calc(100%-1rem)] max-w-xl flex flex-col overflow-hidden p-4 sm:p-6">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Lancer la commercialisation</DialogTitle>
           <DialogDescription>
-            Les mails partent à votre nom, avec d.berbia@wallsbroker.com en expéditeur et en
-            adresse de réponse, personnalisés au prénom et avec accusé de lecture. La
-            commercialisation se clôture automatiquement au bout de 2 mois.
+            Les mails partent à votre nom, avec accusé de lecture.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm">
-            <p className="font-medium">{asset?.title ?? "Aucun actif sélectionné"}</p>
+        <div className="flex-1 space-y-4 overflow-y-auto px-0.5 py-2">
+          <div className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+            <p className="font-medium truncate">{asset?.title ?? "Aucun actif sélectionné"}</p>
             <p className="text-muted-foreground">
               {withEmail.length} destinataire{withEmail.length > 1 ? "s" : ""}
             </p>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="campaign-subject">Objet du mail</Label>
             <Input
               id="campaign-subject"
               value={subject}
+              className="h-10 sm:h-9"
               placeholder="Objet du mail"
               onChange={(e) => setSubject(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label htmlFor="campaign-message">Message</Label>
             <Textarea
               id="campaign-message"
-              rows={7}
+              rows={5}
               value={message}
               placeholder="Saisissez le message"
               onChange={(e) => setMessage(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[11px] text-muted-foreground leading-tight">
               Chaque mail commence par « Bonjour {"{prénom}"} » et se termine par votre signature.
             </p>
           </div>
           {brochure || storedPath ? (
-            <p className="rounded-md border border-border bg-muted/40 px-4 py-3 text-sm">
+            <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
               Pièce jointe :{" "}
-              <span className="font-medium">{brochure?.name ?? storedName}</span>
+              <span className="font-medium truncate block">{brochure?.name ?? storedName}</span>
             </p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="campaign-file">Brochure PDF (pièce jointe facultative)</Label>
               <Input
                 id="campaign-file"
                 type="file"
                 accept="application/pdf"
+                className="h-10 sm:h-9 py-1.5"
                 onChange={(e) => setOwnFile(e.target.files?.[0] ?? null)}
               />
-              <p className="text-xs text-muted-foreground">
-                Sans brochure sélectionnée, le mail partira sans pièce jointe.
-              </p>
             </div>
           )}
-
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+        <DialogFooter className="shrink-0 pt-2 sm:pt-4">
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy} className="h-11 sm:h-9">
             Annuler
           </Button>
-          <Button onClick={launch} disabled={busy}>
-            {busy ? "Lancement…" : `Lancer l'envoi (${withEmail.length})`}
+          <Button onClick={launch} disabled={busy} className="h-11 sm:h-9">
+            {busy ? "Lancement…" : `Lancer (${withEmail.length})`}
           </Button>
         </DialogFooter>
       </DialogContent>
