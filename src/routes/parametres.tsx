@@ -59,7 +59,7 @@ function SettingsPage() {
       </div>
 
       <Tabs defaultValue="users">
-        <TabsList>
+        <TabsList className="grid h-auto w-full grid-cols-2 sm:inline-flex sm:w-auto">
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
           <TabsTrigger value="lists">Listes de référence</TabsTrigger>
         </TabsList>
@@ -148,7 +148,7 @@ function UsersPanel() {
             />
           </div>
           <div className="flex items-end sm:flex-initial">
-            <Button type="submit" disabled={create.isPending}>
+            <Button className="min-h-11 w-full" type="submit" disabled={create.isPending}>
               <Plus className="size-4" /> Créer l'utilisateur
             </Button>
           </div>
@@ -162,7 +162,7 @@ function UsersPanel() {
           {(data ?? []).map((u) => (
             <div
               key={u.id}
-              className="flex items-center gap-3 rounded-md border border-border px-3 py-2"
+              className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md border border-border px-3 py-2"
             >
               <span className="flex-1 truncate text-sm">{u.email}</span>
               <Badge variant={u.role === "broker" ? "secondary" : "outline"}>
@@ -301,7 +301,7 @@ function ListPanel({ kind }: { kind: TaxonomyKind }) {
         ))}
       </div>
       <form
-        className="mt-4 flex gap-2"
+        className="mt-4 grid grid-cols-1 gap-2 sm:flex"
         onSubmit={(e) => {
           e.preventDefault();
           if (newLabel.trim()) add.mutate(newLabel);
@@ -312,7 +312,7 @@ function ListPanel({ kind }: { kind: TaxonomyKind }) {
           onChange={(e) => setNewLabel(e.target.value)}
           placeholder={`Ajouter — ${TAXONOMY_LABELS[kind].toLowerCase()}`}
         />
-        <Button type="submit" disabled={add.isPending}>
+        <Button className="min-h-11 w-full sm:w-auto" type="submit" disabled={add.isPending}>
           <Plus className="size-4" /> Ajouter
         </Button>
       </form>

@@ -219,7 +219,7 @@ function MatchingPage() {
         </p>
       </div>
 
-      <div className="panel p-6">
+      <div className="panel p-4 sm:p-6">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className="space-y-2 lg:col-span-3">
             <Label>Pré-remplir depuis un actif enregistré</Label>
@@ -341,15 +341,15 @@ function MatchingPage() {
       </div>
 
 
-      <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-xl">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <h2 className="min-w-0 text-xl">
           {results.length} investisseur{results.length > 1 ? "s" : ""} ciblé
           {results.length > 1 ? "s" : ""}
           <span className="ml-2 text-sm text-muted-foreground">
             {chosen.length} sélectionné{chosen.length > 1 ? "s" : ""}
           </span>
         </h2>
-        <div className="ml-auto flex flex-wrap gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:ml-auto sm:flex sm:flex-wrap">
           <Button
             variant="ghost"
             size="sm"
@@ -403,13 +403,13 @@ function MatchingPage() {
           </div>
         )}
         {results.map(({ investor, score, reasons, misses }) => (
-          <div key={investor.id} className="panel flex flex-wrap items-center gap-4 p-4">
+          <div key={investor.id} className="panel grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 p-4 sm:flex sm:flex-wrap sm:items-center sm:gap-4">
             <Checkbox
               checked={isSelected(investor.id)}
               onCheckedChange={() => toggle(investor.id)}
                aria-label={`Sélectionner ${displayInvestorName(investor)}`}
             />
-            <div className="min-w-56 flex-1">
+            <div className="min-w-0 flex-1">
                <p className="font-medium">{displayInvestorName(investor)}</p>
               <p className="text-sm text-muted-foreground">
                 {[investor.company, investor.city].filter(Boolean).join(" · ") || "—"}
@@ -420,12 +420,12 @@ function MatchingPage() {
               </p>
 
             </div>
-            <div className="max-w-72 text-sm text-muted-foreground">
+            <div className="col-span-2 max-w-full break-words text-sm text-muted-foreground sm:max-w-72">
               {bandsByInvestor.get(investor.id)?.size
                 ? [...(bandsByInvestor.get(investor.id) ?? [])].join(" · ")
                 : `${formatEUR(investor.budget_min)} – ${formatEUR(investor.budget_max)}`}
             </div>
-            <div className="flex flex-wrap gap-1">
+            <div className="col-span-2 flex flex-wrap gap-1">
               {reasons.map((r) => (
                 <Badge key={r} variant="secondary">
                   {r}
@@ -437,7 +437,7 @@ function MatchingPage() {
                 </Badge>
               ))}
             </div>
-            <div className="w-14 text-right font-display text-lg">{score}%</div>
+            <div className="col-span-2 w-full text-right font-display text-lg sm:w-14">{score}%</div>
           </div>
         ))}
       </div>

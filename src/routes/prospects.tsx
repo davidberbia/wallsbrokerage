@@ -674,8 +674,8 @@ function ProspectsPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-end gap-4 border-t border-border/60 pt-4">
-          <div className="min-w-64 flex-1 space-y-2">
+        <div className="flex flex-col gap-4 border-t border-border/60 pt-4 sm:flex-row sm:flex-wrap sm:items-end">
+          <div className="w-full min-w-0 flex-1 space-y-2">
             <Label>Actif à envoyer</Label>
             <Select value={assetId} onValueChange={setAssetId}>
               <SelectTrigger>
@@ -691,7 +691,7 @@ function ProspectsPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="grid w-full grid-cols-1 gap-3 sm:flex sm:w-auto sm:items-center">
             <span className="text-sm text-muted-foreground">
               {recipients.length} destinataire{recipients.length > 1 ? "s" : ""} sélectionné
               {recipients.length > 1 ? "s" : ""}
@@ -714,7 +714,7 @@ function ProspectsPage() {
           <Label htmlFor="import-csv">
             Importer une base (CSV ou Excel : Société, Nom, Titre, Email, Téléphone)
           </Label>
-          <div className="flex items-center gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:flex sm:items-center">
             <Input
               id="import-csv"
               type="file"
@@ -750,7 +750,7 @@ function ProspectsPage() {
             <div key={company.id}>
               <button
                 type="button"
-                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/40"
+                className="grid min-h-12 w-full grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 sm:flex"
                 onClick={() => setOpen(isOpen ? null : company.id)}
               >
                 {isOpen ? (
@@ -759,8 +759,8 @@ function ProspectsPage() {
                   <ChevronRight className="size-4 shrink-0" />
                 )}
                 <Building2 className="size-4 shrink-0 text-muted-foreground" />
-                <span className="font-medium">{company.name}</span>
-                <span className="truncate text-sm text-muted-foreground">
+                <span className="min-w-0 break-words font-medium">{company.name}</span>
+                <span className="col-start-3 min-w-0 break-words text-sm text-muted-foreground sm:truncate">
                   {[company.address ?? company.city, company.investor_profile, company.sector]
                     .filter(Boolean)
                     .join(" · ")}
@@ -802,7 +802,7 @@ function ProspectsPage() {
                         </Select>
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
                       <Button type="button" variant="outline" onClick={() => setStrategyOpen(true)}>
                         <SlidersHorizontal className="size-4" /> Stratégie
                       </Button>
@@ -845,16 +845,16 @@ function ProspectsPage() {
                   {(contacts.data ?? []).map((c) => (
                     <div
                       key={c.id}
-                      className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/40 py-2 last:border-0"
+                      className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-border/40 py-3 last:border-0 sm:flex sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1 sm:py-2"
                     >
-                      <div className="min-w-52 flex-1">
+                      <div className="min-w-0 flex-1">
                         <p className="font-medium">{c.full_name}</p>
                         <p className="text-xs text-muted-foreground">{c.job_title ?? "—"}</p>
                       </div>
-                      <div className="flex min-w-64 items-center gap-1 text-sm">
+                      <div className="col-span-2 flex min-w-0 items-center gap-1 text-sm sm:min-w-64">
                         {c.email ? (
                           <>
-                            <span className="truncate" title={c.email}>
+                            <span className="break-all" title={c.email}>
                               {c.email}
                             </span>
                             <CopyEmail email={c.email} />
@@ -863,8 +863,8 @@ function ProspectsPage() {
                           <span className="text-muted-foreground">—</span>
                         )}
                       </div>
-                      <div className="min-w-32 text-sm text-muted-foreground">{c.phone ?? "—"}</div>
-                      <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm">
+                      <div className="min-w-0 text-sm text-muted-foreground sm:min-w-32">{c.phone ?? "—"}</div>
+                      <label className="ml-auto flex min-h-11 cursor-pointer items-center gap-2 text-sm">
                         <Checkbox
                           checked={Boolean(selected[c.id])}
                           disabled={!c.email}

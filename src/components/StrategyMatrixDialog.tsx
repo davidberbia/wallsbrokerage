@@ -164,7 +164,36 @@ export function StrategyMatrixDialog({
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-0.5 pb-2">
           <div>
             <p className="eyebrow mb-2">Classes d'actifs, tranches & stratégies</p>
-            <div className="overflow-x-auto rounded-lg border border-border shadow-sm">
+            <div className="grid gap-3 md:hidden">
+              {assetClasses.map((asset) => {
+                const on = value.assetClasses.includes(asset);
+                return (
+                  <div key={asset} className={cn("rounded-md border p-3", on && "border-accent bg-accent/5")}>
+                    <button type="button" onClick={() => toggleAsset(asset)} className="flex min-h-11 w-full items-center gap-3 text-left">
+                      <span className={cn("flex size-6 shrink-0 items-center justify-center rounded border border-input", on && "border-accent bg-accent text-accent-foreground")}>{on && <Check className="size-4" />}</span>
+                      <span className={cn("text-sm", on && "font-medium")}>{asset}</span>
+                    </button>
+                    {on && (
+                      <div className="mt-3 space-y-4 border-t border-border pt-3">
+                        <div>
+                          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Tranches d'investissement</p>
+                          <div className="grid gap-2">
+                            {amountBands.map((band) => <label key={band} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border bg-background px-3"><Cell checked={(value.bands[asset] ?? []).includes(band)} onClick={() => toggleBand(asset, band)} ariaLabel={`${asset} — ${band}`} /><span className="text-sm">{band}</span></label>)}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stratégies</p>
+                          <div className="grid gap-2">
+                            {STRATEGIES.map((strategy) => <label key={strategy} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border bg-background px-3"><Cell checked={(value.strategiesByAsset[asset] ?? []).includes(strategy)} onClick={() => toggleStrategy(asset, strategy)} ariaLabel={`${asset} — ${strategy}`} /><span className="text-sm">{strategy}</span></label>)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            <div className="hidden overflow-x-auto rounded-lg border border-border shadow-sm md:block">
               <table className="w-full border-collapse text-sm">
                 <thead className="bg-muted/60">
                   <tr>

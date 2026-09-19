@@ -228,17 +228,17 @@ function InvestorsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
         <div>
           <p className="eyebrow">Base acquéreurs</p>
           <h1 className="mt-1 text-3xl">Investisseurs</h1>
         </div>
-        <div className="ml-auto flex gap-3">
+        <div className="grid w-full grid-cols-1 gap-3 sm:ml-auto sm:flex sm:w-auto">
           <Input
             placeholder="Rechercher…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-56"
+            className="w-full sm:w-56"
           />
           {canEdit && (
             <Dialog
@@ -246,11 +246,11 @@ function InvestorsPage() {
               onOpenChange={(o) => setEditing(o ? (editing ?? { ...emptyDraft }) : null)}
             >
               <DialogTrigger asChild>
-                <Button onClick={() => openEdit()}>
+                <Button className="min-h-11 w-full sm:w-auto" onClick={() => openEdit()}>
                   <Plus className="size-4" /> Nouvel investisseur
                 </Button>
               </DialogTrigger>
-              <DialogContent className="flex max-h-[90vh] w-[calc(100%-2rem)] max-w-xl flex-col overflow-hidden">
+              <DialogContent className="flex max-h-[96dvh] max-w-xl flex-col overflow-hidden sm:max-h-[90vh] sm:w-[calc(100%-2rem)]">
                 <DialogHeader>
                   <DialogTitle>
                     {editing?.id ? "Modifier le profil" : "Nouveau profil investisseur"}
@@ -380,7 +380,7 @@ function InvestorsPage() {
             </div>
 
             {/* ── Tablette / mobile : 2 colonnes ── */}
-            <div className="grid items-start gap-4 md:hidden sm:grid-cols-[1fr_auto]">
+            <div className="grid items-start gap-4 md:hidden sm:grid-cols-[minmax(0,1fr)_auto]">
               <div className="min-w-0 space-y-1">
                 <p className="truncate font-semibold">
                   {investor.company || displayName(investor)}

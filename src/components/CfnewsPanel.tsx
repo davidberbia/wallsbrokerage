@@ -76,13 +76,14 @@ export function CfnewsPanel() {
             et téléphones. Vous pouvez la mettre en pause à tout moment.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="grid w-full grid-cols-1 gap-2 sm:flex sm:w-auto sm:flex-wrap sm:items-center">
           {blocked && (
-            <Button onClick={() => retryPageMutation.mutate()} disabled={retryPageMutation.isPending}>
+            <Button className="min-h-11 w-full sm:w-auto" onClick={() => retryPageMutation.mutate()} disabled={retryPageMutation.isPending}>
               <RotateCcw className="mr-2 size-4" /> Réessayer la page en erreur
             </Button>
           )}
           <Button
+            className="min-h-11 w-full sm:w-auto"
             variant="outline"
             onClick={() => retryMutation.mutate()}
             disabled={retryMutation.isPending || running || !data?.skipped}
@@ -98,6 +99,7 @@ export function CfnewsPanel() {
             <RefreshCw className="size-4" />
           </Button>
           <Button
+            className="min-h-11 w-full sm:w-auto"
             onClick={() => mutation.mutate(!running)}
             disabled={mutation.isPending || status.isLoading}
           >
@@ -115,7 +117,7 @@ export function CfnewsPanel() {
       </div>
 
       {data && (
-        <div className="grid gap-3 text-sm sm:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
           <Stat
             label="État"
             value={
@@ -141,7 +143,7 @@ export function CfnewsPanel() {
       )}
 
       {data?.lastError && (
-        <p className="text-sm text-destructive">Dernier incident : {data.lastError}</p>
+        <p className="break-words rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">Dernier incident : {data.lastError}</p>
       )}
     </div>
   );
