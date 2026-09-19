@@ -9,3 +9,5 @@
 - [x] Arrêter définitivement les envois via Sender et conserver les 49 emails sans nouvel essai.
 - [x] Choisir puis intégrer Brevo sans modifier les autres fonctionnalités.
 - [ ] Publier Brevo, configurer le suivi et relancer les 49 emails après validation du test.
+- [ ] Rendre tous les écrans du CRM entièrement utilisables sur smartphone.
+- [ ] Vérifier les parcours à 360 px, 390 px et sur ordinateur sans régression.

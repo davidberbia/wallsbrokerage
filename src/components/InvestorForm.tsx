@@ -55,7 +55,7 @@ export function InvestorForm({
         onSubmit();
       }}
     >
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-1 pb-4">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-1 pb-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Prénom">
             <Input
@@ -144,19 +144,19 @@ export function InvestorForm({
       </div>
 
       {footer ?? (
-        <div className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-background pt-4">
+        <div className="flex shrink-0 flex-col gap-2 border-t border-border bg-background pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           {onStrategyClick ? (
             <Button
               type="button"
               onClick={onStrategyClick}
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
+              className="min-h-11 w-full bg-accent text-accent-foreground hover:bg-accent/90 sm:w-auto"
             >
               STRATÉGIE
             </Button>
           ) : (
             <span />
           )}
-          <Button type="submit" disabled={saving}>
+          <Button className="min-h-11 w-full sm:w-auto" type="submit" disabled={saving}>
             {saving ? "Enregistrement…" : submitLabel}
           </Button>
         </div>
