@@ -146,8 +146,8 @@ function ArbitragePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6">
-        <Link to="/auth" className="text-2xl font-semibold tracking-tight text-primary">
+      <header className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-5 sm:px-5 sm:py-6">
+        <Link to="/auth" className="min-w-0 truncate text-xl font-semibold tracking-tight text-primary sm:text-2xl">
           WALLSBROKER
         </Link>
         <Link to="/auth" className="text-sm text-muted-foreground hover:text-foreground">
@@ -155,15 +155,15 @@ function ArbitragePage() {
         </Link>
       </header>
 
-      <main className="mx-auto max-w-6xl px-5 pb-20">
+      <main className="mx-auto max-w-6xl px-3 pb-12 sm:px-5 sm:pb-20">
         <section className="relative overflow-hidden rounded-2xl">
           <img
             src={heroImage}
             alt="Immeubles de bureaux haussmanniens, illustration de l'immobilier tertiaire"
-            className="h-72 w-full object-cover md:h-96"
+            className="h-[28rem] w-full object-cover sm:h-72 md:h-96"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/55 to-foreground/20" />
-          <div className="absolute inset-x-0 bottom-0 p-7 text-background">
+          <div className="absolute inset-x-0 bottom-0 p-5 text-background sm:p-7">
             <p className="eyebrow text-accent">Arbitrage</p>
             <h1 className="mt-2 max-w-2xl text-3xl leading-tight md:text-4xl">
               Combien d'investisseurs pourraient être intéressés par votre actif&nbsp;?
@@ -176,7 +176,7 @@ function ArbitragePage() {
           </div>
         </section>
 
-        <section className="mt-10 rounded-2xl bg-primary p-7 text-primary-foreground md:p-10">
+        <section className="mt-8 rounded-2xl bg-primary p-4 text-primary-foreground sm:p-7 md:mt-10 md:p-10">
           <p className="eyebrow text-primary-foreground/70">Rechercher</p>
           <h2 className="mt-1 text-2xl text-primary-foreground md:text-3xl">
             Faites une recherche d'investisseurs
@@ -240,11 +240,11 @@ function ArbitragePage() {
               </Select>
             </Field>
 
-            <div className="md:col-span-2 flex justify-end">
+            <div className="flex md:col-span-2 md:justify-end">
               <Button
                 type="submit"
                 size="lg"
-                className="bg-accent px-10 text-accent-foreground hover:bg-accent/90"
+                className="w-full bg-accent px-6 text-accent-foreground hover:bg-accent/90 md:w-auto md:px-10"
                 disabled={busy}
               >
                 {busy ? "Recherche…" : "Lancer la recherche"}
@@ -261,10 +261,10 @@ function ArbitragePage() {
 
       {count !== null && !showContact && (
         <Overlay onClose={() => setCount(null)}>
-          <h2 className="text-center text-3xl uppercase tracking-wide text-primary md:text-4xl">
+          <h2 className="pr-8 text-center text-2xl uppercase tracking-wide text-primary sm:text-3xl md:text-4xl">
             Votre résultat
           </h2>
-          <p className="mt-10 text-center font-display text-6xl text-primary">{count}</p>
+          <p className="mt-6 text-center font-display text-5xl text-primary sm:mt-10 sm:text-6xl">{count}</p>
           <p className="mx-auto mt-4 max-w-md text-center text-lg text-primary">
             investisseur{count > 1 ? "s" : ""} pourrai{count > 1 ? "ent" : "t"} être intéressé
             {count > 1 ? "s" : ""} par votre actif
@@ -275,7 +275,7 @@ function ArbitragePage() {
           <div className="mt-6 flex justify-center">
             <Button
               size="lg"
-              className="bg-accent px-14 text-accent-foreground hover:bg-accent/90"
+              className="w-full bg-accent px-8 text-accent-foreground hover:bg-accent/90 sm:w-auto sm:px-14"
               onClick={() => setShowContact(true)}
             >
               Contact
@@ -335,8 +335,8 @@ function ArbitragePage() {
                 onChange={(e) => setContact({ ...contact, comment: e.target.value })}
               />
             </Field>
-            <div className="md:col-span-2 flex justify-end">
-              <Button type="submit" variant="secondary" size="lg" disabled={busy}>
+            <div className="flex md:col-span-2 md:justify-end">
+              <Button className="w-full md:w-auto" type="submit" variant="secondary" size="lg" disabled={busy}>
                 {busy ? "Envoi…" : "Envoyer"}
               </Button>
             </div>
@@ -357,15 +357,15 @@ function Overlay({
   className?: string;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-foreground/50 p-2 sm:p-4 md:p-8">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-foreground/50 sm:items-start sm:p-4 md:p-8">
       <div
-        className={`relative w-full max-w-3xl rounded-2xl p-5 shadow-lift sm:p-8 md:p-12 ${className}`}
+        className={`relative max-h-[96dvh] w-full max-w-3xl overflow-y-auto rounded-t-2xl p-4 shadow-lift sm:rounded-2xl sm:p-8 md:p-12 ${className}`}
       >
         <button
           type="button"
           aria-label="Fermer"
           onClick={onClose}
-          className="absolute right-5 top-5 opacity-70 transition-opacity hover:opacity-100"
+          className="absolute right-3 top-3 flex size-11 items-center justify-center opacity-70 transition-opacity hover:opacity-100 sm:right-5 sm:top-5"
         >
           <X className="size-6" />
         </button>
