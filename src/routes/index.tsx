@@ -5,6 +5,7 @@ import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { brochureFileName, formatThousands, parseThousands } from "@/lib/format";
+import { fetchAssetDocuments, uploadDocument } from "@/lib/documents";
 import { AppLayout } from "@/components/AppLayout";
 import { CampaignDialog } from "@/components/CampaignDialog";
 import { CopyEmail } from "@/components/CopyEmail";
@@ -161,6 +162,12 @@ function MatchingPage() {
     asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url)
       ? brochureFileName(asset.brochure_url)
       : (asset?.brochure_url ?? null);
+  const assetDocumentsQuery = useQuery({
+    queryKey: ["asset-documents", asset?.id],
+    queryFn: () => fetchAssetDocuments(asset!.id),
+    enabled: Boolean(asset?.id),
+  });
+  const documentNames = (assetDocumentsQuery.data ?? []).map((d) => d.name);
 
   const applyAsset = (id: string) => {
     setSelected(new Set());
@@ -304,18 +311,28 @@ function MatchingPage() {
                 if (f && asset) {
                   setSavingBrochure(true);
                   try {
-                    const path = `actifs/${crypto.randomUUID()}/${f.name.replace(/[\\/]+/g, "_")}`;
-                    const upload = await supabase.storage
-                      .from("brochures")
-                      .upload(path, f, { contentType: "application/pdf" });
-                    if (upload.error) throw upload.error;
-                    const { error } = await supabase
-                      .from("assets")
-                      .update({ brochure_url: path })
-                      .eq("id", asset.id);
-                    if (error) throw error;
+                    const uploaded = await uploadDocument(`actifs/${asset.id}`, f);
+                    const existing = await fetchAssetDocuments(asset.id);
+                    const { error: docError } = await supabase.from("asset_documents").insert({
+                      asset_id: asset.id,
+                      path: uploaded.path,
+                      name: uploaded.name,
+                      sort_order: existing.length,
+                    });
+                    if (docError) throw docError;
+                    if (existing.length === 0) {
+                      const { error } = await supabase
+                        .from("assets")
+                        .update({ brochure_url: uploaded.path })
+                        .eq("id", asset.id);
+                      if (error) throw error;
+                    }
                     await queryClient.invalidateQueries({ queryKey: ["assets"] });
-                    toast.success("Brochure enregistrée sur l'actif");
+                    await queryClient.invalidateQueries({
+                      queryKey: ["asset-documents", asset.id],
+                    });
+                    setBrochure(null);
+                    toast.success("Document enregistré sur l'actif");
                   } catch (err) {
                     toast.error(
                       err instanceof Error ? err.message : "Échec de l'enregistrement de la brochure",
@@ -328,12 +345,14 @@ function MatchingPage() {
             />
             <p className="text-xs text-muted-foreground">
               {savingBrochure
-                ? "Enregistrement de la brochure…"
-                : brochure
-                  ? `Brochure prête : ${brochure.name} — le bouton « Envoyer la brochure » est activé.`
-                  : storedBrochureName
-                    ? `Brochure déjà associée à cet actif : ${storedBrochureName} — elle sera envoyée automatiquement.`
-                    : "Ajoutez la brochure pour activer l'envoi aux investisseurs sélectionnés."}
+                ? "Enregistrement du document…"
+                : documentNames.length > 0
+                  ? `Documents joints automatiquement : ${documentNames.join(", ")}.`
+                  : brochure
+                    ? `Brochure prête : ${brochure.name} — le bouton « Envoyer la brochure » est activé.`
+                    : storedBrochureName
+                      ? `Brochure déjà associée à cet actif : ${storedBrochureName} — elle sera envoyée automatiquement.`
+                      : "Ajoutez un ou plusieurs documents pour les joindre à l'envoi."}
             </p>
           </div>
 

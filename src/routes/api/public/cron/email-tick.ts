@@ -50,18 +50,29 @@ export const Route = createFileRoute("/api/public/cron/email-tick")({
             .maybeSingle();
           if (!locked) continue;
 
-          let attachment: { name: string; url: string } | null = null;
-          if (next.attachment_path) {
+          const queued = (Array.isArray(next.attachments) ? next.attachments : []) as {
+            path?: string;
+            name?: string;
+          }[];
+          const wanted = queued
+            .filter((d) => typeof d?.path === "string" && d.path)
+            .map((d) => ({ path: d.path as string, name: d.name ?? "document.pdf" }));
+          if (wanted.length === 0 && next.attachment_path) {
+            wanted.push({
+              path: next.attachment_path,
+              name: next.attachment_name ?? "brochure.pdf",
+            });
+          }
+
+          const attachments: { name: string; url: string }[] = [];
+          for (const doc of wanted) {
             const signed = await admin.storage
               .from("brochures")
-              .createSignedUrl(next.attachment_path, ATTACHMENT_URL_TTL_SECONDS);
+              .createSignedUrl(doc.path, ATTACHMENT_URL_TTL_SECONDS);
             if (signed.data?.signedUrl) {
-              attachment = {
-                name: next.attachment_name ?? "brochure.pdf",
-                url: signed.data.signedUrl,
-              };
+              attachments.push({ name: doc.name, url: signed.data.signedUrl });
             } else {
-              console.warn("lien de brochure indisponible", next.attachment_path);
+              console.warn("lien de document indisponible", doc.path);
             }
           }
 
@@ -72,7 +83,7 @@ export const Route = createFileRoute("/api/public/cron/email-tick")({
               toName: next.to_name,
               subject: next.subject,
               html: next.body_html,
-              attachment,
+              attachments,
             });
             sent += 1;
             await admin

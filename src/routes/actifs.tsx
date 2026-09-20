@@ -1,10 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Pencil, Plus, Target, Trash2 } from "lucide-react";
+import { ExternalLink, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatThousands, parseThousands } from "@/lib/format";
+import {
+  MAX_DOCUMENT_BYTES,
+  fetchAssetDocuments,
+  openDocument,
+  uploadDocument,
+} from "@/lib/documents";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +64,8 @@ const emptyDraft: Draft = { title: "", status: "disponible" };
 function AssetsPage() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Draft | null>(null);
-  const [brochureFile, setBrochureFile] = useState<File | null>(null);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [removedDocs, setRemovedDocs] = useState<string[]>([]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["assets"],
@@ -73,34 +80,15 @@ function AssetsPage() {
   });
 
   const openBrochure = async (value: string) => {
-    if (/^https?:\/\//.test(value)) {
-      window.open(value, "_blank", "noreferrer");
-      return;
+    try {
+      await openDocument(value);
+    } catch {
+      toast.error("Document introuvable");
     }
-    const { data, error } = await supabase.storage
-      .from("brochures")
-      .createSignedUrl(value, 60 * 10);
-    if (error || !data) {
-      toast.error("Brochure introuvable");
-      return;
-    }
-    window.open(data.signedUrl, "_blank", "noreferrer");
   };
 
   const save = useMutation({
     mutationFn: async (draft: Draft) => {
-      let brochurePath = draft.brochure_url ?? null;
-      if (brochureFile) {
-        if (brochureFile.type !== "application/pdf") throw new Error("La brochure doit être un PDF.");
-        if (brochureFile.size > 9 * 1024 * 1024)
-          throw new Error("La brochure ne doit pas dépasser 9 Mo.");
-        const path = `actifs/${crypto.randomUUID()}-${brochureFile.name.replace(/[^\w.-]+/g, "_")}`;
-        const upload = await supabase.storage
-          .from("brochures")
-          .upload(path, brochureFile, { contentType: "application/pdf" });
-        if (upload.error) throw upload.error;
-        brochurePath = path;
-      }
       const payload = {
         title: draft.title,
         reference: draft.reference ?? null,
@@ -111,19 +99,54 @@ function AssetsPage() {
         price: draft.price ?? null,
         yield_pct: draft.yield_pct ?? null,
         surface: draft.surface ?? null,
-        brochure_url: brochurePath,
         description: draft.description ?? null,
         status: draft.status ?? "disponible",
       };
-      const { error } = draft.id
-        ? await supabase.from("assets").update(payload).eq("id", draft.id)
-        : await supabase.from("assets").insert(payload);
-      if (error) throw error;
+      let assetId = draft.id ?? null;
+      if (assetId) {
+        const { error } = await supabase.from("assets").update(payload).eq("id", assetId);
+        if (error) throw error;
+      } else {
+        const { data: created, error } = await supabase
+          .from("assets")
+          .insert(payload)
+          .select("id")
+          .single();
+        if (error) throw error;
+        assetId = created.id;
+      }
+
+      if (removedDocs.length > 0) {
+        const { error } = await supabase.from("asset_documents").delete().in("id", removedDocs);
+        if (error) throw error;
+      }
+
+      if (newFiles.length > 0) {
+        const existing = await fetchAssetDocuments(assetId!);
+        let order = existing.length;
+        const rows = [] as { asset_id: string; path: string; name: string; sort_order: number }[];
+        for (const file of newFiles) {
+          const uploaded = await uploadDocument(`actifs/${assetId}`, file);
+          rows.push({ asset_id: assetId!, ...uploaded, sort_order: order++ });
+        }
+        const { error } = await supabase.from("asset_documents").insert(rows);
+        if (error) throw error;
+      }
+
+      // Compatibilité : le premier document reste la brochure principale de l'actif.
+      const documents = await fetchAssetDocuments(assetId!);
+      await supabase
+        .from("assets")
+        .update({ brochure_url: documents[0]?.path ?? null })
+        .eq("id", assetId!);
+      return assetId!;
     },
-    onSuccess: () => {
+    onSuccess: (assetId) => {
       qc.invalidateQueries({ queryKey: ["assets"] });
+      qc.invalidateQueries({ queryKey: ["asset-documents", assetId] });
       setEditing(null);
-      setBrochureFile(null);
+      setNewFiles([]);
+      setRemovedDocs([]);
       toast.success("Actif enregistré");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -162,8 +185,10 @@ function AssetsPage() {
               <AssetForm
                 draft={editing}
                 onChange={setEditing}
-                brochureFile={brochureFile}
-                onBrochureFile={setBrochureFile}
+                newFiles={newFiles}
+                onNewFiles={setNewFiles}
+                removedDocs={removedDocs}
+                onRemovedDocs={setRemovedDocs}
                 onSubmit={() => save.mutate(editing)}
                 saving={save.isPending}
               />
@@ -244,19 +269,31 @@ function AssetsPage() {
 function AssetForm({
   draft,
   onChange,
-  brochureFile,
-  onBrochureFile,
+  newFiles,
+  onNewFiles,
+  removedDocs,
+  onRemovedDocs,
   onSubmit,
   saving,
 }: {
   draft: Draft;
   onChange: (d: Draft) => void;
-  brochureFile: File | null;
-  onBrochureFile: (f: File | null) => void;
+  newFiles: File[];
+  onNewFiles: (f: File[]) => void;
+  removedDocs: string[];
+  onRemovedDocs: (ids: string[]) => void;
   onSubmit: () => void;
   saving: boolean;
 }) {
   const set = (patch: Partial<Draft>) => onChange({ ...draft, ...patch });
+  const { data: documents } = useQuery({
+    queryKey: ["asset-documents", draft.id],
+    queryFn: () => fetchAssetDocuments(draft.id!),
+    enabled: Boolean(draft.id),
+  });
+  const keptDocuments = (documents ?? []).filter((d) => !removedDocs.includes(d.id));
+
+
 
 
   return (
@@ -327,35 +364,67 @@ function AssetForm({
           />
         </Field>
       </div>
-      <Field label="Brochure de l'actif (PDF, 9 Mo max.)">
+      <Field label="Documents de l'actif (brochures, annexes — 9 Mo max. par fichier)">
+        {(keptDocuments.length > 0 || newFiles.length > 0) && (
+          <ul className="mb-2 space-y-1 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+            {keptDocuments.map((doc) => (
+              <li key={doc.id} className="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  className="truncate text-left underline-offset-2 hover:underline"
+                  onClick={() => {
+                    void openDocument(doc.path).catch(() => toast.error("Document introuvable"));
+                  }}
+                >
+                  {doc.name}
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Supprimer ${doc.name}`}
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => onRemovedDocs([...removedDocs, doc.id])}
+                >
+                  <X className="size-4" />
+                </button>
+              </li>
+            ))}
+            {newFiles.map((file, i) => (
+              <li key={`${file.name}-${i}`} className="flex items-center justify-between gap-2">
+                <span className="truncate">{file.name} (à ajouter)</span>
+                <button
+                  type="button"
+                  aria-label={`Retirer ${file.name}`}
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => onNewFiles(newFiles.filter((_, idx) => idx !== i))}
+                >
+                  <X className="size-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
         <Input
           type="file"
-          accept="application/pdf"
+          multiple
           onChange={(e) => {
-            const f = e.target.files?.[0] ?? null;
-            if (f && f.type !== "application/pdf") {
-              toast.error("Seuls les fichiers PDF sont acceptés.");
+            const picked = Array.from(e.target.files ?? []);
+            const tooBig = picked.find((f) => f.size > MAX_DOCUMENT_BYTES);
+            if (tooBig) {
+              toast.error(`${tooBig.name} dépasse 9 Mo.`);
               e.target.value = "";
-              onBrochureFile(null);
               return;
             }
-            if (f && f.size > 9 * 1024 * 1024) {
-              toast.error("La brochure ne doit pas dépasser 9 Mo.");
-              e.target.value = "";
-              onBrochureFile(null);
-              return;
-            }
-            onBrochureFile(f);
+            onNewFiles([...newFiles, ...picked]);
+            e.target.value = "";
           }}
         />
         <p className="mt-1 text-xs text-muted-foreground">
-          {brochureFile
-            ? `Nouveau fichier : ${brochureFile.name}`
-            : draft.brochure_url
-              ? "Une brochure est déjà associée à cet actif."
-              : "Aucune brochure pour le moment."}
+          {keptDocuments.length + newFiles.length === 0
+            ? "Aucun document pour le moment."
+            : `${keptDocuments.length + newFiles.length} document(s) seront joints aux campagnes.`}
         </p>
       </Field>
+
 
       <Field label="Description">
         <Textarea

@@ -40,7 +40,10 @@ export async function sendBrevoMail(params: {
   toName?: string | null;
   subject: string;
   html: string;
+  /** Pièce jointe unique (compatibilité) */
   attachment?: BrevoAttachment | null;
+  /** Plusieurs documents joints au même mail */
+  attachments?: BrevoAttachment[] | null;
 }): Promise<BrevoResult> {
   const lovableApiKey = process.env["LOVABLE_API_KEY"];
   const brevoApiKey = process.env["BREVO_API_KEY"];
@@ -56,8 +59,15 @@ export async function sendBrevoMail(params: {
     htmlContent: params.html,
   };
 
-  if (params.attachment) {
-    body["attachment"] = [await loadAttachment(params.attachment)];
+  const files =
+    params.attachments && params.attachments.length > 0
+      ? params.attachments
+      : params.attachment
+        ? [params.attachment]
+        : [];
+
+  if (files.length > 0) {
+    body["attachment"] = await Promise.all(files.map(loadAttachment));
   }
 
   const response = await fetch(BREVO_API, {

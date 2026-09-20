@@ -77,6 +77,44 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_documents: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          name: string
+          path: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          name: string
+          path: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          path?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_documents_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assets: {
         Row: {
           asset_class: string | null
@@ -269,6 +307,7 @@ export type Database = {
           brochure_name: string | null
           brochure_path: string | null
           created_at: string
+          documents: Json
           ends_at: string
           id: string
           last_weekly_report_at: string | null
@@ -286,6 +325,7 @@ export type Database = {
           brochure_name?: string | null
           brochure_path?: string | null
           created_at?: string
+          documents?: Json
           ends_at?: string
           id?: string
           last_weekly_report_at?: string | null
@@ -303,6 +343,7 @@ export type Database = {
           brochure_name?: string | null
           brochure_path?: string | null
           created_at?: string
+          documents?: Json
           ends_at?: string
           id?: string
           last_weekly_report_at?: string | null
@@ -439,6 +480,7 @@ export type Database = {
         Row: {
           attachment_name: string | null
           attachment_path: string | null
+          attachments: Json
           attempts: number
           body_html: string
           campaign_id: string | null
@@ -457,6 +499,7 @@ export type Database = {
         Insert: {
           attachment_name?: string | null
           attachment_path?: string | null
+          attachments?: Json
           attempts?: number
           body_html: string
           campaign_id?: string | null
@@ -475,6 +518,7 @@ export type Database = {
         Update: {
           attachment_name?: string | null
           attachment_path?: string | null
+          attachments?: Json
           attempts?: number
           body_html?: string
           campaign_id?: string | null
