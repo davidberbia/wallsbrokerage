@@ -5,6 +5,7 @@ import { Copy, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { brochureFileName, formatThousands, parseThousands } from "@/lib/format";
+import { fetchAssetDocuments, uploadDocument } from "@/lib/documents";
 import { AppLayout } from "@/components/AppLayout";
 import { CampaignDialog } from "@/components/CampaignDialog";
 import { CopyEmail } from "@/components/CopyEmail";
