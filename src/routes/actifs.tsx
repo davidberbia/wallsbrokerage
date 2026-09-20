@@ -263,19 +263,31 @@ function AssetsPage() {
 function AssetForm({
   draft,
   onChange,
-  brochureFile,
-  onBrochureFile,
+  newFiles,
+  onNewFiles,
+  removedDocs,
+  onRemovedDocs,
   onSubmit,
   saving,
 }: {
   draft: Draft;
   onChange: (d: Draft) => void;
-  brochureFile: File | null;
-  onBrochureFile: (f: File | null) => void;
+  newFiles: File[];
+  onNewFiles: (f: File[]) => void;
+  removedDocs: string[];
+  onRemovedDocs: (ids: string[]) => void;
   onSubmit: () => void;
   saving: boolean;
 }) {
   const set = (patch: Partial<Draft>) => onChange({ ...draft, ...patch });
+  const { data: documents } = useQuery({
+    queryKey: ["asset-documents", draft.id],
+    queryFn: () => fetchAssetDocuments(draft.id!),
+    enabled: Boolean(draft.id),
+  });
+  const keptDocuments = (documents ?? []).filter((d) => !removedDocs.includes(d.id));
+
+
 
 
   return (
