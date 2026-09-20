@@ -304,17 +304,26 @@ function MatchingPage() {
                 if (f && asset) {
                   setSavingBrochure(true);
                   try {
-                    const path = `actifs/${crypto.randomUUID()}/${f.name.replace(/[\\/]+/g, "_")}`;
-                    const upload = await supabase.storage
-                      .from("brochures")
-                      .upload(path, f, { contentType: "application/pdf" });
-                    if (upload.error) throw upload.error;
-                    const { error } = await supabase
-                      .from("assets")
-                      .update({ brochure_url: path })
-                      .eq("id", asset.id);
-                    if (error) throw error;
+                    const uploaded = await uploadDocument(`actifs/${asset.id}`, f);
+                    const existing = await fetchAssetDocuments(asset.id);
+                    const { error: docError } = await supabase.from("asset_documents").insert({
+                      asset_id: asset.id,
+                      path: uploaded.path,
+                      name: uploaded.name,
+                      sort_order: existing.length,
+                    });
+                    if (docError) throw docError;
+                    if (existing.length === 0) {
+                      const { error } = await supabase
+                        .from("assets")
+                        .update({ brochure_url: uploaded.path })
+                        .eq("id", asset.id);
+                      if (error) throw error;
+                    }
                     await queryClient.invalidateQueries({ queryKey: ["assets"] });
+                    await queryClient.invalidateQueries({
+                      queryKey: ["asset-documents", asset.id],
+                    });
                     toast.success("Brochure enregistrée sur l'actif");
                   } catch (err) {
                     toast.error(
