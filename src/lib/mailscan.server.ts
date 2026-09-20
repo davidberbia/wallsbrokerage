@@ -135,9 +135,35 @@ export function classifyAddress(raw: string | null | undefined): {
   return { email, domain };
 }
 
+const GENERIC_SUBDOMAINS = [
+  "chat",
+  "mail",
+  "email",
+  "mails",
+  "news",
+  "newsletter",
+  "info",
+  "contact",
+  "smtp",
+  "reply",
+  "link",
+  "links",
+  "go",
+  "em",
+  "e",
+  "m",
+  "t",
+  "www",
+  "app",
+  "my",
+  "cloud",
+];
+
 /** Nom de société lisible à partir du domaine. */
 export function companyFromDomain(domain: string): string {
-  const base = domain.split(".")[0] ?? domain;
+  const parts = domain.split(".").filter(Boolean);
+  while (parts.length > 2 && GENERIC_SUBDOMAINS.includes(parts[0]!.toLowerCase())) parts.shift();
+  const base = parts[0] ?? domain;
   return base
     .split(/[-_]/)
     .filter(Boolean)
