@@ -324,7 +324,8 @@ function MatchingPage() {
                     await queryClient.invalidateQueries({
                       queryKey: ["asset-documents", asset.id],
                     });
-                    toast.success("Brochure enregistrée sur l'actif");
+                    setBrochure(null);
+                    toast.success("Document enregistré sur l'actif");
                   } catch (err) {
                     toast.error(
                       err instanceof Error ? err.message : "Échec de l'enregistrement de la brochure",
@@ -337,12 +338,14 @@ function MatchingPage() {
             />
             <p className="text-xs text-muted-foreground">
               {savingBrochure
-                ? "Enregistrement de la brochure…"
-                : brochure
-                  ? `Brochure prête : ${brochure.name} — le bouton « Envoyer la brochure » est activé.`
-                  : storedBrochureName
-                    ? `Brochure déjà associée à cet actif : ${storedBrochureName} — elle sera envoyée automatiquement.`
-                    : "Ajoutez la brochure pour activer l'envoi aux investisseurs sélectionnés."}
+                ? "Enregistrement du document…"
+                : documentNames.length > 0
+                  ? `Documents joints automatiquement : ${documentNames.join(", ")}.`
+                  : brochure
+                    ? `Brochure prête : ${brochure.name} — le bouton « Envoyer la brochure » est activé.`
+                    : storedBrochureName
+                      ? `Brochure déjà associée à cet actif : ${storedBrochureName} — elle sera envoyée automatiquement.`
+                      : "Ajoutez un ou plusieurs documents pour les joindre à l'envoi."}
             </p>
           </div>
 
