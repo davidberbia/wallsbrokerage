@@ -1,6 +1,6 @@
 # Wallsbrokerage
 
-J'ai un CRM en ligne hébergé sur wallsbrokerage.com (je peux te donner les codes d'accès pour que tu puisses analyser le back office). Il sert à mes clients (acquéreurs) à créer leur profil investisseur (tranche d'investissement, classe d'actif, stratégie, région, etc, etc, etc). Ce logiciel a été réalisé sur Bubble et me coûte 300€/an d'abonnement. J'aimerais créer quelque chose d'aussi simple et efficace mais qui ne me coûte rien et sur lequel j'ai la main pour le développement. Dès que je rentre un actif, j'interroge la base via un des filtres de critères et l'outil me donne la liste des investisseurs à qui envoyer la brochure de vente. Est-ce que tu peux reproduire cet outil ?
+CRM en ligne hébergé sur wallsbrokerage.com servant à faire du matching immobilier avec les critères d'investisseurs (tranche d'investissement, classe d'actif, stratégie, région, etc, etc, etc).
 
 This project was built with [Lovable](https://lovable.dev).
 
