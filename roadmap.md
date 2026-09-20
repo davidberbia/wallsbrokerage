@@ -11,3 +11,6 @@
 - [ ] Publier Brevo, configurer le suivi et relancer les 49 emails après validation du test.
 - [x] Rendre tous les écrans du CRM entièrement utilisables sur smartphone.
 - [x] Vérifier les parcours à 360 px, 390 px et sur ordinateur sans régression.
+- [x] Plusieurs documents par actif (joints automatiquement aux campagnes)
+- [x] Programmation de la date et heure d envoi du publipostage
+- [x] Copie de fin de campagne envoyee a d.berbia@wallsbroker.com en dernier
