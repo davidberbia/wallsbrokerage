@@ -161,6 +161,12 @@ function MatchingPage() {
     asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url)
       ? brochureFileName(asset.brochure_url)
       : (asset?.brochure_url ?? null);
+  const assetDocumentsQuery = useQuery({
+    queryKey: ["asset-documents", asset?.id],
+    queryFn: () => fetchAssetDocuments(asset!.id),
+    enabled: Boolean(asset?.id),
+  });
+  const documentNames = (assetDocumentsQuery.data ?? []).map((d) => d.name);
 
   const applyAsset = (id: string) => {
     setSelected(new Set());
