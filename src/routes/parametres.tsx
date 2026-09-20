@@ -6,6 +6,7 @@ import { Check, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
+import { MailScanPanel } from "@/components/MailScanPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,10 +62,14 @@ function SettingsPage() {
       <Tabs defaultValue="users">
         <TabsList className="grid h-auto w-full grid-cols-2 sm:inline-flex sm:w-auto">
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
+          <TabsTrigger value="mailscan">Boîte mail</TabsTrigger>
           <TabsTrigger value="lists">Listes de référence</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="mt-6">
           <UsersPanel />
+        </TabsContent>
+        <TabsContent value="mailscan" className="mt-6">
+          <MailScanPanel />
         </TabsContent>
         <TabsContent value="lists" className="mt-6 space-y-6">
           {KINDS.map((kind) => (
