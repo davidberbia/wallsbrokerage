@@ -1,0 +1,1 @@
+ALTER TABLE public.mailscan_candidates ADD COLUMN enriched_at timestamptz;

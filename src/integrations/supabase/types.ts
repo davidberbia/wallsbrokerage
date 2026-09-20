@@ -712,6 +712,7 @@ export type Database = {
           created_investor_id: string | null
           domain: string
           email: string
+          enriched_at: string | null
           first_name: string | null
           full_name: string | null
           id: string
@@ -730,6 +731,7 @@ export type Database = {
           created_investor_id?: string | null
           domain: string
           email: string
+          enriched_at?: string | null
           first_name?: string | null
           full_name?: string | null
           id?: string
@@ -748,6 +750,7 @@ export type Database = {
           created_investor_id?: string | null
           domain?: string
           email?: string
+          enriched_at?: string | null
           first_name?: string | null
           full_name?: string | null
           id?: string
