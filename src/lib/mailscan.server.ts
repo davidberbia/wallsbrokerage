@@ -15,7 +15,11 @@ export type GraphMessage = {
 };
 
 export async function graphGet<T>(pathOrUrl: string): Promise<T> {
-  const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${GATEWAY}${pathOrUrl}`;
+  // Les liens de pagination renvoyés par Graph pointent vers graph.microsoft.com :
+  // on les repasse par la passerelle, seule à détenir les identifiants.
+  const url = pathOrUrl.startsWith("http")
+    ? pathOrUrl.replace(/^https:\/\/graph\.microsoft\.com/, GATEWAY)
+    : `${GATEWAY}${pathOrUrl}`;
   const apiKey = process.env["LOVABLE_API_KEY"];
   const connKey = process.env["MICROSOFT_OUTLOOK_API_KEY"];
   if (!apiKey || !connKey) throw new Error("Connexion Outlook indisponible côté serveur.");
