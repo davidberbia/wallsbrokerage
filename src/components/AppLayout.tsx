@@ -5,6 +5,7 @@ import {
   Building2,
   Contact,
   LogOut,
+  Mail,
   Menu,
   Send,
   Settings,
@@ -26,7 +27,10 @@ const BROKER_NAV = [
   { to: "/envois", label: "Envois", icon: Send },
 ] as const;
 
-const ADMIN_NAV = [{ to: "/parametres", label: "Paramètres", icon: Settings }] as const;
+const ADMIN_NAV = [
+  { to: "/contacts-detectes", label: "Contacts détectés", icon: Mail },
+  { to: "/parametres", label: "Paramètres", icon: Settings },
+] as const;
 
 const INVESTOR_NAV = [{ to: "/mon-profil", label: "Mon profil", icon: UserCircle }] as const;
 

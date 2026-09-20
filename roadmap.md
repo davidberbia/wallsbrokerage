@@ -14,3 +14,5 @@
 - [x] Plusieurs documents par actif (joints automatiquement aux campagnes)
 - [x] Programmation de la date et heure d envoi du publipostage
 - [x] Copie de fin de campagne envoyee a d.berbia@wallsbroker.com en dernier
+
+- [x] Analyse automatique de la boite mail Outlook (detection de contacts a valider)
