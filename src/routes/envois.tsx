@@ -74,6 +74,7 @@ type SendRow = {
     body_html: string;
     brochure_path: string | null;
     brochure_name: string | null;
+    documents: { path: string; name: string }[] | null;
   } | null;
 };
 
@@ -149,7 +150,7 @@ function SendsPage() {
       const { data, error } = await supabase
         .from("brochure_sends")
         .select(
-          "id, asset_id, campaign_id, tracking_id, sent_at, opened_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), prospect_contacts(full_name, first_name, email, prospect_companies(name)), campaigns(subject, body_html, brochure_path, brochure_name)",
+          "id, asset_id, campaign_id, tracking_id, sent_at, opened_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), prospect_contacts(full_name, first_name, email, prospect_companies(name)), campaigns(subject, body_html, brochure_path, brochure_name, documents)",
         )
         .order("sent_at", { ascending: false })
         .limit(2000);
@@ -188,6 +189,17 @@ function SendsPage() {
         subject,
         attachment_path: row.campaigns.brochure_path,
         attachment_name: row.campaigns.brochure_name,
+        attachments:
+          row.campaigns.documents && row.campaigns.documents.length > 0
+            ? row.campaigns.documents
+            : row.campaigns.brochure_path
+              ? [
+                  {
+                    path: row.campaigns.brochure_path,
+                    name: row.campaigns.brochure_name ?? "brochure.pdf",
+                  },
+                ]
+              : [],
         body_html: `<div style="font-family:Arial,Helvetica,sans-serif;color:#16212f;font-size:14px;line-height:1.6;">
   <p>Bonjour ${escapeHtml(prenom)},</p>
   ${row.campaigns.body_html}
