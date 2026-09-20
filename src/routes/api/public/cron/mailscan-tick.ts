@@ -223,9 +223,9 @@ export const Route = createFileRoute("/api/public/cron/mailscan-tick")({
               const body = found.value?.[0]?.body?.content ?? "";
               if (body) {
                 const parsed = parseSignature(body);
-                if (parsed.jobTitle) patch["job_title"] = parsed.jobTitle;
-                if (parsed.phone) patch["phone"] = parsed.phone;
-                if (parsed.address) patch["address"] = parsed.address;
+                if (parsed.jobTitle) patch.job_title = parsed.jobTitle;
+                if (parsed.phone) patch.phone = parsed.phone;
+                if (parsed.address) patch.address = parsed.address;
               }
             } catch {
               // signature indisponible : on garde le contact tel quel
