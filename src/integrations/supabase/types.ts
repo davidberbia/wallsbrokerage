@@ -703,6 +703,159 @@ export type Database = {
         }
         Relationships: []
       }
+      mailscan_candidates: {
+        Row: {
+          address: string | null
+          company_name: string | null
+          created_at: string
+          created_contact_id: string | null
+          created_investor_id: string | null
+          domain: string
+          email: string
+          first_name: string | null
+          full_name: string | null
+          id: string
+          job_title: string | null
+          last_seen_at: string | null
+          occurrences: number
+          phone: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company_name?: string | null
+          created_at?: string
+          created_contact_id?: string | null
+          created_investor_id?: string | null
+          domain: string
+          email: string
+          first_name?: string | null
+          full_name?: string | null
+          id?: string
+          job_title?: string | null
+          last_seen_at?: string | null
+          occurrences?: number
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company_name?: string | null
+          created_at?: string
+          created_contact_id?: string | null
+          created_investor_id?: string | null
+          domain?: string
+          email?: string
+          first_name?: string | null
+          full_name?: string | null
+          id?: string
+          job_title?: string | null
+          last_seen_at?: string | null
+          occurrences?: number
+          phone?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mailscan_candidates_created_contact_id_fkey"
+            columns: ["created_contact_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mailscan_candidates_created_investor_id_fkey"
+            columns: ["created_investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mailscan_domains: {
+        Row: {
+          checked_at: string | null
+          company_name: string | null
+          created_at: string
+          domain: string
+          id: string
+          reason: string | null
+          site_url: string | null
+          updated_at: string
+          verdict: string
+        }
+        Insert: {
+          checked_at?: string | null
+          company_name?: string | null
+          created_at?: string
+          domain: string
+          id?: string
+          reason?: string | null
+          site_url?: string | null
+          updated_at?: string
+          verdict?: string
+        }
+        Update: {
+          checked_at?: string | null
+          company_name?: string | null
+          created_at?: string
+          domain?: string
+          id?: string
+          reason?: string | null
+          site_url?: string | null
+          updated_at?: string
+          verdict?: string
+        }
+        Relationships: []
+      }
+      mailscan_state: {
+        Row: {
+          candidates_found: number
+          created_at: string
+          domains_checked: number
+          folder: string
+          id: boolean
+          last_error: string | null
+          lease_until: string | null
+          messages_done: number
+          next_link: string | null
+          skipped: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          candidates_found?: number
+          created_at?: string
+          domains_checked?: number
+          folder?: string
+          id?: boolean
+          last_error?: string | null
+          lease_until?: string | null
+          messages_done?: number
+          next_link?: string | null
+          skipped?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          candidates_found?: number
+          created_at?: string
+          domains_checked?: number
+          folder?: string
+          id?: boolean
+          last_error?: string | null
+          lease_until?: string | null
+          messages_done?: number
+          next_link?: string | null
+          skipped?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       prospect_companies: {
         Row: {
           address: string | null
@@ -905,6 +1058,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      mailscan_schedule: { Args: { _on: boolean }; Returns: undefined }
+      mailscan_stop_internal: { Args: never; Returns: undefined }
       rate_limit_hit: {
         Args: { _key: string; _limit: number; _window_seconds: number }
         Returns: boolean
