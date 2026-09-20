@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Send } from "lucide-react";
+import { Send, X } from "lucide-react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,12 @@ import {
 } from "@/components/ui/dialog";
 import { PUBLIC_APP_URL } from "@/lib/app-url";
 import { brochureFileName } from "@/lib/format";
+import {
+  MAX_DOCUMENT_BYTES,
+  fetchAssetDocuments,
+  uploadDocument,
+  type QueuedAttachment,
+} from "@/lib/documents";
 import type { Asset } from "@/lib/types";
 
 export type Recipient = {
@@ -25,6 +32,10 @@ export type Recipient = {
   full_name: string;
   first_name?: string | null;
 };
+
+/** Copie systématique de fin de campagne. */
+const CLOSING_EMAIL = "d.berbia@wallsbroker.com";
+const CLOSING_NAME = "David Berbia";
 
 export const escapeHtml = (value: string) =>
   value
@@ -47,6 +58,16 @@ export const SIGNATURE_HTML = `<div style="font-family:Arial,Helvetica,sans-seri
   <div>Linkedin : <a href="https://www.linkedin.com/in/davidberbia" style="color:#1a0dab;">davidberbia</a></div>
 </div>`;
 
+/** Valeur "datetime-local" par défaut : dans une heure, à la minute près. */
+const defaultScheduleValue = () => {
+  const d = new Date(Date.now() + 60 * 60 * 1000);
+  d.setSeconds(0, 0);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(
+    d.getMinutes(),
+  )}`;
+};
+
 export function CampaignDialog({
   asset,
   recipients,
@@ -62,14 +83,29 @@ export function CampaignDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [ownFile, setOwnFile] = useState<File | null>(null);
+  const [ownFiles, setOwnFiles] = useState<File[]>([]);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
-  const file = brochure ?? ownFile;
+  const [scheduled, setScheduled] = useState(false);
+  const [scheduleAt, setScheduleAt] = useState(defaultScheduleValue);
+
+  const documentsQuery = useQuery({
+    queryKey: ["asset-documents", asset?.id],
+    queryFn: () => fetchAssetDocuments(asset!.id),
+    enabled: Boolean(asset?.id) && open,
+  });
+
   const storedPath =
     asset?.brochure_url && !/^https?:\/\//.test(asset.brochure_url) ? asset.brochure_url : null;
-  const storedName = storedPath ? (brochureFileName(storedPath) ?? "brochure.pdf") : null;
+  const assetDocuments: QueuedAttachment[] = (() => {
+    const docs = (documentsQuery.data ?? []).map((d) => ({ path: d.path, name: d.name }));
+    if (docs.length === 0 && storedPath) {
+      return [{ path: storedPath, name: brochureFileName(storedPath) ?? "brochure.pdf" }];
+    }
+    return docs;
+  })();
 
+  const extraFiles = brochure ? [brochure, ...ownFiles] : ownFiles;
   const withEmail = recipients.filter((r) => r.email);
 
   const defaultSubject = asset
@@ -90,18 +126,21 @@ export function CampaignDialog({
       toast.error("Aucun investisseur sélectionné avec une adresse email.");
       return;
     }
+    let startAt = new Date();
+    if (scheduled) {
+      const parsed = new Date(scheduleAt);
+      if (Number.isNaN(parsed.getTime())) {
+        toast.error("Indiquez une date et une heure d'envoi valides.");
+        return;
+      }
+      startAt = parsed;
+    }
 
     setBusy(true);
     try {
-      let path: string | null = storedPath;
-      let attachmentName: string | null = storedName;
-      if (file) {
-        path = `${asset.id}/${crypto.randomUUID()}-${file.name.replace(/[^\w.-]+/g, "_")}`;
-        attachmentName = file.name;
-        const upload = await supabase.storage
-          .from("brochures")
-          .upload(path, file, { contentType: "application/pdf" });
-        if (upload.error) throw upload.error;
+      const attachments: QueuedAttachment[] = [...assetDocuments];
+      for (const file of extraFiles) {
+        attachments.push(await uploadDocument(asset.id, file));
       }
 
       const finalSubject = subject.trim() || defaultSubject;
@@ -113,8 +152,9 @@ export function CampaignDialog({
           asset_id: asset.id,
           subject: finalSubject,
           body_html: paragraphs(finalMessage),
-          brochure_path: path,
-          brochure_name: attachmentName,
+          brochure_path: attachments[0]?.path ?? null,
+          brochure_name: attachments[0]?.name ?? null,
+          documents: attachments,
         })
         .select("id")
         .single();
@@ -135,6 +175,7 @@ export function CampaignDialog({
       const { error: sendsError } = await supabase.from("brochure_sends").insert(sends);
       if (sendsError) throw sendsError;
 
+      const scheduledAt = startAt.toISOString();
       const queue = sends.map((send, index) => {
         const investor = withEmail[index]!;
         const prenom = investor.first_name || investor.full_name.split(" ")[0] || "";
@@ -145,8 +186,10 @@ export function CampaignDialog({
           to_email: investor.email!,
           to_name: investor.full_name,
           subject: finalSubject,
-          attachment_path: path,
-          attachment_name: attachmentName,
+          scheduled_at: scheduledAt,
+          attachment_path: attachments[0]?.path ?? null,
+          attachment_name: attachments[0]?.name ?? null,
+          attachments,
           body_html: `<div style="font-family:Arial,Helvetica,sans-serif;color:#16212f;font-size:14px;line-height:1.6;">
   <p>Bonjour ${escapeHtml(prenom)},</p>
   ${paragraphs(finalMessage)}
@@ -155,6 +198,33 @@ export function CampaignDialog({
 </div>`,
         };
       });
+
+      // Copie de clôture envoyée en dernier, hors statistiques.
+      const closingAt = new Date(startAt.getTime() + 60 * 1000).toISOString();
+      queue.push({
+        campaign_id: campaign.id,
+        send_id: null as unknown as string,
+        kind: "clôture",
+        to_email: CLOSING_EMAIL,
+        to_name: CLOSING_NAME,
+        subject: `[Campagne terminée — ${queue.length} destinataire${
+          queue.length > 1 ? "s" : ""
+        }] ${finalSubject}`,
+        scheduled_at: closingAt,
+        attachment_path: attachments[0]?.path ?? null,
+        attachment_name: attachments[0]?.name ?? null,
+        attachments,
+        body_html: `<div style="font-family:Arial,Helvetica,sans-serif;color:#16212f;font-size:14px;line-height:1.6;">
+  <p>Bonjour David,</p>
+  <p>La campagne « ${escapeHtml(finalSubject)} » est terminée : ${queue.length} destinataire${
+    queue.length > 1 ? "s ont" : " a"
+  } reçu le mail ci-dessous.</p>
+  <hr style="border:none;border-top:1px solid #d7dde5;margin:16px 0;">
+  ${paragraphs(finalMessage)}
+  ${SIGNATURE_HTML}
+</div>`,
+      });
+
       const { error: queueError } = await supabase.from("email_queue").insert(queue);
       if (queueError) throw queueError;
 
@@ -162,12 +232,18 @@ export function CampaignDialog({
       if (pumpError) throw pumpError;
 
       toast.success(
-        `Commercialisation lancée : ${queue.length} mail(s) en file, envoi immédiat.`,
+        scheduled
+          ? `Commercialisation programmée : ${queue.length - 1} mail(s) partiront le ${startAt.toLocaleString(
+              "fr-FR",
+              { dateStyle: "short", timeStyle: "short" },
+            )}.`
+          : `Commercialisation lancée : ${queue.length - 1} mail(s) en file, envoi immédiat.`,
       );
       setOpen(false);
-      setOwnFile(null);
+      setOwnFiles([]);
       setSubject("");
       setMessage("");
+      setScheduled(false);
       onLaunched?.();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Échec du lancement");
@@ -180,9 +256,12 @@ export function CampaignDialog({
     if (nextOpen && !open) {
       setSubject(defaultSubject);
       setMessage(defaultMessage);
+      setScheduleAt(defaultScheduleValue());
     }
     setOpen(nextOpen);
   };
+
+  const attachmentLabels = [...assetDocuments.map((d) => d.name), ...extraFiles.map((f) => f.name)];
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -229,23 +308,85 @@ export function CampaignDialog({
               Chaque mail commence par « Bonjour {"{prénom}"} » et se termine par votre signature.
             </p>
           </div>
-          {brochure || storedPath ? (
-            <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
-              Pièce jointe :{" "}
-              <span className="font-medium truncate block">{brochure?.name ?? storedName}</span>
-            </p>
-          ) : (
-            <div className="space-y-1.5">
-              <Label htmlFor="campaign-file">Brochure PDF (pièce jointe facultative)</Label>
-              <Input
-                id="campaign-file"
-                type="file"
-                accept="application/pdf"
-                className="h-10 sm:h-9 py-1.5"
-                onChange={(e) => setOwnFile(e.target.files?.[0] ?? null)}
-              />
+
+          <div className="space-y-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+            <p className="font-medium">Envoi</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="campaign-timing"
+                  checked={!scheduled}
+                  onChange={() => setScheduled(false)}
+                />
+                Immédiat
+              </label>
+              <label className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="campaign-timing"
+                  checked={scheduled}
+                  onChange={() => setScheduled(true)}
+                />
+                Programmé
+              </label>
             </div>
-          )}
+            {scheduled && (
+              <Input
+                type="datetime-local"
+                className="h-10 sm:h-9"
+                value={scheduleAt}
+                onChange={(e) => setScheduleAt(e.target.value)}
+              />
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="campaign-file">Documents joints (facultatif)</Label>
+            {attachmentLabels.length > 0 && (
+              <ul className="space-y-1 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+                {attachmentLabels.map((name, i) => (
+                  <li key={`${name}-${i}`} className="flex items-center justify-between gap-2">
+                    <span className="truncate">{name}</span>
+                    {i >= assetDocuments.length && !(brochure && i === assetDocuments.length) && (
+                      <button
+                        type="button"
+                        aria-label={`Retirer ${name}`}
+                        className="text-muted-foreground hover:text-foreground"
+                        onClick={() =>
+                          setOwnFiles((files) =>
+                            files.filter(
+                              (_, idx) =>
+                                idx !== i - assetDocuments.length - (brochure ? 1 : 0),
+                            ),
+                          )
+                        }
+                      >
+                        <X className="size-4" />
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Input
+              id="campaign-file"
+              type="file"
+              multiple
+              className="h-10 sm:h-9 py-1.5"
+              onChange={(e) => {
+                const picked = Array.from(e.target.files ?? []);
+                const tooBig = picked.find((f) => f.size > MAX_DOCUMENT_BYTES);
+                if (tooBig) {
+                  toast.error(`${tooBig.name} dépasse 9 Mo.`);
+                  e.target.value = "";
+                  return;
+                }
+                setOwnFiles((files) => [...files, ...picked]);
+                e.target.value = "";
+              }}
+            />
+          </div>
         </div>
 
         <DialogFooter className="shrink-0 pt-2 sm:pt-4">
@@ -253,7 +394,7 @@ export function CampaignDialog({
             Annuler
           </Button>
           <Button onClick={launch} disabled={busy} className="h-11 sm:h-9">
-            {busy ? "Lancement…" : `Lancer (${withEmail.length})`}
+            {busy ? "Lancement…" : `${scheduled ? "Programmer" : "Lancer"} (${withEmail.length})`}
           </Button>
         </DialogFooter>
       </DialogContent>
