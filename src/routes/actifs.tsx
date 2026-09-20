@@ -179,8 +179,10 @@ function AssetsPage() {
               <AssetForm
                 draft={editing}
                 onChange={setEditing}
-                brochureFile={brochureFile}
-                onBrochureFile={setBrochureFile}
+                newFiles={newFiles}
+                onNewFiles={setNewFiles}
+                removedDocs={removedDocs}
+                onRemovedDocs={setRemovedDocs}
                 onSubmit={() => save.mutate(editing)}
                 saving={save.isPending}
               />
