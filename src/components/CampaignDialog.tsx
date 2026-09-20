@@ -203,7 +203,7 @@ export function CampaignDialog({
       const closingAt = new Date(startAt.getTime() + 60 * 1000).toISOString();
       queue.push({
         campaign_id: campaign.id,
-        send_id: null as unknown as string,
+        send_id: null as unknown as (typeof queue)[number]["send_id"],
         kind: "clôture",
         to_email: CLOSING_EMAIL,
         to_name: CLOSING_NAME,
