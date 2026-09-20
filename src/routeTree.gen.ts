@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ContactsDetectesRouteImport } from './routes/contacts-detectes'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
@@ -44,6 +45,11 @@ const ArbitrageRoute = ArbitrageRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactsDetectesRoute = ContactsDetectesRouteImport.update({
+  id: '/contacts-detectes',
+  path: '/contacts-detectes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnvoisRoute = EnvoisRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/actifs': typeof ActifsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/contacts-detectes': typeof ContactsDetectesRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/actifs': typeof ActifsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/contacts-detectes': typeof ContactsDetectesRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/actifs': typeof ActifsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/contacts-detectes': typeof ContactsDetectesRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/actifs'
     | '/arbitrage'
     | '/auth'
+    | '/contacts-detectes'
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/actifs'
     | '/arbitrage'
     | '/auth'
+    | '/contacts-detectes'
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/actifs'
     | '/arbitrage'
     | '/auth'
+    | '/contacts-detectes'
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
@@ -225,6 +237,7 @@ export interface RootRouteChildren {
   ActifsRoute: typeof ActifsRoute
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
+  ContactsDetectesRoute: typeof ContactsDetectesRoute
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
@@ -267,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contacts-detectes': {
+      id: '/contacts-detectes'
+      path: '/contacts-detectes'
+      fullPath: '/contacts-detectes'
+      preLoaderRoute: typeof ContactsDetectesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/envois': {
@@ -361,6 +381,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActifsRoute: ActifsRoute,
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
+  ContactsDetectesRoute: ContactsDetectesRoute,
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
