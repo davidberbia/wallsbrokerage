@@ -58,7 +58,8 @@ const emptyDraft: Draft = { title: "", status: "disponible" };
 function AssetsPage() {
   const qc = useQueryClient();
   const [editing, setEditing] = useState<Draft | null>(null);
-  const [brochureFile, setBrochureFile] = useState<File | null>(null);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [removedDocs, setRemovedDocs] = useState<string[]>([]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["assets"],
@@ -73,34 +74,15 @@ function AssetsPage() {
   });
 
   const openBrochure = async (value: string) => {
-    if (/^https?:\/\//.test(value)) {
-      window.open(value, "_blank", "noreferrer");
-      return;
+    try {
+      await openDocument(value);
+    } catch {
+      toast.error("Document introuvable");
     }
-    const { data, error } = await supabase.storage
-      .from("brochures")
-      .createSignedUrl(value, 60 * 10);
-    if (error || !data) {
-      toast.error("Brochure introuvable");
-      return;
-    }
-    window.open(data.signedUrl, "_blank", "noreferrer");
   };
 
   const save = useMutation({
     mutationFn: async (draft: Draft) => {
-      let brochurePath = draft.brochure_url ?? null;
-      if (brochureFile) {
-        if (brochureFile.type !== "application/pdf") throw new Error("La brochure doit être un PDF.");
-        if (brochureFile.size > 9 * 1024 * 1024)
-          throw new Error("La brochure ne doit pas dépasser 9 Mo.");
-        const path = `actifs/${crypto.randomUUID()}-${brochureFile.name.replace(/[^\w.-]+/g, "_")}`;
-        const upload = await supabase.storage
-          .from("brochures")
-          .upload(path, brochureFile, { contentType: "application/pdf" });
-        if (upload.error) throw upload.error;
-        brochurePath = path;
-      }
       const payload = {
         title: draft.title,
         reference: draft.reference ?? null,
@@ -111,19 +93,54 @@ function AssetsPage() {
         price: draft.price ?? null,
         yield_pct: draft.yield_pct ?? null,
         surface: draft.surface ?? null,
-        brochure_url: brochurePath,
         description: draft.description ?? null,
         status: draft.status ?? "disponible",
       };
-      const { error } = draft.id
-        ? await supabase.from("assets").update(payload).eq("id", draft.id)
-        : await supabase.from("assets").insert(payload);
-      if (error) throw error;
+      let assetId = draft.id ?? null;
+      if (assetId) {
+        const { error } = await supabase.from("assets").update(payload).eq("id", assetId);
+        if (error) throw error;
+      } else {
+        const { data: created, error } = await supabase
+          .from("assets")
+          .insert(payload)
+          .select("id")
+          .single();
+        if (error) throw error;
+        assetId = created.id;
+      }
+
+      if (removedDocs.length > 0) {
+        const { error } = await supabase.from("asset_documents").delete().in("id", removedDocs);
+        if (error) throw error;
+      }
+
+      if (newFiles.length > 0) {
+        const existing = await fetchAssetDocuments(assetId!);
+        let order = existing.length;
+        const rows = [] as { asset_id: string; path: string; name: string; sort_order: number }[];
+        for (const file of newFiles) {
+          const uploaded = await uploadDocument(`actifs/${assetId}`, file);
+          rows.push({ asset_id: assetId!, ...uploaded, sort_order: order++ });
+        }
+        const { error } = await supabase.from("asset_documents").insert(rows);
+        if (error) throw error;
+      }
+
+      // Compatibilité : le premier document reste la brochure principale de l'actif.
+      const documents = await fetchAssetDocuments(assetId!);
+      await supabase
+        .from("assets")
+        .update({ brochure_url: documents[0]?.path ?? null })
+        .eq("id", assetId!);
+      return assetId!;
     },
-    onSuccess: () => {
+    onSuccess: (assetId) => {
       qc.invalidateQueries({ queryKey: ["assets"] });
+      qc.invalidateQueries({ queryKey: ["asset-documents", assetId] });
       setEditing(null);
-      setBrochureFile(null);
+      setNewFiles([]);
+      setRemovedDocs([]);
       toast.success("Actif enregistré");
     },
     onError: (e: Error) => toast.error(e.message),
