@@ -208,7 +208,12 @@ export const Route = createFileRoute("/api/public/cron/mailscan-tick")({
             .is("enriched_at", null)
             .limit(ENRICH_PER_TICK);
           for (const candidate of toEnrich ?? []) {
-            const patch: Record<string, unknown> = { enriched_at: new Date().toISOString() };
+            const patch: {
+              enriched_at: string;
+              job_title?: string;
+              phone?: string;
+              address?: string;
+            } = { enriched_at: new Date().toISOString() };
             try {
               const found = await graphGet<{ value: { body?: { content?: string } }[] }>(
                 `/v1.0/me/messages?$top=1&$select=body&$filter=${encodeURIComponent(
