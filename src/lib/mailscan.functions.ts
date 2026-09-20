@@ -78,20 +78,22 @@ export const setMailscanRunning = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertBroker(context as never);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {
+    const patch = {
       status: data.running ? "en cours" : "arrêté",
       last_error: null,
       lease_until: null,
       updated_at: new Date().toISOString(),
+      ...(data.restart
+        ? {
+            folder: "inbox",
+            next_link: null,
+            messages_done: 0,
+            candidates_found: 0,
+            domains_checked: 0,
+            skipped: 0,
+          }
+        : {}),
     };
-    if (data.restart) {
-      patch["folder"] = "inbox";
-      patch["next_link"] = null;
-      patch["messages_done"] = 0;
-      patch["candidates_found"] = 0;
-      patch["domains_checked"] = 0;
-      patch["skipped"] = 0;
-    }
     const { error } = await supabaseAdmin.from("mailscan_state").update(patch).eq("id", true);
     if (error) throw new Error(error.message);
     const { error: rpcError } = await (context.supabase as any).rpc("mailscan_schedule", {

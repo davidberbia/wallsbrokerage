@@ -111,7 +111,14 @@ export const Route = createFileRoute("/api/public/cron/mailscan-tick")({
                 (candidates.data ?? []).map((c) => [c.email, c]),
               );
 
-              const inserts: Record<string, unknown>[] = [];
+              const inserts: {
+                email: string;
+                domain: string;
+                full_name: string | null;
+                first_name: string | null;
+                company_name: string;
+                last_seen_at: string | null;
+              }[] = [];
               for (const [email, info] of seen) {
                 if (known.has(email)) {
                   skipped += 1;
