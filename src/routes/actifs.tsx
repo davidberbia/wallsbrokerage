@@ -358,35 +358,67 @@ function AssetForm({
           />
         </Field>
       </div>
-      <Field label="Brochure de l'actif (PDF, 9 Mo max.)">
+      <Field label="Documents de l'actif (brochures, annexes — 9 Mo max. par fichier)">
+        {(keptDocuments.length > 0 || newFiles.length > 0) && (
+          <ul className="mb-2 space-y-1 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
+            {keptDocuments.map((doc) => (
+              <li key={doc.id} className="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  className="truncate text-left underline-offset-2 hover:underline"
+                  onClick={() => {
+                    void openDocument(doc.path).catch(() => toast.error("Document introuvable"));
+                  }}
+                >
+                  {doc.name}
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Supprimer ${doc.name}`}
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => onRemovedDocs([...removedDocs, doc.id])}
+                >
+                  <X className="size-4" />
+                </button>
+              </li>
+            ))}
+            {newFiles.map((file, i) => (
+              <li key={`${file.name}-${i}`} className="flex items-center justify-between gap-2">
+                <span className="truncate">{file.name} (à ajouter)</span>
+                <button
+                  type="button"
+                  aria-label={`Retirer ${file.name}`}
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => onNewFiles(newFiles.filter((_, idx) => idx !== i))}
+                >
+                  <X className="size-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
         <Input
           type="file"
-          accept="application/pdf"
+          multiple
           onChange={(e) => {
-            const f = e.target.files?.[0] ?? null;
-            if (f && f.type !== "application/pdf") {
-              toast.error("Seuls les fichiers PDF sont acceptés.");
+            const picked = Array.from(e.target.files ?? []);
+            const tooBig = picked.find((f) => f.size > MAX_DOCUMENT_BYTES);
+            if (tooBig) {
+              toast.error(`${tooBig.name} dépasse 9 Mo.`);
               e.target.value = "";
-              onBrochureFile(null);
               return;
             }
-            if (f && f.size > 9 * 1024 * 1024) {
-              toast.error("La brochure ne doit pas dépasser 9 Mo.");
-              e.target.value = "";
-              onBrochureFile(null);
-              return;
-            }
-            onBrochureFile(f);
+            onNewFiles([...newFiles, ...picked]);
+            e.target.value = "";
           }}
         />
         <p className="mt-1 text-xs text-muted-foreground">
-          {brochureFile
-            ? `Nouveau fichier : ${brochureFile.name}`
-            : draft.brochure_url
-              ? "Une brochure est déjà associée à cet actif."
-              : "Aucune brochure pour le moment."}
+          {keptDocuments.length + newFiles.length === 0
+            ? "Aucun document pour le moment."
+            : `${keptDocuments.length + newFiles.length} document(s) seront joints aux campagnes.`}
         </p>
       </Field>
+
 
       <Field label="Description">
         <Textarea
