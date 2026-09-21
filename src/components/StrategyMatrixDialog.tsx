@@ -38,7 +38,7 @@ function Cell({
       aria-pressed={checked}
       onClick={onClick}
       className={cn(
-        "flex size-6 sm:size-5 items-center justify-center rounded border border-input transition-colors touch-none",
+        "flex size-6 sm:size-5 items-center justify-center rounded border border-input transition-colors",
         checked
           ? "border-accent bg-accent text-accent-foreground"
           : "bg-background hover:bg-muted",
