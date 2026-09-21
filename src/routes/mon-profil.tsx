@@ -227,7 +227,7 @@ function AmountStep({ criteria, updateCriteria }: { criteria: CriteriaMap; updat
 function GeographyStep({ value, onChange }: { value: string[]; onChange: (value: string[]) => void }) {
   const { countries } = useLists();
   const toggle = (zone: string) => onChange(value.includes(zone) ? value.filter((item) => item !== zone) : [...value, zone]);
-  const group = (title: string, zones: readonly string[]) => <div><h3 className="mb-3 text-base">{title}</h3><div className="grid gap-3 sm:grid-cols-2">{zones.map((zone) => <label key={zone} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-md border p-3 ${value.includes(zone) ? "border-accent bg-accent/10" : "bg-background"}`}><Checkbox checked={value.includes(zone)} onCheckedChange={() => toggle(zone)} /><span className="text-sm font-medium">{zone}</span></label>)}</div></div>;
+  const group = (title: string, zones: readonly string[]) => <div><h3 className="mb-3 text-base">{title}</h3><div className="grid gap-3 sm:grid-cols-2">{zones.map((zone) => <label key={zone} onClick={() => toggle(zone)} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-md border p-3 ${value.includes(zone) ? "border-accent bg-accent/10" : "bg-background"}`}><Checkbox checked={value.includes(zone)} className="pointer-events-none" /><span className="text-sm font-medium">{zone}</span></label>)}</div></div>;
   return <div><h2 className="text-xl">Vos zones géographiques</h2><p className="mt-1 text-sm text-muted-foreground">Sélectionnez au moins une région ou un pays.</p><div className="mt-6 space-y-8">{group("Régions de France", REGIONS)}{group("Pays", countries)}</div></div>;
 }
 
