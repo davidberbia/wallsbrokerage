@@ -184,7 +184,7 @@ export function StrategyMatrixDialog({
                         <div>
                           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Stratégies</p>
                           <div className="grid gap-2">
-                            {STRATEGIES.map((strategy) => <label key={strategy} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border bg-background px-3"><Cell checked={(value.strategiesByAsset[asset] ?? []).includes(strategy)} onClick={() => toggleStrategy(asset, strategy)} ariaLabel={`${asset} — ${strategy}`} /><span className="text-sm">{strategy}</span></label>)}
+                            {STRATEGIES.map((strategy) => { const on2 = (value.strategiesByAsset[asset] ?? []).includes(strategy); return <button type="button" key={strategy} aria-pressed={on2} onClick={() => toggleStrategy(asset, strategy)} className={cn("flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-md border bg-background px-3 text-left", on2 && "border-accent bg-accent/5")}><span className={cn("flex size-6 shrink-0 items-center justify-center rounded border border-input", on2 && "border-accent bg-accent text-accent-foreground")}>{on2 && <Check className="size-4" />}</span><span className="text-sm">{strategy}</span></button>; })}
                           </div>
                         </div>
                       </div>
