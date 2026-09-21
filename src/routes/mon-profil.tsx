@@ -208,7 +208,7 @@ function IdentityStep({ draft, setDraft, customJob, setCustomJob }: { draft: Inv
 }
 
 function ChoiceBox({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) {
-  return <label className="flex min-h-11 cursor-pointer items-center gap-3"><Checkbox checked={checked} onCheckedChange={onChange} aria-label={label} /><span className="text-sm">{label}</span></label>;
+  return <label onClick={onChange} className="flex min-h-11 cursor-pointer items-center gap-3"><Checkbox checked={checked} className="pointer-events-none" aria-label={label} /><span className="text-sm">{label}</span></label>;
 }
 
 function StrategyStep({ criteria, toggleAsset, updateCriteria }: { criteria: CriteriaMap; toggleAsset: (asset: string) => void; updateCriteria: (asset: string, patch: Partial<CriteriaChoice>) => void }) {
