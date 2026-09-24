@@ -16,3 +16,5 @@
 - [x] Copie de fin de campagne envoyee a d.berbia@wallsbroker.com en dernier
 
 - [x] Analyse automatique de la boite mail Outlook (detection de contacts a valider)
+
+- [x] Étape 1 socle : pipeline Dossiers + synchro Outlook depuis 01/2026
