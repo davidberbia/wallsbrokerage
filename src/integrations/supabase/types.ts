@@ -1183,6 +1183,8 @@ export type Database = {
           lease_until: string | null
           messages_done: number
           next_link: string | null
+          scan_from: string | null
+          scan_to: string | null
           skipped: number
           status: string
           updated_at: string
@@ -1197,6 +1199,8 @@ export type Database = {
           lease_until?: string | null
           messages_done?: number
           next_link?: string | null
+          scan_from?: string | null
+          scan_to?: string | null
           skipped?: number
           status?: string
           updated_at?: string
@@ -1211,6 +1215,8 @@ export type Database = {
           lease_until?: string | null
           messages_done?: number
           next_link?: string | null
+          scan_from?: string | null
+          scan_to?: string | null
           skipped?: number
           status?: string
           updated_at?: string
