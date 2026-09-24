@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authorizeCron, getAdmin } from "@/lib/automation.server";
 import { graphGet, type GraphAddress } from "@/lib/mailscan.server";
+import { extractFromText } from "@/lib/mail-extract";
+import { PERSONAL_EMAIL_DOMAINS } from "@/lib/email-domains";
 
 // Synchronisation continue des emails (reçus + envoyés) depuis le 1er janvier 2026,
 // via les requêtes delta de Microsoft Graph. Rattache chaque email à un dossier.
@@ -42,7 +44,20 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
           admin.from("deals").select("id,name"),
         ]);
         const byEmail = new Map<string, string>();
-        for (const c of contacts ?? []) byEmail.set(lower(c.email), c.deal_id);
+        const byDomain = new Map<string, string>();
+        const personal = new Set<string>(PERSONAL_EMAIL_DOMAINS);
+        for (const c of contacts ?? []) {
+          const em = lower(c.email);
+          byEmail.set(em, c.deal_id);
+          const dom = em.split("@")[1];
+          // Rattachement par domaine : uniquement pour les domaines professionnels,
+          // et seulement si un seul dossier utilise ce domaine (sinon ambigu).
+          if (dom && !personal.has(dom)) {
+            const prev = byDomain.get(dom);
+            if (prev === undefined) byDomain.set(dom, c.deal_id);
+            else if (prev !== c.deal_id) byDomain.set(dom, "AMBIGU");
+          }
+        }
         const named = (deals ?? [])
           .filter((d) => d.name.trim().length >= 4)
           .map((d) => ({ id: d.id, key: d.name.trim().toLowerCase() }));
