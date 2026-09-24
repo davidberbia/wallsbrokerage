@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ComparablesRouteImport } from './routes/comparables'
 import { Route as ContactsDetectesRouteImport } from './routes/contacts-detectes'
 import { Route as DossiersRouteImport } from './routes/dossiers'
 import { Route as EnvoisRouteImport } from './routes/envois'
@@ -49,6 +50,11 @@ const ArbitrageRoute = ArbitrageRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComparablesRoute = ComparablesRouteImport.update({
+  id: '/comparables',
+  path: '/comparables',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactsDetectesRoute = ContactsDetectesRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/actifs': typeof ActifsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/comparables': typeof ComparablesRoute
   '/contacts-detectes': typeof ContactsDetectesRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
@@ -168,6 +175,7 @@ export interface FileRoutesByTo {
   '/actifs': typeof ActifsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/comparables': typeof ComparablesRoute
   '/contacts-detectes': typeof ContactsDetectesRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/actifs': typeof ActifsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/comparables': typeof ComparablesRoute
   '/contacts-detectes': typeof ContactsDetectesRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/actifs'
     | '/arbitrage'
     | '/auth'
+    | '/comparables'
     | '/contacts-detectes'
     | '/dossiers'
     | '/envois'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/actifs'
     | '/arbitrage'
     | '/auth'
+    | '/comparables'
     | '/contacts-detectes'
     | '/dossiers'
     | '/envois'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/actifs'
     | '/arbitrage'
     | '/auth'
+    | '/comparables'
     | '/contacts-detectes'
     | '/dossiers'
     | '/envois'
@@ -287,6 +299,7 @@ export interface RootRouteChildren {
   ActifsRoute: typeof ActifsRoute
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
+  ComparablesRoute: typeof ComparablesRoute
   ContactsDetectesRoute: typeof ContactsDetectesRoute
   DossiersRoute: typeof DossiersRoute
   EnvoisRoute: typeof EnvoisRoute
@@ -334,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comparables': {
+      id: '/comparables'
+      path: '/comparables'
+      fullPath: '/comparables'
+      preLoaderRoute: typeof ComparablesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contacts-detectes': {
@@ -463,6 +483,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActifsRoute: ActifsRoute,
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
+  ComparablesRoute: ComparablesRoute,
   ContactsDetectesRoute: ContactsDetectesRoute,
   DossiersRoute: DossiersRoute,
   EnvoisRoute: EnvoisRoute,
