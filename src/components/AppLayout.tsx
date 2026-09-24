@@ -26,6 +26,7 @@ const BROKER_NAV = [
   { to: "/prospects", label: "Prospects", icon: Contact },
   { to: "/actifs", label: "Actifs", icon: Building2 },
   { to: "/dossiers", label: "Dossiers", icon: FolderKanban },
+  { to: "/comparables", label: "Comparables", icon: Scale },
   { to: "/envois", label: "Envois", icon: Send },
 ] as const;
 
