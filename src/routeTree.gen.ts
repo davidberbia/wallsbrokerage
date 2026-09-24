@@ -22,6 +22,7 @@ import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as ValidationRouteImport } from './routes/validation'
 import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
 import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
@@ -97,6 +98,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ValidationRoute = ValidationRouteImport.update({
+  id: '/validation',
+  path: '/validation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SyntheseTokenRoute = SyntheseTokenRouteImport.update({
   id: '/synthese/$token',
   path: '/synthese/$token',
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/validation': typeof ValidationRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/validation': typeof ValidationRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/validation': typeof ValidationRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -235,6 +244,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
+    | '/validation'
     | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/cfnews-tick'
@@ -259,6 +269,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
+    | '/validation'
     | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/cfnews-tick'
@@ -283,6 +294,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
+    | '/validation'
     | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/cfnews-tick'
@@ -308,6 +320,7 @@ export interface RootRouteChildren {
   ParametresRoute: typeof ParametresRoute
   ProspectsRoute: typeof ProspectsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ValidationRoute: typeof ValidationRoute
   SyntheseTokenRoute: typeof SyntheseTokenRoute
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
@@ -412,6 +425,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/validation': {
+      id: '/validation'
+      path: '/validation'
+      fullPath: '/validation'
+      preLoaderRoute: typeof ValidationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/synthese/$token': {
       id: '/synthese/$token'
       path: '/synthese/$token'
@@ -492,6 +512,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParametresRoute: ParametresRoute,
   ProspectsRoute: ProspectsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ValidationRoute: ValidationRoute,
   SyntheseTokenRoute: SyntheseTokenRoute,
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,

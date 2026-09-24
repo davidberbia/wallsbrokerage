@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavCounts } from "@/hooks/useNavCounts";
+import { AssistantBar } from "@/components/AssistantBar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const BROKER_NAV = [
@@ -182,6 +183,7 @@ export function AppLayout({
           </div>
         </div>
       </header>
+      {isStaff && <AssistantBar userId={session.user.id} />}
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-10">{children}</main>
     </div>
   );

@@ -14,6 +14,190 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          page: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          page?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          page?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_doc_requests: {
+        Row: {
+          created_at: string
+          deal_id: string | null
+          id: string
+          investor_email: string
+          investor_graph_id: string
+          investor_name: string | null
+          requested: string
+          seller_email: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          investor_email: string
+          investor_graph_id: string
+          investor_name?: string | null
+          requested: string
+          seller_email?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string | null
+          id?: string
+          investor_email?: string
+          investor_graph_id?: string
+          investor_name?: string | null
+          requested?: string
+          seller_email?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_doc_requests_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_drafts: {
+        Row: {
+          attachments: Json
+          body_html: string
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          reply_to_graph_id: string | null
+          request_id: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          to_email: string
+          to_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json
+          body_html: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          reply_to_graph_id?: string | null
+          request_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          to_email: string
+          to_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json
+          body_html?: string
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          reply_to_graph_id?: string | null
+          request_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          to_email?: string
+          to_name?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_drafts_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "ai_doc_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_suggestions: {
+        Row: {
+          created_at: string
+          id: string
+          page: string | null
+          status: string
+          suggestion: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          page?: string | null
+          status?: string
+          suggestion: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          page?: string | null
+          status?: string
+          suggestion?: string
+        }
+        Relationships: []
+      }
+      ai_usage: {
+        Row: {
+          cost_eur: number
+          created_at: string
+          id: string
+          task: string
+          tokens_in: number
+          tokens_out: number
+        }
+        Insert: {
+          cost_eur?: number
+          created_at?: string
+          id?: string
+          task: string
+          tokens_in?: number
+          tokens_out?: number
+        }
+        Update: {
+          cost_eur?: number
+          created_at?: string
+          id?: string
+          task?: string
+          tokens_in?: number
+          tokens_out?: number
+        }
+        Relationships: []
+      }
       arbitrage_requests: {
         Row: {
           address: string | null
@@ -560,6 +744,7 @@ export type Database = {
           investor_id: string | null
           name: string | null
           prospect_contact_id: string | null
+          role: string
           updated_at: string
         }
         Insert: {
@@ -570,6 +755,7 @@ export type Database = {
           investor_id?: string | null
           name?: string | null
           prospect_contact_id?: string | null
+          role?: string
           updated_at?: string
         }
         Update: {
@@ -580,6 +766,7 @@ export type Database = {
           investor_id?: string | null
           name?: string | null
           prospect_contact_id?: string | null
+          role?: string
           updated_at?: string
         }
         Relationships: [
@@ -962,6 +1149,7 @@ export type Database = {
       }
       mail_messages: {
         Row: {
+          ai_checked_at: string | null
           created_at: string
           deal_id: string | null
           extracted: Json
@@ -969,6 +1157,7 @@ export type Database = {
           from_email: string | null
           from_name: string | null
           graph_id: string
+          has_attachments: boolean
           id: string
           linked_manually: boolean
           participants: string[]
@@ -980,6 +1169,7 @@ export type Database = {
           web_link: string | null
         }
         Insert: {
+          ai_checked_at?: string | null
           created_at?: string
           deal_id?: string | null
           extracted?: Json
@@ -987,6 +1177,7 @@ export type Database = {
           from_email?: string | null
           from_name?: string | null
           graph_id: string
+          has_attachments?: boolean
           id?: string
           linked_manually?: boolean
           participants?: string[]
@@ -998,6 +1189,7 @@ export type Database = {
           web_link?: string | null
         }
         Update: {
+          ai_checked_at?: string | null
           created_at?: string
           deal_id?: string | null
           extracted?: Json
@@ -1005,6 +1197,7 @@ export type Database = {
           from_email?: string | null
           from_name?: string | null
           graph_id?: string
+          has_attachments?: boolean
           id?: string
           linked_manually?: boolean
           participants?: string[]
