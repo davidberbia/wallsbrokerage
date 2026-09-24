@@ -476,6 +476,114 @@ export type Database = {
         }
         Relationships: []
       }
+      deal_contacts: {
+        Row: {
+          created_at: string
+          deal_id: string
+          email: string
+          id: string
+          investor_id: string | null
+          name: string | null
+          prospect_contact_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id: string
+          email: string
+          id?: string
+          investor_id?: string | null
+          name?: string | null
+          prospect_contact_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string
+          email?: string
+          id?: string
+          investor_id?: string | null
+          name?: string | null
+          prospect_contact_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_contacts_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_contacts_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_contacts_prospect_contact_id_fkey"
+            columns: ["prospect_contact_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          amount: number | null
+          asset_id: string | null
+          company: string | null
+          contact_name: string | null
+          created_at: string
+          id: string
+          last_activity_at: string | null
+          name: string
+          notes: string | null
+          sort_order: number
+          stage: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number | null
+          asset_id?: string | null
+          company?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string | null
+          name: string
+          notes?: string | null
+          sort_order?: number
+          stage?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number | null
+          asset_id?: string | null
+          company?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          last_activity_at?: string | null
+          name?: string
+          notes?: string | null
+          sort_order?: number
+          stage?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_queue: {
         Row: {
           attachment_name: string | null
@@ -700,6 +808,104 @@ export type Database = {
           strategies?: string[]
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      mail_messages: {
+        Row: {
+          created_at: string
+          deal_id: string | null
+          folder: string
+          from_email: string | null
+          from_name: string | null
+          graph_id: string
+          id: string
+          linked_manually: boolean
+          participants: string[]
+          preview: string | null
+          received_at: string | null
+          subject: string | null
+          to_display: string | null
+          updated_at: string
+          web_link: string | null
+        }
+        Insert: {
+          created_at?: string
+          deal_id?: string | null
+          folder: string
+          from_email?: string | null
+          from_name?: string | null
+          graph_id: string
+          id?: string
+          linked_manually?: boolean
+          participants?: string[]
+          preview?: string | null
+          received_at?: string | null
+          subject?: string | null
+          to_display?: string | null
+          updated_at?: string
+          web_link?: string | null
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string | null
+          folder?: string
+          from_email?: string | null
+          from_name?: string | null
+          graph_id?: string
+          id?: string
+          linked_manually?: boolean
+          participants?: string[]
+          preview?: string | null
+          received_at?: string | null
+          subject?: string | null
+          to_display?: string | null
+          updated_at?: string
+          web_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mail_messages_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mail_sync_state: {
+        Row: {
+          created_at: string
+          delta_link: string | null
+          folder: string
+          last_error: string | null
+          last_sync_at: string | null
+          lease_until: string | null
+          messages_synced: number
+          next_link: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delta_link?: string | null
+          folder: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          lease_until?: string | null
+          messages_synced?: number
+          next_link?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delta_link?: string | null
+          folder?: string
+          last_error?: string | null
+          last_sync_at?: string | null
+          lease_until?: string | null
+          messages_synced?: number
+          next_link?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1053,6 +1259,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      deal_touch_activity: { Args: { _deal: string }; Returns: undefined }
       email_pump_tick: { Args: never; Returns: undefined }
       has_role: {
         Args: {
