@@ -3,6 +3,7 @@ import { authorizeCron, getAdmin } from "@/lib/automation.server";
 import { graphGet, type GraphAddress } from "@/lib/mailscan.server";
 import { extractFromText } from "@/lib/mail-extract";
 import { PERSONAL_EMAIL_DOMAINS } from "@/lib/email-domains";
+import { runSourcing } from "@/lib/sourcing.server";
 
 // Synchronisation continue des emails (reçus + envoyés) depuis le 1er janvier 2026,
 // via les requêtes delta de Microsoft Graph. Rattache chaque email à un dossier.
@@ -210,6 +211,12 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
             .maybeSingle();
           if (last?.received_at)
             await admin.from("deals").update({ last_activity_at: last.received_at }).eq("id", id);
+        }
+        // Sourcing newsletters / PDF (par règles, sans IA), borné par passage.
+        try {
+          Object.assign(report, await runSourcing());
+        } catch (e) {
+          report["sourcing_erreur"] = (e instanceof Error ? e.message : String(e)).slice(0, 200);
         }
         return Response.json({ ok: true, ...report });
       },

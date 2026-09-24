@@ -334,6 +334,11 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
         contact_name: current?.contact_name ?? null,
         amount: current?.amount ?? null,
         address: current?.address ?? null,
+        fee_amount: current?.fee_amount ?? null,
+        fee_pct: current?.fee_pct ?? null,
+        probability: current?.probability ?? null,
+        expected_payment_at: current?.expected_payment_at ?? null,
+        paid_at: current?.paid_at ?? null,
         notes: current?.notes ?? null,
         asset_id: current?.asset_id ?? null,
       } as never)
@@ -491,6 +496,49 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
         <div>
           <Label>Adresse de l'actif</Label>
           <Input value={current.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
+        </div>
+        <div>
+          <Label>Honoraires prévus (€)</Label>
+          <Input
+            type="number"
+            value={current.fee_amount ?? ""}
+            onChange={(e) => set({ fee_amount: e.target.value === "" ? null : Number(e.target.value) })}
+          />
+        </div>
+        <div>
+          <Label>ou honoraires en % du montant</Label>
+          <Input
+            type="number"
+            step="0.1"
+            value={current.fee_pct ?? ""}
+            onChange={(e) => set({ fee_pct: e.target.value === "" ? null : Number(e.target.value) })}
+          />
+        </div>
+        <div>
+          <Label>Probabilité de succès (%)</Label>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            value={current.probability ?? ""}
+            onChange={(e) => set({ probability: e.target.value === "" ? null : Number(e.target.value) })}
+          />
+        </div>
+        <div>
+          <Label>Encaissement prévu le</Label>
+          <Input
+            type="date"
+            value={current.expected_payment_at ?? ""}
+            onChange={(e) => set({ expected_payment_at: e.target.value || null })}
+          />
+        </div>
+        <div>
+          <Label>Encaissé le</Label>
+          <Input
+            type="date"
+            value={current.paid_at ?? ""}
+            onChange={(e) => set({ paid_at: e.target.value || null })}
+          />
         </div>
         <div className="sm:col-span-2">
           <Label>Notes</Label>

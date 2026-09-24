@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ComparablesRouteImport } from './routes/comparables'
 import { Route as ContactsDetectesRouteImport } from './routes/contacts-detectes'
 import { Route as DossiersRouteImport } from './routes/dossiers'
 import { Route as EnvoisRouteImport } from './routes/envois'
@@ -21,9 +22,11 @@ import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
 import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
+import { Route as ApiPublicCronDailyDigestRouteImport } from './routes/api/public/cron/daily-digest'
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
 import { Route as ApiPublicCronMailscanTickRouteImport } from './routes/api/public/cron/mailscan-tick'
 import { Route as ApiPublicCronMailsyncTickRouteImport } from './routes/api/public/cron/mailsync-tick'
@@ -47,6 +50,11 @@ const ArbitrageRoute = ArbitrageRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComparablesRoute = ComparablesRouteImport.update({
+  id: '/comparables',
+  path: '/comparables',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactsDetectesRoute = ContactsDetectesRouteImport.update({
@@ -89,6 +97,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SyntheseTokenRoute = SyntheseTokenRouteImport.update({
+  id: '/synthese/$token',
+  path: '/synthese/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicBrevoEventsRoute = ApiPublicBrevoEventsRouteImport.update({
   id: '/api/public/brevo-events',
   path: '/api/public/brevo-events',
@@ -104,6 +117,12 @@ const ApiPublicCronDailyRoute = ApiPublicCronDailyRouteImport.update({
   path: '/api/public/cron/daily',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronDailyDigestRoute =
+  ApiPublicCronDailyDigestRouteImport.update({
+    id: '/api/public/cron/daily-digest',
+    path: '/api/public/cron/daily-digest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronEmailTickRoute = ApiPublicCronEmailTickRouteImport.update({
   id: '/api/public/cron/email-tick',
   path: '/api/public/cron/email-tick',
@@ -132,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/actifs': typeof ActifsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/comparables': typeof ComparablesRoute
   '/contacts-detectes': typeof ContactsDetectesRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
@@ -140,9 +160,11 @@ export interface FileRoutesByFullPath {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
+  '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
@@ -153,6 +175,7 @@ export interface FileRoutesByTo {
   '/actifs': typeof ActifsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/comparables': typeof ComparablesRoute
   '/contacts-detectes': typeof ContactsDetectesRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
@@ -161,9 +184,11 @@ export interface FileRoutesByTo {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
+  '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
@@ -175,6 +200,7 @@ export interface FileRoutesById {
   '/actifs': typeof ActifsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/comparables': typeof ComparablesRoute
   '/contacts-detectes': typeof ContactsDetectesRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
@@ -183,9 +209,11 @@ export interface FileRoutesById {
   '/parametres': typeof ParametresRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
+  '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
@@ -198,6 +226,7 @@ export interface FileRouteTypes {
     | '/actifs'
     | '/arbitrage'
     | '/auth'
+    | '/comparables'
     | '/contacts-detectes'
     | '/dossiers'
     | '/envois'
@@ -206,9 +235,11 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
+    | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
+    | '/api/public/cron/daily-digest'
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
@@ -219,6 +250,7 @@ export interface FileRouteTypes {
     | '/actifs'
     | '/arbitrage'
     | '/auth'
+    | '/comparables'
     | '/contacts-detectes'
     | '/dossiers'
     | '/envois'
@@ -227,9 +259,11 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
+    | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
+    | '/api/public/cron/daily-digest'
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
@@ -240,6 +274,7 @@ export interface FileRouteTypes {
     | '/actifs'
     | '/arbitrage'
     | '/auth'
+    | '/comparables'
     | '/contacts-detectes'
     | '/dossiers'
     | '/envois'
@@ -248,9 +283,11 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/prospects'
     | '/sitemap.xml'
+    | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
+    | '/api/public/cron/daily-digest'
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
@@ -262,6 +299,7 @@ export interface RootRouteChildren {
   ActifsRoute: typeof ActifsRoute
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
+  ComparablesRoute: typeof ComparablesRoute
   ContactsDetectesRoute: typeof ContactsDetectesRoute
   DossiersRoute: typeof DossiersRoute
   EnvoisRoute: typeof EnvoisRoute
@@ -270,9 +308,11 @@ export interface RootRouteChildren {
   ParametresRoute: typeof ParametresRoute
   ProspectsRoute: typeof ProspectsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SyntheseTokenRoute: typeof SyntheseTokenRoute
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
+  ApiPublicCronDailyDigestRoute: typeof ApiPublicCronDailyDigestRoute
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
   ApiPublicCronMailscanTickRoute: typeof ApiPublicCronMailscanTickRoute
   ApiPublicCronMailsyncTickRoute: typeof ApiPublicCronMailsyncTickRoute
@@ -307,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comparables': {
+      id: '/comparables'
+      path: '/comparables'
+      fullPath: '/comparables'
+      preLoaderRoute: typeof ComparablesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contacts-detectes': {
@@ -365,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/synthese/$token': {
+      id: '/synthese/$token'
+      path: '/synthese/$token'
+      fullPath: '/synthese/$token'
+      preLoaderRoute: typeof SyntheseTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/brevo-events': {
       id: '/api/public/brevo-events'
       path: '/api/public/brevo-events'
@@ -384,6 +438,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/cron/daily'
       fullPath: '/api/public/cron/daily'
       preLoaderRoute: typeof ApiPublicCronDailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cron/daily-digest': {
+      id: '/api/public/cron/daily-digest'
+      path: '/api/public/cron/daily-digest'
+      fullPath: '/api/public/cron/daily-digest'
+      preLoaderRoute: typeof ApiPublicCronDailyDigestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/cron/email-tick': {
@@ -422,6 +483,7 @@ const rootRouteChildren: RootRouteChildren = {
   ActifsRoute: ActifsRoute,
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
+  ComparablesRoute: ComparablesRoute,
   ContactsDetectesRoute: ContactsDetectesRoute,
   DossiersRoute: DossiersRoute,
   EnvoisRoute: EnvoisRoute,
@@ -430,9 +492,11 @@ const rootRouteChildren: RootRouteChildren = {
   ParametresRoute: ParametresRoute,
   ProspectsRoute: ProspectsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SyntheseTokenRoute: SyntheseTokenRoute,
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
+  ApiPublicCronDailyDigestRoute: ApiPublicCronDailyDigestRoute,
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
   ApiPublicCronMailscanTickRoute: ApiPublicCronMailscanTickRoute,
   ApiPublicCronMailsyncTickRoute: ApiPublicCronMailsyncTickRoute,
