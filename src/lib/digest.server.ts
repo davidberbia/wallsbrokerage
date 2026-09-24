@@ -12,7 +12,12 @@ const dshort = (v: string | null) =>
 const own = (e: string | null) => OWN_DOMAINS.includes((e ?? "").split("@")[1] ?? "");
 const plural = (n: number, one: string, many: string) => `${n} ${n > 1 ? many : one}`;
 
-export type Digest = { html: string; speech: string; counts: Record<string, number> };
+export type Digest = {
+  html: string;
+  speech: string;
+  counts: { unanswered: number; relaunch: number; calls: number; dormant: number };
+  reminders: { mail_id: string; tier: number }[];
+};
 
 export async function buildDigest(listenUrl: string | null): Promise<Digest> {
   const admin = await getAdmin();
@@ -276,6 +281,6 @@ ${table(["Type", "Ville", "Surface", "Valeur", "Détail"], (comps ?? []).map((c)
     speech: parts.join(" ").replace(/€/g, " euros"),
     counts: { unanswered: unanswered.length, relaunch: relaunch.length, calls: calls.length, dormant: dormant.length },
     // Les rappels sont marqués par l'appelant après envoi réussi.
-    ...({ _reminders: unanswered.map((u) => ({ mail_id: u.m.id, tier: u.tier })) } as object),
-  } as Digest & { _reminders: { mail_id: string; tier: number }[] };
+    reminders: unanswered.map((u) => ({ mail_id: u.m.id, tier: u.tier })),
+  };
 }

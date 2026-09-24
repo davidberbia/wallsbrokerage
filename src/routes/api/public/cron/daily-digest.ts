@@ -23,9 +23,7 @@ export const Route = createFileRoute("/api/public/cron/daily-digest")({
         if (existing && !force) return Response.json({ ok: true, skipped: "déjà envoyé" });
 
         const token = crypto.randomUUID();
-        const digest = (await buildDigest(`${APP_URL}/synthese/${token}`)) as Awaited<ReturnType<typeof buildDigest>> & {
-          _reminders: { mail_id: string; tier: number }[];
-        };
+        const digest = await buildDigest(`${APP_URL}/synthese/${token}`);
         await admin
           .from("digest_reports")
           .upsert({ day, token, html: digest.html, speech: digest.speech }, { onConflict: "day" });
@@ -35,8 +33,8 @@ export const Route = createFileRoute("/api/public/cron/daily-digest")({
           subject: `Synthèse du jour — ${digest.counts.unanswered} sans réponse, ${digest.counts.relaunch} relances, ${digest.counts.calls} appels`,
           html: digest.html,
         });
-        if (digest._reminders.length)
-          await admin.from("followup_reminders").upsert(digest._reminders, { onConflict: "mail_id,tier", ignoreDuplicates: true });
+        if (digest.reminders.length)
+          await admin.from("followupreminders").upsert(digest.reminders, { onConflict: "mail_id,tier", ignoreDuplicates: true });
 
         return Response.json({ ok: true, ...digest.counts });
       },
