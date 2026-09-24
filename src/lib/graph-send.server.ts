@@ -13,7 +13,7 @@ async function graph<T>(method: string, path: string, body?: unknown): Promise<T
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? null : JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Outlook [${res.status}] ${(await res.text()).slice(0, 300)}`);
   const txt = await res.text();

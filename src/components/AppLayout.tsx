@@ -183,6 +183,7 @@ export function AppLayout({
           </div>
         </div>
       </header>
+      {isStaff && <AssistantBar userId={session.user.id} />}
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-10">{children}</main>
     </div>
   );

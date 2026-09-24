@@ -102,13 +102,13 @@ export async function runDocRequests(): Promise<Record<string, number | string>>
       if (error || !req) continue;
       created += 1;
       const dealName = (deals ?? []).find((d) => d.id === dealId)?.name ?? "l'actif";
-      const firstName = (known.get(from) ?? m.from_name ?? "").split(" ")[0];
+      const firstName = (known.get(from) ?? m.from_name ?? "").split(" ")[0] ?? "";
 
       // 3.B : documents trouvés chez le vendeur
       const refs = seller?.email ? await pickAttachments(seller.email, c.documents) : [];
       if (refs.length) {
         const l = await write("reponse_investisseur", `Rédige la réponse à ${firstName} qui a demandé « ${c.documents} » pour ${dealName}. Les documents suivants sont joints : ${refs.map((r) => r.name).join(", ")}.`);
-        await admin.from("ai_drafts").insert({ request_id: req.id, kind: "reponse_investisseur", reply_to_graph_id: m.graph_id, to_email: from, to_name: firstName, subject: `RE: ${m.subject ?? ""}`, body_html: toHtml(l.body) + AI_SIGNATURE, attachments: refs });
+        await admin.from("ai_drafts").insert({ request_id: req.id, kind: "reponse_investisseur", reply_to_graph_id: m.graph_id, to_email: from, to_name: firstName, subject: `RE: ${m.subject ?? ""}`, body_html: toHtml(l.body) + AI_SIGNATURE, attachments: refs as unknown as never });
         await admin.from("ai_doc_requests").update({ status: "documents trouvés" }).eq("id", req.id);
       } else if (seller?.email) {
         // 3.C : demande au vendeur + accusé à l'investisseur
@@ -139,9 +139,9 @@ export async function runDocRequests(): Promise<Record<string, number | string>>
         for (const a of await listAttachments(x.id))
           if (!/^image\d*\.(png|jpe?g|gif)$/i.test(a.name)) refs.push({ messageId: x.id, attachmentId: a.id, name: a.name });
       if (!refs.length) continue;
-      const first = (r.investor_name ?? "").split(" ")[0];
+      const first = (r.investor_name ?? "").split(" ")[0] ?? "";
       const li = await write("transmission_investisseur", `Rédige la réponse à ${first} : voici les documents demandés (« ${r.requested} ») reçus du vendeur, joints : ${refs.map((x) => x.name).join(", ")}.`);
-      await admin.from("ai_drafts").insert({ request_id: r.id, kind: "reponse_investisseur", reply_to_graph_id: r.investor_graph_id, to_email: r.investor_email, to_name: first, subject: "RE: documents demandés", body_html: toHtml(li.body) + AI_SIGNATURE, attachments: refs });
+      await admin.from("ai_drafts").insert({ request_id: r.id, kind: "reponse_investisseur", reply_to_graph_id: r.investor_graph_id, to_email: r.investor_email, to_name: first, subject: "RE: documents demandés", body_html: toHtml(li.body) + AI_SIGNATURE, attachments: refs as unknown as never });
       const lt = await write("remerciement_vendeur", `Rédige un court mail de remerciement au vendeur : ses documents (${refs.map((x) => x.name).join(", ")}) ont bien été transmis à l'acquéreur potentiel.`);
       await admin.from("ai_drafts").insert({ request_id: r.id, kind: "remerciement_vendeur", reply_to_graph_id: mailsFrom[0]!.id, to_email: r.seller_email!, subject: `RE: ${lt.subject}`, body_html: toHtml(lt.body) + AI_SIGNATURE });
       await admin.from("ai_doc_requests").update({ status: "documents reçus" }).eq("id", r.id);

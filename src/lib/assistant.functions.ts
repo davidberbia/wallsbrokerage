@@ -71,8 +71,8 @@ export const sendDraft = createServerFn({ method: "POST" })
     if (!d || d.status !== "en attente") throw new Error("Brouillon introuvable ou déjà traité.");
     const { replyInThread, sendNew } = await import("@/lib/graph-send.server");
     try {
-      if (d.reply_to_graph_id) await replyInThread(d.reply_to_graph_id, data.body_html, d.attachments ?? []);
-      else await sendNew(d.to_email, data.subject, data.body_html, d.attachments ?? []);
+      if (d.reply_to_graph_id) await replyInThread(d.reply_to_graph_id, data.body_html, (d.attachments ?? []) as unknown as import("@/lib/graph-send.server").AttachmentRef[]);
+      else await sendNew(d.to_email, data.subject, data.body_html, (d.attachments ?? []) as unknown as import("@/lib/graph-send.server").AttachmentRef[]);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       await supabase.from("ai_drafts").update({ error: msg.slice(0, 500) }).eq("id", d.id);
