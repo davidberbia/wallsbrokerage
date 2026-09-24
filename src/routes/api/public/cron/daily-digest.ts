@@ -34,7 +34,7 @@ export const Route = createFileRoute("/api/public/cron/daily-digest")({
           html: digest.html,
         });
         if (digest.reminders.length)
-          await admin.from("followupreminders").upsert(digest.reminders, { onConflict: "mail_id,tier", ignoreDuplicates: true });
+          await admin.from("followup_reminders").upsert(digest.reminders, { onConflict: "mail_id,tier", ignoreDuplicates: true });
 
         return Response.json({ ok: true, ...digest.counts });
       },
