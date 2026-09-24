@@ -20,6 +20,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavCounts } from "@/hooks/useNavCounts";
+import { AssistantBar } from "@/components/AssistantBar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const BROKER_NAV = [
