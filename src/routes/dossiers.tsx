@@ -621,6 +621,19 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
               className="inline-flex items-center gap-1 rounded-sm border border-border px-2 py-1 text-xs"
             >
               {c.email}
+              <select
+                aria-label="Rôle"
+                value={(c as { role?: string }).role ?? "autre"}
+                onChange={async (e) => {
+                  await supabase.from("deal_contacts").update({ role: e.target.value }).eq("id", c.id);
+                  refresh();
+                }}
+                className="ml-1 rounded-sm border border-border bg-background px-1 text-[11px]"
+              >
+                <option value="autre">—</option>
+                <option value="vendeur">Vendeur</option>
+                <option value="acquéreur">Acquéreur</option>
+              </select>
               <button
                 aria-label="Retirer"
                 onClick={async () => {
