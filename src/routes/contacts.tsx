@@ -14,16 +14,16 @@ import {
   listMailscanCandidates,
 } from "@/lib/mailscan.functions";
 
-export const Route = createFileRoute("/contacts-detectes")({
+export const Route = createFileRoute("/contacts")({
   head: () => ({
     meta: [
-      { title: "Contacts détectés — Walls Brokerage CRM" },
+      { title: "Contacts — Walls Brokerage CRM" },
       {
         name: "description",
         content:
           "Contacts professionnels repérés dans la boîte mail, à valider avant intégration aux bases prospects et investisseurs.",
       },
-      { property: "og:title", content: "Contacts détectés — Walls Brokerage CRM" },
+      { property: "og:title", content: "Contacts — Walls Brokerage CRM" },
       {
         property: "og:description",
         content: "Validez les contacts trouvés dans vos emails avant de les ajouter à vos bases.",
@@ -53,7 +53,7 @@ function DetectedContactsPage() {
   const ignore = useServerFn(ignoreMailscanCandidates);
 
   const [search, setSearch] = useState("");
-  const [onlyImmo, setOnlyImmo] = useState(true);
+  const [onlyImmo, setOnlyImmo] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
 
   const { data, isLoading } = useQuery({
@@ -108,7 +108,7 @@ function DetectedContactsPage() {
     <div className="space-y-6">
       <div>
         <p className="eyebrow">Boîte mail</p>
-        <h1 className="mt-1 text-3xl">Contacts détectés</h1>
+        <h1 className="mt-1 text-3xl">Contacts</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Chaque contact ci-dessous vient de vos emails. Cochez ceux que vous souhaitez conserver :
           si la société est déjà connue côté investisseurs, la fiche reprendra automatiquement la

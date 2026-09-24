@@ -247,7 +247,7 @@ ${table(["Type", "Ville", "Surface", "Valeur", "Détail"], (comps ?? []).map((c)
   c.kind === "location" ? (c.price_m2 ? `${Math.round(Number(c.price_m2))} €/m²/an` : "—") : c.price ? eur(Number(c.price)) : "—",
   e(c.excerpt.slice(0, 180)),
 ]), "Aucun nouveau comparable.")}`)}
-<p style="margin-top:26px;color:#6b7684;font-size:12px;">Synthèse générée automatiquement par le CRM Walls Brokerage à partir de votre boîte Outlook. <a href="${APP_URL}/dossiers" style="color:#2a7f99;">Ouvrir les dossiers</a> · <a href="${APP_URL}/comparables" style="color:#2a7f99;">Comparables</a> · <a href="${APP_URL}/contacts-detectes" style="color:#2a7f99;">Contacts détectés</a></p>
+<p style="margin-top:26px;color:#6b7684;font-size:12px;">Synthèse générée automatiquement par le CRM Walls Brokerage à partir de votre boîte Outlook. <a href="${APP_URL}/dossiers" style="color:#2a7f99;">Ouvrir les dossiers</a> · <a href="${APP_URL}/comparables" style="color:#2a7f99;">Comparables</a> · <a href="${APP_URL}/contacts" style="color:#2a7f99;">Contacts</a></p>
 </div>`;
 
   // ---------- Texte parlé façon Jarvis ----------

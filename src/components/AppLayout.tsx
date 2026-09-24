@@ -32,7 +32,7 @@ const BROKER_NAV = [
 ] as const;
 
 const ADMIN_NAV = [
-  { to: "/contacts-detectes", label: "Contacts détectés", icon: Mail },
+  { to: "/contacts", label: "Contacts", icon: Mail },
   { to: "/parametres", label: "Paramètres", icon: Settings },
 ] as const;
 

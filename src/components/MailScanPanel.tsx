@@ -85,7 +85,7 @@ export function MailScanPanel() {
         <Stat label="État" value={STATUS_LABEL[s?.status ?? "arrêté"] ?? (s?.status ?? "—")} />
         <Stat label="Dossier" value={FOLDERS[s?.folder ?? "inbox"] ?? "—"} />
         <Stat label="Emails analysés" value={(s?.messagesDone ?? 0).toLocaleString("fr-FR")} />
-        <Stat label="Contacts détectés" value={(s?.pending ?? 0).toLocaleString("fr-FR")} />
+        <Stat label="Contacts trouvés" value={(s?.pending ?? 0).toLocaleString("fr-FR")} />
         <Stat label="Sociétés immobilières" value={(s?.ready ?? 0).toLocaleString("fr-FR")} />
         <Stat label="Fiches créées" value={(s?.integrated ?? 0).toLocaleString("fr-FR")} />
       </div>
@@ -97,7 +97,7 @@ export function MailScanPanel() {
       )}
 
       <Button asChild variant="outline" className="min-h-11 w-full sm:w-auto sm:min-h-9">
-        <Link to="/contacts-detectes">Voir les contacts à valider</Link>
+        <Link to="/contacts">Voir les contacts</Link>
       </Button>
     </div>
   );
