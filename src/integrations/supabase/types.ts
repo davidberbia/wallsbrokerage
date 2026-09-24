@@ -483,16 +483,23 @@ export type Database = {
           city: string | null
           created_at: string
           deal_date: string | null
+          enseigne: string | null
           excerpt: string
           id: string
           kind: string
           mail_graph_id: string | null
+          notes: string | null
+          postal_code: string | null
           price: number | null
           price_m2: number | null
           rent: number | null
+          rent_m2: number | null
+          rent_m2_weighted: number | null
           source: string | null
           surface: number | null
           updated_at: string
+          weighted_surface: number | null
+          yield_pct: number | null
         }
         Insert: {
           address?: string | null
@@ -500,16 +507,23 @@ export type Database = {
           city?: string | null
           created_at?: string
           deal_date?: string | null
-          excerpt: string
+          enseigne?: string | null
+          excerpt?: string
           id?: string
           kind?: string
           mail_graph_id?: string | null
+          notes?: string | null
+          postal_code?: string | null
           price?: number | null
           price_m2?: number | null
           rent?: number | null
+          rent_m2?: number | null
+          rent_m2_weighted?: number | null
           source?: string | null
           surface?: number | null
           updated_at?: string
+          weighted_surface?: number | null
+          yield_pct?: number | null
         }
         Update: {
           address?: string | null
@@ -517,16 +531,23 @@ export type Database = {
           city?: string | null
           created_at?: string
           deal_date?: string | null
+          enseigne?: string | null
           excerpt?: string
           id?: string
           kind?: string
           mail_graph_id?: string | null
+          notes?: string | null
+          postal_code?: string | null
           price?: number | null
           price_m2?: number | null
           rent?: number | null
+          rent_m2?: number | null
+          rent_m2_weighted?: number | null
           source?: string | null
           surface?: number | null
           updated_at?: string
+          weighted_surface?: number | null
+          yield_pct?: number | null
         }
         Relationships: []
       }
