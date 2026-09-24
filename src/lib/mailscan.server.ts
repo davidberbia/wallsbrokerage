@@ -14,7 +14,7 @@ export type GraphMessage = {
   ccRecipients?: { emailAddress?: GraphAddress }[] | null;
 };
 
-export async function graphGet<T>(pathOrUrl: string): Promise<T> {
+export async function graphGet<T>(pathOrUrl: string, extraHeaders?: Record<string, string>): Promise<T> {
   // Les liens de pagination renvoyés par Graph pointent vers graph.microsoft.com :
   // on les repasse par la passerelle, seule à détenir les identifiants.
   const url = pathOrUrl.startsWith("http")
@@ -28,6 +28,7 @@ export async function graphGet<T>(pathOrUrl: string): Promise<T> {
       Authorization: `Bearer ${apiKey}`,
       "X-Connection-Api-Key": connKey,
       Accept: "application/json",
+      ...(extraHeaders ?? {}),
     },
   });
   if (!res.ok) {
