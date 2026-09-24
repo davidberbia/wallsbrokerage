@@ -19,7 +19,7 @@ const LEASE_MS = 4 * 60 * 1000;
 const FOLDERS = ["inbox", "sentitems"] as const;
 
 const listUrl = (folder: string) =>
-  `/v1.0/me/mailFolders/${folder}/messages?$top=${PAGE_SIZE}&$select=id,receivedDateTime,from,toRecipients,ccRecipients&$orderby=receivedDateTime desc`;
+  `/v1.0/me/mailFolders/${folder}/messages?$top=${PAGE_SIZE}&$filter=${encodeURIComponent("receivedDateTime ge 2025-01-01T00:00:00Z and receivedDateTime lt 2026-01-01T00:00:00Z")}&$select=id,receivedDateTime,from,toRecipients,ccRecipients&$orderby=receivedDateTime desc`;
 
 export const Route = createFileRoute("/api/public/cron/mailscan-tick")({
   server: {
