@@ -18,3 +18,8 @@
 - [x] Analyse automatique de la boite mail Outlook (detection de contacts a valider)
 
 - [x] Étape 1 socle : pipeline Dossiers + synchro Outlook depuis 01/2026
+- [x] Étape 2 : extraction automatique (montants, adresses, telephones) par regles + rattachement par domaine
+- [ ] Étape 3 : sourcing (newsletters, PDF, sites web)
+- [ ] Étape 4 : assistant commercial
+- [ ] Étape 5 : pilotage (alertes, synthese hebdo)
+- [ ] Publier uniquement quand le projet est totalement termine (accord de David)
