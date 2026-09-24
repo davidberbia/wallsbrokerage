@@ -198,7 +198,7 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
             .eq("id", m.id);
           if (!bErr) backfilled += 1;
         }
-        if (backfilled) report.backfill = backfilled;
+        if (backfilled) report["backfill"] = backfilled;
 
         for (const id of touched) {
           const { data: last } = await admin
