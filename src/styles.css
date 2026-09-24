@@ -352,6 +352,12 @@
   animation: jarvis-wave 0.8s ease-in-out infinite;
 }
 
+.jarvis-wave i:nth-child(1) { height: 1rem; }
+.jarvis-wave i:nth-child(2) { height: 2rem; animation-delay: 0.12s; }
+.jarvis-wave i:nth-child(3) { height: 2.5rem; animation-delay: 0.24s; }
+.jarvis-wave i:nth-child(4) { height: 1.5rem; animation-delay: 0.36s; }
+.jarvis-wave i:nth-child(5) { height: 0.75rem; animation-delay: 0.48s; }
+
 .jarvis-main-control {
   width: 4rem;
   height: 4rem;

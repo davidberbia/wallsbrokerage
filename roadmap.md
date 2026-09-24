@@ -23,4 +23,6 @@
 - [x] Étape 4 : rappels mails sans réponse 3/7/15 j, prospects à relancer, appels suggérés selon actualité
 - [x] Étape 5a : alertes dossiers inactifs (14 j)
 - [x] Étape 5b : synthèse QUOTIDIENNE 9h05 par email + récap financier + bouton audio Jarvis (voix navigateur gratuite)
+- [x] Corriger la lecture des longues synthèses sur mobile par lecture découpée
+- [x] Ouvrir automatiquement un lecteur vocal rond façon Jarvis sur la page de synthèse
 - [ ] Publier uniquement quand le projet est totalement termine (accord de David)

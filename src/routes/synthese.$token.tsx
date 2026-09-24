@@ -158,9 +158,7 @@ function SynthesePage() {
                 <i />
               </div>
               <div className="jarvis-wave" aria-hidden="true">
-                {[4, 8, 10, 6, 3].map((height, index) => (
-                  <i key={height} style={{ height: `${height * 0.25}rem`, animationDelay: `${index * 0.12}s` }} />
-                ))}
+                {[0, 1, 2, 3, 4].map((bar) => <i key={bar} />)}
               </div>
               {supported ? (
                 <div className="z-10 flex items-center gap-5">
