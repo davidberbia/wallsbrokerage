@@ -147,6 +147,63 @@ export type Database = {
           },
         ]
       }
+      ai_scan_state: {
+        Row: {
+          attachments_done: number
+          attachments_dup: number
+          attachments_skipped: number
+          comparables_found: number
+          contacts_found: number
+          created_at: string
+          folder: string
+          id: boolean
+          last_error: string | null
+          last_mail_at: string | null
+          lease_until: string | null
+          messages_done: number
+          news_found: number
+          next_link: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attachments_done?: number
+          attachments_dup?: number
+          attachments_skipped?: number
+          comparables_found?: number
+          contacts_found?: number
+          created_at?: string
+          folder?: string
+          id?: boolean
+          last_error?: string | null
+          last_mail_at?: string | null
+          lease_until?: string | null
+          messages_done?: number
+          news_found?: number
+          next_link?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attachments_done?: number
+          attachments_dup?: number
+          attachments_skipped?: number
+          comparables_found?: number
+          contacts_found?: number
+          created_at?: string
+          folder?: string
+          id?: boolean
+          last_error?: string | null
+          last_mail_at?: string | null
+          lease_until?: string | null
+          messages_done?: number
+          news_found?: number
+          next_link?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_suggestions: {
         Row: {
           created_at: string
@@ -1147,6 +1204,48 @@ export type Database = {
         }
         Relationships: []
       }
+      mail_attachments_seen: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          error: string | null
+          first_graph_id: string | null
+          hash: string
+          id: string
+          name: string | null
+          result: Json | null
+          size: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          error?: string | null
+          first_graph_id?: string | null
+          hash: string
+          id?: string
+          name?: string | null
+          result?: Json | null
+          size?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          error?: string | null
+          first_graph_id?: string | null
+          hash?: string
+          id?: string
+          name?: string | null
+          result?: Json | null
+          size?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mail_messages: {
         Row: {
           ai_checked_at: string | null
@@ -1689,6 +1788,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      aiscan_schedule: { Args: { _on: boolean }; Returns: undefined }
+      aiscan_stop_internal: { Args: never; Returns: undefined }
       cfnews_scrape_schedule: { Args: { _on: boolean }; Returns: undefined }
       claim_role: {
         Args: never
