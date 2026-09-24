@@ -155,6 +155,7 @@ export type Database = {
           comparables_found: number
           contacts_found: number
           created_at: string
+          current_page: string | null
           folder: string
           id: boolean
           last_error: string | null
@@ -163,6 +164,7 @@ export type Database = {
           messages_done: number
           news_found: number
           next_link: string | null
+          page_offset: number
           status: string
           updated_at: string
         }
@@ -173,6 +175,7 @@ export type Database = {
           comparables_found?: number
           contacts_found?: number
           created_at?: string
+          current_page?: string | null
           folder?: string
           id?: boolean
           last_error?: string | null
@@ -181,6 +184,7 @@ export type Database = {
           messages_done?: number
           news_found?: number
           next_link?: string | null
+          page_offset?: number
           status?: string
           updated_at?: string
         }
@@ -191,6 +195,7 @@ export type Database = {
           comparables_found?: number
           contacts_found?: number
           created_at?: string
+          current_page?: string | null
           folder?: string
           id?: boolean
           last_error?: string | null
@@ -199,6 +204,7 @@ export type Database = {
           messages_done?: number
           news_found?: number
           next_link?: string | null
+          page_offset?: number
           status?: string
           updated_at?: string
         }

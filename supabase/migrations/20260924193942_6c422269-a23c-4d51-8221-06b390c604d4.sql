@@ -1,0 +1,1 @@
+ALTER TABLE public.ai_scan_state ADD COLUMN page_offset integer NOT NULL DEFAULT 0, ADD COLUMN current_page text;
