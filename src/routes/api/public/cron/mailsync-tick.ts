@@ -183,12 +183,12 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
         }
 
         // Reprise progressive : extrait les infos des emails synchronisés avant
-        // l'ajout de l'extraction (200 par passage, sans coût).
+        // l'ajout de l'extraction (1 000 par passage, sans coût).
         const { data: backlog } = await admin
           .from("mail_messages")
           .select("id,subject,preview")
           .eq("extracted", "{}")
-          .limit(200);
+          .limit(1000);
         let backfilled = 0;
         for (const m of backlog ?? []) {
           const extracted = extractFromText(m.subject ?? null, m.preview ?? null);
