@@ -142,9 +142,57 @@ function ComparablesPage() {
   // Import d'un export JSON du Générateur de brochures (mêmes champs).
   const importFile = async (file: File) => {
     try {
-      const parsed = JSON.parse(await file.text());
       type Src = { kind?: string; typeActif?: string; enseigne?: string; codePostal?: string; ville?: string; adresse?: string; surface?: string; surfacePonderee?: string; loyerAnnuel?: string; loyerM2?: string; loyerM2Pondere?: string; prixVente?: string; prixM2?: string; rendement?: string; dateSignature?: string; notes?: string; source?: string };
-      const list: Src[] = Array.isArray(parsed) ? parsed : parsed.comparables ?? parsed.items ?? [];
+      let list: Src[] = [];
+      if (/\.(xlsx|xlsm|xls|xlsb)$/i.test(file.name)) {
+        const XLSX = await import("xlsx");
+        const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
+        const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const pick = (h: string): keyof Src | null => {
+          const n = norm(h);
+          if (n.startsWith("type d")) return "typeActif";
+          if (n.startsWith("enseigne")) return "enseigne";
+          if (n.startsWith("ville")) return "ville";
+          if (n.startsWith("code postal")) return "codePostal";
+          if (n.startsWith("adresse")) return "adresse";
+          if (n.startsWith("surface pond")) return "surfacePonderee";
+          if (n.startsWith("surface")) return "surface";
+          if (n.includes("loyer") && n.includes("pond")) return "loyerM2Pondere";
+          if (n.includes("loyer") && n.includes("m²")) return "loyerM2";
+          if (n.includes("loyer")) return "loyerAnnuel";
+          if (n.startsWith("prix de vente")) return "prixVente";
+          if (n.startsWith("prix /") || n.startsWith("prix/")) return "prixM2";
+          if (n.startsWith("rendement")) return "rendement";
+          if (n === "date") return "dateSignature";
+          if (n.startsWith("notes")) return "notes";
+          return null;
+        };
+        for (const name of wb.SheetNames) {
+          const kindSheet = /vente|prix/i.test(name) ? "prix" : "location";
+          const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(wb.Sheets[name]!, { defval: "", raw: false });
+          for (const r of rows) {
+            const o: Src = { kind: kindSheet, source: "Générateur de brochures" };
+            for (const [h, v] of Object.entries(r)) {
+              const k = pick(h);
+              let s = String(v ?? "").trim();
+              if (!k || !s) continue;
+              if (k !== "dateSignature" && k !== "notes" && /^0([.,]0+)?$/.test(s)) continue;
+              if (k === "dateSignature") {
+                const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+                if (m) {
+                  const [, dd = "", mm = "", yy = ""] = m;
+                  s = `${yy.length === 2 ? "20" + yy : yy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+                }
+              }
+              o[k] = s;
+            }
+            if (o.enseigne || o.adresse || o.ville) list.push(o);
+          }
+        }
+      } else {
+        const parsed = JSON.parse(await file.text());
+        list = Array.isArray(parsed) ? parsed : parsed.comparables ?? parsed.items ?? [];
+      }
       const key = (c: { kind: string; enseigne: string | null; city: string | null; surface: number | null; deal_date: string | null }) =>
         [c.kind, c.enseigne ?? "", c.city ?? "", c.surface ?? "", (c.deal_date ?? "").slice(0, 10)].join("|").toLowerCase();
       const existing = new Set((data ?? []).map(key));
