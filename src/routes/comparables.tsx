@@ -143,7 +143,8 @@ function ComparablesPage() {
   const importFile = async (file: File) => {
     try {
       const parsed = JSON.parse(await file.text());
-      const list: Record<string, string>[] = Array.isArray(parsed) ? parsed : parsed.comparables ?? parsed.items ?? [];
+      type Src = { kind?: string; typeActif?: string; enseigne?: string; codePostal?: string; ville?: string; adresse?: string; surface?: string; surfacePonderee?: string; loyerAnnuel?: string; loyerM2?: string; loyerM2Pondere?: string; prixVente?: string; prixM2?: string; rendement?: string; dateSignature?: string; notes?: string; source?: string };
+      const list: Src[] = Array.isArray(parsed) ? parsed : parsed.comparables ?? parsed.items ?? [];
       const key = (c: { kind: string; enseigne: string | null; city: string | null; surface: number | null; deal_date: string | null }) =>
         [c.kind, c.enseigne ?? "", c.city ?? "", c.surface ?? "", (c.deal_date ?? "").slice(0, 10)].join("|").toLowerCase();
       const existing = new Set((data ?? []).map(key));
