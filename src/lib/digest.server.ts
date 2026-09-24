@@ -251,7 +251,7 @@ ${table(["Type", "Ville", "Surface", "Valeur", "Détail"], (comps ?? []).map((c)
 </div>`;
 
   // ---------- Texte parlé façon Jarvis ----------
-  const hour = Number(new Date().toLocaleString("fr-FR", { hour: "numeric", hour12: false, timeZone: "Europe/Paris" }));
+  const hour = Number(new Date().toLocaleString("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Paris" }));
   const parts: string[] = [];
   parts.push(`${hour < 18 ? "Bonjour" : "Bonsoir"} David. Voici votre point du ${dateLabel}.`);
   if (unanswered.length) {
