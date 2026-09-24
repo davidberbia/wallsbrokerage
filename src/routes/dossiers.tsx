@@ -20,6 +20,12 @@ import {
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Tables } from "@/integrations/supabase/types";
+import type { MailExtraction } from "@/lib/mail-extract";
+
+type DealMail = Pick<
+  Tables<"mail_messages">,
+  "id" | "folder" | "received_at" | "subject" | "from_name" | "from_email" | "to_display" | "preview" | "web_link"
+> & { extracted?: MailExtraction | null };
 
 export const STAGES = [
   "Cible",
@@ -265,15 +271,15 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("mail_messages")
-        .select("id,folder,received_at,subject,from_name,from_email,to_display,preview,web_link")
+        .select("id,folder,received_at,subject,from_name,from_email,to_display,preview,web_link,extracted")
         .eq("deal_id", id)
         .order("received_at", { ascending: false })
         .limit(200);
-      return data ?? [];
+      return (data ?? []) as unknown as DealMail[];
     },
   });
 
-  const [form, setForm] = useState<Partial<Deal> | null>(null);
+  const [form, setForm] = useState<(Partial<Deal> & { address?: string | null }) | null>(null);
   const current = form ?? deal.data ?? null;
   const [email, setEmail] = useState("");
   const [search, setSearch] = useState("");
