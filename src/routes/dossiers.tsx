@@ -290,16 +290,19 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
     const { error } = await supabase
       .from("deals")
       .update({
-        name: form.name ?? deal.data?.name,
-        stage: form.stage,
-        company: form.company,
-        contact_name: form.contact_name,
-        amount: form.amount,
-        notes: form.notes,
-        asset_id: form.asset_id,
+        name: current?.name ?? "",
+        stage: current?.stage ?? "Cible",
+        company: current?.company ?? null,
+        contact_name: current?.contact_name ?? null,
+        amount: current?.amount ?? null,
+        notes: current?.notes ?? null,
+        asset_id: current?.asset_id ?? null,
       })
       .eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setForm(null);
     toast.success("Dossier enregistré");
     refresh();
@@ -307,9 +310,15 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
 
   const addContact = async () => {
     const e = email.trim().toLowerCase();
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return toast.error("Email invalide");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) {
+      toast.error("Email invalide");
+      return;
+    }
     const { error } = await supabase.from("deal_contacts").insert({ deal_id: id, email: e });
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     setEmail("");
     toast.success("Contact ajouté, emails rattachés");
     refresh();
@@ -335,7 +344,10 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
       .from("mail_messages")
       .update({ deal_id: dealId, linked_manually: dealId !== null })
       .eq("id", mailId);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     refresh();
     qc.invalidateQueries({ queryKey: ["mail-search"] });
   };
@@ -343,7 +355,10 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const remove = async () => {
     if (!confirm("Supprimer ce dossier ? Les emails resteront dans la boîte.")) return;
     const { error } = await supabase.from("deals").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     qc.invalidateQueries({ queryKey: ["deals"] });
     onClose();
   };
