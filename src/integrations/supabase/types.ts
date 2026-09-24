@@ -476,6 +476,60 @@ export type Database = {
         }
         Relationships: []
       }
+      comparables: {
+        Row: {
+          address: string | null
+          asset_class: string | null
+          city: string | null
+          created_at: string
+          deal_date: string | null
+          excerpt: string
+          id: string
+          kind: string
+          mail_graph_id: string | null
+          price: number | null
+          price_m2: number | null
+          rent: number | null
+          source: string | null
+          surface: number | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          asset_class?: string | null
+          city?: string | null
+          created_at?: string
+          deal_date?: string | null
+          excerpt: string
+          id?: string
+          kind?: string
+          mail_graph_id?: string | null
+          price?: number | null
+          price_m2?: number | null
+          rent?: number | null
+          source?: string | null
+          surface?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          asset_class?: string | null
+          city?: string | null
+          created_at?: string
+          deal_date?: string | null
+          excerpt?: string
+          id?: string
+          kind?: string
+          mail_graph_id?: string | null
+          price?: number | null
+          price_m2?: number | null
+          rent?: number | null
+          source?: string | null
+          surface?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       deal_contacts: {
         Row: {
           created_at: string
@@ -539,10 +593,15 @@ export type Database = {
           company: string | null
           contact_name: string | null
           created_at: string
+          expected_payment_at: string | null
+          fee_amount: number | null
+          fee_pct: number | null
           id: string
           last_activity_at: string | null
           name: string
           notes: string | null
+          paid_at: string | null
+          probability: number | null
           sort_order: number
           stage: string
           updated_at: string
@@ -554,10 +613,15 @@ export type Database = {
           company?: string | null
           contact_name?: string | null
           created_at?: string
+          expected_payment_at?: string | null
+          fee_amount?: number | null
+          fee_pct?: number | null
           id?: string
           last_activity_at?: string | null
           name: string
           notes?: string | null
+          paid_at?: string | null
+          probability?: number | null
           sort_order?: number
           stage?: string
           updated_at?: string
@@ -569,10 +633,15 @@ export type Database = {
           company?: string | null
           contact_name?: string | null
           created_at?: string
+          expected_payment_at?: string | null
+          fee_amount?: number | null
+          fee_pct?: number | null
           id?: string
           last_activity_at?: string | null
           name?: string
           notes?: string | null
+          paid_at?: string | null
+          probability?: number | null
           sort_order?: number
           stage?: string
           updated_at?: string
@@ -586,6 +655,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      digest_reports: {
+        Row: {
+          created_at: string
+          day: string
+          html: string
+          id: string
+          speech: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          day: string
+          html: string
+          id?: string
+          speech: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          day?: string
+          html?: string
+          id?: string
+          speech?: string
+          token?: string
+        }
+        Relationships: []
       }
       email_queue: {
         Row: {
@@ -658,6 +754,35 @@ export type Database = {
             columns: ["send_id"]
             isOneToOne: false
             referencedRelation: "brochure_sends"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      followup_reminders: {
+        Row: {
+          id: string
+          mail_id: string
+          sent_at: string
+          tier: number
+        }
+        Insert: {
+          id?: string
+          mail_id: string
+          sent_at?: string
+          tier: number
+        }
+        Update: {
+          id?: string
+          mail_id?: string
+          sent_at?: string
+          tier?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followup_reminders_mail_id_fkey"
+            columns: ["mail_id"]
+            isOneToOne: false
+            referencedRelation: "mail_messages"
             referencedColumns: ["id"]
           },
         ]
@@ -1071,6 +1196,63 @@ export type Database = {
         }
         Relationships: []
       }
+      news_items: {
+        Row: {
+          company: string
+          created_at: string
+          excerpt: string | null
+          id: string
+          investor_id: string | null
+          mail_graph_id: string | null
+          prospect_company_id: string | null
+          published_at: string
+          source: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          investor_id?: string | null
+          mail_graph_id?: string | null
+          prospect_company_id?: string | null
+          published_at?: string
+          source?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          investor_id?: string | null
+          mail_graph_id?: string | null
+          prospect_company_id?: string | null
+          published_at?: string
+          source?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "news_items_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "news_items_prospect_company_id_fkey"
+            columns: ["prospect_company_id"]
+            isOneToOne: false
+            referencedRelation: "prospect_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prospect_companies: {
         Row: {
           address: string | null
@@ -1201,6 +1383,33 @@ export type Database = {
           count?: number
           key?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      sourcing_scanned: {
+        Row: {
+          created_at: string
+          error: string | null
+          found: number
+          graph_id: string
+          pdf_count: number
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          found?: number
+          graph_id: string
+          pdf_count?: number
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          found?: number
+          graph_id?: string
+          pdf_count?: number
+          subject?: string | null
         }
         Relationships: []
       }
