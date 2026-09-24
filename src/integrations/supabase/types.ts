@@ -533,6 +533,7 @@ export type Database = {
       }
       deals: {
         Row: {
+          address: string | null
           amount: number | null
           asset_id: string | null
           company: string | null
@@ -547,6 +548,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          address?: string | null
           amount?: number | null
           asset_id?: string | null
           company?: string | null
@@ -561,6 +563,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          address?: string | null
           amount?: number | null
           asset_id?: string | null
           company?: string | null
@@ -815,6 +818,7 @@ export type Database = {
         Row: {
           created_at: string
           deal_id: string | null
+          extracted: Json
           folder: string
           from_email: string | null
           from_name: string | null
@@ -832,6 +836,7 @@ export type Database = {
         Insert: {
           created_at?: string
           deal_id?: string | null
+          extracted?: Json
           folder: string
           from_email?: string | null
           from_name?: string | null
@@ -849,6 +854,7 @@ export type Database = {
         Update: {
           created_at?: string
           deal_id?: string | null
+          extracted?: Json
           folder?: string
           from_email?: string | null
           from_name?: string | null
