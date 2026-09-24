@@ -108,9 +108,20 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
                       break;
                     }
                   }
+                  if (!deal) {
+                    for (const p of participants) {
+                      const dom = p.split("@")[1];
+                      const d = dom ? byDomain.get(dom) : undefined;
+                      if (d && d !== "AMBIGU") {
+                        deal = d;
+                        break;
+                      }
+                    }
+                  }
                   const subj = (m.subject ?? "").toLowerCase();
                   if (!deal && subj) deal = named.find((n) => subj.includes(n.key))?.id ?? null;
                   if (deal) touched.add(deal);
+                  const extracted = extractFromText(m.subject ?? null, m.bodyPreview ?? null);
                   return {
                     graph_id: m.id,
                     folder,
@@ -127,6 +138,7 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
                     preview: (m.bodyPreview ?? "").slice(0, 400),
                     web_link: m.webLink ?? null,
                     deal_id: deal,
+                    extracted,
                   };
                 });
               if (rows.length) {
