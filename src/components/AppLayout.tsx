@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useNavCounts } from "@/hooks/useNavCounts";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const BROKER_NAV = [
@@ -51,6 +52,15 @@ export function AppLayout({
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const counts = useNavCounts(!!session && isStaff).data;
+  const badge = (to: string) => {
+    const n = counts?.[to];
+    return n == null ? null : (
+      <span className="ml-auto rounded-sm border border-border px-1.5 font-mono text-[10px] leading-4 text-sidebar-foreground/70">
+        {n.toLocaleString("fr-FR")}
+      </span>
+    );
+  };
   const NAV = isStaff ? [...BROKER_NAV, ...(isBroker ? ADMIN_NAV : [])] : [...INVESTOR_NAV];
 
   useEffect(() => {
@@ -105,6 +115,7 @@ export function AppLayout({
                     >
                       <item.icon className="size-5" />
                       {item.label}
+                      {badge(item.to)}
                     </Link>
                   );
                 })}
@@ -147,6 +158,7 @@ export function AppLayout({
                 >
                   <item.icon className="size-4" />
                   {item.label}
+                  {badge(item.to)}
                 </Link>
               );
             })}
