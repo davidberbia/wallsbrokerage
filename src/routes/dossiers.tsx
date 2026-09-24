@@ -167,6 +167,38 @@ function DealsPage() {
         )}
       </div>
 
+      {(() => {
+        const now = Date.now();
+        const dormant = (deals.data ?? [])
+          .filter((d) => d.stage !== "Signé" && d.stage !== "Perdu")
+          .map((d) => {
+            const ref = d.last_activity_at ?? d.updated_at ?? d.created_at;
+            return { d, days: Math.floor((now - new Date(ref).getTime()) / 86_400_000) };
+          })
+          .filter((x) => x.days >= 14)
+          .sort((a, b) => b.days - a.days);
+        if (!dormant.length) return null;
+        return (
+          <div className="rounded-sm border border-destructive/40 bg-destructive/5 p-3">
+            <div className="mb-2 text-sm font-semibold">
+              Alertes : {dormant.length} dossier{dormant.length > 1 ? "s" : ""} sans activité depuis 14 jours ou plus
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {dormant.slice(0, 12).map(({ d, days }) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => setOpenId(d.id)}
+                  className="rounded-sm border border-border bg-card px-2 py-1 text-xs hover:border-primary"
+                >
+                  {d.name} · {d.stage} · <span className="font-mono">{days} j</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="flex gap-3 overflow-x-auto pb-4 max-md:flex-col max-md:overflow-visible">
         {STAGES.map((stage) => {
           const list = grouped.get(stage) ?? [];

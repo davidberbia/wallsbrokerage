@@ -21,5 +21,6 @@
 - [x] Étape 2 : extraction automatique (montants, adresses, telephones) par regles + rattachement par domaine
 - [ ] Étape 3 : sourcing (newsletters, PDF, sites web)
 - [ ] Étape 4 : assistant commercial
-- [ ] Étape 5 : pilotage (alertes, synthese hebdo)
+- [x] Étape 5a : alertes dossiers inactifs (14 j)
+- [ ] Étape 5b : synthese hebdo par email (a valider avec David)
 - [ ] Publier uniquement quand le projet est totalement termine (accord de David)
