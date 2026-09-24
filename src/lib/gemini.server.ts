@@ -42,7 +42,7 @@ export async function callGemini(opts: {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: opts.system }] },
         contents: opts.turns.map((t) => ({ role: t.role, parts: [{ text: t.text }] })),
-        generationConfig: opts.json ? { responseMimeType: "application/json" } : {},
+        generationConfig: { thinkingConfig: { thinkingLevel: "low" }, ...(opts.json ? { responseMimeType: "application/json" } : {}) },
       }),
     },
   );

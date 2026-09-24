@@ -26,3 +26,6 @@
 - [x] Corriger la lecture des longues synthèses sur mobile par lecture découpée
 - [x] Ouvrir automatiquement un lecteur vocal rond façon Jarvis sur la page de synthèse
 - [ ] Publier uniquement quand le projet est totalement termine (accord de David)
+- [x] IA Gemini (clé Google, plafond 30 €/mois) : assistante sous le bandeau + demandes de documents avec validation (écran vert)
+- [ ] IA Gemini phase 2 : newsletters/PDF, fusion des doublons, synthèse quotidienne rédigée, apprentissage du ciblage
+- [ ] Plus tard : serveur pro, WhatsApp, appels (sur demande de David)
