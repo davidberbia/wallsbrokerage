@@ -20,6 +20,12 @@ import {
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { Tables } from "@/integrations/supabase/types";
+import type { MailExtraction } from "@/lib/mail-extract";
+
+type DealMail = Pick<
+  Tables<"mail_messages">,
+  "id" | "folder" | "received_at" | "subject" | "from_name" | "from_email" | "to_display" | "preview" | "web_link"
+> & { extracted?: MailExtraction | null };
 
 export const STAGES = [
   "Cible",
@@ -265,15 +271,15 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("mail_messages")
-        .select("id,folder,received_at,subject,from_name,from_email,to_display,preview,web_link")
+        .select("id,folder,received_at,subject,from_name,from_email,to_display,preview,web_link,extracted")
         .eq("deal_id", id)
         .order("received_at", { ascending: false })
         .limit(200);
-      return data ?? [];
+      return (data ?? []) as unknown as DealMail[];
     },
   });
 
-  const [form, setForm] = useState<Partial<Deal> | null>(null);
+  const [form, setForm] = useState<(Partial<Deal> & { address?: string | null }) | null>(null);
   const current = form ?? deal.data ?? null;
   const [email, setEmail] = useState("");
   const [search, setSearch] = useState("");
@@ -295,9 +301,10 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
         company: current?.company ?? null,
         contact_name: current?.contact_name ?? null,
         amount: current?.amount ?? null,
+        address: current?.address ?? null,
         notes: current?.notes ?? null,
         asset_id: current?.asset_id ?? null,
-      })
+      } as never)
       .eq("id", id);
     if (error) {
       toast.error(error.message);
@@ -364,7 +371,26 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
   };
 
   if (!current) return <p className="p-4 text-sm text-muted-foreground">Chargement…</p>;
-  const set = (patch: Partial<Deal>) => setForm({ ...current, ...patch });
+  const set = (patch: Partial<Deal> & { address?: string | null }) => setForm({ ...current, ...patch });
+
+  // Agrège les informations détectées dans les emails liés (règles, sans IA).
+  const detected = (() => {
+    const amounts = new Map<number, number>();
+    const phones = new Map<string, number>();
+    const addresses = new Map<string, number>();
+    for (const m of mails.data ?? []) {
+      const ex = m.extracted;
+      if (!ex) continue;
+      for (const a of ex.amounts ?? []) amounts.set(a, (amounts.get(a) ?? 0) + 1);
+      for (const p of ex.phones ?? []) phones.set(p, (phones.get(p) ?? 0) + 1);
+      for (const a of ex.addresses ?? []) addresses.set(a, (addresses.get(a) ?? 0) + 1);
+    }
+    const sort = <T,>(map: Map<T, number>) =>
+      [...map.entries()].sort((x, y) => y[1] - x[1]).slice(0, 5);
+    return { amounts: sort(amounts), phones: sort(phones), addresses: sort(addresses) };
+  })();
+  const hasDetected =
+    detected.amounts.length > 0 || detected.phones.length > 0 || detected.addresses.length > 0;
 
   return (
     <div className="space-y-5">
@@ -430,6 +456,10 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
             onChange={(e) => set({ amount: e.target.value === "" ? null : Number(e.target.value) })}
           />
         </div>
+        <div>
+          <Label>Adresse de l'actif</Label>
+          <Input value={current.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
+        </div>
         <div className="sm:col-span-2">
           <Label>Notes</Label>
           <Textarea rows={3} value={current.notes ?? ""} onChange={(e) => set({ notes: e.target.value })} />
@@ -443,6 +473,61 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
           Enregistrer
         </Button>
       </div>
+
+      {hasDetected && (
+        <section className="space-y-2 border-t border-border pt-4">
+          <h3 className="text-sm font-semibold">Informations détectées dans les emails</h3>
+          <p className="text-xs text-muted-foreground">
+            Relevées automatiquement dans les objets et aperçus. Cliquez pour les retenir dans la fiche.
+          </p>
+          {detected.amounts.length > 0 && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Montants</span>
+              <div className="flex flex-wrap gap-2">
+                {detected.amounts.map(([a, n]) => (
+                  <button
+                    key={a}
+                    onClick={() => set({ amount: a })}
+                    className="rounded-sm border border-border px-2 py-1 text-xs hover:border-primary"
+                    title={`Vu ${n} fois — cliquer pour retenir`}
+                  >
+                    {fmtAmount(a)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {detected.addresses.length > 0 && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Adresses</span>
+              <div className="flex flex-col gap-1">
+                {detected.addresses.map(([a, n]) => (
+                  <button
+                    key={a}
+                    onClick={() => set({ address: a })}
+                    className="rounded-sm border border-border px-2 py-1 text-left text-xs hover:border-primary"
+                    title={`Vue ${n} fois — cliquer pour retenir`}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {detected.phones.length > 0 && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Téléphones</span>
+              <div className="flex flex-wrap gap-2">
+                {detected.phones.map(([p]) => (
+                  <span key={p} className="rounded-sm border border-border px-2 py-1 font-mono text-xs">
+                    {p}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="space-y-2 border-t border-border pt-4">
         <h3 className="text-sm font-semibold">Contacts du dossier</h3>

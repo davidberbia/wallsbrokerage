@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authorizeCron, getAdmin } from "@/lib/automation.server";
 import { graphGet, type GraphAddress } from "@/lib/mailscan.server";
+import { extractFromText } from "@/lib/mail-extract";
+import { PERSONAL_EMAIL_DOMAINS } from "@/lib/email-domains";
 
 // Synchronisation continue des emails (reçus + envoyés) depuis le 1er janvier 2026,
 // via les requêtes delta de Microsoft Graph. Rattache chaque email à un dossier.
@@ -42,7 +44,20 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
           admin.from("deals").select("id,name"),
         ]);
         const byEmail = new Map<string, string>();
-        for (const c of contacts ?? []) byEmail.set(lower(c.email), c.deal_id);
+        const byDomain = new Map<string, string>();
+        const personal = new Set<string>(PERSONAL_EMAIL_DOMAINS);
+        for (const c of contacts ?? []) {
+          const em = lower(c.email);
+          byEmail.set(em, c.deal_id);
+          const dom = em.split("@")[1];
+          // Rattachement par domaine : uniquement pour les domaines professionnels,
+          // et seulement si un seul dossier utilise ce domaine (sinon ambigu).
+          if (dom && !personal.has(dom)) {
+            const prev = byDomain.get(dom);
+            if (prev === undefined) byDomain.set(dom, c.deal_id);
+            else if (prev !== c.deal_id) byDomain.set(dom, "AMBIGU");
+          }
+        }
         const named = (deals ?? [])
           .filter((d) => d.name.trim().length >= 4)
           .map((d) => ({ id: d.id, key: d.name.trim().toLowerCase() }));
@@ -93,9 +108,20 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
                       break;
                     }
                   }
+                  if (!deal) {
+                    for (const p of participants) {
+                      const dom = p.split("@")[1];
+                      const d = dom ? byDomain.get(dom) : undefined;
+                      if (d && d !== "AMBIGU") {
+                        deal = d;
+                        break;
+                      }
+                    }
+                  }
                   const subj = (m.subject ?? "").toLowerCase();
                   if (!deal && subj) deal = named.find((n) => subj.includes(n.key))?.id ?? null;
                   if (deal) touched.add(deal);
+                  const extracted = extractFromText(m.subject ?? null, m.bodyPreview ?? null);
                   return {
                     graph_id: m.id,
                     folder,
@@ -112,6 +138,7 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
                     preview: (m.bodyPreview ?? "").slice(0, 400),
                     web_link: m.webLink ?? null,
                     deal_id: deal,
+                    extracted,
                   };
                 });
               if (rows.length) {
@@ -154,6 +181,24 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
             .eq("folder", folder);
           report[folder] = error ? `erreur: ${error.slice(0, 120)}` : count;
         }
+
+        // Reprise progressive : extrait les infos des emails synchronisés avant
+        // l'ajout de l'extraction (1 000 par passage, sans coût).
+        const { data: backlog } = await admin
+          .from("mail_messages")
+          .select("id,subject,preview")
+          .eq("extracted", "{}")
+          .limit(1000);
+        let backfilled = 0;
+        for (const m of backlog ?? []) {
+          const extracted = extractFromText(m.subject ?? null, m.preview ?? null);
+          const { error: bErr } = await admin
+            .from("mail_messages")
+            .update({ extracted })
+            .eq("id", m.id);
+          if (!bErr) backfilled += 1;
+        }
+        if (backfilled) report["backfill"] = backfilled;
 
         for (const id of touched) {
           const { data: last } = await admin
