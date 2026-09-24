@@ -18,8 +18,12 @@ const LEASE_MS = 4 * 60 * 1000;
 
 const FOLDERS = ["inbox", "sentitems"] as const;
 
-const listUrl = (folder: string) =>
-  `/v1.0/me/mailFolders/${folder}/messages?$top=${PAGE_SIZE}&$filter=${encodeURIComponent("receivedDateTime ge 2025-01-01T00:00:00Z and receivedDateTime lt 2026-01-01T00:00:00Z")}&$select=id,receivedDateTime,from,toRecipients,ccRecipients&$orderby=receivedDateTime desc`;
+const listUrl = (folder: string, scanFrom: string | null, scanTo: string | null) => {
+  const from = scanFrom ?? "2025-01-01T00:00:00Z";
+  const to = scanTo ?? "2026-01-01T00:00:00Z";
+  const filter = `receivedDateTime ge ${from} and receivedDateTime lt ${to}`;
+  return `/v1.0/me/mailFolders/${folder}/messages?$top=${PAGE_SIZE}&$filter=${encodeURIComponent(filter)}&$select=id,receivedDateTime,from,toRecipients,ccRecipients&$orderby=receivedDateTime desc`;
+};
 
 export const Route = createFileRoute("/api/public/cron/mailscan-tick")({
   server: {
@@ -58,7 +62,7 @@ export const Route = createFileRoute("/api/public/cron/mailscan-tick")({
 
         try {
           for (let page = 0; page < PAGES_PER_TICK; page += 1) {
-            const url = nextLink ?? listUrl(folder);
+            const url = nextLink ?? listUrl(folder, state.scan_from ?? null, state.scan_to ?? null);
             const payload = await graphGet<{
               value: GraphMessage[];
               "@odata.nextLink"?: string;

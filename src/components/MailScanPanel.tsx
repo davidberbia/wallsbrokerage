@@ -1,10 +1,13 @@
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { Mail, Pause, Play, RotateCcw } from "lucide-react";
+import { CalendarRange, Mail, Pause, Play, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { getMailscanStatus, setMailscanRunning } from "@/lib/mailscan.functions";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const FOLDERS: Record<string, string> = {
   inbox: "Boîte de réception",
@@ -29,12 +32,27 @@ export function MailScanPanel() {
     refetchInterval: 30_000,
   });
 
+  const [fromDate, setFromDate] = useState("2025-01-01");
+  const [toDate, setToDate] = useState("2025-12-31");
+
+  useEffect(() => {
+    if (status.data?.scanFrom) setFromDate(status.data.scanFrom.slice(0, 10));
+    if (status.data?.scanTo) setToDate(status.data.scanTo.slice(0, 10));
+    // Initialisation unique à la première réponse.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status.data?.scanFrom, status.data?.scanTo]);
+
   const mutation = useMutation({
-    mutationFn: (vars: { running: boolean; restart?: boolean }) => toggle({ data: vars }),
+    mutationFn: (vars: {
+      running: boolean;
+      restart?: boolean;
+      scanFrom?: string | null;
+      scanTo?: string | null;
+    }) => toggle({ data: vars }),
     onSuccess: (_d, vars) => {
       toast.success(
         vars.restart
-          ? "Analyse relancée depuis le début"
+          ? "Analyse relancée sur la période choisie"
           : vars.running
             ? "Analyse de la boîte mail lancée"
             : "Analyse mise en pause",
@@ -43,6 +61,26 @@ export function MailScanPanel() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const launchPeriod = () => {
+    if (!fromDate || !toDate) {
+      toast.error("Choisissez une date de début et une date de fin");
+      return;
+    }
+    if (fromDate > toDate) {
+      toast.error("La date de début doit être avant la date de fin");
+      return;
+    }
+    // Fin de journée incluse : borne haute = lendemain 00:00 UTC exclus.
+    const end = new Date(`${toDate}T00:00:00Z`);
+    end.setUTCDate(end.getUTCDate() + 1);
+    mutation.mutate({
+      running: true,
+      restart: true,
+      scanFrom: `${fromDate}T00:00:00Z`,
+      scanTo: end.toISOString(),
+    });
+  };
 
   const s = status.data;
   const running = s?.status === "en cours";
@@ -88,6 +126,46 @@ export function MailScanPanel() {
         <Stat label="Contacts trouvés" value={(s?.pending ?? 0).toLocaleString("fr-FR")} />
         <Stat label="Sociétés immobilières" value={(s?.ready ?? 0).toLocaleString("fr-FR")} />
         <Stat label="Fiches créées" value={(s?.integrated ?? 0).toLocaleString("fr-FR")} />
+      </div>
+
+      <div className="rounded-md border border-border bg-muted/40 p-3 sm:p-4">
+        <p className="eyebrow flex items-center gap-1.5">
+          <CalendarRange className="size-3.5" /> Analyser une période précise
+        </p>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1 space-y-1">
+            <Label htmlFor="scan-from">Du</Label>
+            <Input
+              id="scan-from"
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="min-h-11 sm:min-h-9"
+            />
+          </div>
+          <div className="flex-1 space-y-1">
+            <Label htmlFor="scan-to">Au</Label>
+            <Input
+              id="scan-to"
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="min-h-11 sm:min-h-9"
+            />
+          </div>
+          <Button
+            className="min-h-11 sm:min-h-9"
+            onClick={launchPeriod}
+            disabled={mutation.isPending || running}
+          >
+            <Play className="size-4" />
+            <span className="ml-2">Lancer sur cette période</span>
+          </Button>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          L'analyse repart du début de la période choisie. Les contacts déjà connus ne sont jamais
+          recréés.
+        </p>
       </div>
 
       {s?.lastError && (

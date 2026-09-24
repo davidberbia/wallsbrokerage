@@ -1,0 +1,1 @@
+ALTER TABLE public.mailscan_state ADD COLUMN IF NOT EXISTS scan_from timestamptz, ADD COLUMN IF NOT EXISTS scan_to timestamptz;
