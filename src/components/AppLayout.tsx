@@ -8,6 +8,7 @@ import {
   LogOut,
   Mail,
   Menu,
+  Scale,
   Send,
   Settings,
   Target,
