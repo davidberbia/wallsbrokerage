@@ -75,3 +75,56 @@ export async function callGeminiJson<T>(opts: { task: string; system: string; pr
     return null;
   }
 }
+
+/** Variante avec un fichier joint (PDF, image…) envoyé directement à Gemini. */
+export async function callGeminiFileJson<T>(opts: {
+  task: string;
+  system: string;
+  prompt: string;
+  file: { mimeType: string; base64: string };
+}): Promise<T | null> {
+  const key = process.env["GEMINI_API_KEY"];
+  if (!key) throw new Error("Clé Gemini absente.");
+  if ((await monthSpent()) >= MONTHLY_BUDGET_EUR) throw new BudgetReachedError();
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: opts.system }] },
+        contents: [
+          {
+            role: "user",
+            parts: [{ inlineData: { mimeType: opts.file.mimeType, data: opts.file.base64 } }, { text: opts.prompt }],
+          },
+        ],
+        generationConfig: { thinkingConfig: { thinkingLevel: "low" }, responseMimeType: "application/json" },
+      }),
+    },
+  );
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Gemini [${res.status}] ${body.slice(0, 300)}`);
+  }
+  const data = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+    usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number };
+  };
+  const u = data.usageMetadata ?? {};
+  const tin = u.promptTokenCount ?? 0;
+  const tout = (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0);
+  const admin = await getAdmin();
+  await admin.from("ai_usage").insert({
+    task: opts.task,
+    tokens_in: tin,
+    tokens_out: tout,
+    cost_eur: (tin * PRICE_IN + tout * PRICE_OUT) / 1_000_000,
+  });
+  const text = (data.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("").trim();
+  try {
+    return JSON.parse(text.replace(/^```json\s*|```$/g, "")) as T;
+  } catch {
+    return null;
+  }
+}
