@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   Building2,
   Contact,
+  FolderKanban,
   LogOut,
   Mail,
   Menu,
@@ -24,6 +25,7 @@ const BROKER_NAV = [
   { to: "/investisseurs", label: "Investisseurs", icon: Users },
   { to: "/prospects", label: "Prospects", icon: Contact },
   { to: "/actifs", label: "Actifs", icon: Building2 },
+  { to: "/dossiers", label: "Dossiers", icon: FolderKanban },
   { to: "/envois", label: "Envois", icon: Send },
 ] as const;
 
