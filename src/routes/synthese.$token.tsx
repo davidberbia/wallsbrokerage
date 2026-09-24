@@ -102,9 +102,14 @@ function SynthesePage() {
       return utterance;
     });
     utterances.current = queue;
-    queue.forEach((utterance, index) => {
+    const speakNext = (index: number) => {
+      const utterance = queue[index];
+      if (!utterance || sessionId.current !== currentSession) {
+        if (sessionId.current === currentSession) setState("idle");
+        return;
+      }
       utterance.onend = () => {
-        if (sessionId.current === currentSession && index === queue.length - 1) setState("idle");
+        if (sessionId.current === currentSession) speakNext(index + 1);
       };
       utterance.onerror = (event) => {
         if (event.error === "canceled" || event.error === "interrupted") return;
@@ -114,7 +119,8 @@ function SynthesePage() {
         }
       };
       synth.speak(utterance);
-    });
+    };
+    speakNext(0);
     setState("playing");
   };
 
