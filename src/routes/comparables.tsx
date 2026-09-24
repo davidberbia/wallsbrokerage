@@ -179,7 +179,7 @@ function ComparablesPage() {
               if (k !== "dateSignature" && k !== "notes" && /^0([.,]0+)?$/.test(s)) continue;
               if (k === "dateSignature") {
                 const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-                if (m) s = `${m[3].length === 2 ? "20" + m[3] : m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+                if (m) s = `${m[3]!.length === 2 ? "20" + m[3] : m[3]}-${m[2]!.padStart(2, "0")}-${m[1]!.padStart(2, "0")}`;
               }
               o[k] = s;
             }
