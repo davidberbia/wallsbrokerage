@@ -68,16 +68,16 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
     unanswered.push({ m, tier, days });
   }
 
-  // 2. Prospects à relancer : brochure envoyée il y a 7 à 30 jours, sans réponse.
+  // 2. Relances : jamais sur le premier envoi Brevo. Un contact n'apparaît
+  // que s'il a RÉPONDU à un envoi et que sa réponse attend depuis ≥ 3 jours.
   const { data: sends } = await admin
     .from("brochure_sends")
     .select("email_to, sent_at, opened_at, investors(full_name, company, phone), prospect_contacts(full_name, phone, prospect_companies(name)), assets(title)")
     .in("status", ["envoyé", "ouvert", "délivré"])
     .not("email_to", "is", null)
-    .gte("sent_at", iso(now - 30 * DAY))
-    .lte("sent_at", iso(now - 7 * DAY))
-    .order("opened_at", { ascending: false, nullsFirst: false })
-    .limit(60);
+    .gte("sent_at", iso(now - 120 * DAY))
+    .order("sent_at", { ascending: false })
+    .limit(300);
   type SendRow = {
     email_to: string;
     sent_at: string;
@@ -92,16 +92,28 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
     const em = s.email_to.toLowerCase();
     if (seen.has(em) || own(em)) continue;
     seen.add(em);
-    const { count } = await admin
+    const { data: reply } = await admin
       .from("mail_messages")
-      .select("id", { count: "exact", head: true })
+      .select("received_at")
       .eq("folder", "inbox")
       .eq("from_email", em)
-      .gt("received_at", s.sent_at);
-    if (count) continue;
+      .gt("received_at", s.sent_at)
+      .order("received_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!reply?.received_at) continue; // pas de réponse → aucune relance
+    if (now - new Date(reply.received_at).getTime() < 3 * DAY) continue;
+    const { count: answered } = await admin
+      .from("mail_messages")
+      .select("id", { count: "exact", head: true })
+      .eq("folder", "sentitems")
+      .contains("participants", [em])
+      .gt("received_at", reply.received_at);
+    if (answered) continue;
     relaunch.push(s);
     if (relaunch.length >= 10) break;
   }
+
 
   // 3. Appels suggérés selon l'actualité (7 derniers jours).
   const { data: news } = await admin
@@ -207,7 +219,7 @@ ${section(1, "Mails importants sans réponse", table(
   ]),
   "Aucun mail en attente de réponse. Bravo.",
 ))}
-${section(2, "Prospects à relancer", table(
+${section(2, "Réponses à des envois en attente de relance", table(
   ["Contact", "Société", "Actif envoyé", "Envoi", "Lu"],
   relaunch.map((s) => [
     e(s.investors?.full_name ?? s.prospect_contacts?.full_name ?? s.email_to) + `<span style="display:block;color:#6b7684;font-size:12px;">${e(s.email_to)}${(s.investors?.phone ?? s.prospect_contacts?.phone) ? ` · ${e(s.investors?.phone ?? s.prospect_contacts?.phone)}` : ""}</span>`,
@@ -262,7 +274,7 @@ ${table(["Type", "Ville", "Surface", "Valeur", "Détail"], (comps ?? []).map((c)
   if (relaunch.length) {
     parts.push(`Je vous suggère de relancer ${plural(relaunch.length, "contact", "contacts")}.`);
     for (const s of relaunch.slice(0, 4))
-      parts.push(`${s.investors?.full_name ?? s.prospect_contacts?.full_name ?? s.email_to}${s.opened_at ? ", qui a ouvert la brochure sans répondre" : ""}.`);
+      parts.push(`${s.investors?.full_name ?? s.prospect_contacts?.full_name ?? s.email_to}, qui vous a répondu et attend votre retour.`);
   }
   if (calls.length) {
     parts.push(`Côté actualité, ${plural(calls.length, "opportunité d'appel", "opportunités d'appel")}.`);
