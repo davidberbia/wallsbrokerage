@@ -456,6 +456,10 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
             onChange={(e) => set({ amount: e.target.value === "" ? null : Number(e.target.value) })}
           />
         </div>
+        <div>
+          <Label>Adresse de l'actif</Label>
+          <Input value={current.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
+        </div>
         <div className="sm:col-span-2">
           <Label>Notes</Label>
           <Textarea rows={3} value={current.notes ?? ""} onChange={(e) => set({ notes: e.target.value })} />
@@ -469,6 +473,61 @@ function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
           Enregistrer
         </Button>
       </div>
+
+      {hasDetected && (
+        <section className="space-y-2 border-t border-border pt-4">
+          <h3 className="text-sm font-semibold">Informations détectées dans les emails</h3>
+          <p className="text-xs text-muted-foreground">
+            Relevées automatiquement dans les objets et aperçus. Cliquez pour les retenir dans la fiche.
+          </p>
+          {detected.amounts.length > 0 && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Montants</span>
+              <div className="flex flex-wrap gap-2">
+                {detected.amounts.map(([a, n]) => (
+                  <button
+                    key={a}
+                    onClick={() => set({ amount: a })}
+                    className="rounded-sm border border-border px-2 py-1 text-xs hover:border-primary"
+                    title={`Vu ${n} fois — cliquer pour retenir`}
+                  >
+                    {fmtAmount(a)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {detected.addresses.length > 0 && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Adresses</span>
+              <div className="flex flex-col gap-1">
+                {detected.addresses.map(([a, n]) => (
+                  <button
+                    key={a}
+                    onClick={() => set({ address: a })}
+                    className="rounded-sm border border-border px-2 py-1 text-left text-xs hover:border-primary"
+                    title={`Vue ${n} fois — cliquer pour retenir`}
+                  >
+                    {a}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {detected.phones.length > 0 && (
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Téléphones</span>
+              <div className="flex flex-wrap gap-2">
+                {detected.phones.map(([p]) => (
+                  <span key={p} className="rounded-sm border border-border px-2 py-1 font-mono text-xs">
+                    {p}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       <section className="space-y-2 border-t border-border pt-4">
         <h3 className="text-sm font-semibold">Contacts du dossier</h3>
