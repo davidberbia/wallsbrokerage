@@ -187,7 +187,7 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
         const { data: backlog } = await admin
           .from("mail_messages")
           .select("id,subject,preview")
-          .eq("extracted", {})
+          .eq("extracted", "{}")
           .limit(200);
         let backfilled = 0;
         for (const m of backlog ?? []) {
