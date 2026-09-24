@@ -14,7 +14,7 @@ import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComparablesRouteImport } from './routes/comparables'
-import { Route as ContactsDetectesRouteImport } from './routes/contacts-detectes'
+import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as DossiersRouteImport } from './routes/dossiers'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
@@ -57,9 +57,9 @@ const ComparablesRoute = ComparablesRouteImport.update({
   path: '/comparables',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContactsDetectesRoute = ContactsDetectesRouteImport.update({
-  id: '/contacts-detectes',
-  path: '/contacts-detectes',
+const ContactsRoute = ContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DossiersRoute = DossiersRouteImport.update({
@@ -152,7 +152,7 @@ export interface FileRoutesByFullPath {
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/comparables': typeof ComparablesRoute
-  '/contacts-detectes': typeof ContactsDetectesRoute
+  '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -176,7 +176,7 @@ export interface FileRoutesByTo {
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/comparables': typeof ComparablesRoute
-  '/contacts-detectes': typeof ContactsDetectesRoute
+  '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -201,7 +201,7 @@ export interface FileRoutesById {
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/comparables': typeof ComparablesRoute
-  '/contacts-detectes': typeof ContactsDetectesRoute
+  '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -227,7 +227,7 @@ export interface FileRouteTypes {
     | '/arbitrage'
     | '/auth'
     | '/comparables'
-    | '/contacts-detectes'
+    | '/contacts'
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
@@ -251,7 +251,7 @@ export interface FileRouteTypes {
     | '/arbitrage'
     | '/auth'
     | '/comparables'
-    | '/contacts-detectes'
+    | '/contacts'
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
@@ -275,7 +275,7 @@ export interface FileRouteTypes {
     | '/arbitrage'
     | '/auth'
     | '/comparables'
-    | '/contacts-detectes'
+    | '/contacts'
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
@@ -300,7 +300,7 @@ export interface RootRouteChildren {
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
   ComparablesRoute: typeof ComparablesRoute
-  ContactsDetectesRoute: typeof ContactsDetectesRoute
+  ContactsRoute: typeof ContactsRoute
   DossiersRoute: typeof DossiersRoute
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
@@ -356,11 +356,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComparablesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contacts-detectes': {
-      id: '/contacts-detectes'
-      path: '/contacts-detectes'
-      fullPath: '/contacts-detectes'
-      preLoaderRoute: typeof ContactsDetectesRouteImport
+    '/contacts': {
+      id: '/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof ContactsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dossiers': {
@@ -484,7 +484,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
   ComparablesRoute: ComparablesRoute,
-  ContactsDetectesRoute: ContactsDetectesRoute,
+  ContactsRoute: ContactsRoute,
   DossiersRoute: DossiersRoute,
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
