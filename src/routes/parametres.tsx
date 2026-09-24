@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { MailScanPanel } from "@/components/MailScanPanel";
+import { AiScanPanel } from "@/components/AiScanPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,6 +71,7 @@ function SettingsPage() {
         </TabsContent>
         <TabsContent value="mailscan" className="mt-6">
           <MailScanPanel />
+          <AiScanPanel />
         </TabsContent>
         <TabsContent value="lists" className="mt-6 space-y-6">
           {KINDS.map((kind) => (

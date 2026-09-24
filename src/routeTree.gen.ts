@@ -25,6 +25,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ValidationRouteImport } from './routes/validation'
 import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
+import { Route as ApiPublicCronAiscanTickRouteImport } from './routes/api/public/cron/aiscan-tick'
 import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronDailyDigestRouteImport } from './routes/api/public/cron/daily-digest'
@@ -113,6 +114,11 @@ const ApiPublicBrevoEventsRoute = ApiPublicBrevoEventsRouteImport.update({
   path: '/api/public/brevo-events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronAiscanTickRoute = ApiPublicCronAiscanTickRouteImport.update({
+  id: '/api/public/cron/aiscan-tick',
+  path: '/api/public/cron/aiscan-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronCfnewsTickRoute = ApiPublicCronCfnewsTickRouteImport.update({
   id: '/api/public/cron/cfnews-tick',
   path: '/api/public/cron/cfnews-tick',
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/validation': typeof ValidationRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
+  '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/validation': typeof ValidationRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
+  '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
@@ -220,6 +228,7 @@ export interface FileRoutesById {
   '/validation': typeof ValidationRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
+  '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
@@ -247,6 +256,7 @@ export interface FileRouteTypes {
     | '/validation'
     | '/synthese/$token'
     | '/api/public/brevo-events'
+    | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/validation'
     | '/synthese/$token'
     | '/api/public/brevo-events'
+    | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
@@ -297,6 +308,7 @@ export interface FileRouteTypes {
     | '/validation'
     | '/synthese/$token'
     | '/api/public/brevo-events'
+    | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
@@ -323,6 +335,7 @@ export interface RootRouteChildren {
   ValidationRoute: typeof ValidationRoute
   SyntheseTokenRoute: typeof SyntheseTokenRoute
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
+  ApiPublicCronAiscanTickRoute: typeof ApiPublicCronAiscanTickRoute
   ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronDailyDigestRoute: typeof ApiPublicCronDailyDigestRoute
@@ -446,6 +459,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBrevoEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/aiscan-tick': {
+      id: '/api/public/cron/aiscan-tick'
+      path: '/api/public/cron/aiscan-tick'
+      fullPath: '/api/public/cron/aiscan-tick'
+      preLoaderRoute: typeof ApiPublicCronAiscanTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/cfnews-tick': {
       id: '/api/public/cron/cfnews-tick'
       path: '/api/public/cron/cfnews-tick'
@@ -515,6 +535,7 @@ const rootRouteChildren: RootRouteChildren = {
   ValidationRoute: ValidationRoute,
   SyntheseTokenRoute: SyntheseTokenRoute,
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
+  ApiPublicCronAiscanTickRoute: ApiPublicCronAiscanTickRoute,
   ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronDailyDigestRoute: ApiPublicCronDailyDigestRoute,
