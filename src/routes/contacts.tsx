@@ -81,7 +81,7 @@ function DetectedContactsPage() {
   };
 
   const integrateMutation = useMutation({
-    mutationFn: (ids: string[]) => integrate({ data: { ids } }),
+    mutationFn: (ids: string[]) => integrate({ data: { ids, toProspects: true } }),
     onSuccess: (r) => {
       toast.success(
         `${r.investorsCreated} investisseur(s) et ${r.prospectsCreated} prospect(s) créés${
@@ -96,7 +96,7 @@ function DetectedContactsPage() {
   const ignoreMutation = useMutation({
     mutationFn: (ids: string[]) => ignore({ data: { ids } }),
     onSuccess: (r) => {
-      toast.success(`${r.count} contact(s) écarté(s)`);
+      toast.success(`${r.count} contact(s) supprimé(s) — ils ne seront plus réimportés`);
       done();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -110,10 +110,7 @@ function DetectedContactsPage() {
         <p className="eyebrow">Boîte mail</p>
         <h1 className="mt-1 text-3xl">Contacts</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Chaque contact ci-dessous vient de vos emails. Cochez ceux que vous souhaitez conserver :
-          si la société est déjà connue côté investisseurs, la fiche reprendra automatiquement la
-          stratégie d'un collègue de la même société ; sinon une fiche prospect est créée.
-        </p>
+          Tous les contacts trouvés automatiquement (emails, newsletters, pièces jointes). Cochez-les pour les déplacer dans Prospects ou les supprimer : un contact supprimé ne sera jamais réimporté.</p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -134,14 +131,14 @@ function DetectedContactsPage() {
             disabled={selected.length === 0 || ignoreMutation.isPending}
             onClick={() => ignoreMutation.mutate(selected)}
           >
-            Écarter ({selected.length})
+            Supprimer ({selected.length})
           </Button>
           <Button
             className="min-h-11 sm:min-h-9"
             disabled={selected.length === 0 || integrateMutation.isPending}
             onClick={() => integrateMutation.mutate(selected)}
           >
-            {integrateMutation.isPending ? "Intégration…" : `Intégrer (${selected.length})`}
+            {integrateMutation.isPending ? "Déplacement…" : `Déplacer vers Prospects (${selected.length})`}
           </Button>
         </div>
       </div>

@@ -168,7 +168,7 @@ export const ignoreMailscanCandidates = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("mailscan_candidates")
-      .update({ status: "ignoré" })
+      .update({ status: "supprimé" })
       .in("id", data.ids);
     if (error) throw new Error(error.message);
     return { ok: true, count: data.ids.length };
@@ -181,7 +181,7 @@ export const ignoreMailscanCandidates = createServerFn({ method: "POST" })
  */
 export const integrateMailscanCandidates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { ids: string[] }) => input)
+  .inputValidator((input: { ids: string[]; toProspects?: boolean }) => input)
   .handler(async ({ data, context }) => {
     await assertBroker(context as never);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -218,7 +218,7 @@ export const integrateMailscanCandidates = createServerFn({ method: "POST" })
         .limit(1)
         .maybeSingle();
 
-      if (sibling) {
+      if (sibling && !data.toProspects) {
         const { data: created, error: insertError } = await supabaseAdmin
           .from("investors")
           .insert({
