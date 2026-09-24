@@ -9,6 +9,8 @@ export type MailscanStatus = {
   domainsChecked: number;
   skipped: number;
   lastError: string | null;
+  scanFrom: string | null;
+  scanTo: string | null;
   updatedAt: string;
   pending: number;
   ready: number;
@@ -65,6 +67,8 @@ export const getMailscanStatus = createServerFn({ method: "GET" })
       domainsChecked: data?.domains_checked ?? 0,
       skipped: data?.skipped ?? 0,
       lastError: data?.last_error ?? null,
+      scanFrom: data?.scan_from ?? null,
+      scanTo: data?.scan_to ?? null,
       updatedAt: data?.updated_at ?? new Date().toISOString(),
       pending: pending.count ?? 0,
       ready,
@@ -74,7 +78,10 @@ export const getMailscanStatus = createServerFn({ method: "GET" })
 
 export const setMailscanRunning = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { running: boolean; restart?: boolean }) => input)
+  .inputValidator(
+    (input: { running: boolean; restart?: boolean; scanFrom?: string | null; scanTo?: string | null }) =>
+      input,
+  )
   .handler(async ({ data, context }) => {
     await assertBroker(context as never);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -83,6 +90,8 @@ export const setMailscanRunning = createServerFn({ method: "POST" })
       last_error: null,
       lease_until: null,
       updated_at: new Date().toISOString(),
+      ...(data.scanFrom !== undefined ? { scan_from: data.scanFrom } : {}),
+      ...(data.scanTo !== undefined ? { scan_to: data.scanTo } : {}),
       ...(data.restart
         ? {
             folder: "inbox",
