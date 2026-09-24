@@ -14,6 +14,7 @@ import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactsDetectesRouteImport } from './routes/contacts-detectes'
+import { Route as DossiersRouteImport } from './routes/dossiers'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
@@ -25,6 +26,7 @@ import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
 import { Route as ApiPublicCronMailscanTickRouteImport } from './routes/api/public/cron/mailscan-tick'
+import { Route as ApiPublicCronMailsyncTickRouteImport } from './routes/api/public/cron/mailsync-tick'
 import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -50,6 +52,11 @@ const AuthRoute = AuthRouteImport.update({
 const ContactsDetectesRoute = ContactsDetectesRouteImport.update({
   id: '/contacts-detectes',
   path: '/contacts-detectes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DossiersRoute = DossiersRouteImport.update({
+  id: '/dossiers',
+  path: '/dossiers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EnvoisRoute = EnvoisRouteImport.update({
@@ -108,6 +115,12 @@ const ApiPublicCronMailscanTickRoute =
     path: '/api/public/cron/mailscan-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronMailsyncTickRoute =
+  ApiPublicCronMailsyncTickRouteImport.update({
+    id: '/api/public/cron/mailsync-tick',
+    path: '/api/public/cron/mailsync-tick',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
   id: '/api/public/t/$id',
   path: '/api/public/t/$id',
@@ -120,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/contacts-detectes': typeof ContactsDetectesRoute
+  '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
@@ -131,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
+  '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesByTo {
@@ -139,6 +154,7 @@ export interface FileRoutesByTo {
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/contacts-detectes': typeof ContactsDetectesRoute
+  '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
@@ -150,6 +166,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
+  '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesById {
@@ -159,6 +176,7 @@ export interface FileRoutesById {
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/contacts-detectes': typeof ContactsDetectesRoute
+  '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
@@ -170,6 +188,7 @@ export interface FileRoutesById {
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
+  '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRouteTypes {
@@ -180,6 +199,7 @@ export interface FileRouteTypes {
     | '/arbitrage'
     | '/auth'
     | '/contacts-detectes'
+    | '/dossiers'
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
@@ -191,6 +211,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
+    | '/api/public/cron/mailsync-tick'
     | '/api/public/t/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -199,6 +220,7 @@ export interface FileRouteTypes {
     | '/arbitrage'
     | '/auth'
     | '/contacts-detectes'
+    | '/dossiers'
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
@@ -210,6 +232,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
+    | '/api/public/cron/mailsync-tick'
     | '/api/public/t/$id'
   id:
     | '__root__'
@@ -218,6 +241,7 @@ export interface FileRouteTypes {
     | '/arbitrage'
     | '/auth'
     | '/contacts-detectes'
+    | '/dossiers'
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
@@ -229,6 +253,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily'
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
+    | '/api/public/cron/mailsync-tick'
     | '/api/public/t/$id'
   fileRoutesById: FileRoutesById
 }
@@ -238,6 +263,7 @@ export interface RootRouteChildren {
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
   ContactsDetectesRoute: typeof ContactsDetectesRoute
+  DossiersRoute: typeof DossiersRoute
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
@@ -249,6 +275,7 @@ export interface RootRouteChildren {
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
   ApiPublicCronMailscanTickRoute: typeof ApiPublicCronMailscanTickRoute
+  ApiPublicCronMailsyncTickRoute: typeof ApiPublicCronMailsyncTickRoute
   ApiPublicTIdRoute: typeof ApiPublicTIdRoute
 }
 
@@ -287,6 +314,13 @@ declare module '@tanstack/react-router' {
       path: '/contacts-detectes'
       fullPath: '/contacts-detectes'
       preLoaderRoute: typeof ContactsDetectesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dossiers': {
+      id: '/dossiers'
+      path: '/dossiers'
+      fullPath: '/dossiers'
+      preLoaderRoute: typeof DossiersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/envois': {
@@ -366,6 +400,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronMailscanTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/mailsync-tick': {
+      id: '/api/public/cron/mailsync-tick'
+      path: '/api/public/cron/mailsync-tick'
+      fullPath: '/api/public/cron/mailsync-tick'
+      preLoaderRoute: typeof ApiPublicCronMailsyncTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/t/$id': {
       id: '/api/public/t/$id'
       path: '/api/public/t/$id'
@@ -382,6 +423,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
   ContactsDetectesRoute: ContactsDetectesRoute,
+  DossiersRoute: DossiersRoute,
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
@@ -393,6 +435,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
   ApiPublicCronMailscanTickRoute: ApiPublicCronMailscanTickRoute,
+  ApiPublicCronMailsyncTickRoute: ApiPublicCronMailsyncTickRoute,
   ApiPublicTIdRoute: ApiPublicTIdRoute,
 }
 export const routeTree = rootRouteImport
