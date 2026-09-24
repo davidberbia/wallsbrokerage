@@ -4,6 +4,7 @@ import { graphGet, type GraphAddress } from "@/lib/mailscan.server";
 import { extractFromText } from "@/lib/mail-extract";
 import { PERSONAL_EMAIL_DOMAINS } from "@/lib/email-domains";
 import { runSourcing } from "@/lib/sourcing.server";
+import { runDocRequests } from "@/lib/docrequests.server";
 
 // Synchronisation continue des emails (reçus + envoyés) depuis le 1er janvier 2026,
 // via les requêtes delta de Microsoft Graph. Rattache chaque email à un dossier.
@@ -218,6 +219,8 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
         } catch (e) {
           report["sourcing_erreur"] = (e instanceof Error ? e.message : String(e)).slice(0, 200);
         }
+        // Assistant IA : demandes de documents des investisseurs (brouillons à valider).
+        Object.assign(report, await runDocRequests());
         return Response.json({ ok: true, ...report });
       },
     },
