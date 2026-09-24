@@ -2,7 +2,7 @@
 import { getAdmin } from "@/lib/automation.server";
 
 export const GEMINI_MODEL = "gemini-3.5-flash";
-export const MONTHLY_BUDGET_EUR = 30;
+export const MONTHLY_BUDGET_EUR = 50;
 // Tarifs approximatifs (€/million de jetons), volontairement arrondis à la hausse.
 const PRICE_IN = 0.5;
 const PRICE_OUT = 3.5;
