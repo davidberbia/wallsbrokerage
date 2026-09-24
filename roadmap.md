@@ -19,8 +19,8 @@
 
 - [x] Étape 1 socle : pipeline Dossiers + synchro Outlook depuis 01/2026
 - [x] Étape 2 : extraction automatique (montants, adresses, telephones) par regles + rattachement par domaine
-- [ ] Étape 3 : sourcing (newsletters, PDF, sites web)
-- [ ] Étape 4 : assistant commercial
+- [ ] Étape 3 : sourcing newsletters + PDF (prospects, clients, actualités, comparables location/vente)
+- [ ] Étape 4 : rappels mails sans réponse 3/7/15 j, prospects à relancer, appels suggérés selon actualité
 - [x] Étape 5a : alertes dossiers inactifs (14 j)
-- [ ] Étape 5b : synthese hebdo par email (a valider avec David)
+- [ ] Étape 5b : synthèse QUOTIDIENNE 9h05 par email + récap financier + bouton audio Jarvis (voix navigateur gratuite)
 - [ ] Publier uniquement quand le projet est totalement termine (accord de David)
