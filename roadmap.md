@@ -30,6 +30,6 @@
 - [ ] IA Gemini phase 2 : newsletters/PDF, fusion des doublons, synthèse quotidienne rédigée, apprentissage du ciblage
 - [ ] Plus tard : serveur pro, WhatsApp, appels (sur demande de David)
 
-- [ ] Flux liens : partage depuis le téléphone (articles, vidéos, reels) → extraction Gemini dans le CRM
-- [ ] Nouveau logo net + raccourci écran d'accueil du téléphone
+- [x] Flux liens : partage depuis le téléphone (articles, vidéos, reels) → extraction Gemini dans le CRM
+- [x] Nouveau logo net + raccourci écran d'accueil du téléphone
 - [ ] WhatsApp : connexion du numéro (attente David / validation Meta), dialogue avec l'assistante, lecture des messages
