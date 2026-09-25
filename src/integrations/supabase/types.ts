@@ -547,6 +547,72 @@ export type Database = {
           },
         ]
       }
+      call_recordings: {
+        Row: {
+          actions: string | null
+          called_at: string | null
+          channel: string | null
+          contact_name: string | null
+          created_at: string
+          direction: string | null
+          drive_file_id: string
+          error: string | null
+          file_name: string
+          found_comparables: number
+          found_contacts: number
+          found_news: number
+          id: string
+          phone: string | null
+          size: number | null
+          status: string
+          summary: string | null
+          transcript: string | null
+          updated_at: string
+        }
+        Insert: {
+          actions?: string | null
+          called_at?: string | null
+          channel?: string | null
+          contact_name?: string | null
+          created_at?: string
+          direction?: string | null
+          drive_file_id: string
+          error?: string | null
+          file_name: string
+          found_comparables?: number
+          found_contacts?: number
+          found_news?: number
+          id?: string
+          phone?: string | null
+          size?: number | null
+          status?: string
+          summary?: string | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actions?: string | null
+          called_at?: string | null
+          channel?: string | null
+          contact_name?: string | null
+          created_at?: string
+          direction?: string | null
+          drive_file_id?: string
+          error?: string | null
+          file_name?: string
+          found_comparables?: number
+          found_contacts?: number
+          found_news?: number
+          id?: string
+          phone?: string | null
+          size?: number | null
+          status?: string
+          summary?: string | null
+          transcript?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       campaigns: {
         Row: {
           asset_id: string

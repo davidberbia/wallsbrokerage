@@ -33,3 +33,7 @@
 - [x] Flux liens : partage depuis le téléphone (articles, vidéos, reels) → extraction Gemini dans le CRM
 - [x] Nouveau logo net + raccourci écran d'accueil du téléphone
 - [ ] WhatsApp : connexion du numéro (attente David / validation Meta), dialogue avec l'assistante, lecture des messages
+- [x] Appels Cube ACR : récupération Drive toutes les 30 min (8h-22h), transcription + résumé + actions, onglet « Appels »
+- [ ] Appels : analyse bloquée tant que le crédit Google Gemini est épuisé (attente recharge David)
+- [x] Vidéos Instagram/TikTok via Cobalt en meilleur effort (retour légende si indisponible)
+- [ ] Cobalt : l'instance publique exige désormais une autorisation → héberger sa propre instance si David le souhaite

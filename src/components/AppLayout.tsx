@@ -9,6 +9,7 @@ import {
   LogOut,
   Mail,
   Menu,
+  Phone,
   Scale,
   Send,
   Settings,
@@ -32,6 +33,7 @@ const BROKER_NAV = [
   { to: "/dossiers", label: "Dossiers", icon: FolderKanban },
   { to: "/comparables", label: "Comparables", icon: Scale },
   { to: "/partager", label: "Liens", icon: Link2 },
+  { to: "/appels", label: "Appels", icon: Phone },
   { to: "/envois", label: "Envois", icon: Send },
 ] as const;
 
