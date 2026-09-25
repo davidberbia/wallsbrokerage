@@ -28,9 +28,11 @@ export const Route = createFileRoute("/api/public/cron/daily-digest")({
           .from("digest_reports")
           .upsert({ day, token, html: digest.html, speech: digest.speech }, { onConflict: "day" });
 
+        // Expéditeur distinct de la boîte de David : Outlook n'affiche plus « Note pour vous-même ».
         await sendBrevoMail({
           to: await getRecapEmail(),
-          subject: `Synthèse du jour — ${digest.counts.unanswered} sans réponse, ${digest.counts.relaunch} relances, ${digest.counts.calls} appels`,
+          sender: { email: "synthese@wallsbroker.com", name: "RESUME JOURNALIER D'ACTIVITE" },
+          subject: `🟢 RESUME JOURNALIER D'ACTIVITE — ${digest.counts.unanswered} sans réponse, ${digest.counts.relaunch} relances, ${digest.counts.calls} appels`,
           html: digest.html,
         });
         if (digest.reminders.length)
