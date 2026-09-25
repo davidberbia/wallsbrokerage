@@ -67,7 +67,10 @@ function PartagerPage() {
   });
 
   const go = async (u: string, n: string) => {
-    if (!/^https?:\/\//.test(u)) return toast.error("Collez un lien commençant par http");
+    if (!/^https?:\/\//.test(u)) {
+      toast.error("Collez un lien commençant par http");
+      return;
+    }
     setBusy(true);
     try {
       const r = await send({ data: { url: u, note: n || undefined } });
