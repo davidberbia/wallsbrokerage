@@ -20,6 +20,7 @@ import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as ParametresRouteImport } from './routes/parametres'
+import { Route as PartagerRouteImport } from './routes/partager'
 import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ValidationRouteImport } from './routes/validation'
@@ -87,6 +88,11 @@ const MonProfilRoute = MonProfilRouteImport.update({
 const ParametresRoute = ParametresRouteImport.update({
   id: '/parametres',
   path: '/parametres',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartagerRoute = PartagerRouteImport.update({
+  id: '/partager',
+  path: '/partager',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProspectsRoute = ProspectsRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
   '/parametres': typeof ParametresRoute
+  '/partager': typeof PartagerRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
   '/parametres': typeof ParametresRoute
+  '/partager': typeof PartagerRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
   '/parametres': typeof ParametresRoute
+  '/partager': typeof PartagerRoute
   '/prospects': typeof ProspectsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/investisseurs'
     | '/mon-profil'
     | '/parametres'
+    | '/partager'
     | '/prospects'
     | '/sitemap.xml'
     | '/validation'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/investisseurs'
     | '/mon-profil'
     | '/parametres'
+    | '/partager'
     | '/prospects'
     | '/sitemap.xml'
     | '/validation'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/investisseurs'
     | '/mon-profil'
     | '/parametres'
+    | '/partager'
     | '/prospects'
     | '/sitemap.xml'
     | '/validation'
@@ -330,6 +342,7 @@ export interface RootRouteChildren {
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
   ParametresRoute: typeof ParametresRoute
+  PartagerRoute: typeof PartagerRoute
   ProspectsRoute: typeof ProspectsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ValidationRoute: typeof ValidationRoute
@@ -422,6 +435,13 @@ declare module '@tanstack/react-router' {
       path: '/parametres'
       fullPath: '/parametres'
       preLoaderRoute: typeof ParametresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partager': {
+      id: '/partager'
+      path: '/partager'
+      fullPath: '/partager'
+      preLoaderRoute: typeof PartagerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/prospects': {
@@ -530,6 +550,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
   ParametresRoute: ParametresRoute,
+  PartagerRoute: PartagerRoute,
   ProspectsRoute: ProspectsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ValidationRoute: ValidationRoute,

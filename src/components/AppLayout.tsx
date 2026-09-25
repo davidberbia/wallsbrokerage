@@ -5,6 +5,7 @@ import {
   Building2,
   Contact,
   FolderKanban,
+  Link2,
   LogOut,
   Mail,
   Menu,
@@ -30,6 +31,7 @@ const BROKER_NAV = [
   { to: "/actifs", label: "Actifs", icon: Building2 },
   { to: "/dossiers", label: "Dossiers", icon: FolderKanban },
   { to: "/comparables", label: "Comparables", icon: Scale },
+  { to: "/partager", label: "Liens", icon: Link2 },
   { to: "/envois", label: "Envois", icon: Send },
 ] as const;
 
@@ -138,6 +140,7 @@ export function AppLayout({
           </Sheet>
 
           <Link to={isStaff ? "/" : "/mon-profil"} className="flex min-w-0 items-baseline">
+            <img src="/icon-192.png" alt="" className="mr-2 size-7 self-center rounded-md" />
             <span className="truncate font-display text-base font-semibold tracking-tight text-accent sm:text-lg">
               WALLSBROKERAGE
             </span>

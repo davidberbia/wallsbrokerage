@@ -1711,6 +1711,51 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_links: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          error: string | null
+          found_comparables: number
+          found_contacts: number
+          found_news: number
+          id: string
+          note: string | null
+          status: string
+          summary: string | null
+          title: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          found_comparables?: number
+          found_contacts?: number
+          found_news?: number
+          id?: string
+          note?: string | null
+          status?: string
+          summary?: string | null
+          title?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          found_comparables?: number
+          found_contacts?: number
+          found_news?: number
+          id?: string
+          note?: string | null
+          status?: string
+          summary?: string | null
+          title?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       sourcing_scanned: {
         Row: {
           created_at: string
