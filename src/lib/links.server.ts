@@ -90,7 +90,12 @@ export async function processLink(id: string): Promise<void> {
   } catch (e) {
     await admin
       .from("shared_links")
-      .update({ status: "erreur", error: (e instanceof Error ? e.message : String(e)).slice(0, 400) })
+      .update({
+        status: "erreur",
+        error: /Gemini \[402\]/.test(String(e))
+          ? "Crédit Google Gemini épuisé : rechargez-le sur aistudio.google.com (Facturation), puis relancez le lien."
+          : (e instanceof Error ? e.message : String(e)).slice(0, 400),
+      })
       .eq("id", id);
   }
 }
