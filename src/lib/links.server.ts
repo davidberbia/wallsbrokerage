@@ -102,7 +102,7 @@ async function collect(url: string): Promise<{ parts: Record<string, unknown>[];
     extra.push(`(page illisible : ${e instanceof Error ? e.message : String(e)})`);
   }
   const text = extra.join("\n\n").trim();
-  return { parts: [{ text: `Lien partagé : ${url}\n\n${text}` }], title };
+  return { parts: [...videoPart, { text: `Lien partagé : ${url}\n\n${text}` }], title };
 }
 
 export async function processLink(id: string): Promise<void> {
