@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ActifsRouteImport } from './routes/actifs'
+import { Route as AppelsRouteImport } from './routes/appels'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComparablesRouteImport } from './routes/comparables'
@@ -27,6 +28,7 @@ import { Route as ValidationRouteImport } from './routes/validation'
 import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
 import { Route as ApiPublicCronAiscanTickRouteImport } from './routes/api/public/cron/aiscan-tick'
+import { Route as ApiPublicCronCallsTickRouteImport } from './routes/api/public/cron/calls-tick'
 import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronDailyDigestRouteImport } from './routes/api/public/cron/daily-digest'
@@ -43,6 +45,11 @@ const IndexRoute = IndexRouteImport.update({
 const ActifsRoute = ActifsRouteImport.update({
   id: '/actifs',
   path: '/actifs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppelsRoute = AppelsRouteImport.update({
+  id: '/appels',
+  path: '/appels',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArbitrageRoute = ArbitrageRouteImport.update({
@@ -125,6 +132,11 @@ const ApiPublicCronAiscanTickRoute = ApiPublicCronAiscanTickRouteImport.update({
   path: '/api/public/cron/aiscan-tick',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronCallsTickRoute = ApiPublicCronCallsTickRouteImport.update({
+  id: '/api/public/cron/calls-tick',
+  path: '/api/public/cron/calls-tick',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronCfnewsTickRoute = ApiPublicCronCfnewsTickRouteImport.update({
   id: '/api/public/cron/cfnews-tick',
   path: '/api/public/cron/cfnews-tick',
@@ -167,6 +179,7 @@ const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
+  '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/comparables': typeof ComparablesRoute
@@ -183,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
+  '/api/public/cron/calls-tick': typeof ApiPublicCronCallsTickRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
@@ -194,6 +208,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
+  '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/comparables': typeof ComparablesRoute
@@ -210,6 +225,7 @@ export interface FileRoutesByTo {
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
+  '/api/public/cron/calls-tick': typeof ApiPublicCronCallsTickRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
@@ -222,6 +238,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/actifs': typeof ActifsRoute
+  '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/comparables': typeof ComparablesRoute
@@ -238,6 +255,7 @@ export interface FileRoutesById {
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
+  '/api/public/cron/calls-tick': typeof ApiPublicCronCallsTickRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
@@ -251,6 +269,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/actifs'
+    | '/appels'
     | '/arbitrage'
     | '/auth'
     | '/comparables'
@@ -267,6 +286,7 @@ export interface FileRouteTypes {
     | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/aiscan-tick'
+    | '/api/public/cron/calls-tick'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
@@ -278,6 +298,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/actifs'
+    | '/appels'
     | '/arbitrage'
     | '/auth'
     | '/comparables'
@@ -294,6 +315,7 @@ export interface FileRouteTypes {
     | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/aiscan-tick'
+    | '/api/public/cron/calls-tick'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
@@ -305,6 +327,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/actifs'
+    | '/appels'
     | '/arbitrage'
     | '/auth'
     | '/comparables'
@@ -321,6 +344,7 @@ export interface FileRouteTypes {
     | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/aiscan-tick'
+    | '/api/public/cron/calls-tick'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
@@ -333,6 +357,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ActifsRoute: typeof ActifsRoute
+  AppelsRoute: typeof AppelsRoute
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
   ComparablesRoute: typeof ComparablesRoute
@@ -349,6 +374,7 @@ export interface RootRouteChildren {
   SyntheseTokenRoute: typeof SyntheseTokenRoute
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCronAiscanTickRoute: typeof ApiPublicCronAiscanTickRoute
+  ApiPublicCronCallsTickRoute: typeof ApiPublicCronCallsTickRoute
   ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronDailyDigestRoute: typeof ApiPublicCronDailyDigestRoute
@@ -372,6 +398,13 @@ declare module '@tanstack/react-router' {
       path: '/actifs'
       fullPath: '/actifs'
       preLoaderRoute: typeof ActifsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/appels': {
+      id: '/appels'
+      path: '/appels'
+      fullPath: '/appels'
+      preLoaderRoute: typeof AppelsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/arbitrage': {
@@ -486,6 +519,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronAiscanTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/calls-tick': {
+      id: '/api/public/cron/calls-tick'
+      path: '/api/public/cron/calls-tick'
+      fullPath: '/api/public/cron/calls-tick'
+      preLoaderRoute: typeof ApiPublicCronCallsTickRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/cfnews-tick': {
       id: '/api/public/cron/cfnews-tick'
       path: '/api/public/cron/cfnews-tick'
@@ -541,6 +581,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ActifsRoute: ActifsRoute,
+  AppelsRoute: AppelsRoute,
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
   ComparablesRoute: ComparablesRoute,
@@ -557,6 +598,7 @@ const rootRouteChildren: RootRouteChildren = {
   SyntheseTokenRoute: SyntheseTokenRoute,
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCronAiscanTickRoute: ApiPublicCronAiscanTickRoute,
+  ApiPublicCronCallsTickRoute: ApiPublicCronCallsTickRoute,
   ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronDailyDigestRoute: ApiPublicCronDailyDigestRoute,

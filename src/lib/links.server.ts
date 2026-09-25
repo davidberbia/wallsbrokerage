@@ -32,6 +32,38 @@ const htmlText = (html: string) =>
     .replace(/\n\s*\n+/g, "\n")
     .trim();
 
+const MAX_VIDEO = 18 * 1024 * 1024;
+
+/** Meilleur effort : récupère la vidéo Instagram/TikTok via Cobalt (gratuit). null si indisponible. */
+async function cobaltVideo(url: string): Promise<{ mimeType: string; data: string } | null> {
+  const instances = (process.env["COBALT_API_URL"] ?? "https://api.cobalt.tools").split(",").map((s) => s.trim()).filter(Boolean);
+  for (const base of instances) {
+    try {
+      const r = await fetch(base.replace(/\/$/, "") + "/", {
+        method: "POST",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ url, videoQuality: "480", downloadMode: "auto" }),
+      });
+      if (!r.ok) continue;
+      const j = (await r.json()) as { status?: string; url?: string; picker?: { type?: string; url?: string }[] };
+      const media = j.url ?? j.picker?.find((p) => p.type === "video")?.url;
+      if (!media || !["tunnel", "redirect", "picker"].includes(j.status ?? "")) continue;
+      const v = await fetch(media);
+      if (!v.ok) continue;
+      const len = Number(v.headers.get("content-length") ?? 0);
+      if (len > MAX_VIDEO) continue;
+      const buf = new Uint8Array(await v.arrayBuffer());
+      if (!buf.length || buf.length > MAX_VIDEO) continue;
+      let s = "";
+      for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+      return { mimeType: "video/mp4", data: btoa(s) };
+    } catch {
+      /* instance suivante */
+    }
+  }
+  return null;
+}
+
 async function collect(url: string): Promise<{ parts: Record<string, unknown>[]; title: string | null }> {
   const u = new URL(url);
   const host = u.hostname.replace(/^www\.|^m\./, "");
@@ -39,6 +71,14 @@ async function collect(url: string): Promise<{ parts: Record<string, unknown>[];
     return { parts: [{ fileData: { fileUri: url } }, { text: `Vidéo YouTube : ${url}` }], title: null };
   }
   const extra: string[] = [];
+  const videoPart: Record<string, unknown>[] = [];
+  if (/tiktok\.com$|instagram\.com$/.test(host)) {
+    const vid = await cobaltVideo(url);
+    if (vid) {
+      videoPart.push({ inlineData: vid });
+      extra.push("(La vidéo complète est jointe : analyse aussi ce qui est dit et montré.)");
+    }
+  }
   if (/tiktok\.com$/.test(host)) {
     try {
       const r = await fetch(`https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`);
