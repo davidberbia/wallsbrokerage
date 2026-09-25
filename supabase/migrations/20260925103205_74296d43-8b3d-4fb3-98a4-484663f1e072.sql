@@ -1,0 +1,2 @@
+DO $$ BEGIN PERFORM cron.unschedule('walls-mailsync-tick'); EXCEPTION WHEN OTHERS THEN NULL; END $$;
+SELECT cron.schedule('walls-mailsync-tick', '0 6-21 * * *', $$SELECT public.trigger_automation('/api/public/cron/mailsync-tick')$$);
