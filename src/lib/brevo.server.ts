@@ -44,6 +44,8 @@ export async function sendBrevoMail(params: {
   attachment?: BrevoAttachment | null;
   /** Plusieurs documents joints au même mail */
   attachments?: BrevoAttachment[] | null;
+  /** Expéditeur spécifique (domaine wallsbroker.com authentifié dans Brevo). */
+  sender?: { email: string; name: string } | null;
 }): Promise<BrevoResult> {
   const lovableApiKey = process.env["LOVABLE_API_KEY"];
   const brevoApiKey = process.env["BREVO_API_KEY"];
@@ -52,7 +54,7 @@ export async function sendBrevoMail(params: {
   }
 
   const body: Record<string, unknown> = {
-    sender: { email: FROM_EMAIL, name: FROM_NAME },
+    sender: params.sender ?? { email: FROM_EMAIL, name: FROM_NAME },
     to: [{ email: params.to, ...(params.toName ? { name: params.toName } : {}) }],
     replyTo: { email: REPLY_TO, name: FROM_NAME },
     subject: params.subject,
