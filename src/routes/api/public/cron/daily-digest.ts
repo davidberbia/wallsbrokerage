@@ -3,8 +3,8 @@ import { APP_URL, authorizeCron, getAdmin, getRecapEmail } from "@/lib/automatio
 import { buildDigest } from "@/lib/digest.server";
 import { sendBrevoMail } from "@/lib/brevo.server";
 
-// Synthèse quotidienne à 9h05 (heure de Paris). Le cron appelle à 7h05 et 8h05 UTC ;
-// seul l'appel qui tombe à 9h à Paris envoie (gère l'heure d'été / d'hiver).
+// Synthèse quotidienne à 10h05 (heure de Paris). Le cron appelle à 8h05 et 9h05 UTC ;
+// seul l'appel qui tombe à 10h à Paris envoie (gère l'heure d'été / d'hiver).
 export const Route = createFileRoute("/api/public/cron/daily-digest")({
   server: {
     handlers: {
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/public/cron/daily-digest")({
         const parisHour = Number(
           new Date().toLocaleString("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Paris" }),
         );
-        if (!force && parisHour !== 9) return Response.json({ ok: true, skipped: "hors créneau" });
+        if (!force && parisHour !== 10) return Response.json({ ok: true, skipped: "hors créneau" });
 
         const admin = await getAdmin();
         const day = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Paris" });

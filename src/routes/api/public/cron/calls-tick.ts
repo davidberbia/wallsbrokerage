@@ -11,6 +11,11 @@ export const Route = createFileRoute("/api/public/cron/calls-tick")({
       POST: async ({ request }) => {
         const denied = await authorizeCron(request);
         if (denied) return denied;
+        // Toutes les 2 heures entre 8h et 20h (heure de Paris), été comme hiver.
+        if (new URL(request.url).searchParams.get("force") !== "1") {
+          const h = Number(new Date().toLocaleString("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Paris" }));
+          if (h < 8 || h > 20 || h % 2 !== 0) return Response.json({ ok: true, skipped: "hors créneau" });
+        }
         const { discoverCalls, processCall } = await import("@/lib/calls.server");
         const admin = await getAdmin();
         const started = Date.now();
