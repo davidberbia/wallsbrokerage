@@ -70,7 +70,7 @@ function AppelsPage() {
         <div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">Appels enregistrés</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Les enregistrements Cube ACR du Drive sont récupérés toutes les 30 min entre 8 h et 22 h, transcrits et résumés ;
+            Les enregistrements Cube ACR du Drive sont récupérés toutes les 2 h entre 8 h et 20 h, transcrits et résumés ;
             contacts et actualités cités sont ajoutés au CRM (jamais de comparable : un chiffre oral n'est pas fiable). Les appels personnels, sans contact connu ni sujet immobilier pro, sont ignorés.
           </p>
         </div>
