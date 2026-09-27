@@ -2,9 +2,16 @@
 // récap financier et sourcing. 100 % règles, aucune IA.
 import { APP_URL, escapeHtml, getAdmin } from "@/lib/automation.server";
 import { OWN_DOMAINS } from "@/lib/mailscan.server";
+import { CLOSED_STAGES, dealFee, stageWeight } from "@/lib/deal-stages";
+
+// Rejet d'un prospect/investisseur : le dossier est gelé, plus jamais de relance.
+const REJECT_RE =
+  /(pas int[ée]ress|ne (nous )?int[ée]resse pas|ne correspond pas|hors (de notre )?cible|hors crit[èe]re|nous d[ée]clinons|je d[ée]cline|pas pour nous|nous passons|je passe mon tour|pas de suite|sans suite|ne donnerons pas suite|pas donner suite|ne souhaitons pas|ne sommes pas acheteurs?|pas acheteur|trop cher|pas notre strat[ée]gie|not interested|we will pass|we pass|not for us)/i;
+const POSITIVE_RE =
+  /(int[ée]ress[ée]s?|envoyez|pouvez-vous (nous )?(envoyer|transmettre)|data ?room|visite|faire une offre|offre|LOI|lettre d'intention|rendez-vous|rdv|appelons|on en parle)/i;
 
 const DAY = 24 * 3600 * 1000;
-const CLOSED = ["Signé", "Perdu"];
+const CLOSED = CLOSED_STAGES;
 const eur = (n: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
 const dshort = (v: string | null) =>
@@ -28,9 +35,25 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
     .from("deals")
     .select("id, name, stage, company, amount, fee_amount, fee_pct, probability, expected_payment_at, paid_at, last_activity_at, updated_at");
   const allDeals = deals ?? [];
-  const open = allDeals.filter((d) => !CLOSED.includes(d.stage));
+  const open = allDeals.filter((d) => !CLOSED.includes(d.stage) && d.stage !== "Cible");
   const openIds = new Set(open.map((d) => d.id));
   const dealName = new Map(allDeals.map((d) => [d.id, d.name]));
+
+  // 0. Rejets : tout expéditeur ayant refusé → gelé (sur le dossier, et pour les envois).
+  const { data: rejects } = await admin
+    .from("mail_messages")
+    .select("deal_id, from_email, subject, preview")
+    .eq("folder", "inbox")
+    .gte("received_at", iso(now - 365 * DAY))
+    .or("preview.ilike.%pas int%,preview.ilike.%correspond pas%,preview.ilike.%hors cible%,preview.ilike.%declin%,preview.ilike.%déclin%,preview.ilike.%pas pour nous%,preview.ilike.%passons%,preview.ilike.%suite%,preview.ilike.%souhaitons pas%,preview.ilike.%acheteur%,preview.ilike.%trop cher%,preview.ilike.%interested%,preview.ilike.%pass%,preview.ilike.%critère%,preview.ilike.%stratégie%")
+    .limit(5000);
+  const frozenDeals = new Set<string>();
+  const frozenSenders = new Set<string>();
+  for (const r of rejects ?? []) {
+    if (!REJECT_RE.test(`${r.subject ?? ""} ${r.preview ?? ""}`)) continue;
+    if (r.deal_id) frozenDeals.add(r.deal_id);
+    if (r.from_email) frozenSenders.add(r.from_email.toLowerCase());
+  }
 
   // 1. Mails importants sans réponse (3 / 7 / 15 jours).
   const { data: inbound } = await admin
@@ -44,6 +67,7 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
   const latest = new Map<string, NonNullable<typeof inbound>[number]>();
   for (const m of inbound ?? []) {
     if (!m.deal_id || !openIds.has(m.deal_id) || !m.from_email || own(m.from_email)) continue;
+    if (frozenDeals.has(m.deal_id) || frozenSenders.has(m.from_email.toLowerCase())) continue;
     const k = `${m.deal_id}|${m.from_email}`;
     if (!latest.has(k)) latest.set(k, m);
   }
@@ -90,11 +114,11 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
   const seen = new Set<string>();
   for (const s of (sends ?? []) as unknown as SendRow[]) {
     const em = s.email_to.toLowerCase();
-    if (seen.has(em) || own(em)) continue;
+    if (seen.has(em) || own(em) || frozenSenders.has(em)) continue;
     seen.add(em);
     const { data: reply } = await admin
       .from("mail_messages")
-      .select("received_at")
+      .select("received_at, subject, preview")
       .eq("folder", "inbox")
       .eq("from_email", em)
       .gt("received_at", s.sent_at)
@@ -102,6 +126,7 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
       .limit(1)
       .maybeSingle();
     if (!reply?.received_at) continue; // pas de réponse → aucune relance
+    if (REJECT_RE.test(`${reply.subject ?? ""} ${reply.preview ?? ""}`)) continue; // refus → gelé
     if (now - new Date(reply.received_at).getTime() < 3 * DAY) continue;
     const { count: answered } = await admin
       .from("mail_messages")
@@ -148,13 +173,13 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
 
   // 4. Dossiers inactifs depuis 14 jours.
   const dormant = open
+    .filter((d) => !frozenDeals.has(d.id))
     .map((d) => ({ d, days: Math.floor((now - new Date(d.last_activity_at ?? d.updated_at).getTime()) / DAY) }))
     .filter((x) => x.days >= 14)
     .sort((a, b) => b.days - a.days);
 
   // 5. Récap financier.
-  const fee = (d: (typeof allDeals)[number]) =>
-    Number(d.fee_amount ?? (d.fee_pct && d.amount ? (Number(d.amount) * Number(d.fee_pct)) / 100 : 0)) || 0;
+  const fee = (d: (typeof allDeals)[number]) => dealFee(d);
   const byStage = new Map<string, { n: number; amount: number; fees: number }>();
   let totalFees = 0;
   let weighted = 0;
@@ -165,15 +190,44 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
     s.fees += fee(d);
     byStage.set(d.stage, s);
     totalFees += fee(d);
-    weighted += (fee(d) * (d.probability ?? 50)) / 100;
+    weighted += fee(d) * stageWeight(d.stage);
   }
   const upcoming = allDeals
+    .filter((d) => d.stage !== "Cible")
     .filter((d) => d.expected_payment_at && !d.paid_at && d.stage !== "Perdu")
     .sort((a, b) => a.expected_payment_at!.localeCompare(b.expected_payment_at!));
   const inDays = (d: string, n: number) => new Date(d).getTime() <= now + n * DAY;
   const due30 = upcoming.filter((d) => inDays(d.expected_payment_at!, 30)).reduce((a, d) => a + fee(d), 0);
   const due90 = upcoming.filter((d) => inDays(d.expected_payment_at!, 90)).reduce((a, d) => a + fee(d), 0);
   const late = upcoming.filter((d) => new Date(d.expected_payment_at!).getTime() < now);
+
+  // 5b. L'actionnable : affaires chaudes, réponses positives, signatures imminentes, nouvelles cibles.
+  const hot = open
+    .filter((d) => ["Offre", "LOI acceptée", "Promesse"].includes(d.stage) && !frozenDeals.has(d.id))
+    .filter((d) => now - new Date(d.last_activity_at ?? d.updated_at).getTime() < 10 * DAY)
+    .slice(0, 8);
+  const imminent = allDeals
+    .filter((d) => ["Promesse", "Acte"].includes(d.stage) && !d.paid_at && d.expected_payment_at && inDays(d.expected_payment_at, 30))
+    .slice(0, 8);
+  const { data: recentIn } = await admin
+    .from("mail_messages")
+    .select("from_email, from_name, subject, preview, web_link, received_at")
+    .eq("folder", "inbox")
+    .gte("received_at", iso(now - 2 * DAY))
+    .order("received_at", { ascending: false })
+    .limit(300);
+  const sentTo = new Set(((sends ?? []) as unknown as SendRow[]).map((x) => x.email_to.toLowerCase()));
+  const positives = (recentIn ?? [])
+    .filter((m) => m.from_email && sentTo.has(m.from_email.toLowerCase()) && !frozenSenders.has(m.from_email.toLowerCase()))
+    .filter((m) => POSITIVE_RE.test(`${m.subject ?? ""} ${m.preview ?? ""}`) && !REJECT_RE.test(`${m.subject ?? ""} ${m.preview ?? ""}`))
+    .slice(0, 8);
+  const { data: newTargets } = await admin
+    .from("deals")
+    .select("id, name, source, amount, surface, rent, fee_amount, fee_pct, suggestion, enrichment")
+    .eq("stage", "Cible")
+    .gte("created_at", iso(now - DAY))
+    .order("created_at", { ascending: false })
+    .limit(10);
 
   // 6. Sourcing des dernières 24 h.
   const [{ data: comps }, { count: newContacts }] = await Promise.all([
@@ -209,7 +263,16 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
 <h2 style="margin:6px 0 4px;font-size:20px;">${e(dateLabel)}</h2>
 <p style="margin:0 0 12px;color:#5d6773;font-size:14px;">${plural(unanswered.length, "mail sans réponse", "mails sans réponse")} · ${plural(relaunch.length, "relance suggérée", "relances suggérées")} · ${plural(calls.length, "appel suggéré", "appels suggérés")} · ${plural(dormant.length, "dossier dormant", "dossiers dormants")}</p>
 ${listenUrl ? `<p style="margin:10px 0 4px;"><a href="${listenUrl}" style="background:#16212f;color:#ffffff;padding:11px 18px;border-radius:4px;text-decoration:none;display:inline-block;font-size:14px;">▶ Écouter la synthèse</a></p>` : ""}
-${section(1, "Mails importants sans réponse", table(
+${section(1, "À traiter aujourd'hui", `
+<p style="font-size:13px;margin:4px 0 6px;"><b>Affaires chaudes</b></p>
+${table(["Affaire", "Statut", "Honoraires"], hot.map((d) => [e(d.name), e(d.stage), eur(fee(d))]), "Aucune affaire chaude en ce moment.")}
+<p style="font-size:13px;margin:12px 0 6px;"><b>Réponses positives</b></p>
+${table(["De", "Objet"], positives.map((m) => [e(m.from_name || m.from_email), m.web_link ? `<a href="${e(m.web_link)}" style="color:#2a7f99;">${e(m.subject || "(sans objet)")}</a>` : e(m.subject)]), "Aucune réponse positive ces 48 dernières heures.")}
+<p style="font-size:13px;margin:12px 0 6px;"><b>Signatures imminentes</b></p>
+${table(["Affaire", "Statut", "Échéance", "Honoraires"], imminent.map((d) => [e(d.name), e(d.stage), dshort(d.expected_payment_at), eur(fee(d))]), "Aucune signature prévue sous 30 jours.")}
+<p style="font-size:13px;margin:12px 0 6px;"><b>Nouvelles cibles détectées</b></p>
+${table(["Cible", "Origine", "Prix", "Action suggérée"], (newTargets ?? []).map((t) => [e(t.name), e(t.source ?? ""), t.amount ? eur(Number(t.amount)) : "—", e(t.suggestion ?? "Qualifier la cible et proposer un avis de valeur.")]), "Aucune nouvelle cible depuis hier.")}`)}
+${section(2, "Mails importants sans réponse", table(
   ["Dossier", "De", "Objet", "Attente"],
   unanswered.map(({ m, days, tier }) => [
     e(dealName.get(m.deal_id!) ?? ""),
@@ -219,7 +282,7 @@ ${section(1, "Mails importants sans réponse", table(
   ]),
   "Aucun mail en attente de réponse. Bravo.",
 ))}
-${section(2, "Réponses à des envois en attente de relance", table(
+${section(3, "Réponses à des envois en attente de relance", table(
   ["Contact", "Société", "Actif envoyé", "Envoi", "Lu"],
   relaunch.map((s) => [
     e(s.investors?.full_name ?? s.prospect_contacts?.full_name ?? s.email_to) + `<span style="display:block;color:#6b7684;font-size:12px;">${e(s.email_to)}${(s.investors?.phone ?? s.prospect_contacts?.phone) ? ` · ${e(s.investors?.phone ?? s.prospect_contacts?.phone)}` : ""}</span>`,
@@ -230,7 +293,7 @@ ${section(2, "Réponses à des envois en attente de relance", table(
   ]),
   "Aucune relance nécessaire.",
 ))}
-${section(3, "Appels suggérés selon l'actualité", table(
+${section(4, "Appels suggérés selon l'actualité", table(
   ["Société", "Actualité", "Qui appeler"],
   calls.map((c) => [
     `<b>${e(c.company)}</b><span style="display:block;color:#6b7684;font-size:12px;">${dshort(c.date)}</span>`,
@@ -239,18 +302,18 @@ ${section(3, "Appels suggérés selon l'actualité", table(
   ]),
   "Aucune actualité notable cette semaine sur vos contacts.",
 ))}
-${section(4, "Dossiers inactifs depuis 14 jours", table(
+${section(5, "Dossiers inactifs depuis 14 jours", table(
   ["Dossier", "Étape", "Sans activité"],
   dormant.map(({ d, days }) => [e(d.name), e(d.stage), `${days} j`]),
   "Tous les dossiers en cours sont actifs.",
 ))}
-${section(5, "Récap financier", `
+${section(6, "Récap financier", `
 <p style="font-size:14px;margin:4px 0 10px;">Honoraires potentiels en cours : <b>${eur(totalFees)}</b> · pondérés : <b>${eur(weighted)}</b><br>
 Encaissements prévus sous 30 j : <b>${eur(due30)}</b> · sous 90 j : <b>${eur(due90)}</b>${late.length ? ` · <b style="color:#8b1e2d;">${plural(late.length, "encaissement en retard", "encaissements en retard")}</b>` : ""}</p>
 ${table(["Étape", "Dossiers", "Montant des actifs", "Honoraires"], [...byStage.entries()].map(([s, v]) => [e(s), String(v.n), eur(v.amount), eur(v.fees)]), "Aucun dossier en cours.")}
 <p style="font-size:13px;margin:12px 0 4px;"><b>Prochaines échéances d'encaissement</b></p>
 ${table(["Échéance", "Dossier", "Honoraires"], upcoming.slice(0, 8).map((d) => [dshort(d.expected_payment_at), e(d.name), eur(fee(d))]), "Aucune échéance renseignée — ajoutez-les dans les fiches dossiers.")}`)}
-${section(6, "Sourcing des dernières 24 h", `
+${section(7, "Sourcing des dernières 24 h", `
 <p style="font-size:13px;margin:4px 0 8px;">${plural(newContacts ?? 0, "nouveau contact détecté", "nouveaux contacts détectés")} à valider · ${plural(comps?.length ?? 0, "nouveau comparable", "nouveaux comparables")}</p>
 ${table(["Type", "Ville", "Surface", "Valeur", "Détail"], (comps ?? []).map((c) => [
   c.kind === "location" ? "Location" : "Vente",
@@ -266,6 +329,13 @@ ${table(["Type", "Ville", "Surface", "Valeur", "Détail"], (comps ?? []).map((c)
   const hour = Number(new Date().toLocaleString("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Paris" }));
   const parts: string[] = [];
   parts.push(`${hour < 18 ? "Bonjour" : "Bonsoir"} David. Voici votre point du ${dateLabel}.`);
+  if (hot.length) parts.push(`${plural(hot.length, "affaire chaude", "affaires chaudes")} : ${hot.slice(0, 3).map((d) => `${d.name}, en ${d.stage}`).join(" ; ")}.`);
+  if (positives.length) parts.push(`${plural(positives.length, "réponse positive", "réponses positives")}, dont ${positives[0]!.from_name || positives[0]!.from_email}.`);
+  if (imminent.length) parts.push(`${plural(imminent.length, "signature imminente", "signatures imminentes")}, dont ${imminent[0]!.name}.`);
+  if (newTargets?.length) {
+    parts.push(`${plural(newTargets.length, "nouvelle cible détectée", "nouvelles cibles détectées")}.`);
+    for (const t of newTargets.slice(0, 3)) parts.push(`${t.name}${t.suggestion ? ` : ${t.suggestion.slice(0, 160)}` : ""}.`);
+  }
   if (unanswered.length) {
     parts.push(`${plural(unanswered.length, "message important attend", "messages importants attendent")} votre réponse.`);
     for (const { m, days } of unanswered.slice(0, 5))

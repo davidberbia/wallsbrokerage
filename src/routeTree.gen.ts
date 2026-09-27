@@ -35,6 +35,7 @@ import { Route as ApiPublicCronDailyDigestRouteImport } from './routes/api/publi
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
 import { Route as ApiPublicCronMailscanTickRouteImport } from './routes/api/public/cron/mailscan-tick'
 import { Route as ApiPublicCronMailsyncTickRouteImport } from './routes/api/public/cron/mailsync-tick'
+import { Route as ApiPublicCronTargetsCatchupRouteImport } from './routes/api/public/cron/targets-catchup'
 import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -170,6 +171,12 @@ const ApiPublicCronMailsyncTickRoute =
     path: '/api/public/cron/mailsync-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronTargetsCatchupRoute =
+  ApiPublicCronTargetsCatchupRouteImport.update({
+    id: '/api/public/cron/targets-catchup',
+    path: '/api/public/cron/targets-catchup',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
   id: '/api/public/t/$id',
   path: '/api/public/t/$id',
@@ -203,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
+  '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesByTo {
@@ -232,6 +240,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
+  '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesById {
@@ -262,6 +271,7 @@ export interface FileRoutesById {
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
+  '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRouteTypes {
@@ -293,6 +303,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
+    | '/api/public/cron/targets-catchup'
     | '/api/public/t/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -322,6 +333,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
+    | '/api/public/cron/targets-catchup'
     | '/api/public/t/$id'
   id:
     | '__root__'
@@ -351,6 +363,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
+    | '/api/public/cron/targets-catchup'
     | '/api/public/t/$id'
   fileRoutesById: FileRoutesById
 }
@@ -381,6 +394,7 @@ export interface RootRouteChildren {
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
   ApiPublicCronMailscanTickRoute: typeof ApiPublicCronMailscanTickRoute
   ApiPublicCronMailsyncTickRoute: typeof ApiPublicCronMailsyncTickRoute
+  ApiPublicCronTargetsCatchupRoute: typeof ApiPublicCronTargetsCatchupRoute
   ApiPublicTIdRoute: typeof ApiPublicTIdRoute
 }
 
@@ -568,6 +582,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronMailsyncTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/targets-catchup': {
+      id: '/api/public/cron/targets-catchup'
+      path: '/api/public/cron/targets-catchup'
+      fullPath: '/api/public/cron/targets-catchup'
+      preLoaderRoute: typeof ApiPublicCronTargetsCatchupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/t/$id': {
       id: '/api/public/t/$id'
       path: '/api/public/t/$id'
@@ -605,6 +626,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
   ApiPublicCronMailscanTickRoute: ApiPublicCronMailscanTickRoute,
   ApiPublicCronMailsyncTickRoute: ApiPublicCronMailsyncTickRoute,
+  ApiPublicCronTargetsCatchupRoute: ApiPublicCronTargetsCatchupRoute,
   ApiPublicTIdRoute: ApiPublicTIdRoute,
 }
 export const routeTree = rootRouteImport
