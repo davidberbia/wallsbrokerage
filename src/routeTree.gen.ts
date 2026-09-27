@@ -16,6 +16,7 @@ import { Route as AppelsRouteImport } from './routes/appels'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrokersRouteImport } from './routes/brokers'
+import { Route as CiblesRouteImport } from './routes/cibles'
 import { Route as ComparablesRouteImport } from './routes/comparables'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as DossiersRouteImport } from './routes/dossiers'
@@ -73,6 +74,11 @@ const AuthRoute = AuthRouteImport.update({
 const BrokersRoute = BrokersRouteImport.update({
   id: '/brokers',
   path: '/brokers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CiblesRoute = CiblesRouteImport.update({
+  id: '/cibles',
+  path: '/cibles',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComparablesRoute = ComparablesRouteImport.update({
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/brokers': typeof BrokersRoute
+  '/cibles': typeof CiblesRoute
   '/comparables': typeof ComparablesRoute
   '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/brokers': typeof BrokersRoute
+  '/cibles': typeof CiblesRoute
   '/comparables': typeof ComparablesRoute
   '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/brokers': typeof BrokersRoute
+  '/cibles': typeof CiblesRoute
   '/comparables': typeof ComparablesRoute
   '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/arbitrage'
     | '/auth'
     | '/brokers'
+    | '/cibles'
     | '/comparables'
     | '/contacts'
     | '/dossiers'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/arbitrage'
     | '/auth'
     | '/brokers'
+    | '/cibles'
     | '/comparables'
     | '/contacts'
     | '/dossiers'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/arbitrage'
     | '/auth'
     | '/brokers'
+    | '/cibles'
     | '/comparables'
     | '/contacts'
     | '/dossiers'
@@ -399,6 +411,7 @@ export interface RootRouteChildren {
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
   BrokersRoute: typeof BrokersRoute
+  CiblesRoute: typeof CiblesRoute
   ComparablesRoute: typeof ComparablesRoute
   ContactsRoute: typeof ContactsRoute
   DossiersRoute: typeof DossiersRoute
@@ -473,6 +486,13 @@ declare module '@tanstack/react-router' {
       path: '/brokers'
       fullPath: '/brokers'
       preLoaderRoute: typeof BrokersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cibles': {
+      id: '/cibles'
+      path: '/cibles'
+      fullPath: '/cibles'
+      preLoaderRoute: typeof CiblesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comparables': {
@@ -647,6 +667,7 @@ const rootRouteChildren: RootRouteChildren = {
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
   BrokersRoute: BrokersRoute,
+  CiblesRoute: CiblesRoute,
   ComparablesRoute: ComparablesRoute,
   ContactsRoute: ContactsRoute,
   DossiersRoute: DossiersRoute,
