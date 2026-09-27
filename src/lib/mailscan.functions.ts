@@ -321,3 +321,48 @@ export const integrateMailscanCandidates = createServerFn({ method: "POST" })
 
     return { ok: true, investorsCreated, prospectsCreated, ignored };
   });
+
+/** Classe des contacts « À qualifier » dans l'annuaire Contacts ou Brokers. */
+export const classifyMailscanCandidates = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { ids: string[]; kind: "contact" | "broker" }) => {
+    if (!Array.isArray(input.ids) || !["contact", "broker"].includes(input.kind)) throw new Error("Données invalides");
+    return { ids: input.ids.slice(0, 1000).map(String), kind: input.kind };
+  })
+  .handler(async ({ data, context }) => {
+    await assertBroker(context as never);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("mailscan_candidates")
+      .select("id, email, full_name, company_name, phone, job_title")
+      .in("id", data.ids);
+    if (error) throw new Error(error.message);
+    const list = rows ?? [];
+    if (list.length) {
+      const { error: e2 } = await supabaseAdmin.from("directory_contacts").upsert(
+        list.map((r) => ({
+          kind: data.kind,
+          email: r.email,
+          full_name: r.full_name,
+          company: r.company_name,
+          phone: r.phone,
+          job_title: r.job_title,
+          candidate_id: r.id,
+        })),
+        { onConflict: "email", ignoreDuplicates: false },
+      );
+      if (e2) {
+        // Index unique sur lower(email) : on insère un par un en ignorant les doublons.
+        for (const r of list) {
+          await supabaseAdmin.from("directory_contacts").insert({
+            kind: data.kind, email: r.email, full_name: r.full_name, company: r.company_name, phone: r.phone, job_title: r.job_title, candidate_id: r.id,
+          });
+        }
+      }
+      await supabaseAdmin
+        .from("mailscan_candidates")
+        .update({ status: data.kind === "broker" ? "broker" : "contact" })
+        .in("id", list.map((r) => r.id));
+    }
+    return { count: list.length };
+  });

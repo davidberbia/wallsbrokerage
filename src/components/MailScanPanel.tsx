@@ -175,7 +175,7 @@ export function MailScanPanel() {
       )}
 
       <Button asChild variant="outline" className="min-h-11 w-full sm:w-auto sm:min-h-9">
-        <Link to="/contacts">Voir les contacts</Link>
+        <Link to="/a-qualifier">Voir les contacts à qualifier</Link>
       </Button>
     </div>
   );
