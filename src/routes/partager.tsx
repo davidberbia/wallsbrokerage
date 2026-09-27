@@ -66,14 +66,14 @@ function PartagerPage() {
     },
   });
 
-  const go = async (u: string, n: string) => {
+  const go = async (u: string, n: string, force = false) => {
     if (!/^https?:\/\//.test(u)) {
       toast.error("Collez un lien commençant par http");
       return;
     }
     setBusy(true);
     try {
-      const r = await send({ data: { url: u, note: n || undefined } });
+      const r = await send({ data: { url: u, note: n || undefined, force } });
       toast.success(r.already ? "Ce lien avait déjà été analysé." : "Lien analysé et ajouté au CRM.");
       setUrl("");
       setNote("");
@@ -107,7 +107,7 @@ function PartagerPage() {
       <div>
         <h1 className="font-display text-2xl font-semibold tracking-tight">Liens partagés</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Article, vidéo YouTube, reel Instagram ou TikTok : l'IA en tire contacts, comparables et actualités, sans explication.
+          Article, vidéo YouTube, reel Instagram ou TikTok : l'IA regarde la vidéo en entier, en tire contacts, actualités et une cible, puis la complète par une recherche web.
           Sur téléphone, utilisez simplement le bouton « Partager » puis « Wallsbroker ».
         </p>
       </div>
@@ -133,9 +133,12 @@ function PartagerPage() {
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {new Date(l.created_at).toLocaleString("fr-FR")} · {l.status}
                   {l.status === "analysé" &&
-                    ` · ${l.found_contacts} contact(s), ${l.found_comparables} comparable(s), ${l.found_news} actualité(s)`}
+                    ` · ${l.found_contacts} contact(s), ${l.found_news} actualité(s) · cible ajoutée`}
                 </p>
               </div>
+              <Button variant="ghost" size="icon" disabled={busy} onClick={() => go(l.url, l.note ?? "", true)} aria-label="Relancer l'analyse">
+                <RefreshCw className={busy ? "size-4 animate-spin" : "size-4"} />
+              </Button>
               <Button variant="ghost" size="icon" onClick={() => remove(l.id)} aria-label="Supprimer">
                 <Trash2 className="size-4" />
               </Button>
