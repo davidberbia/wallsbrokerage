@@ -14,7 +14,7 @@ import {
   listMailscanCandidates,
 } from "@/lib/mailscan.functions";
 
-export const Route = createFileRoute("/contacts")({
+export const Route = createFileRoute("/a-qualifier")({
   head: () => ({
     meta: [
       { title: "Contacts — Walls Brokerage CRM" },

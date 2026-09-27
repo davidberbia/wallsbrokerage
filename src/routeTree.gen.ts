@@ -10,12 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AQualifierRouteImport } from './routes/a-qualifier'
 import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as AppelsRouteImport } from './routes/appels'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ComparablesRouteImport } from './routes/comparables'
-import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as DossiersRouteImport } from './routes/dossiers'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
@@ -43,6 +43,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AQualifierRoute = AQualifierRouteImport.update({
+  id: '/a-qualifier',
+  path: '/a-qualifier',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ActifsRoute = ActifsRouteImport.update({
   id: '/actifs',
   path: '/actifs',
@@ -66,11 +71,6 @@ const AuthRoute = AuthRouteImport.update({
 const ComparablesRoute = ComparablesRouteImport.update({
   id: '/comparables',
   path: '/comparables',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactsRoute = ContactsRouteImport.update({
-  id: '/contacts',
-  path: '/contacts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DossiersRoute = DossiersRouteImport.update({
@@ -185,12 +185,12 @@ const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
   '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/comparables': typeof ComparablesRoute
-  '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -215,12 +215,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
   '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/comparables': typeof ComparablesRoute
-  '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -246,12 +246,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
   '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/comparables': typeof ComparablesRoute
-  '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -278,12 +278,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/a-qualifier'
     | '/actifs'
     | '/appels'
     | '/arbitrage'
     | '/auth'
     | '/comparables'
-    | '/contacts'
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
@@ -308,12 +308,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/a-qualifier'
     | '/actifs'
     | '/appels'
     | '/arbitrage'
     | '/auth'
     | '/comparables'
-    | '/contacts'
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
@@ -338,12 +338,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/a-qualifier'
     | '/actifs'
     | '/appels'
     | '/arbitrage'
     | '/auth'
     | '/comparables'
-    | '/contacts'
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
@@ -369,12 +369,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AQualifierRoute: typeof AQualifierRoute
   ActifsRoute: typeof ActifsRoute
   AppelsRoute: typeof AppelsRoute
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
   ComparablesRoute: typeof ComparablesRoute
-  ContactsRoute: typeof ContactsRoute
   DossiersRoute: typeof DossiersRoute
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
@@ -405,6 +405,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/a-qualifier': {
+      id: '/a-qualifier'
+      path: '/a-qualifier'
+      fullPath: '/a-qualifier'
+      preLoaderRoute: typeof AQualifierRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/actifs': {
@@ -440,13 +447,6 @@ declare module '@tanstack/react-router' {
       path: '/comparables'
       fullPath: '/comparables'
       preLoaderRoute: typeof ComparablesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contacts': {
-      id: '/contacts'
-      path: '/contacts'
-      fullPath: '/contacts'
-      preLoaderRoute: typeof ContactsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dossiers': {
@@ -601,12 +601,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AQualifierRoute: AQualifierRoute,
   ActifsRoute: ActifsRoute,
   AppelsRoute: AppelsRoute,
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
   ComparablesRoute: ComparablesRoute,
-  ContactsRoute: ContactsRoute,
   DossiersRoute: DossiersRoute,
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
