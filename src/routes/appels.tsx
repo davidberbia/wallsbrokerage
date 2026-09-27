@@ -40,7 +40,7 @@ function AppelsPage() {
     enabled: !!session,
     refetchInterval: 30000,
     queryFn: async () => {
-      const { data } = await supabase.from("call_recordings").select("*").order("called_at", { ascending: false }).limit(200);
+      const { data } = await supabase.from("call_recordings").select("*").neq("status", "ignoré").order("called_at", { ascending: false }).limit(200);
       return data ?? [];
     },
   });
