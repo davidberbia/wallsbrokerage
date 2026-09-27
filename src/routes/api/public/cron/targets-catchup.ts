@@ -101,7 +101,7 @@ export const Route = createFileRoute("/api/public/cron/targets-catchup")({
                 }
               }
               const saved = await saveTargets(admin, found.targets!, found.fees!, m.folder === "sentitems" ? "email envoyé" : "email", date);
-              if (saved.ids.length) await admin.from("mail_messages").update({ deal_id: saved.ids[0] }).eq("id", m.id).is("deal_id", null);
+              if (saved.ids.length) await admin.from("mail_messages").update({ deal_id: (saved.ids[0] as string) }).eq("id", m.id).is("deal_id", null);
               await admin.from("mail_messages").update({ targets_checked_at: new Date().toISOString() }).eq("id", m.id);
               s.mails++;
               s.targets += saved.targets;

@@ -43,6 +43,34 @@ export function nameKey(name: string): string {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/\b(le|la|les|de|du|des|d|l|portefeuille|dossier|actif|projet)\b/g, " ")
+    .replace(/\b(le|la|les|de|du|des|d|l|a|au|aux|en|et|sur|portefeuille|dossier|actif|projet)\b/g, " ")
     .replace(/[^a-z0-9]/g, "");
+}
+
+const GENERIC = new Set(
+  "murs local locaux batiment commercial commerciale commerce commerces hotel hotels immeuble magasin ensemble cellule cellules produit mandat boutique bureaux bureau entrepot activite retail park clos couvert avenue rue boulevard place ville paris".split(" "),
+);
+
+/** Mots distinctifs d'un nom (villes, enseignes, adresses) pour rapprocher deux dossiers. */
+export function nameTokens(name: string): string[] {
+  return [
+    ...new Set(
+      name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((t) => (t.length >= 4 || /^\d{2,}$/.test(t)) && !GENERIC.has(t)),
+    ),
+  ];
+}
+
+/** Deux noms désignent-ils le même dossier ? (≥ 2/3 des mots distinctifs du plus court en commun) */
+export function sameDeal(a: string, b: string): boolean {
+  const ta = nameTokens(a);
+  const tb = nameTokens(b);
+  if (!ta.length || !tb.length) return false;
+  const [small, big] = ta.length <= tb.length ? [ta, new Set(tb)] : [tb, new Set(ta)];
+  const common = small.filter((t) => big.has(t)).length;
+  return common >= Math.max(1, Math.ceil((small.length * 2) / 3));
 }

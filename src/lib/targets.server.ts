@@ -1,6 +1,6 @@
 // Cibles (opportunités entrantes) et honoraires détectés par l'IA → tableau des dossiers.
 import { getAdmin } from "@/lib/automation.server";
-import { nameKey } from "@/lib/deal-stages";
+import { nameKey, nameTokens, sameDeal } from "@/lib/deal-stages";
 
 type Admin = Awaited<ReturnType<typeof getAdmin>>;
 
@@ -40,14 +40,21 @@ const num = (v: unknown) => {
 };
 const yearOf = (date: string) => Number(date.slice(0, 4)) || new Date().getFullYear();
 
-async function findDeal(admin: Admin, key: string) {
-  const { data } = await admin
-    .from("deals")
-    .select("id, stage, surface, rent, amount, fee_amount, fee_pct, address")
-    .eq("name_key", key)
-    .limit(1)
-    .maybeSingle();
-  return data;
+const COLS = "id, name, stage, surface, rent, amount, fee_amount, fee_pct, address";
+const BAD_NAME = /^(inconnu|n\/?a|non pr[ée]cis[ée]|dossier|actif|facture|honoraires?|divers|autre)$/i;
+
+async function findDeal(admin: Admin, key: string, name: string) {
+  const { data } = await admin.from("deals").select(COLS).eq("name_key", key).limit(1).maybeSingle();
+  if (data) return data;
+  // Rapprochement souple : même enseigne / ville / adresse sous un autre libellé.
+  const tokens = nameTokens(name).sort((a, b) => b.length - a.length);
+  if (!tokens.length) return null;
+  for (const t of tokens.slice(0, 3)) {
+    const { data: cands } = await admin.from("deals").select(COLS).ilike("name", `%${t}%`).limit(30);
+    const hit = (cands ?? []).find((c) => sameDeal(c.name, name));
+    if (hit) return hit;
+  }
+  return null;
 }
 
 /** Crée ou complète les cibles, applique les honoraires. Jamais de doublon (clé de nom). */
@@ -64,7 +71,7 @@ export async function saveTargets(
   for (const t of targets.slice(0, 15)) {
     const name = String(t.name ?? "").trim().slice(0, 200);
     const key = nameKey(name);
-    if (key.length < 3) continue;
+    if (key.length < 3 || BAD_NAME.test(name)) continue;
     const vals = {
       surface: num(t.surface),
       rent: num(t.rent),
@@ -73,7 +80,7 @@ export async function saveTargets(
       fee_pct: num(t.fee_pct),
       address: [t.address, t.city].filter(Boolean).join(", ").slice(0, 300) || null,
     };
-    const existing = await findDeal(admin, key);
+    const existing = await findDeal(admin, key, name);
     if (existing) {
       const patch: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(vals)) if (v != null && (existing as Record<string, unknown>)[k] == null) patch[k] = v;
@@ -100,9 +107,9 @@ export async function saveTargets(
     const key = nameKey(dossier);
     const amount = num(f.amount_ht);
     const pct = num(f.fee_pct);
-    if (key.length < 3 || (!amount && !pct)) continue;
+    if (key.length < 3 || BAD_NAME.test(dossier) || (!amount && !pct)) continue;
     const d = f.date && /^\d{4}-\d{2}-\d{2}$/.test(f.date) ? f.date : date.slice(0, 10);
-    const existing = await findDeal(admin, key);
+    const existing = await findDeal(admin, key, dossier);
     if (f.kind === "facture" && amount) {
       if (existing) await admin.from("deals").update({ fee_amount: amount, stage: "Acte", paid_at: d } as never).eq("id", existing.id);
       else
