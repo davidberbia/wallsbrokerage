@@ -15,7 +15,9 @@ import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as AppelsRouteImport } from './routes/appels'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BrokersRouteImport } from './routes/brokers'
 import { Route as ComparablesRouteImport } from './routes/comparables'
+import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as DossiersRouteImport } from './routes/dossiers'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
@@ -68,9 +70,19 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BrokersRoute = BrokersRouteImport.update({
+  id: '/brokers',
+  path: '/brokers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ComparablesRoute = ComparablesRouteImport.update({
   id: '/comparables',
   path: '/comparables',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactsRoute = ContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DossiersRoute = DossiersRouteImport.update({
@@ -190,7 +202,9 @@ export interface FileRoutesByFullPath {
   '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/brokers': typeof BrokersRoute
   '/comparables': typeof ComparablesRoute
+  '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -220,7 +234,9 @@ export interface FileRoutesByTo {
   '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/brokers': typeof BrokersRoute
   '/comparables': typeof ComparablesRoute
+  '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -251,7 +267,9 @@ export interface FileRoutesById {
   '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/brokers': typeof BrokersRoute
   '/comparables': typeof ComparablesRoute
+  '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
@@ -283,7 +301,9 @@ export interface FileRouteTypes {
     | '/appels'
     | '/arbitrage'
     | '/auth'
+    | '/brokers'
     | '/comparables'
+    | '/contacts'
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
@@ -313,7 +333,9 @@ export interface FileRouteTypes {
     | '/appels'
     | '/arbitrage'
     | '/auth'
+    | '/brokers'
     | '/comparables'
+    | '/contacts'
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
@@ -343,7 +365,9 @@ export interface FileRouteTypes {
     | '/appels'
     | '/arbitrage'
     | '/auth'
+    | '/brokers'
     | '/comparables'
+    | '/contacts'
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
@@ -374,7 +398,9 @@ export interface RootRouteChildren {
   AppelsRoute: typeof AppelsRoute
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
+  BrokersRoute: typeof BrokersRoute
   ComparablesRoute: typeof ComparablesRoute
+  ContactsRoute: typeof ContactsRoute
   DossiersRoute: typeof DossiersRoute
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
@@ -442,11 +468,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/brokers': {
+      id: '/brokers'
+      path: '/brokers'
+      fullPath: '/brokers'
+      preLoaderRoute: typeof BrokersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/comparables': {
       id: '/comparables'
       path: '/comparables'
       fullPath: '/comparables'
       preLoaderRoute: typeof ComparablesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contacts': {
+      id: '/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof ContactsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dossiers': {
@@ -606,7 +646,9 @@ const rootRouteChildren: RootRouteChildren = {
   AppelsRoute: AppelsRoute,
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
+  BrokersRoute: BrokersRoute,
   ComparablesRoute: ComparablesRoute,
+  ContactsRoute: ContactsRoute,
   DossiersRoute: DossiersRoute,
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
