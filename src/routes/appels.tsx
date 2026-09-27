@@ -71,7 +71,7 @@ function AppelsPage() {
           <h1 className="font-display text-2xl font-semibold tracking-tight">Appels enregistrés</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Les enregistrements Cube ACR du Drive sont récupérés toutes les 30 min entre 8 h et 22 h, transcrits et résumés ;
-            contacts, comparables et actualités cités sont ajoutés au CRM.
+            contacts et actualités cités sont ajoutés au CRM (jamais de comparable : un chiffre oral n'est pas fiable). Les appels personnels, sans contact connu ni sujet immobilier pro, sont ignorés.
           </p>
         </div>
         <Button onClick={run} disabled={busy} className="min-h-11">
@@ -89,7 +89,7 @@ function AppelsPage() {
                 <p className="font-medium">{[c.contact_name, c.phone].filter(Boolean).join(" · ") || c.file_name}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {c.called_at ? new Date(c.called_at).toLocaleString("fr-FR") : ""} · {c.channel === "whatsapp" ? "WhatsApp" : "Téléphone"} · {c.status}
-                  {c.status === "analysé" && ` · ${c.found_contacts} contact(s), ${c.found_comparables} comparable(s), ${c.found_news} actualité(s)`}
+                  {c.status === "analysé" && ` · ${c.found_contacts} contact(s), ${c.found_news} actualité(s)`}
                 </p>
               </div>
               <Button variant="ghost" size="icon" onClick={() => remove(c.id)} aria-label="Supprimer">
