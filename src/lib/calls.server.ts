@@ -16,9 +16,39 @@ Ajoute à la racine du JSON :
 - "transcript" : transcription fidèle en français, en indiquant "David :" / "Interlocuteur :" quand c'est identifiable ;
 - "summary" : 3 à 6 phrases — qui, quel actif, montants, adresses, décisions ;
 - "actions" : liste des choses à faire suite à l'appel (relances, documents à envoyer, rendez-vous), une par ligne.
-Les coordonnées de l'interlocuteur citées dans l'appel vont dans "contacts".`;
+- "pro" : true seulement si l'appel porte de manière explicite et exclusive sur une transaction ou sur l'immobilier professionnel ; false pour tout appel personnel, familial, privé ou administratif perso.
+Les coordonnées de l'interlocuteur citées dans l'appel vont dans "contacts".
+RÈGLE ABSOLUE : un chiffre oral n'est pas fiable → "comparables" est TOUJOURS un tableau vide.`;
 
-type CallResult = Extraction & { transcript?: string; summary?: string; actions?: string | string[] };
+const PRIVATE_GUARD = `
+L'interlocuteur n'est PAS un contact connu du CRM. Si "pro" est false, réponds UNIQUEMENT {"pro": false} sans aucune transcription ni résumé.`;
+
+type CallResult = Extraction & { pro?: boolean; transcript?: string; summary?: string; actions?: string | string[] };
+
+const last9 = (p: string | null | undefined) => (p ?? "").replace(/\D/g, "").slice(-9);
+const normName = (s: string | null | undefined) =>
+  (s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]/g, "");
+
+/** Le numéro ou le nom de l'appel correspond-il à un contact déjà enregistré dans le CRM ? */
+async function isKnownContact(admin: Awaited<ReturnType<typeof getAdmin>>, phone: string | null, name: string | null): Promise<boolean> {
+  const p = last9(phone);
+  const n = normName(name);
+  if (p.length < 9 && n.length < 4) return false;
+  const tables = [
+    admin.from("investors").select("phone, full_name"),
+    admin.from("prospect_contacts").select("phone, full_name"),
+    admin.from("directory_contacts").select("phone, full_name"),
+    admin.from("mailscan_candidates").select("phone, full_name").not("phone", "is", null),
+  ];
+  for (const q of tables) {
+    const { data } = await q.limit(20000);
+    for (const r of (data ?? []) as { phone: string | null; full_name: string | null }[]) {
+      if (p.length === 9 && last9(r.phone) === p) return true;
+      if (n.length >= 4 && normName(r.full_name) === n) return true;
+    }
+  }
+  return false;
+}
 
 function headers() {
   const lov = process.env["LOVABLE_API_KEY"];
@@ -112,16 +142,25 @@ export async function processCall(id: string): Promise<void> {
   }
   const ext = row.file_name.split(".").pop()?.toLowerCase() ?? "amr";
   const who = [row.contact_name, row.phone].filter(Boolean).join(" ");
+  const known = await isKnownContact(admin, row.phone, row.contact_name);
   const ex =
     (await callGeminiPartsJson<CallResult>({
       task: "appel",
-      system: CALL_SYSTEM,
+      system: known ? CALL_SYSTEM : CALL_SYSTEM + PRIVATE_GUARD,
       parts: [
         { inlineData: { mimeType: AUDIO_MIME[ext] ?? "audio/amr", data: b64(await r.arrayBuffer()) } },
         { text: `Appel ${row.direction ?? ""} ${row.channel ?? ""} avec ${who || "un correspondant inconnu"}, le ${row.called_at ?? ""}.` },
       ],
     })) ?? {};
-  const saved = await saveExtraction(admin, ex, `call:${row.drive_file_id}`, row.called_at ?? new Date().toISOString());
+  // Filtre strict : appel inconnu ET non professionnel → ignoré, rien n'est conservé.
+  if (!known && ex.pro !== true) {
+    await admin
+      .from("call_recordings")
+      .update({ status: "ignoré", transcript: null, summary: null, actions: null, found_contacts: 0, found_comparables: 0, found_news: 0, error: "Appel personnel ou hors immobilier professionnel : non conservé." })
+      .eq("id", id);
+    return;
+  }
+  const saved = await saveExtraction(admin, ex, `call:${row.drive_file_id}`, row.called_at ?? new Date().toISOString(), { comparables: false, source: "appel" });
   const actions = Array.isArray(ex.actions) ? ex.actions.join("\n") : ex.actions ?? null;
   await admin
     .from("call_recordings")
@@ -131,7 +170,7 @@ export async function processCall(id: string): Promise<void> {
       summary: ex.summary?.slice(0, 3000) ?? null,
       actions: actions?.slice(0, 3000) ?? null,
       found_contacts: saved.contacts,
-      found_comparables: saved.comparables,
+      found_comparables: 0,
       found_news: saved.news,
     })
     .eq("id", id);
