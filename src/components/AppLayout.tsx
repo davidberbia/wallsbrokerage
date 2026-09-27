@@ -2,6 +2,9 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import {
+  BookUser,
+  Crosshair,
+  Handshake,
   Building2,
   Contact,
   FolderKanban,
@@ -30,17 +33,21 @@ const BROKER_NAV = [
   { to: "/investisseurs", label: "Investisseurs", icon: Users },
   { to: "/prospects", label: "Prospects", icon: Contact },
   { to: "/actifs", label: "Actifs", icon: Building2 },
-  { to: "/dossiers", label: "Dossiers", icon: FolderKanban },
+  { to: "/cibles", label: "Cibles", icon: Crosshair },
+  { to: "/dossiers", label: "Affaires en cours", icon: FolderKanban },
   { to: "/comparables", label: "Comparables", icon: Scale },
-  { to: "/partager", label: "Liens", icon: Link2 },
   { to: "/appels", label: "Appels", icon: Phone },
   { to: "/envois", label: "Envois", icon: Send },
 ] as const;
 
-const ADMIN_NAV = [
-  { to: "/contacts", label: "Contacts", icon: Mail },
-  { to: "/parametres", label: "Paramètres", icon: Settings },
+const ADMIN_CONTACTS_NAV = [
+  { to: "/brokers", label: "Brokers", icon: Handshake },
+  { to: "/contacts", label: "Contacts", icon: BookUser },
+  { to: "/a-qualifier", label: "À qualifier", icon: Mail },
 ] as const;
+
+const LINKS_NAV = [{ to: "/partager", label: "Liens", icon: Link2 }] as const;
+const ADMIN_NAV = [{ to: "/parametres", label: "Paramètres", icon: Settings }] as const;
 
 const INVESTOR_NAV = [{ to: "/mon-profil", label: "Mon profil", icon: UserCircle }] as const;
 
@@ -66,7 +73,9 @@ export function AppLayout({
       </span>
     );
   };
-  const NAV = isStaff ? [...BROKER_NAV, ...(isBroker ? ADMIN_NAV : [])] : [...INVESTOR_NAV];
+  const NAV = isStaff
+    ? [...BROKER_NAV, ...(isBroker ? ADMIN_CONTACTS_NAV : []), ...LINKS_NAV, ...(isBroker ? ADMIN_NAV : [])]
+    : [...INVESTOR_NAV];
 
   useEffect(() => {
     if (loading) return;
