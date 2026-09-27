@@ -930,18 +930,26 @@ export type Database = {
           company: string | null
           contact_name: string | null
           created_at: string
+          enriched_at: string | null
+          enrichment: string | null
           expected_payment_at: string | null
           fee_amount: number | null
           fee_pct: number | null
           id: string
           last_activity_at: string | null
           name: string
+          name_key: string | null
           notes: string | null
           paid_at: string | null
           probability: number | null
+          rent: number | null
           sort_order: number
+          source: string | null
           stage: string
+          suggestion: string | null
+          surface: number | null
           updated_at: string
+          vintage: number
         }
         Insert: {
           address?: string | null
@@ -950,18 +958,26 @@ export type Database = {
           company?: string | null
           contact_name?: string | null
           created_at?: string
+          enriched_at?: string | null
+          enrichment?: string | null
           expected_payment_at?: string | null
           fee_amount?: number | null
           fee_pct?: number | null
           id?: string
           last_activity_at?: string | null
           name: string
+          name_key?: string | null
           notes?: string | null
           paid_at?: string | null
           probability?: number | null
+          rent?: number | null
           sort_order?: number
+          source?: string | null
           stage?: string
+          suggestion?: string | null
+          surface?: number | null
           updated_at?: string
+          vintage?: number
         }
         Update: {
           address?: string | null
@@ -970,18 +986,26 @@ export type Database = {
           company?: string | null
           contact_name?: string | null
           created_at?: string
+          enriched_at?: string | null
+          enrichment?: string | null
           expected_payment_at?: string | null
           fee_amount?: number | null
           fee_pct?: number | null
           id?: string
           last_activity_at?: string | null
           name?: string
+          name_key?: string | null
           notes?: string | null
           paid_at?: string | null
           probability?: number | null
+          rent?: number | null
           sort_order?: number
+          source?: string | null
           stage?: string
+          suggestion?: string | null
+          surface?: number | null
           updated_at?: string
+          vintage?: number
         }
         Relationships: [
           {
@@ -1019,6 +1043,56 @@ export type Database = {
           token?: string
         }
         Relationships: []
+      }
+      directory_contacts: {
+        Row: {
+          candidate_id: string | null
+          company: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          job_title: string | null
+          kind: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          candidate_id?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          job_title?: string | null
+          kind?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          job_title?: string | null
+          kind?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "directory_contacts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "mailscan_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_queue: {
         Row: {
@@ -1335,6 +1409,7 @@ export type Database = {
           preview: string | null
           received_at: string | null
           subject: string | null
+          targets_checked_at: string | null
           to_display: string | null
           updated_at: string
           web_link: string | null
@@ -1355,6 +1430,7 @@ export type Database = {
           preview?: string | null
           received_at?: string | null
           subject?: string | null
+          targets_checked_at?: string | null
           to_display?: string | null
           updated_at?: string
           web_link?: string | null
@@ -1375,6 +1451,7 @@ export type Database = {
           preview?: string | null
           received_at?: string | null
           subject?: string | null
+          targets_checked_at?: string | null
           to_display?: string | null
           updated_at?: string
           web_link?: string | null
@@ -1849,6 +1926,39 @@ export type Database = {
         }
         Relationships: []
       }
+      target_catchup_state: {
+        Row: {
+          fees_found: number
+          id: boolean
+          last_error: string | null
+          lease_until: string | null
+          mails_done: number
+          status: string
+          targets_found: number
+          updated_at: string
+        }
+        Insert: {
+          fees_found?: number
+          id?: boolean
+          last_error?: string | null
+          lease_until?: string | null
+          mails_done?: number
+          status?: string
+          targets_found?: number
+          updated_at?: string
+        }
+        Update: {
+          fees_found?: number
+          id?: boolean
+          last_error?: string | null
+          lease_until?: string | null
+          mails_done?: number
+          status?: string
+          targets_found?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       taxonomy_items: {
         Row: {
           active: boolean
@@ -1928,6 +2038,7 @@ export type Database = {
         Returns: boolean
       }
       start_email_pump: { Args: never; Returns: undefined }
+      targets_catchup_unschedule: { Args: never; Returns: undefined }
       trigger_automation: { Args: { path: string }; Returns: undefined }
     }
     Enums: {
