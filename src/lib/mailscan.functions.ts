@@ -339,25 +339,11 @@ export const classifyMailscanCandidates = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     const list = rows ?? [];
     if (list.length) {
-      const { error: e2 } = await supabaseAdmin.from("directory_contacts").upsert(
-        list.map((r) => ({
-          kind: data.kind,
-          email: r.email,
-          full_name: r.full_name,
-          company: r.company_name,
-          phone: r.phone,
-          job_title: r.job_title,
-          candidate_id: r.id,
-        })),
-        { onConflict: "email", ignoreDuplicates: false },
-      );
-      if (e2) {
-        // Index unique sur lower(email) : on insère un par un en ignorant les doublons.
-        for (const r of list) {
-          await supabaseAdmin.from("directory_contacts").insert({
-            kind: data.kind, email: r.email, full_name: r.full_name, company: r.company_name, phone: r.phone, job_title: r.job_title, candidate_id: r.id,
-          });
-        }
+      // Index unique sur l'email (insensible à la casse) : un doublon est simplement ignoré.
+      for (const r of list) {
+        await supabaseAdmin.from("directory_contacts").insert({
+          kind: data.kind, email: r.email, full_name: r.full_name, company: r.company_name, phone: r.phone, job_title: r.job_title, candidate_id: r.id,
+        });
       }
       await supabaseAdmin
         .from("mailscan_candidates")

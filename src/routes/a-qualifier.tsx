@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  ignoreMailscanCandidates,
+  classifyMailscanCandidates,
   integrateMailscanCandidates,
   listMailscanCandidates,
 } from "@/lib/mailscan.functions";
@@ -17,13 +17,13 @@ import {
 export const Route = createFileRoute("/a-qualifier")({
   head: () => ({
     meta: [
-      { title: "Contacts — Walls Brokerage CRM" },
+      { title: "À qualifier — Walls Brokerage CRM" },
       {
         name: "description",
         content:
           "Contacts professionnels repérés dans la boîte mail, à valider avant intégration aux bases prospects et investisseurs.",
       },
-      { property: "og:title", content: "Contacts — Walls Brokerage CRM" },
+      { property: "og:title", content: "À qualifier — Walls Brokerage CRM" },
       {
         property: "og:description",
         content: "Validez les contacts trouvés dans vos emails avant de les ajouter à vos bases.",
@@ -50,7 +50,7 @@ function DetectedContactsPage() {
   const qc = useQueryClient();
   const fetchCandidates = useServerFn(listMailscanCandidates);
   const integrate = useServerFn(integrateMailscanCandidates);
-  const ignore = useServerFn(ignoreMailscanCandidates);
+  const classify = useServerFn(classifyMailscanCandidates);
 
   const [search, setSearch] = useState("");
   const [onlyImmo, setOnlyImmo] = useState(false);
@@ -78,6 +78,8 @@ function DetectedContactsPage() {
     void qc.invalidateQueries({ queryKey: ["mailscan-status"] });
     void qc.invalidateQueries({ queryKey: ["investors"] });
     void qc.invalidateQueries({ queryKey: ["prospect-companies"] });
+    void qc.invalidateQueries({ queryKey: ["directory"] });
+    void qc.invalidateQueries({ queryKey: ["nav-counts"] });
   };
 
   const integrateMutation = useMutation({
@@ -93,10 +95,10 @@ function DetectedContactsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const ignoreMutation = useMutation({
-    mutationFn: (ids: string[]) => ignore({ data: { ids } }),
-    onSuccess: (r) => {
-      toast.success(`${r.count} contact(s) supprimé(s) — ils ne seront plus réimportés`);
+  const classifyMutation = useMutation({
+    mutationFn: (v: { ids: string[]; kind: "contact" | "broker" }) => classify({ data: v }),
+    onSuccess: (r, v) => {
+      toast.success(`${r.count} contact(s) classé(s) dans ${v.kind === "broker" ? "Brokers" : "Contacts"}`);
       done();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -108,9 +110,9 @@ function DetectedContactsPage() {
     <div className="space-y-6">
       <div>
         <p className="eyebrow">Boîte mail</p>
-        <h1 className="mt-1 text-3xl">Contacts</h1>
+        <h1 className="mt-1 text-3xl">À qualifier</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Tous les contacts trouvés automatiquement (emails, newsletters, pièces jointes). Cochez-les pour les déplacer dans Prospects ou les supprimer : un contact supprimé ne sera jamais réimporté.</p>
+          Tous les contacts trouvés automatiquement (emails, newsletters, pièces jointes). Classez chaque fiche en un clic : Contacts, Brokers (confrères) ou Prospects.</p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -128,10 +130,18 @@ function DetectedContactsPage() {
           <Button
             variant="outline"
             className="min-h-11 sm:min-h-9"
-            disabled={selected.length === 0 || ignoreMutation.isPending}
-            onClick={() => ignoreMutation.mutate(selected)}
+            disabled={selected.length === 0 || classifyMutation.isPending}
+            onClick={() => classifyMutation.mutate({ ids: selected, kind: "contact" })}
           >
-            Supprimer ({selected.length})
+            Contacts ({selected.length})
+          </Button>
+          <Button
+            variant="outline"
+            className="min-h-11 sm:min-h-9"
+            disabled={selected.length === 0 || classifyMutation.isPending}
+            onClick={() => classifyMutation.mutate({ ids: selected, kind: "broker" })}
+          >
+            Brokers ({selected.length})
           </Button>
           <Button
             className="min-h-11 sm:min-h-9"
@@ -189,7 +199,27 @@ function DetectedContactsPage() {
                 {row.occurrences} échange(s) dans votre boîte
               </p>
             </div>
-            <div className="shrink-0 space-y-1 md:w-52">
+            <div className="shrink-0 space-y-1 md:w-60">
+              <div className="flex flex-wrap gap-1.5 pb-2">
+                {(
+                  [
+                    ["Contacts", () => classifyMutation.mutate({ ids: [row.id], kind: "contact" })],
+                    ["Brokers", () => classifyMutation.mutate({ ids: [row.id], kind: "broker" })],
+                    ["Prospects", () => integrateMutation.mutate([row.id])],
+                  ] as const
+                ).map(([label, fn]) => (
+                  <Button
+                    key={label}
+                    size="sm"
+                    variant={label === "Prospects" ? "default" : "outline"}
+                    className="min-h-10 sm:min-h-8"
+                    disabled={classifyMutation.isPending || integrateMutation.isPending}
+                    onClick={fn}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
               <span className={VERDICT_PILL[row.verdict] ?? "status-pill status-en-veille"}>
                 {row.verdict}
               </span>
