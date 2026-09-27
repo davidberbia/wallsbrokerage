@@ -86,7 +86,9 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         address: current?.address ?? null,
         fee_amount: current?.fee_amount ?? null,
         fee_pct: current?.fee_pct ?? null,
-        probability: current?.probability ?? null,
+        surface: current?.surface ?? null,
+        rent: current?.rent ?? null,
+        vintage: current?.vintage ?? new Date().getFullYear(),
         expected_payment_at: current?.expected_payment_at ?? null,
         paid_at: current?.paid_at ?? null,
         notes: current?.notes ?? null,
@@ -236,7 +238,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           />
         </div>
         <div>
-          <Label>Montant indicatif (€)</Label>
+          <Label>Prix (€)</Label>
           <Input
             type="number"
             value={current.amount ?? ""}
@@ -265,13 +267,27 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           />
         </div>
         <div>
-          <Label>Probabilité de succès (%)</Label>
+          <Label>Surface (m²)</Label>
           <Input
             type="number"
-            min={0}
-            max={100}
-            value={current.probability ?? ""}
-            onChange={(e) => set({ probability: e.target.value === "" ? null : Number(e.target.value) })}
+            value={current.surface ?? ""}
+            onChange={(e) => set({ surface: e.target.value === "" ? null : Number(e.target.value) })}
+          />
+        </div>
+        <div>
+          <Label>Loyer annuel (€)</Label>
+          <Input
+            type="number"
+            value={current.rent ?? ""}
+            onChange={(e) => set({ rent: e.target.value === "" ? null : Number(e.target.value) })}
+          />
+        </div>
+        <div>
+          <Label>Millésime (année)</Label>
+          <Input
+            type="number"
+            value={current.vintage ?? ""}
+            onChange={(e) => set({ vintage: e.target.value === "" ? new Date().getFullYear() : Number(e.target.value) })}
           />
         </div>
         <div>
@@ -295,6 +311,16 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           <Textarea rows={3} value={current.notes ?? ""} onChange={(e) => set({ notes: e.target.value })} />
         </div>
       </div>
+      {(current.suggestion || current.enrichment) && (
+        <section className="space-y-1 rounded-sm border border-border bg-muted/40 p-3 text-sm">
+          {current.suggestion && (
+            <p>
+              <b>Action suggérée :</b> {current.suggestion}
+            </p>
+          )}
+          {current.enrichment && <p className="whitespace-pre-line text-muted-foreground">{current.enrichment}</p>}
+        </section>
+      )}
       <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
         <Button variant="outline" onClick={remove}>
           <Trash2 className="h-4 w-4" /> Supprimer
