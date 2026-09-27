@@ -49,8 +49,12 @@ async function findDeal(admin: Admin, key: string, name: string) {
   // Rapprochement souple : même enseigne / ville / adresse sous un autre libellé.
   const tokens = nameTokens(name).sort((a, b) => b.length - a.length);
   if (!tokens.length) return null;
-  const { data: cands } = await admin.from("deals").select(COLS).ilike("name", `%${tokens[0]}%`).limit(30);
-  return (cands ?? []).find((c) => sameDeal(c.name, name)) ?? null;
+  for (const t of tokens.slice(0, 3)) {
+    const { data: cands } = await admin.from("deals").select(COLS).ilike("name", `%${t}%`).limit(30);
+    const hit = (cands ?? []).find((c) => sameDeal(c.name, name));
+    if (hit) return hit;
+  }
+  return null;
 }
 
 /** Crée ou complète les cibles, applique les honoraires. Jamais de doublon (clé de nom). */
