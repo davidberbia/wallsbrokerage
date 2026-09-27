@@ -10,10 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AQualifierRouteImport } from './routes/a-qualifier'
 import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as AppelsRouteImport } from './routes/appels'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as BrokersRouteImport } from './routes/brokers'
+import { Route as CiblesRouteImport } from './routes/cibles'
 import { Route as ComparablesRouteImport } from './routes/comparables'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as DossiersRouteImport } from './routes/dossiers'
@@ -35,11 +38,17 @@ import { Route as ApiPublicCronDailyDigestRouteImport } from './routes/api/publi
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
 import { Route as ApiPublicCronMailscanTickRouteImport } from './routes/api/public/cron/mailscan-tick'
 import { Route as ApiPublicCronMailsyncTickRouteImport } from './routes/api/public/cron/mailsync-tick'
+import { Route as ApiPublicCronTargetsCatchupRouteImport } from './routes/api/public/cron/targets-catchup'
 import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AQualifierRoute = AQualifierRouteImport.update({
+  id: '/a-qualifier',
+  path: '/a-qualifier',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActifsRoute = ActifsRouteImport.update({
@@ -60,6 +69,16 @@ const ArbitrageRoute = ArbitrageRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrokersRoute = BrokersRouteImport.update({
+  id: '/brokers',
+  path: '/brokers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CiblesRoute = CiblesRouteImport.update({
+  id: '/cibles',
+  path: '/cibles',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComparablesRoute = ComparablesRouteImport.update({
@@ -170,6 +189,12 @@ const ApiPublicCronMailsyncTickRoute =
     path: '/api/public/cron/mailsync-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCronTargetsCatchupRoute =
+  ApiPublicCronTargetsCatchupRouteImport.update({
+    id: '/api/public/cron/targets-catchup',
+    path: '/api/public/cron/targets-catchup',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
   id: '/api/public/t/$id',
   path: '/api/public/t/$id',
@@ -178,10 +203,13 @@ const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
   '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/brokers': typeof BrokersRoute
+  '/cibles': typeof CiblesRoute
   '/comparables': typeof ComparablesRoute
   '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
@@ -203,14 +231,18 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
+  '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
   '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/brokers': typeof BrokersRoute
+  '/cibles': typeof CiblesRoute
   '/comparables': typeof ComparablesRoute
   '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
@@ -232,15 +264,19 @@ export interface FileRoutesByTo {
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
+  '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
   '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
+  '/brokers': typeof BrokersRoute
+  '/cibles': typeof CiblesRoute
   '/comparables': typeof ComparablesRoute
   '/contacts': typeof ContactsRoute
   '/dossiers': typeof DossiersRoute
@@ -262,16 +298,20 @@ export interface FileRoutesById {
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
+  '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/a-qualifier'
     | '/actifs'
     | '/appels'
     | '/arbitrage'
     | '/auth'
+    | '/brokers'
+    | '/cibles'
     | '/comparables'
     | '/contacts'
     | '/dossiers'
@@ -293,14 +333,18 @@ export interface FileRouteTypes {
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
+    | '/api/public/cron/targets-catchup'
     | '/api/public/t/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/a-qualifier'
     | '/actifs'
     | '/appels'
     | '/arbitrage'
     | '/auth'
+    | '/brokers'
+    | '/cibles'
     | '/comparables'
     | '/contacts'
     | '/dossiers'
@@ -322,14 +366,18 @@ export interface FileRouteTypes {
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
+    | '/api/public/cron/targets-catchup'
     | '/api/public/t/$id'
   id:
     | '__root__'
     | '/'
+    | '/a-qualifier'
     | '/actifs'
     | '/appels'
     | '/arbitrage'
     | '/auth'
+    | '/brokers'
+    | '/cibles'
     | '/comparables'
     | '/contacts'
     | '/dossiers'
@@ -351,15 +399,19 @@ export interface FileRouteTypes {
     | '/api/public/cron/email-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
+    | '/api/public/cron/targets-catchup'
     | '/api/public/t/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AQualifierRoute: typeof AQualifierRoute
   ActifsRoute: typeof ActifsRoute
   AppelsRoute: typeof AppelsRoute
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
+  BrokersRoute: typeof BrokersRoute
+  CiblesRoute: typeof CiblesRoute
   ComparablesRoute: typeof ComparablesRoute
   ContactsRoute: typeof ContactsRoute
   DossiersRoute: typeof DossiersRoute
@@ -381,6 +433,7 @@ export interface RootRouteChildren {
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
   ApiPublicCronMailscanTickRoute: typeof ApiPublicCronMailscanTickRoute
   ApiPublicCronMailsyncTickRoute: typeof ApiPublicCronMailsyncTickRoute
+  ApiPublicCronTargetsCatchupRoute: typeof ApiPublicCronTargetsCatchupRoute
   ApiPublicTIdRoute: typeof ApiPublicTIdRoute
 }
 
@@ -391,6 +444,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/a-qualifier': {
+      id: '/a-qualifier'
+      path: '/a-qualifier'
+      fullPath: '/a-qualifier'
+      preLoaderRoute: typeof AQualifierRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/actifs': {
@@ -419,6 +479,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brokers': {
+      id: '/brokers'
+      path: '/brokers'
+      fullPath: '/brokers'
+      preLoaderRoute: typeof BrokersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cibles': {
+      id: '/cibles'
+      path: '/cibles'
+      fullPath: '/cibles'
+      preLoaderRoute: typeof CiblesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comparables': {
@@ -568,6 +642,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronMailsyncTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/targets-catchup': {
+      id: '/api/public/cron/targets-catchup'
+      path: '/api/public/cron/targets-catchup'
+      fullPath: '/api/public/cron/targets-catchup'
+      preLoaderRoute: typeof ApiPublicCronTargetsCatchupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/t/$id': {
       id: '/api/public/t/$id'
       path: '/api/public/t/$id'
@@ -580,10 +661,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AQualifierRoute: AQualifierRoute,
   ActifsRoute: ActifsRoute,
   AppelsRoute: AppelsRoute,
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
+  BrokersRoute: BrokersRoute,
+  CiblesRoute: CiblesRoute,
   ComparablesRoute: ComparablesRoute,
   ContactsRoute: ContactsRoute,
   DossiersRoute: DossiersRoute,
@@ -605,6 +689,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
   ApiPublicCronMailscanTickRoute: ApiPublicCronMailscanTickRoute,
   ApiPublicCronMailsyncTickRoute: ApiPublicCronMailsyncTickRoute,
+  ApiPublicCronTargetsCatchupRoute: ApiPublicCronTargetsCatchupRoute,
   ApiPublicTIdRoute: ApiPublicTIdRoute,
 }
 export const routeTree = rootRouteImport

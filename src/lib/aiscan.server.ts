@@ -3,6 +3,7 @@
 import { getAdmin } from "@/lib/automation.server";
 import { classifyAddress, companyFromDomain, graphGet } from "@/lib/mailscan.server";
 import { BudgetReachedError, callGeminiFileJson, callGeminiJson } from "@/lib/gemini.server";
+import { TARGETS_RULES, saveTargets, type RawFee, type RawTarget } from "@/lib/targets.server";
 
 type Admin = Awaited<ReturnType<typeof getAdmin>>;
 
@@ -27,16 +28,20 @@ export type Extraction = {
     excerpt?: string;
   }[];
   news?: { company?: string; title?: string; excerpt?: string }[];
+  targets?: RawTarget[];
+  fees?: RawFee[];
 };
 
 export const SYSTEM = `Tu es l'analyste d'un courtier en immobilier commercial français (Wallsbroker).
 Extrait UNIQUEMENT des informations explicitement présentes, jamais inventées. Réponds en JSON :
 {"contacts":[{"email","full_name","job_title","company","phone"}],
  "comparables":[{"kind":"location"|"vente","asset_class","enseigne","address","postal_code","city","surface","rent","price","yield_pct","deal_date":"AAAA-MM-JJ","excerpt"}],
- "news":[{"company","title","excerpt"}]}
+ "news":[{"company","title","excerpt"}],
+ "targets":[...], "fees":[...]}
 - contacts : personnes professionnelles avec un email (signatures, listes, annuaires). Ignore Wallsbroker.
 - comparables : transactions immobilières réelles (bail signé = location avec loyer annuel HT en €, cession = vente avec prix en €). surface en m². excerpt = phrase source (max 300 caractères).
 - news : actualités d'acteurs de l'immobilier (acquisition, cession, levée, nomination, recrutement, nouveau fonds, recherche d'actifs). Max 10.
+${TARGETS_RULES}
 Tableaux vides si rien. Pas de texte hors JSON.`;
 
 export function geminiStatus(e: unknown): number | null {
@@ -52,7 +57,7 @@ export async function sha256(bytes: Uint8Array): Promise<string> {
 const b64decode = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 
 /** Prépare une pièce jointe pour Gemini : fichier direct ou texte extrait. */
-async function prepare(name: string, type: string, base64: string): Promise<
+export async function prepare(name: string, type: string, base64: string): Promise<
   { file: { mimeType: string; base64: string } } | { text: string } | null
 > {
   const n = name.toLowerCase();
@@ -85,15 +90,22 @@ async function prepare(name: string, type: string, base64: string): Promise<
   return null;
 }
 
-export async function analyseAttachment(name: string, type: string, base64: string): Promise<Extraction | "unsupported"> {
+export async function analyseAttachment(
+  name: string,
+  type: string,
+  base64: string,
+  opts: { system?: string; task?: string; prompt?: string } = {},
+): Promise<Extraction | "unsupported"> {
   const p = await prepare(name, type, base64);
   if (!p) return "unsupported";
-  const prompt = `Pièce jointe « ${name} ». Extrait contacts, comparables et actualités.`;
+  const system = opts.system ?? SYSTEM;
+  const task = opts.task ?? "aiscan-pj";
+  const prompt = `Pièce jointe « ${name} ». ${opts.prompt ?? "Extrait contacts, comparables, actualités, cibles et honoraires."}`;
   if ("file" in p) {
-    return (await callGeminiFileJson<Extraction>({ task: "aiscan-pj", system: SYSTEM, prompt, file: p.file })) ?? {};
+    return (await callGeminiFileJson<Extraction>({ task, system, prompt, file: p.file })) ?? {};
   }
   if (p.text.trim().length < 40) return {};
-  return (await callGeminiJson<Extraction>({ task: "aiscan-pj", system: SYSTEM, prompt: `${prompt}\n\n${p.text}` })) ?? {};
+  return (await callGeminiJson<Extraction>({ task, system, prompt: `${prompt}\n\n${p.text}` })) ?? {};
 }
 
 export async function analyseBodies(
@@ -116,7 +128,8 @@ export async function saveExtraction(
   ex: Extraction,
   graphId: string,
   date: string,
-): Promise<{ contacts: number; comparables: number; news: number }> {
+  opts: { comparables?: boolean; source?: string } = {},
+): Promise<{ contacts: number; comparables: number; news: number; targets: number; fees: number }> {
   let contacts = 0;
   let comparables = 0;
   let news = 0;
@@ -160,7 +173,8 @@ export async function saveExtraction(
   }
 
   // Comparables
-  const cRows = (ex.comparables ?? [])
+  // Règle absolue : jamais de comparable issu d'une source orale (appels).
+  const cRows = (opts.comparables === false ? [] : ex.comparables ?? [])
     .map((c) => {
       const kind = c.kind === "vente" ? "vente" : "location";
       const surface = num(c.surface);
@@ -211,7 +225,8 @@ export async function saveExtraction(
     await admin.from("news_items").upsert(nRows, { onConflict: "company,mail_graph_id", ignoreDuplicates: true });
     news = nRows.length;
   }
-  return { contacts, comparables, news };
+  const t = await saveTargets(admin, ex.targets ?? [], ex.fees ?? [], opts.source ?? "email", date);
+  return { contacts, comparables, news, targets: t.targets, fees: t.fees };
 }
 
 export { BudgetReachedError, graphGet };

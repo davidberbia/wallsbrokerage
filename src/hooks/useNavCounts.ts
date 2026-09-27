@@ -16,14 +16,17 @@ export function useNavCounts(enabled: boolean) {
     enabled,
     refetchInterval: 60_000,
     queryFn: async () => {
-      const [inv, pro, act, dos, comp, env, cont] = await Promise.all([
+      const [inv, pro, act, dos, comp, env, cont, cib, brk, dir] = await Promise.all([
         count("investors"),
         count("prospect_companies"),
         count("assets"),
-        count("deals"),
+        count("deals", (q) => q.neq("stage", "Cible")),
         count("comparables"),
         count("brochure_sends"),
         count("mailscan_candidates", (q) => q.eq("status", "à valider")),
+        count("deals", (q) => q.eq("stage", "Cible")),
+        count("directory_contacts", (q) => q.eq("kind", "broker")),
+        count("directory_contacts", (q) => q.eq("kind", "contact")),
       ]);
       return {
         "/investisseurs": inv,
@@ -32,7 +35,10 @@ export function useNavCounts(enabled: boolean) {
         "/dossiers": dos,
         "/comparables": comp,
         "/envois": env,
-        "/contacts": cont,
+        "/a-qualifier": cont,
+        "/cibles": cib,
+        "/brokers": brk,
+        "/contacts": dir,
       };
     },
   });

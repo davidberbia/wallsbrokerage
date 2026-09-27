@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export const submitLink = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({ url: z.string().url().max(2000), note: z.string().max(2000).optional() }).parse(d),
+    z.object({ url: z.string().url().max(2000), note: z.string().max(2000).optional(), force: z.boolean().optional() }).parse(d),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -21,7 +21,7 @@ export const submitLink = createServerFn({ method: "POST" })
         .single();
       if (error) throw new Error(error.message);
       id = ins.id;
-    } else if (existing?.status === "analysé") {
+    } else if (existing?.status === "analysé" && !data.force) {
       return { id, already: true };
     }
     const { processLink } = await import("@/lib/links.server");

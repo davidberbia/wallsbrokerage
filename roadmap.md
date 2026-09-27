@@ -37,3 +37,13 @@
 - [ ] Appels : analyse bloquée tant que le crédit Google Gemini est épuisé (attente recharge David)
 - [x] Vidéos Instagram/TikTok via Cobalt en meilleur effort (retour légende si indisponible)
 - [ ] Cobalt : l'instance publique exige désormais une autorisation → héberger sa propre instance si David le souhaite
+
+## Évolutions du 27/09 (prompt David)
+- [ ] 1. Résumé : dossiers rejetés gelés (jamais de relance), focus actionnable
+- [ ] 2. Voix Jarvis : voix du téléphone fiabilisée, vrai bouton Play, aucun crédit
+- [ ] 3. Aucun comparable créé depuis les appels
+- [ ] 4. Appels : filtrer (contact connu OU contenu immo pro), sinon ignorés
+- [ ] 5. Honoraires/factures 2026 → CA ; ingestion auto des Cibles ; rattrapage 2026 (Enedis)
+- [ ] 6. Onglets Cibles + Affaires en cours (tableaux, pondération, millésimes, import Excel, bouton Créer)
+- [ ] 7. Brokers / Contacts / À qualifier + boutons de classement
+- [ ] 8. Liens en bas du menu ; Cobalt gratuit ou autre outil gratuit ; lien → Cible → recherche web → résumé

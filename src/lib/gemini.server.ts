@@ -167,3 +167,58 @@ export async function callGeminiPartsJson<T>(opts: {
     return null;
   }
 }
+
+async function logUsage(task: string, u: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number } = {}) {
+  const tin = u.promptTokenCount ?? 0;
+  const tout = (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0);
+  const admin = await getAdmin();
+  await admin.from("ai_usage").insert({ task, tokens_in: tin, tokens_out: tout, cost_eur: (tin * PRICE_IN + tout * PRICE_OUT) / 1_000_000 + (task === "enrichissement" ? 0.03 : 0) });
+}
+
+/** Recherche web ancrée Google Search ; réponse JSON (analysée depuis le texte). */
+export async function callGeminiSearch(opts: { task: string; system: string; prompt: string }): Promise<{ summary?: string; suggestion?: string } | null> {
+  const key = process.env["GEMINI_API_KEY"];
+  if (!key) throw new Error("Clé Gemini absente.");
+  if ((await monthSpent()) >= MONTHLY_BUDGET_EUR) throw new BudgetReachedError();
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: opts.system }] },
+      contents: [{ role: "user", parts: [{ text: opts.prompt }] }],
+      tools: [{ google_search: {} }],
+      generationConfig: { thinkingConfig: { thinkingLevel: "low" } },
+    }),
+  });
+  if (!res.ok) throw new Error(`Gemini [${res.status}] ${(await res.text()).slice(0, 300)}`);
+  const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[]; usageMetadata?: Record<string, number> };
+  await logUsage(opts.task, data.usageMetadata);
+  const text = (data.candidates?.[0]?.content?.parts ?? []).map((p) => p.text ?? "").join("").trim();
+  const m = /\{[\s\S]*\}/.exec(text);
+  try {
+    return m ? (JSON.parse(m[0]) as { summary?: string; suggestion?: string }) : { summary: text.slice(0, 3000) };
+  } catch {
+    return { summary: text.slice(0, 3000) };
+  }
+}
+
+/** Envoie une vidéo à l'espace fichiers de Gemini (jusqu'à ~100 Mo) et attend qu'elle soit prête. */
+export async function uploadGeminiFile(bytes: Uint8Array, mimeType: string): Promise<{ fileUri: string; mimeType: string }> {
+  const key = process.env["GEMINI_API_KEY"];
+  if (!key) throw new Error("Clé Gemini absente.");
+  const up = await fetch("https://generativelanguage.googleapis.com/upload/v1beta/files?uploadType=media", {
+    method: "POST",
+    headers: { "x-goog-api-key": key, "Content-Type": mimeType },
+    body: bytes as unknown as BodyInit,
+  });
+  if (!up.ok) throw new Error(`Gemini [${up.status}] ${(await up.text()).slice(0, 300)}`);
+  const { file } = (await up.json()) as { file: { name: string; uri: string; state: string } };
+  let state = file.state;
+  for (let i = 0; i < 30 && state === "PROCESSING"; i++) {
+    await new Promise((r) => setTimeout(r, 2000));
+    const g = await fetch(`https://generativelanguage.googleapis.com/v1beta/${file.name}`, { headers: { "x-goog-api-key": key } });
+    if (g.ok) state = ((await g.json()) as { state: string }).state;
+  }
+  if (state !== "ACTIVE") throw new Error(`Vidéo non prête chez Google (${state}).`);
+  return { fileUri: file.uri, mimeType };
+}

@@ -81,53 +81,73 @@ function SynthesePage() {
     );
   }
 
-  const play = () => {
+  // Lecture fiable sur mobile : chaque phrase est lue l'une après l'autre ; la pause
+  // mémorise la position (pause() natif est cassé sur Android) ; on n'appelle jamais
+  // cancel() juste avant speak() quand rien ne parle (bug Chrome Android qui avale la voix).
+  const position = useRef(0);
+  const queueRef = useRef<string[]>([]);
+
+  const speakFrom = (start: number) => {
     const synth = window.speechSynthesis;
     setSpeechError("");
-    if (state === "paused") {
-      synth.resume();
-      setState("playing");
-      return;
-    }
-    synth.cancel();
     const currentSession = sessionId.current + 1;
     sessionId.current = currentSession;
+    if (synth.speaking || synth.pending) synth.cancel();
+    if (!queueRef.current.length) queueRef.current = speechChunks(digest.speech);
     const voice = pickVoice();
-    const queue = speechChunks(digest.speech).map((chunk) => {
-      const utterance = new SpeechSynthesisUtterance(chunk);
-      utterance.lang = "fr-FR";
-      utterance.rate = 0.96;
-      utterance.pitch = 0.85;
-      if (voice) utterance.voice = voice;
-      return utterance;
-    });
-    utterances.current = queue;
     const speakNext = (index: number) => {
-      const utterance = queue[index];
-      if (!utterance || sessionId.current !== currentSession) {
-        if (sessionId.current === currentSession) setState("idle");
+      if (sessionId.current !== currentSession) return;
+      const text = queueRef.current[index];
+      if (!text) {
+        position.current = 0;
+        setState("idle");
         return;
       }
-      utterance.onend = () => {
-        if (sessionId.current === currentSession) speakNext(index + 1);
-      };
+      position.current = index;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "fr-FR";
+      utterance.rate = 1;
+      utterance.pitch = 0.9;
+      if (voice) utterance.voice = voice;
+      utterances.current = [utterance]; // garde une référence (sinon le navigateur peut l'oublier)
+      let started = false;
+      utterance.onstart = () => { started = true; };
+      utterance.onend = () => speakNext(index + 1);
       utterance.onerror = (event) => {
         if (event.error === "canceled" || event.error === "interrupted") return;
         if (sessionId.current === currentSession) {
-          setSpeechError("La voix du téléphone n’a pas pu démarrer. Vérifiez le volume puis réessayez.");
+          setSpeechError("La voix du téléphone n’a pas pu démarrer. Montez le volume (et désactivez le mode silencieux), puis touchez Play.");
           setState("idle");
         }
       };
       synth.speak(utterance);
+      // Certains téléphones restent muets sans erreur : on le signale au lieu d'attendre.
+      if (index === start) {
+        window.setTimeout(() => {
+          if (!started && sessionId.current === currentSession && !synth.speaking) {
+            setSpeechError("Aucune voix française n’est installée ou active sur ce téléphone. Réglages → Synthèse vocale → installez « Français ».");
+            setState("idle");
+          }
+        }, 4000);
+      }
     };
-    speakNext(0);
+    speakNext(start);
     setState("playing");
+  };
+
+  const play = () => speakFrom(state === "paused" ? position.current : 0);
+
+  const pause = () => {
+    sessionId.current += 1;
+    window.speechSynthesis.cancel();
+    setState("paused");
   };
 
   const stop = () => {
     sessionId.current += 1;
     window.speechSynthesis.cancel();
     utterances.current = [];
+    position.current = 0;
     setState("idle");
   };
 
@@ -169,7 +189,7 @@ function SynthesePage() {
               {supported ? (
                 <div className="z-10 flex items-center gap-5">
                   {state === "playing" ? (
-                    <Button variant="ghost" size="icon" className="jarvis-main-control" onClick={() => { window.speechSynthesis.pause(); setState("paused"); }} aria-label="Mettre en pause">
+                    <Button variant="ghost" size="icon" className="jarvis-main-control" onClick={pause} aria-label="Mettre en pause">
                       <Pause />
                     </Button>
                   ) : (
