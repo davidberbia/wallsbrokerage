@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ExternalLink, Link2, Loader2, Trash2 } from "lucide-react";
+import { ExternalLink, Link2, Loader2, RefreshCw, Trash2 } from "lucide-react";
 import { z } from "zod";
 import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
