@@ -73,8 +73,8 @@ function DetectedContactsPage() {
   }, [data, search, onlyImmo]);
 
   const done = () => {
-    setSelected([]);
-    void qc.invalidateQueries({ queryKey: ["mailscan-candidates"] });
+    // Recharge la liste seulement quand plus aucun classement n'est en cours (évite les fiches qui réapparaissent).
+    if (qc.isMutating() <= 1) void qc.invalidateQueries({ queryKey: ["mailscan-candidates"] });
     void qc.invalidateQueries({ queryKey: ["mailscan-status"] });
     void qc.invalidateQueries({ queryKey: ["investors"] });
     void qc.invalidateQueries({ queryKey: ["prospect-companies"] });
@@ -82,8 +82,20 @@ function DetectedContactsPage() {
     void qc.invalidateQueries({ queryKey: ["nav-counts"] });
   };
 
+  // Retire tout de suite les fiches classées de l'écran (sans attendre le rechargement de la liste).
+  const hide = (ids: string[]) => {
+    const gone = new Set(ids);
+    qc.setQueryData(["mailscan-candidates"], (old: typeof data) => (old ?? []).filter((r) => !gone.has(r.id)));
+    setSelected((prev) => prev.filter((id) => !gone.has(id)));
+  };
+  const restore = (e: Error) => {
+    toast.error(e.message || "Le classement a échoué, réessayez.");
+    void qc.invalidateQueries({ queryKey: ["mailscan-candidates"] });
+  };
+
   const integrateMutation = useMutation({
     mutationFn: (ids: string[]) => integrate({ data: { ids, toProspects: true } }),
+    onMutate: (ids) => hide(ids),
     onSuccess: (r) => {
       toast.success(
         `${r.investorsCreated} investisseur(s) et ${r.prospectsCreated} prospect(s) créés${
@@ -92,16 +104,17 @@ function DetectedContactsPage() {
       );
       done();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: restore,
   });
 
   const classifyMutation = useMutation({
     mutationFn: (v: { ids: string[]; kind: "contact" | "broker" }) => classify({ data: v }),
+    onMutate: (v) => hide(v.ids),
     onSuccess: (r, v) => {
       toast.success(`${r.count} contact(s) classé(s) dans ${v.kind === "broker" ? "Brokers" : "Contacts"}`);
       done();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: restore,
   });
 
   const allSelected = rows.length > 0 && selected.length === rows.length;
@@ -213,7 +226,6 @@ function DetectedContactsPage() {
                     size="sm"
                     variant={label === "Prospects" ? "default" : "outline"}
                     className="min-h-10 sm:min-h-8"
-                    disabled={classifyMutation.isPending || integrateMutation.isPending}
                     onClick={fn}
                   >
                     {label}
