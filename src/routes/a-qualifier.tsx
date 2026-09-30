@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   classifyMailscanCandidates,
+  ignoreMailscanCandidates,
   integrateMailscanCandidates,
   listMailscanCandidates,
 } from "@/lib/mailscan.functions";
@@ -51,6 +52,7 @@ function DetectedContactsPage() {
   const fetchCandidates = useServerFn(listMailscanCandidates);
   const integrate = useServerFn(integrateMailscanCandidates);
   const classify = useServerFn(classifyMailscanCandidates);
+  const ignore = useServerFn(ignoreMailscanCandidates);
 
   const [search, setSearch] = useState("");
   const [visible, setVisible] = useState(100);
@@ -118,6 +120,17 @@ function DetectedContactsPage() {
     onError: restore,
   });
 
+  // Suppression définitive : la fiche reste en base marquée « supprimé », donc elle ne sera jamais re-scrapée.
+  const deleteMutation = useMutation({
+    mutationFn: (ids: string[]) => ignore({ data: { ids } }),
+    onMutate: (ids) => hide(ids),
+    onSuccess: (r) => {
+      toast.success(`${r.count} contact(s) supprimé(s) — ils ne seront plus réimportés.`);
+      done();
+    },
+    onError: restore,
+  });
+
   const allSelected = rows.length > 0 && selected.length === rows.length;
 
   return (
@@ -164,6 +177,17 @@ function DetectedContactsPage() {
             onClick={() => classifyMutation.mutate({ ids: selected, kind: "notary" })}
           >
             Notaires ({selected.length})
+          </Button>
+          <Button
+            variant="destructive"
+            className="min-h-11 sm:min-h-9"
+            disabled={selected.length === 0 || deleteMutation.isPending}
+            onClick={() => {
+              if (confirm(`Supprimer définitivement ${selected.length} contact(s) ? Ils ne seront plus jamais réimportés.`))
+                deleteMutation.mutate(selected);
+            }}
+          >
+            Supprimer ({selected.length})
           </Button>
           <Button
             className="min-h-11 sm:min-h-9"
@@ -229,12 +253,13 @@ function DetectedContactsPage() {
                     ["Brokers", () => classifyMutation.mutate({ ids: [row.id], kind: "broker" })],
                     ["Notaires", () => classifyMutation.mutate({ ids: [row.id], kind: "notary" })],
                     ["Prospects", () => integrateMutation.mutate([row.id])],
+                    ["Supprimer", () => deleteMutation.mutate([row.id])],
                   ] as const
                 ).map(([label, fn]) => (
                   <Button
                     key={label}
                     size="sm"
-                    variant={label === "Prospects" ? "default" : "outline"}
+                    variant={label === "Prospects" ? "default" : label === "Supprimer" ? "destructive" : "outline"}
                     className="min-h-10 sm:min-h-8"
                     onClick={fn}
                   >
