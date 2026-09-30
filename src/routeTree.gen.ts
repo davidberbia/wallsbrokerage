@@ -23,6 +23,7 @@ import { Route as DossiersRouteImport } from './routes/dossiers'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
+import { Route as NotairesRouteImport } from './routes/notaires'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PartagerRouteImport } from './routes/partager'
 import { Route as ProspectsRouteImport } from './routes/prospects'
@@ -109,6 +110,11 @@ const InvestisseursRoute = InvestisseursRouteImport.update({
 const MonProfilRoute = MonProfilRouteImport.update({
   id: '/mon-profil',
   path: '/mon-profil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotairesRoute = NotairesRouteImport.update({
+  id: '/notaires',
+  path: '/notaires',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParametresRoute = ParametresRouteImport.update({
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
   '/prospects': typeof ProspectsRoute
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
   '/prospects': typeof ProspectsRoute
@@ -283,6 +291,7 @@ export interface FileRoutesById {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mon-profil': typeof MonProfilRoute
+  '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
   '/prospects': typeof ProspectsRoute
@@ -318,6 +327,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/notaires'
     | '/parametres'
     | '/partager'
     | '/prospects'
@@ -351,6 +361,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/notaires'
     | '/parametres'
     | '/partager'
     | '/prospects'
@@ -384,6 +395,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mon-profil'
+    | '/notaires'
     | '/parametres'
     | '/partager'
     | '/prospects'
@@ -418,6 +430,7 @@ export interface RootRouteChildren {
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
   MonProfilRoute: typeof MonProfilRoute
+  NotairesRoute: typeof NotairesRoute
   ParametresRoute: typeof ParametresRoute
   PartagerRoute: typeof PartagerRoute
   ProspectsRoute: typeof ProspectsRoute
@@ -535,6 +548,13 @@ declare module '@tanstack/react-router' {
       path: '/mon-profil'
       fullPath: '/mon-profil'
       preLoaderRoute: typeof MonProfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notaires': {
+      id: '/notaires'
+      path: '/notaires'
+      fullPath: '/notaires'
+      preLoaderRoute: typeof NotairesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parametres': {
@@ -674,6 +694,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
   MonProfilRoute: MonProfilRoute,
+  NotairesRoute: NotairesRoute,
   ParametresRoute: ParametresRoute,
   PartagerRoute: PartagerRoute,
   ProspectsRoute: ProspectsRoute,
