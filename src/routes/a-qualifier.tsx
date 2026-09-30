@@ -53,6 +53,7 @@ function DetectedContactsPage() {
   const classify = useServerFn(classifyMailscanCandidates);
 
   const [search, setSearch] = useState("");
+  const [visible, setVisible] = useState(100);
   const [onlyImmo, setOnlyImmo] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -183,9 +184,9 @@ function DetectedContactsPage() {
         </label>
       )}
 
-      <div className="grid gap-3">
-        {rows.map((row) => (
-          <div key={row.id} className="panel flex flex-col gap-3 p-4 md:flex-row md:items-start">
+      <div className="grid min-w-0 grid-cols-1 gap-3">
+        {rows.slice(0, visible).map((row) => (
+          <div key={row.id} className="panel flex min-w-0 flex-col gap-3 overflow-hidden p-4 md:flex-row md:items-start">
             <Checkbox
               className="mt-1"
               checked={selected.includes(row.id)}
@@ -236,7 +237,7 @@ function DetectedContactsPage() {
                 {row.verdict}
               </span>
               {row.reason && (
-                <p className="text-xs text-muted-foreground">
+                <p className="break-words text-xs text-muted-foreground">
                   {row.reason}
                   {row.site_url ? (
                     <>
