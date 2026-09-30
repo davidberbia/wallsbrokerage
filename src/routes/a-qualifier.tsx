@@ -109,10 +109,10 @@ function DetectedContactsPage() {
   });
 
   const classifyMutation = useMutation({
-    mutationFn: (v: { ids: string[]; kind: "contact" | "broker" }) => classify({ data: v }),
+    mutationFn: (v: { ids: string[]; kind: "contact" | "broker" | "notary" }) => classify({ data: v }),
     onMutate: (v) => hide(v.ids),
     onSuccess: (r, v) => {
-      toast.success(`${r.count} contact(s) classé(s) dans ${v.kind === "broker" ? "Brokers" : "Contacts"}`);
+      toast.success(`${r.count} contact(s) classé(s) dans ${v.kind === "broker" ? "Brokers" : v.kind === "notary" ? "Notaires" : "Contacts"}`);
       done();
     },
     onError: restore,
@@ -156,6 +156,14 @@ function DetectedContactsPage() {
             onClick={() => classifyMutation.mutate({ ids: selected, kind: "broker" })}
           >
             Brokers ({selected.length})
+          </Button>
+          <Button
+            variant="outline"
+            className="min-h-11 sm:min-h-9"
+            disabled={selected.length === 0 || classifyMutation.isPending}
+            onClick={() => classifyMutation.mutate({ ids: selected, kind: "notary" })}
+          >
+            Notaires ({selected.length})
           </Button>
           <Button
             className="min-h-11 sm:min-h-9"
@@ -219,6 +227,7 @@ function DetectedContactsPage() {
                   [
                     ["Contacts", () => classifyMutation.mutate({ ids: [row.id], kind: "contact" })],
                     ["Brokers", () => classifyMutation.mutate({ ids: [row.id], kind: "broker" })],
+                    ["Notaires", () => classifyMutation.mutate({ ids: [row.id], kind: "notary" })],
                     ["Prospects", () => integrateMutation.mutate([row.id])],
                   ] as const
                 ).map(([label, fn]) => (

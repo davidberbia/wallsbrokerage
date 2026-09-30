@@ -8,6 +8,7 @@ import {
   Building2,
   Contact,
   FolderKanban,
+  Landmark,
   Link2,
   LogOut,
   Mail,
@@ -43,6 +44,7 @@ const BROKER_NAV = [
 const ADMIN_CONTACTS_NAV = [
   { to: "/brokers", label: "Brokers", icon: Handshake },
   { to: "/contacts", label: "Contacts", icon: BookUser },
+  { to: "/notaires", label: "Notaires", icon: Landmark },
   { to: "/a-qualifier", label: "À qualifier", icon: Mail },
 ] as const;
 

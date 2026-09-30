@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type Kind = "contact" | "broker";
+type Kind = "contact" | "broker" | "notary";
+const LABELS: Record<Kind, { plural: string; one: string; desc: string }> = {
+  broker: { plural: "Brokers", one: "broker", desc: "Vos confrères, pour partager dossiers et honoraires." },
+  contact: { plural: "Contacts", one: "contact", desc: "Vos contacts professionnels qualifiés." },
+  notary: { plural: "Notaires", one: "notaire", desc: "Vos notaires partenaires." },
+};
 const EMPTY = { full_name: "", company: "", email: "", phone: "", job_title: "", notes: "" };
 
 export function DirectoryPage({ kind }: { kind: Kind }) {
@@ -17,7 +22,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(EMPTY);
-  const title = kind === "broker" ? "Brokers" : "Contacts";
+  const title = LABELS[kind].plural;
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["directory", kind],
@@ -52,7 +57,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
       if (error) throw new Error(error.code === "23505" ? "Cet email est déjà dans l'annuaire." : error.message);
     },
     onSuccess: () => {
-      toast.success(`${kind === "broker" ? "Broker" : "Contact"} ajouté`);
+      toast.success(`${LABELS[kind].plural} : fiche ajoutée`);
       setForm(EMPTY);
       setOpen(false);
       refresh();
@@ -64,7 +69,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
     const { error } = await supabase.from("directory_contacts").update({ kind: to }).eq("id", id);
     if (error) toast.error(error.message);
     else {
-      toast.success(`Déplacé dans ${to === "broker" ? "Brokers" : "Contacts"}`);
+      toast.success(`Déplacé dans ${LABELS[to].plural}`);
       refresh();
     }
   };
@@ -82,9 +87,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
           <p className="eyebrow">Annuaire</p>
           <h1 className="mt-1 text-3xl">{title}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            {kind === "broker"
-              ? "Vos confrères, pour partager dossiers et honoraires."
-              : "Vos contacts professionnels qualifiés."}
+            {LABELS[kind].desc}
           </p>
         </div>
         <Button className="min-h-11 sm:min-h-9" onClick={() => setOpen(true)}>
@@ -123,10 +126,12 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
                 </a>
               )}
             </div>
-            <div className="flex shrink-0 gap-2">
-              <Button variant="outline" size="sm" className="min-h-10 sm:min-h-8" onClick={() => move(r.id, kind === "broker" ? "contact" : "broker")}>
-                Vers {kind === "broker" ? "Contacts" : "Brokers"}
-              </Button>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {(Object.keys(LABELS) as Kind[]).filter((k) => k !== kind).map((k) => (
+                <Button key={k} variant="outline" size="sm" className="min-h-10 sm:min-h-8" onClick={() => move(r.id, k)}>
+                  Vers {LABELS[k].plural}
+                </Button>
+              ))}
               <Button variant="ghost" size="icon" aria-label="Supprimer" onClick={() => remove(r.id)}>
                 <Trash2 className="size-4" />
               </Button>
@@ -138,7 +143,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nouveau {kind === "broker" ? "broker" : "contact"}</DialogTitle>
+            <DialogTitle>Nouvelle fiche — {LABELS[kind].one}</DialogTitle>
           </DialogHeader>
           <form
             className="grid gap-3"

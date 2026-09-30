@@ -2033,6 +2033,15 @@ export type Database = {
       }
       mailscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       mailscan_stop_internal: { Args: never; Returns: undefined }
+      person_is_investor: {
+        Args: { _email: string; _name: string }
+        Returns: boolean
+      }
+      person_is_prospect: {
+        Args: { _email: string; _name: string }
+        Returns: boolean
+      }
+      person_key_norm: { Args: { t: string }; Returns: string }
       rate_limit_hit: {
         Args: { _key: string; _limit: number; _window_seconds: number }
         Returns: boolean

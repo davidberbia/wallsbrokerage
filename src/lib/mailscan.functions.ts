@@ -388,8 +388,8 @@ export const integrateMailscanCandidates = createServerFn({ method: "POST" })
 /** Classe des contacts « À qualifier » dans l'annuaire Contacts ou Brokers (par lots). */
 export const classifyMailscanCandidates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { ids: string[]; kind: "contact" | "broker" }) => {
-    if (!Array.isArray(input?.ids) || !["contact", "broker"].includes(input.kind)) throw new Error("Données invalides");
+  .inputValidator((input: { ids: string[]; kind: "contact" | "broker" | "notary" }) => {
+    if (!Array.isArray(input?.ids) || !["contact", "broker", "notary"].includes(input.kind)) throw new Error("Données invalides");
     return { ids: input.ids.slice(0, 1000).map(String), kind: input.kind };
   })
   .handler(async ({ data, context }) => {
@@ -422,6 +422,6 @@ export const classifyMailscanCandidates = createServerFn({ method: "POST" })
       );
       if (error) throw new Error(`Enregistrement dans l'annuaire : ${error.message}`);
     }
-    await setStatus(admin, list.map((r) => r.id), data.kind === "broker" ? "broker" : "contact");
+    await setStatus(admin, list.map((r) => r.id), data.kind);
     return { count: list.length };
   });
