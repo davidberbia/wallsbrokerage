@@ -57,7 +57,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
       if (error) throw new Error(error.code === "23505" ? "Cet email est déjà dans l'annuaire." : error.message);
     },
     onSuccess: () => {
-      toast.success(`${kind === "broker" ? "Broker" : "Contact"} ajouté`);
+      toast.success(`${LABELS[kind].plural} : fiche ajoutée`);
       setForm(EMPTY);
       setOpen(false);
       refresh();
@@ -69,7 +69,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
     const { error } = await supabase.from("directory_contacts").update({ kind: to }).eq("id", id);
     if (error) toast.error(error.message);
     else {
-      toast.success(`Déplacé dans ${to === "broker" ? "Brokers" : "Contacts"}`);
+      toast.success(`Déplacé dans ${LABELS[to].plural}`);
       refresh();
     }
   };
@@ -87,9 +87,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
           <p className="eyebrow">Annuaire</p>
           <h1 className="mt-1 text-3xl">{title}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            {kind === "broker"
-              ? "Vos confrères, pour partager dossiers et honoraires."
-              : "Vos contacts professionnels qualifiés."}
+            {LABELS[kind].desc}
           </p>
         </div>
         <Button className="min-h-11 sm:min-h-9" onClick={() => setOpen(true)}>
@@ -145,7 +143,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nouveau {kind === "broker" ? "broker" : "contact"}</DialogTitle>
+            <DialogTitle>Nouvelle fiche — {LABELS[kind].one}</DialogTitle>
           </DialogHeader>
           <form
             className="grid gap-3"
