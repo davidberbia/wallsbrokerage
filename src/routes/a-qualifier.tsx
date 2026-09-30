@@ -258,6 +258,11 @@ function DetectedContactsPage() {
           </div>
         ))}
       </div>
+      {rows.length > visible && (
+        <Button variant="outline" className="min-h-11 w-full" onClick={() => setVisible((v) => v + 100)}>
+          Afficher plus ({rows.length - visible} restants)
+        </Button>
+      )}
     </div>
   );
 }
