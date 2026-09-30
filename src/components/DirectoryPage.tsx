@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type Kind = "contact" | "broker";
+type Kind = "contact" | "broker" | "notary";
+const LABELS: Record<Kind, { plural: string; one: string; desc: string }> = {
+  broker: { plural: "Brokers", one: "broker", desc: "Vos confrères, pour partager dossiers et honoraires." },
+  contact: { plural: "Contacts", one: "contact", desc: "Vos contacts professionnels qualifiés." },
+  notary: { plural: "Notaires", one: "notaire", desc: "Vos notaires partenaires." },
+};
 const EMPTY = { full_name: "", company: "", email: "", phone: "", job_title: "", notes: "" };
 
 export function DirectoryPage({ kind }: { kind: Kind }) {
@@ -17,7 +22,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(EMPTY);
-  const title = kind === "broker" ? "Brokers" : "Contacts";
+  const title = LABELS[kind].plural;
 
   const { data = [], isLoading } = useQuery({
     queryKey: ["directory", kind],
@@ -123,10 +128,12 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
                 </a>
               )}
             </div>
-            <div className="flex shrink-0 gap-2">
-              <Button variant="outline" size="sm" className="min-h-10 sm:min-h-8" onClick={() => move(r.id, kind === "broker" ? "contact" : "broker")}>
-                Vers {kind === "broker" ? "Contacts" : "Brokers"}
-              </Button>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {(Object.keys(LABELS) as Kind[]).filter((k) => k !== kind).map((k) => (
+                <Button key={k} variant="outline" size="sm" className="min-h-10 sm:min-h-8" onClick={() => move(r.id, k)}>
+                  Vers {LABELS[k].plural}
+                </Button>
+              ))}
               <Button variant="ghost" size="icon" aria-label="Supprimer" onClick={() => remove(r.id)}>
                 <Trash2 className="size-4" />
               </Button>
