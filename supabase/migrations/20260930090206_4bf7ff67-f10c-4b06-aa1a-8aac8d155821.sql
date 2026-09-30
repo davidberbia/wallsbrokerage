@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.person_is_investor(text,text), public.person_is_prospect(text,text), public.block_dup_candidate(), public.block_dup_prospect(), public.block_dup_directory() FROM PUBLIC, anon, authenticated;
