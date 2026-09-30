@@ -101,9 +101,9 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
         </div>
       )}
 
-      <div className="grid gap-3">
+      <div className="grid min-w-0 grid-cols-1 gap-3">
         {rows.map((r) => (
-          <div key={r.id} className="panel flex flex-col gap-3 p-4 md:flex-row md:items-start">
+          <div key={r.id} className="panel flex min-w-0 flex-col gap-3 overflow-hidden p-4 md:flex-row md:items-start">
             <div className="min-w-0 flex-1 space-y-0.5">
               <p className="truncate font-semibold">{r.company || "—"}</p>
               <p className="truncate text-sm">{r.full_name || "—"}</p>
