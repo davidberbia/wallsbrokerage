@@ -24,7 +24,7 @@ export const ASSET_CLASSES = [
   "Terrains à bâtir",
 ] as const;
 
-export const STRATEGIES = ["CORE", "CORE +", "VALUE ADDED", "OPPORTUNISTE"] as const;
+export const STRATEGIES = ["CORE", "CORE +", "VALUE ADDED", "OPPORTUNISTE", "MULTICASE"] as const;
 
 export const REGIONS = [
   "Île-de-France",
@@ -84,6 +84,7 @@ export const STRATEGY_DEFINITIONS: Record<(typeof STRATEGIES)[number], string> =
   "CORE +": "Actif de qualité offrant un rendement régulier, avec un potentiel modéré d’amélioration ou de valorisation.",
   "VALUE ADDED": "Actif nécessitant une gestion active, des travaux ou une relocation pour créer une plus-value.",
   OPPORTUNISTE: "Opération à fort potentiel de création de valeur, avec un niveau de risque et de rendement plus élevé.",
+  MULTICASE: "Stratégie multi-actifs : l'investisseur est ouvert à plusieurs classes d'actifs ou à un portefeuille diversifié.",
 };
 
 export const CITY_SCOPES = [
