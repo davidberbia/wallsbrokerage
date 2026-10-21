@@ -48,4 +48,3 @@
 - [ ] 6. Onglets Cibles + Affaires en cours (tableaux, pondération, millésimes, import Excel, bouton Créer)
 - [ ] 7. Brokers / Contacts / À qualifier + boutons de classement
 - [ ] 8. Liens en bas du menu ; Cobalt gratuit ou autre outil gratuit ; lien → Cible → recherche web → résumé
-- [ ] Refonte complète du résumé journalier : envoi arrêté (cron supprimé), en attente des consignes de David sur le nouveau contenu
