@@ -51,11 +51,12 @@ export const extractAssetFields = createServerFn({ method: "POST" })
 Si une information est absente du document, mets null.`,
       file: { mimeType: data.mimeType, base64: data.base64 },
     });
-    if (!result) return {};
-    return {
+    if (!result) return {} as ExtractedAssetFields;
+    const cleaned: ExtractedAssetFields = {
       ...result,
       asset_class: pick(result.asset_class, ASSET_CLASSES),
       strategy: pick(result.strategy, STRATEGIES),
       region: pick(result.region, REGIONS),
-    } satisfies ExtractedAssetFields;
+    };
+    return cleaned;
   });

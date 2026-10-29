@@ -34,7 +34,7 @@ async function compressPdf(file: File): Promise<File> {
   const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
   const bytes = await doc.save({ useObjectStreams: true });
   if (bytes.byteLength >= file.size) return file;
-  return new File([bytes], file.name, { type: "application/pdf" });
+  return new File([bytes as unknown as BlobPart], file.name, { type: "application/pdf" });
 }
 
 /** Compresse une image ou un PDF ; renvoie le fichier d'origine si rien à gagner. */
