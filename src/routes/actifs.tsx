@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Pencil, Plus, Target, Trash2, X } from "lucide-react";
+import { ExternalLink, Loader2, Pencil, Plus, Sparkles, Target, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatThousands, parseThousands } from "@/lib/format";
+import { compressFile } from "@/lib/compress";
+import { extractAssetFields } from "@/lib/asset-extract.functions";
 import {
   MAX_DOCUMENT_BYTES,
   fetchAssetDocuments,
