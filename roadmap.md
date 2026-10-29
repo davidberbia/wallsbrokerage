@@ -48,4 +48,5 @@
 - [ ] 6. Onglets Cibles + Affaires en cours (tableaux, pondération, millésimes, import Excel, bouton Créer)
 - [ ] 7. Brokers / Contacts / À qualifier + boutons de classement
 - [ ] 8. Liens en bas du menu ; Cobalt gratuit ou autre outil gratuit ; lien → Cible → recherche web → résumé
-- [ ] Actifs : champ d'upload dans le 1er formulaire (caractéristiques) → extraction IA → pré-remplissage des champs avant validation
+- [x] Actifs : champ d'upload dans le 1er formulaire (caractéristiques) → extraction IA → pré-remplissage des champs avant validation
+- [x] Compression automatique des fichiers à l'upload (images via canvas, PDF via pdf-lib, point unique uploadDocument)
