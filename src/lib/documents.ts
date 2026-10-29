@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { compressFile } from "@/lib/compress";
 
 /** Document (brochure, annexe, plan…) rattaché à un actif. */
 export type AssetDocument = {
@@ -27,17 +28,18 @@ export async function fetchAssetDocuments(assetId: string): Promise<AssetDocumen
   return (data ?? []) as AssetDocument[];
 }
 
-/** Envoie un fichier dans le stockage et renvoie son chemin. */
+/** Compresse puis envoie un fichier dans le stockage et renvoie son chemin. */
 export async function uploadDocument(prefix: string, file: File): Promise<QueuedAttachment> {
-  if (file.size > MAX_DOCUMENT_BYTES) {
-    throw new Error(`${file.name} dépasse 9 Mo.`);
+  const compressed = await compressFile(file);
+  if (compressed.size > MAX_DOCUMENT_BYTES) {
+    throw new Error(`${file.name} dépasse 9 Mo même après compression.`);
   }
-  const path = `${prefix}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
+  const path = `${prefix}/${crypto.randomUUID()}-${safeFileName(compressed.name)}`;
   const { error } = await supabase.storage
     .from("brochures")
-    .upload(path, file, { contentType: file.type || "application/octet-stream" });
+    .upload(path, compressed, { contentType: compressed.type || "application/octet-stream" });
   if (error) throw error;
-  return { path, name: file.name };
+  return { path, name: compressed.name };
 }
 
 /** Ouvre un document stocké (lien signé) ou une URL externe. */
