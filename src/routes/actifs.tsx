@@ -300,6 +300,10 @@ function AssetForm({
     setExtracting(true);
     try {
       const compressed = await compressFile(file);
+      if (compressed.size > MAX_DOCUMENT_BYTES) {
+        toast.error(`${file.name} dépasse 9 Mo même après compression.`);
+        return;
+      }
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
@@ -369,8 +373,8 @@ function AssetForm({
               const file = e.target.files?.[0];
               e.target.value = "";
               if (!file) return;
-              if (file.size > MAX_DOCUMENT_BYTES) {
-                toast.error(`${file.name} dépasse 9 Mo.`);
+              if (file.size > 30 * 1024 * 1024) {
+                toast.error(`${file.name} est trop lourd (30 Mo max. avant compression).`);
                 return;
               }
               void extractFromDocument(file);
@@ -491,14 +495,17 @@ function AssetForm({
           multiple
           onChange={(e) => {
             const picked = Array.from(e.target.files ?? []);
-            const tooBig = picked.find((f) => f.size > MAX_DOCUMENT_BYTES);
-            if (tooBig) {
-              toast.error(`${tooBig.name} dépasse 9 Mo.`);
-              e.target.value = "";
-              return;
-            }
-            onNewFiles([...newFiles, ...picked]);
             e.target.value = "";
+            if (picked.length === 0) return;
+            void (async () => {
+              const compressed = await Promise.all(picked.map((f) => compressFile(f)));
+              const tooBig = compressed.find((f) => f.size > MAX_DOCUMENT_BYTES);
+              if (tooBig) {
+                toast.error(`${tooBig.name} dépasse 9 Mo même après compression.`);
+                return;
+              }
+              onNewFiles([...newFiles, ...compressed]);
+            })();
           }}
         />
         <p className="mt-1 text-xs text-muted-foreground">
