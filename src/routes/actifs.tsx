@@ -288,12 +288,64 @@ function AssetForm({
   saving: boolean;
 }) {
   const set = (patch: Partial<Draft>) => onChange({ ...draft, ...patch });
+  const [extracting, setExtracting] = useState(false);
   const { data: documents } = useQuery({
     queryKey: ["asset-documents", draft.id],
     queryFn: () => fetchAssetDocuments(draft.id!),
     enabled: Boolean(draft.id),
   });
   const keptDocuments = (documents ?? []).filter((d) => !removedDocs.includes(d.id));
+
+  const extractFromDocument = async (file: File) => {
+    setExtracting(true);
+    try {
+      const compressed = await compressFile(file);
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+        reader.onerror = () => reject(new Error("Lecture du fichier impossible"));
+        reader.readAsDataURL(compressed);
+      });
+      const fields = await extractAssetFields({
+        data: {
+          name: compressed.name,
+          mimeType: compressed.type || "application/octet-stream",
+          base64,
+        },
+      });
+      const patch: Partial<Draft> = {};
+      for (const key of [
+        "title",
+        "reference",
+        "asset_class",
+        "strategy",
+        "region",
+        "city",
+        "price",
+        "yield_pct",
+        "surface",
+        "description",
+      ] as const) {
+        const value = fields?.[key];
+        if (value != null && value !== "" && (draft[key] == null || draft[key] === "")) {
+          Object.assign(patch, { [key]: value });
+        }
+      }
+      if (Object.keys(patch).length > 0) {
+        onChange({ ...draft, ...patch });
+        toast.success("Champs pré-remplis depuis le document — vérifiez avant d'enregistrer.");
+      } else {
+        toast.info("Aucune information exploitable trouvée dans ce document.");
+      }
+      onNewFiles([...newFiles, compressed]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Lecture du document impossible");
+    } finally {
+      setExtracting(false);
+    }
+  };
+
+
 
 
 
@@ -306,6 +358,35 @@ function AssetForm({
         onSubmit();
       }}
     >
+      <Field label="Pré-remplir depuis un document (brochure, teaser, avis de valeur)">
+        <div className="flex items-center gap-3">
+          <Input
+            type="file"
+            accept=".pdf,image/*"
+            disabled={extracting}
+            aria-label="Importer un document pour pré-remplir"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              if (file.size > MAX_DOCUMENT_BYTES) {
+                toast.error(`${file.name} dépasse 9 Mo.`);
+                return;
+              }
+              void extractFromDocument(file);
+            }}
+          />
+          {extracting && (
+            <span className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" /> Lecture du document…
+            </span>
+          )}
+        </div>
+        <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+          <Sparkles className="size-3" /> Les caractéristiques détectées remplissent les champs
+          vides ci-dessous ; le document est joint à l'actif.
+        </p>
+      </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Intitulé *">
           <Input required value={draft.title} onChange={(e) => set({ title: e.target.value })} />
