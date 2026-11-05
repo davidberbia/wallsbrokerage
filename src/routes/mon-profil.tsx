@@ -62,6 +62,7 @@ function MyProfilePage() {
     enabled: Boolean(user),
     queryFn: async () => {
       if (!user) return null;
+      await supabase.rpc("claim_investor_profile");
       const { data, error } = await supabase.from("investors").select("*").eq("user_id", user.id).maybeSingle();
       if (error) throw error;
       if (!data) return null;
@@ -178,8 +179,25 @@ function MyProfilePage() {
           {step < 5 ? <Button className="min-h-11 w-full sm:w-auto" type="button" onClick={next}>Suivant <ChevronRight /></Button> : <Button className="min-h-11 w-full sm:w-auto" type="button" onClick={save} disabled={saving}><Check /> {saving ? "Validation…" : "Valider"}</Button>}
         </div>
       </section>
+      <ChangePassword />
     </div>
   );
+}
+
+function ChangePassword() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    const { error } = await supabase.auth.updateUser({ password: next, current_password: current } as { password: string });
+    setBusy(false);
+    if (error) { toast.error(error.message.includes("current") ? "Mot de passe actuel incorrect." : error.message); return; }
+    toast.success("Mot de passe modifié.");
+    setCurrent(""); setNext("");
+  };
+  return <form onSubmit={submit} className="panel space-y-4 p-4 sm:p-7"><h2 className="text-xl">Changer mon mot de passe</h2><div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="cur-pw">Mot de passe actuel</Label><Input id="cur-pw" type="password" required value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" /></div><div className="space-y-2"><Label htmlFor="new-pw">Nouveau mot de passe</Label><Input id="new-pw" type="password" required minLength={6} value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" /></div></div><Button className="min-h-11 w-full sm:w-auto" type="submit" disabled={busy}>{busy ? "Modification…" : "Changer mon mot de passe"}</Button></form>;
 }
 
 function StepIndicator({ step }: { step: number }) {

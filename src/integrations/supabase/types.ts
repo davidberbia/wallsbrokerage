@@ -2018,6 +2018,7 @@ export type Database = {
       aiscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       aiscan_stop_internal: { Args: never; Returns: undefined }
       cfnews_scrape_schedule: { Args: { _on: boolean }; Returns: undefined }
+      claim_investor_profile: { Args: never; Returns: string }
       claim_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
@@ -2031,6 +2032,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_known_investor_email: { Args: { p_email: string }; Returns: boolean }
       mailscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       mailscan_stop_internal: { Args: never; Returns: undefined }
       person_is_investor: {

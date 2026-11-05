@@ -93,8 +93,11 @@ function AuthPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (mode === "signup" && isPersonalEmail(email)) {
-      toast.error(PERSONAL_EMAIL_MESSAGE);
-      return;
+      const { data: known } = await supabase.rpc("is_known_investor_email", { p_email: email.trim() });
+      if (!known) {
+        toast.error(PERSONAL_EMAIL_MESSAGE);
+        return;
+      }
     }
     setBusy(true);
     try {
@@ -108,13 +111,31 @@ function AuthPage() {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("Compte créé. Vous pouvez vous connecter.");
+        toast.success("Compte créé. Confirmez via l'email reçu, puis connectez-vous : votre fiche existante sera retrouvée automatiquement.", { duration: 9000 });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Échec de la connexion");
     } finally {
       setBusy(false);
     }
+  };
+
+  const forgot = async () => {
+    if (!email) {
+      toast.error("Saisissez d'abord votre email ci-dessus.");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) toast.error(error.message);
+    else
+      toast.success(
+        "Si un compte existe, un email vient de vous être envoyé. Sinon, cliquez sur « Créer un compte » avec cet email : votre fiche existante sera retrouvée.",
+        { duration: 9000 },
+      );
   };
 
   const search = async (e: React.FormEvent) => {
@@ -270,6 +291,16 @@ function AuthPage() {
                 {mode === "signin" ? "Me connecter" : "M'inscrire"}
               </Button>
             </form>
+            {mode === "signin" && (
+              <button
+                type="button"
+                className="mt-3 min-h-11 w-full text-center text-sm text-primary underline-offset-4 hover:underline"
+                onClick={forgot}
+                disabled={busy}
+              >
+                Mot de passe oublié ?
+              </button>
+            )}
             <button
               type="button"
               className="mt-4 w-full text-center text-sm text-muted-foreground underline-offset-4 hover:underline"

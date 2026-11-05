@@ -27,6 +27,7 @@ import { Route as NotairesRouteImport } from './routes/notaires'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PartagerRouteImport } from './routes/partager'
 import { Route as ProspectsRouteImport } from './routes/prospects'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ValidationRouteImport } from './routes/validation'
 import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
@@ -132,6 +133,11 @@ const ProspectsRoute = ProspectsRouteImport.update({
   path: '/prospects',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
   '/prospects': typeof ProspectsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
   '/synthese/$token': typeof SyntheseTokenRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
   '/prospects': typeof ProspectsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
   '/synthese/$token': typeof SyntheseTokenRoute
@@ -295,6 +303,7 @@ export interface FileRoutesById {
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
   '/prospects': typeof ProspectsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
   '/synthese/$token': typeof SyntheseTokenRoute
@@ -331,6 +340,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/partager'
     | '/prospects'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/validation'
     | '/synthese/$token'
@@ -365,6 +375,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/partager'
     | '/prospects'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/validation'
     | '/synthese/$token'
@@ -399,6 +410,7 @@ export interface FileRouteTypes {
     | '/parametres'
     | '/partager'
     | '/prospects'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/validation'
     | '/synthese/$token'
@@ -434,6 +446,7 @@ export interface RootRouteChildren {
   ParametresRoute: typeof ParametresRoute
   PartagerRoute: typeof PartagerRoute
   ProspectsRoute: typeof ProspectsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ValidationRoute: typeof ValidationRoute
   SyntheseTokenRoute: typeof SyntheseTokenRoute
@@ -578,6 +591,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProspectsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -698,6 +718,7 @@ const rootRouteChildren: RootRouteChildren = {
   ParametresRoute: ParametresRoute,
   PartagerRoute: PartagerRoute,
   ProspectsRoute: ProspectsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ValidationRoute: ValidationRoute,
   SyntheseTokenRoute: SyntheseTokenRoute,
