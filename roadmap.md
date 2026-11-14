@@ -57,3 +57,4 @@
 - [x] Objet email sans ville en double ; Modifier/Supprimer dans la sélection
 - [x] Doublons des comparables fusionnés (1 138 → 1 031) ; brochure lit la liste unique du CRM
 - [ ] Comparables restants du générateur — attend l'export Excel depuis le projet Générateur
+- [ ] DocuSign : raccorder le compte et envoyer les mandats en signature (propriétaire + David, ordre libre) — modèles fournis plus tard
