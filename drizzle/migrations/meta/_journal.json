@@ -50,6 +50,13 @@
       "when": 1794681498320,
       "tag": "0006_mandate_trigger_owner",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794681693174,
+      "tag": "0007_mandates_keep_on_asset_delete",
+      "breakpoints": true
     }
   ]
 }

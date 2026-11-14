@@ -10,3 +10,6 @@
 <!-- LOVABLE:END -->
 
 - Brochure generator code copied from the Générateur project lives in src/components/brochure and src/lib (pptx-generator, googlemaps, …) under @ts-nocheck; keep it verbatim and gate its server functions with requireStaffAuth. Why: preserves the validated brochure rendering and blocks investor accounts.
+- Staff data spaces: assets, asset_documents, deals, mandates and document_shares are scoped by `public.can_see_owner(owner_id)` (admin sees all, broker sees own). Why: each salesperson has a separate space.
+- Mandate numbers come from `mandate_number_seq` via the assets trigger; mandates survive asset deletion (asset_id SET NULL + asset_title). Why: legal registry must never lose numbers.
+- Public document shares go through `src/lib/share.functions.ts` (token + 15-day expiry checked server-side, events logged). Why: /partage is unauthenticated.

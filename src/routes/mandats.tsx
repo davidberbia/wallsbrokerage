@@ -35,7 +35,7 @@ function MandatesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mandates")
-        .select("id, number, status, assets(title, city, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)")
+        .select("id, number, status, asset_title, assets(title, city, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)")
         .order("number", { ascending: false });
       if (error) throw error;
       return data;
@@ -48,7 +48,7 @@ function MandatesPage() {
     return {
       id: m.id,
       number: m.number,
-      title: a?.title ?? "—",
+      title: a?.title ?? m.asset_title ?? "—",
       city: a?.city ?? "",
       owner: a?.owner_name ?? "—",
       exclusive: a?.mandate_exclusive == null ? "—" : a.mandate_exclusive ? "Exclusif" : "Non exclusif",

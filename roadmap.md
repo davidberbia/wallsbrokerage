@@ -52,6 +52,8 @@
 - [x] Compression automatique des fichiers à l'upload (images via canvas, PDF via pdf-lib, point unique uploadDocument)
 - [x] Fusion Générateur de brochures : menus Actif (étapes) et Présentation (génération par étapes)
 - [ ] Règles par type de bien (champs étape 1, étapes de brochure appartement/maison) — attend les règles de David
-- [ ] Mandat DocuSign + registre (à partir de 202193), partage docs 15 j, espaces étanches par commercial — lot suivant
+- [x] Registre des mandats (dès 202193), partage docs 15 j, espaces par commercial
+- [ ] Signature DocuSign — en attente du compte DocuSign de David
+- [x] Objet email sans ville en double ; Modifier/Supprimer dans la sélection
 - [x] Doublons des comparables fusionnés (1 138 → 1 031) ; brochure lit la liste unique du CRM
 - [ ] Comparables restants du générateur — attend l'export Excel depuis le projet Générateur

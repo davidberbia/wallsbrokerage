@@ -1799,7 +1799,8 @@ export type Database = {
       }
       mandates: {
         Row: {
-          asset_id: string
+          asset_id: string | null
+          asset_title: string | null
           created_at: string
           id: string
           number: number
@@ -1808,7 +1809,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          asset_id: string
+          asset_id?: string | null
+          asset_title?: string | null
           created_at?: string
           id?: string
           number?: number
@@ -1817,7 +1819,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          asset_id?: string
+          asset_id?: string | null
+          asset_title?: string | null
           created_at?: string
           id?: string
           number?: number
