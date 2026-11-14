@@ -1,3 +1,4 @@
+import { subjectFor } from "@/lib/subject";
 import { useState } from "react";
 import { Send, X } from "lucide-react";
 import { toast } from "sonner";
@@ -109,7 +110,7 @@ export function CampaignDialog({
   const withEmail = recipients.filter((r) => r.email);
 
   const defaultSubject = asset
-    ? `Opportunité d'investissement — ${asset.title}${asset.city ? ` (${asset.city})` : ""}`
+    ? subjectFor(asset)
     : "Opportunité d'investissement";
   const defaultMessage = asset
     ? `Je me permets de te présenter une opportunité d'investissement${

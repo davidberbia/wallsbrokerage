@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Mail } from "lucide-react";
+import { Copy, Mail, Pencil, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { InvestorForm, investorPayload, type InvestorDraft } from "@/components/InvestorForm";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { brochureFileName, formatThousands, parseThousands } from "@/lib/format";
 import { fetchAssetDocuments, uploadDocument } from "@/lib/documents";
 import { AppLayout } from "@/components/AppLayout";
 import { CampaignDialog } from "@/components/CampaignDialog";
+import { subjectFor } from "@/lib/subject";
 import { CopyEmail } from "@/components/CopyEmail";
 
 import { Button } from "@/components/ui/button";
@@ -52,6 +55,8 @@ export const Route = createFileRoute("/")({
 
 const ANY = "__any__";
 
+
+
 type InvestorCriterion = {
   investor_id: string;
   asset_class: string;
@@ -84,6 +89,25 @@ function MatchingPage() {
   const [prefilled, setPrefilled] = useState(false);
   const [savingBrochure, setSavingBrochure] = useState(false);
   const queryClient = useQueryClient();
+  const [editing, setEditing] = useState<InvestorDraft | null>(null);
+  const [savingInvestor, setSavingInvestor] = useState(false);
+  const saveInvestor = async (draft: InvestorDraft) => {
+    if (!draft.id) return;
+    setSavingInvestor(true);
+    const { error } = await supabase.from("investors").update(investorPayload(draft)).eq("id", draft.id);
+    setSavingInvestor(false);
+    if (error) return toast.error(error.message);
+    await queryClient.invalidateQueries({ queryKey: ["investors"] });
+    setEditing(null);
+    toast.success("Profil enregistré");
+  };
+  const deleteInvestor = async (investor: Investor) => {
+    if (!window.confirm(`Supprimer définitivement ${displayInvestorName(investor)} ?`)) return;
+    const { error } = await supabase.from("investors").delete().eq("id", investor.id);
+    if (error) return toast.error(error.message);
+    await queryClient.invalidateQueries({ queryKey: ["investors"] });
+    toast.success("Investisseur supprimé");
+  };
 
 
   const investorsQuery = useQuery({
@@ -205,7 +229,7 @@ function MatchingPage() {
       asset_id: assetId,
       investor_id: r.investor.id,
       email_to: r.investor.email,
-      subject: `Opportunité d'investissement — ${asset.title}`,
+      subject: subjectFor(asset),
       channel: "email",
       status: "envoyé",
     }));
@@ -456,10 +480,34 @@ function MatchingPage() {
                 </Badge>
               ))}
             </div>
-            <div className="col-span-2 w-full text-right font-display text-lg sm:w-14">{score}%</div>
+            <div className="col-span-2 flex w-full items-center justify-end gap-2 sm:w-auto">
+              <Button size="icon" variant="outline" className="size-11" aria-label={`Modifier ${displayInvestorName(investor)}`} onClick={() => setEditing({ ...investor })}>
+                <Pencil className="size-4" />
+              </Button>
+              <Button size="icon" variant="outline" className="size-11 text-destructive" aria-label={`Supprimer ${displayInvestorName(investor)}`} onClick={() => void deleteInvestor(investor)}>
+                <Trash2 className="size-4" />
+              </Button>
+              <span className="font-display text-lg sm:w-14 sm:text-right">{score}%</span>
+            </div>
           </div>
         ))}
       </div>
+      <Dialog open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent className="flex max-h-[96dvh] max-w-xl flex-col overflow-hidden sm:max-h-[90vh] sm:w-[calc(100%-2rem)]">
+          <DialogHeader>
+            <DialogTitle>Modifier le profil</DialogTitle>
+          </DialogHeader>
+          {editing && (
+            <InvestorForm
+              draft={editing}
+              onChange={setEditing}
+              onSubmit={() => void saveInvestor(editing)}
+              saving={savingInvestor}
+              submitLabel="Valider les modifications"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
