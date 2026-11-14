@@ -327,6 +327,7 @@ export type Database = {
       asset_documents: {
         Row: {
           asset_id: string
+          category: string
           created_at: string
           id: string
           name: string
@@ -336,6 +337,7 @@ export type Database = {
         }
         Insert: {
           asset_id: string
+          category?: string
           created_at?: string
           id?: string
           name: string
@@ -345,6 +347,7 @@ export type Database = {
         }
         Update: {
           asset_id?: string
+          category?: string
           created_at?: string
           id?: string
           name?: string
@@ -364,56 +367,89 @@ export type Database = {
       }
       assets: {
         Row: {
+          address: string | null
           asset_class: string | null
           brochure_url: string | null
           city: string | null
           created_at: string
           description: string | null
           id: string
+          mandate_end: string | null
+          mandate_exclusive: boolean | null
+          mandate_start: string | null
+          mandate_type: string | null
+          owner_email: string | null
           owner_id: string | null
+          owner_name: string | null
+          owner_phone: string | null
+          postal_code: string | null
           price: number | null
           reference: string | null
           region: string | null
+          rent: number | null
           status: string
           strategy: string | null
           surface: number | null
           title: string
+          transaction_type: string | null
           updated_at: string
           yield_pct: number | null
         }
         Insert: {
+          address?: string | null
           asset_class?: string | null
           brochure_url?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          mandate_end?: string | null
+          mandate_exclusive?: boolean | null
+          mandate_start?: string | null
+          mandate_type?: string | null
+          owner_email?: string | null
           owner_id?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          postal_code?: string | null
           price?: number | null
           reference?: string | null
           region?: string | null
+          rent?: number | null
           status?: string
           strategy?: string | null
           surface?: number | null
           title: string
+          transaction_type?: string | null
           updated_at?: string
           yield_pct?: number | null
         }
         Update: {
+          address?: string | null
           asset_class?: string | null
           brochure_url?: string | null
           city?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          mandate_end?: string | null
+          mandate_exclusive?: boolean | null
+          mandate_start?: string | null
+          mandate_type?: string | null
+          owner_email?: string | null
           owner_id?: string | null
+          owner_name?: string | null
+          owner_phone?: string | null
+          postal_code?: string | null
           price?: number | null
           reference?: string | null
           region?: string | null
+          rent?: number | null
           status?: string
           strategy?: string | null
           surface?: number | null
           title?: string
+          transaction_type?: string | null
           updated_at?: string
           yield_pct?: number | null
         }
@@ -546,6 +582,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      brochure_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
       }
       call_recordings: {
         Row: {

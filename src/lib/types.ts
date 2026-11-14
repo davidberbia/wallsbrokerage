@@ -57,6 +57,17 @@ export type Asset = {
   description: string | null;
   status: string;
   created_at: string;
+  transaction_type?: string | null;
+  address?: string | null;
+  postal_code?: string | null;
+  rent?: number | null;
+  owner_name?: string | null;
+  owner_email?: string | null;
+  owner_phone?: string | null;
+  mandate_exclusive?: boolean | null;
+  mandate_type?: string | null;
+  mandate_start?: string | null;
+  mandate_end?: string | null;
 };
 
 export type Criteria = {

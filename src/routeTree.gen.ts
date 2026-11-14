@@ -26,6 +26,7 @@ import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as NotairesRouteImport } from './routes/notaires'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PartagerRouteImport } from './routes/partager'
+import { Route as PresentationRouteImport } from './routes/presentation'
 import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -126,6 +127,11 @@ const ParametresRoute = ParametresRouteImport.update({
 const PartagerRoute = PartagerRouteImport.update({
   id: '/partager',
   path: '/partager',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PresentationRoute = PresentationRouteImport.update({
+  id: '/presentation',
+  path: '/presentation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProspectsRoute = ProspectsRouteImport.update({
@@ -231,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
+  '/presentation': typeof PresentationRoute
   '/prospects': typeof ProspectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -266,6 +273,7 @@ export interface FileRoutesByTo {
   '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
+  '/presentation': typeof PresentationRoute
   '/prospects': typeof ProspectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -302,6 +310,7 @@ export interface FileRoutesById {
   '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
+  '/presentation': typeof PresentationRoute
   '/prospects': typeof ProspectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -339,6 +348,7 @@ export interface FileRouteTypes {
     | '/notaires'
     | '/parametres'
     | '/partager'
+    | '/presentation'
     | '/prospects'
     | '/reset-password'
     | '/sitemap.xml'
@@ -374,6 +384,7 @@ export interface FileRouteTypes {
     | '/notaires'
     | '/parametres'
     | '/partager'
+    | '/presentation'
     | '/prospects'
     | '/reset-password'
     | '/sitemap.xml'
@@ -409,6 +420,7 @@ export interface FileRouteTypes {
     | '/notaires'
     | '/parametres'
     | '/partager'
+    | '/presentation'
     | '/prospects'
     | '/reset-password'
     | '/sitemap.xml'
@@ -445,6 +457,7 @@ export interface RootRouteChildren {
   NotairesRoute: typeof NotairesRoute
   ParametresRoute: typeof ParametresRoute
   PartagerRoute: typeof PartagerRoute
+  PresentationRoute: typeof PresentationRoute
   ProspectsRoute: typeof ProspectsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -584,6 +597,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartagerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/presentation': {
+      id: '/presentation'
+      path: '/presentation'
+      fullPath: '/presentation'
+      preLoaderRoute: typeof PresentationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/prospects': {
       id: '/prospects'
       path: '/prospects'
@@ -717,6 +737,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotairesRoute: NotairesRoute,
   ParametresRoute: ParametresRoute,
   PartagerRoute: PartagerRoute,
+  PresentationRoute: PresentationRoute,
   ProspectsRoute: ProspectsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

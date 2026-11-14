@@ -15,6 +15,20 @@
       "when": 1793919366002,
       "tag": "0001_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794678823840,
+      "tag": "0002_brochure_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794678972750,
+      "tag": "0003_asset_wizard_fields",
+      "breakpoints": true
     }
   ]
 }

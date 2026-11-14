@@ -22,6 +22,7 @@ export async function fetchAssetDocuments(assetId: string): Promise<AssetDocumen
     .from("asset_documents")
     .select("id, asset_id, path, name, sort_order")
     .eq("asset_id", assetId)
+    .eq("category", "document")
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
   if (error) throw error;

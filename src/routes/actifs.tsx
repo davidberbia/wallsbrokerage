@@ -1,7 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ExternalLink, Loader2, Pencil, Plus, Sparkles, Target, Trash2, X } from "lucide-react";
+import { CheckCircle2, ExternalLink, Loader2, Pencil, Plus, Presentation, Sparkles, Target, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatThousands, parseThousands } from "@/lib/format";
@@ -68,6 +68,18 @@ function AssetsPage() {
   const [editing, setEditing] = useState<Draft | null>(null);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [removedDocs, setRemovedDocs] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<{ label: string; file: File }[]>([]);
+  const [step, setStep] = useState(0);
+  const [createdId, setCreatedId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const openEditor = (d: Draft | null) => {
+    setEditing(d);
+    setStep(0);
+    setCreatedId(null);
+    setNewFiles([]);
+    setRemovedDocs([]);
+    setPhotos([]);
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["assets"],
@@ -103,6 +115,17 @@ function AssetsPage() {
         surface: draft.surface ?? null,
         description: draft.description ?? null,
         status: draft.status ?? "disponible",
+        transaction_type: draft.transaction_type ?? null,
+        address: draft.address ?? null,
+        postal_code: draft.postal_code ?? null,
+        rent: draft.rent ?? null,
+        owner_name: draft.owner_name ?? null,
+        owner_email: draft.owner_email ?? null,
+        owner_phone: draft.owner_phone ?? null,
+        mandate_exclusive: draft.mandate_exclusive ?? null,
+        mandate_type: draft.mandate_type ?? null,
+        mandate_start: draft.mandate_start || null,
+        mandate_end: draft.mandate_end || null,
       };
       let assetId = draft.id ?? null;
       if (assetId) {
@@ -135,6 +158,16 @@ function AssetsPage() {
         if (error) throw error;
       }
 
+      if (photos.length > 0) {
+        const rows = [] as { asset_id: string; path: string; name: string; sort_order: number; category: string }[];
+        for (const [i, p] of photos.entries()) {
+          const up = await uploadDocument(`actifs/${assetId}/photos`, p.file);
+          rows.push({ asset_id: assetId!, path: up.path, name: `${p.label} — ${up.name}`, sort_order: i, category: "photo" });
+        }
+        const { error } = await supabase.from("asset_documents").insert(rows);
+        if (error) throw error;
+      }
+
       // Compatibilité : le premier document reste la brochure principale de l'actif.
       const documents = await fetchAssetDocuments(assetId!);
       await supabase
@@ -146,10 +179,13 @@ function AssetsPage() {
     onSuccess: (assetId) => {
       qc.invalidateQueries({ queryKey: ["assets"] });
       qc.invalidateQueries({ queryKey: ["asset-documents", assetId] });
-      setEditing(null);
+      qc.invalidateQueries({ queryKey: ["asset-photos", assetId] });
       setNewFiles([]);
       setRemovedDocs([]);
-      toast.success("Actif enregistré");
+      setPhotos([]);
+      setEditing((d) => (d ? { ...d, id: assetId } : d));
+      if (step >= 3) setCreatedId(assetId);
+      else setStep((s) => s + 1);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -172,10 +208,10 @@ function AssetsPage() {
         </div>
         <Dialog
           open={editing !== null}
-          onOpenChange={(o) => setEditing(o ? (editing ?? { ...emptyDraft }) : null)}
+          onOpenChange={(o) => { if (!o) openEditor(null); }}
         >
           <DialogTrigger asChild>
-            <Button className="min-h-11 shrink-0" onClick={() => setEditing({ ...emptyDraft })}>
+            <Button className="min-h-11 shrink-0" onClick={() => openEditor({ ...emptyDraft })}>
               <Plus className="size-4" /> Nouvel actif
             </Button>
           </DialogTrigger>
@@ -183,8 +219,27 @@ function AssetsPage() {
             <DialogHeader>
               <DialogTitle>{editing?.id ? "Modifier l'actif" : "Nouvel actif"}</DialogTitle>
             </DialogHeader>
-            {editing && (
+            {editing && createdId && (
+              <div className="space-y-4 py-4 text-center">
+                <CheckCircle2 className="mx-auto size-10 text-primary" />
+                <p className="text-lg font-medium">Votre bien est créé.</p>
+                <p className="text-sm text-muted-foreground">
+                  Souhaitez-vous générer {/appartement|maison/i.test(editing.asset_class ?? "") ? "la fiche de présentation" : "la brochure de vente"} ?
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                  <Button className="min-h-11" onClick={() => { const id = createdId; openEditor(null); navigate({ to: "/presentation", search: { asset: id } }); }}>
+                    <Presentation className="size-4" /> Générer maintenant
+                  </Button>
+                  <Button className="min-h-11" variant="outline" onClick={() => openEditor(null)}>Plus tard</Button>
+                </div>
+              </div>
+            )}
+            {editing && !createdId && (
               <AssetForm
+                step={step}
+                onBack={() => setStep((s) => Math.max(0, s - 1))}
+                photos={photos}
+                onPhotos={setPhotos}
                 draft={editing}
                 onChange={setEditing}
                 newFiles={newFiles}
@@ -249,7 +304,12 @@ function AssetsPage() {
                   <Target className="size-4" /> Matcher
                 </Link>
               </Button>
-              <Button variant="ghost" size="icon" onClick={() => setEditing(asset)}>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/presentation" search={{ asset: asset.id }}>
+                  <Presentation className="size-4" /> Brochure
+                </Link>
+              </Button>
+              <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => openEditor(asset)}>
                 <Pencil className="size-4" />
               </Button>
               <Button
@@ -268,7 +328,16 @@ function AssetsPage() {
   );
 }
 
+const STEPS = ["Type de bien", "Infos de base", "Photos", "Mandat"];
+const PROPERTY_TYPES = [...ASSET_CLASSES, "Appartement", "Maison"].filter((v, i, a) => a.indexOf(v) === i);
+const PHOTO_SLOTS_RESIDENTIAL = ["Photo principale", "Séjour", "Cuisine", "Chambre", "Salle de bains", "Extérieur"];
+const PHOTO_SLOTS_COMMERCIAL = ["Photo principale", "Façade", "Intérieur", "Vue aérienne", "Autre"];
+
 function AssetForm({
+  step,
+  onBack,
+  photos,
+  onPhotos,
   draft,
   onChange,
   newFiles,
@@ -286,7 +355,29 @@ function AssetForm({
   onRemovedDocs: (ids: string[]) => void;
   onSubmit: () => void;
   saving: boolean;
+  step: number;
+  onBack: () => void;
+  photos: { label: string; file: File }[];
+  onPhotos: (p: { label: string; file: File }[]) => void;
 }) {
+  const residential = /appartement|maison/i.test(draft.asset_class ?? "");
+  const slots = residential ? PHOTO_SLOTS_RESIDENTIAL : PHOTO_SLOTS_COMMERCIAL;
+  const { data: savedPhotos } = useQuery({
+    queryKey: ["asset-photos", draft.id],
+    enabled: Boolean(draft.id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("asset_documents")
+        .select("id, name, path")
+        .eq("asset_id", draft.id!)
+        .eq("category", "photo");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const hasMainPhoto =
+    photos.some((p) => p.label === "Photo principale") ||
+    (savedPhotos ?? []).some((p) => p.name.startsWith("Photo principale"));
   const set = (patch: Partial<Draft>) => onChange({ ...draft, ...patch });
   const [extracting, setExtracting] = useState(false);
   const { data: documents } = useQuery({
@@ -359,9 +450,53 @@ function AssetForm({
       className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
+        if (step === 0 && (!draft.asset_class || !draft.transaction_type)) {
+          toast.error("Choisissez le type de bien et la transaction.");
+          return;
+        }
+        if (step === 2 && !hasMainPhoto) {
+          toast.error("La photo principale est obligatoire.");
+          return;
+        }
         onSubmit();
       }}
     >
+      <div className="flex gap-1 overflow-x-auto pb-1">
+        {STEPS.map((label, i) => (
+          <span
+            key={label}
+            className={`shrink-0 rounded-md border px-2 py-1 text-xs ${i === step ? "border-primary bg-primary text-primary-foreground" : "text-muted-foreground"}`}
+          >
+            {i + 1}. {label}
+          </span>
+        ))}
+      </div>
+      {step === 0 && (
+        <div className="grid gap-4">
+          <Field label="Intitulé *">
+            <Input required value={draft.title} onChange={(e) => set({ title: e.target.value })} />
+          </Field>
+          <Field label="Type de bien *">
+            <Choice options={PROPERTY_TYPES} value={draft.asset_class ?? ""} onChange={(v) => set({ asset_class: v })} />
+          </Field>
+          <Field label="Transaction *">
+            <div className="grid grid-cols-2 gap-2">
+              {["Vente", "Location"].map((t) => (
+                <Button
+                  key={t}
+                  type="button"
+                  className="min-h-11"
+                  variant={draft.transaction_type === t ? "default" : "outline"}
+                  onClick={() => set({ transaction_type: t })}
+                >
+                  {t}
+                </Button>
+              ))}
+            </div>
+          </Field>
+        </div>
+      )}
+      {step === 1 && (<>
       <Field label="Pré-remplir depuis un document (brochure, teaser, avis de valeur)">
         <div className="flex items-center gap-3">
           <Input
@@ -392,20 +527,19 @@ function AssetForm({
         </p>
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Intitulé *">
-          <Input required value={draft.title} onChange={(e) => set({ title: e.target.value })} />
+        <Field label="Adresse">
+          <Input value={draft.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
+        </Field>
+        <Field label="Code postal">
+          <Input inputMode="numeric" value={draft.postal_code ?? ""} onChange={(e) => set({ postal_code: e.target.value })} />
+        </Field>
+        <Field label="Loyer annuel (€)">
+          <Input inputMode="numeric" value={formatThousands(draft.rent)} onChange={(e) => set({ rent: parseThousands(e.target.value) })} />
         </Field>
         <Field label="Référence">
           <Input
             value={draft.reference ?? ""}
             onChange={(e) => set({ reference: e.target.value })}
-          />
-        </Field>
-        <Field label="Classe d'actif">
-          <Choice
-            options={ASSET_CLASSES}
-            value={draft.asset_class ?? ""}
-            onChange={(v) => set({ asset_class: v })}
           />
         </Field>
         <Field label="Stratégie">
@@ -523,9 +657,69 @@ function AssetForm({
           onChange={(e) => set({ description: e.target.value })}
         />
       </Field>
-      <DialogFooter>
-        <Button type="submit" disabled={saving}>
-          Enregistrer
+      </>)}
+      {step === 2 && (
+        <div className="grid gap-3">
+          <p className="text-sm text-muted-foreground">Seule la photo principale est obligatoire.</p>
+          {slots.map((label) => {
+            const pending = photos.find((p) => p.label === label);
+            const saved = (savedPhotos ?? []).filter((p) => p.name.startsWith(label));
+            return (
+              <Field key={label} label={label === "Photo principale" ? `${label} *` : label}>
+                {saved.length > 0 && <p className="text-xs text-muted-foreground">✓ {saved.length} photo(s) enregistrée(s)</p>}
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!f) return;
+                    void compressFile(f).then((c) => onPhotos([...photos.filter((p) => p.label !== label), { label, file: c }]));
+                  }}
+                />
+                {pending && <p className="text-xs">{pending.file.name} (à ajouter)</p>}
+              </Field>
+            );
+          })}
+        </div>
+      )}
+      {step === 3 && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Propriétaire">
+            <Input value={draft.owner_name ?? ""} onChange={(e) => set({ owner_name: e.target.value })} />
+          </Field>
+          <Field label="Email du propriétaire">
+            <Input type="email" value={draft.owner_email ?? ""} onChange={(e) => set({ owner_email: e.target.value })} />
+          </Field>
+          <Field label="Téléphone du propriétaire">
+            <Input type="tel" value={draft.owner_phone ?? ""} onChange={(e) => set({ owner_phone: e.target.value })} />
+          </Field>
+          <Field label="Exclusivité">
+            <Choice
+              options={["Exclusif", "Non exclusif"]}
+              value={draft.mandate_exclusive == null ? "" : draft.mandate_exclusive ? "Exclusif" : "Non exclusif"}
+              onChange={(v) => set({ mandate_exclusive: v === "Exclusif" })}
+            />
+          </Field>
+          <Field label="Type de mandat">
+            <Choice options={["Mandat de vente", "Mandat de location"]} value={draft.mandate_type ?? ""} onChange={(v) => set({ mandate_type: v })} />
+          </Field>
+          <div />
+          <Field label="Début du mandat">
+            <Input type="date" value={draft.mandate_start ?? ""} onChange={(e) => set({ mandate_start: e.target.value })} />
+          </Field>
+          <Field label="Fin du mandat">
+            <Input type="date" value={draft.mandate_end ?? ""} onChange={(e) => set({ mandate_end: e.target.value })} />
+          </Field>
+        </div>
+      )}
+      <DialogFooter className="flex-row justify-between gap-2 sm:justify-between">
+        <Button type="button" variant="outline" className="min-h-11" disabled={step === 0 || saving} onClick={onBack}>
+          ← Retour
+        </Button>
+        <Button type="submit" className="min-h-11" disabled={saving}>
+          {saving ? <Loader2 className="size-4 animate-spin" /> : null}
+          {step === 3 ? "Terminer" : "Suivant →"}
         </Button>
       </DialogFooter>
     </form>
