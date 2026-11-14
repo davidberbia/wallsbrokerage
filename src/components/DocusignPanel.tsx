@@ -12,7 +12,7 @@ export function DocusignPanel() {
   const [busy, setBusy] = useState(false);
   const go = async (env: "prod" | "demo") => {
     setBusy(true);
-    try { window.location.href = (await start({ data: { env } })).url; }
+    try { const u = (await start({ data: { env } })).url; if (window.top && window.top !== window) { window.open(u, "_blank", "noopener"); setBusy(false); } else { window.location.href = u; } }
     catch (e) { toast.error((e as Error).message); setBusy(false); }
   };
   return (
