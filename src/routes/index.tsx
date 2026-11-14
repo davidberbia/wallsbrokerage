@@ -96,7 +96,7 @@ function MatchingPage() {
     setSavingInvestor(true);
     const { error } = await supabase.from("investors").update(investorPayload(draft)).eq("id", draft.id);
     setSavingInvestor(false);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await queryClient.invalidateQueries({ queryKey: ["investors"] });
     setEditing(null);
     toast.success("Profil enregistré");
@@ -104,7 +104,7 @@ function MatchingPage() {
   const deleteInvestor = async (investor: Investor) => {
     if (!window.confirm(`Supprimer définitivement ${displayInvestorName(investor)} ?`)) return;
     const { error } = await supabase.from("investors").delete().eq("id", investor.id);
-    if (error) return toast.error(error.message);
+    if (error) { toast.error(error.message); return; }
     await queryClient.invalidateQueries({ queryKey: ["investors"] });
     toast.success("Investisseur supprimé");
   };
