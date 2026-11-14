@@ -14,6 +14,7 @@ import {
   uploadDocument,
 } from "@/lib/documents";
 import { AppLayout } from "@/components/AppLayout";
+import { ShareDialog } from "@/components/ShareDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -309,6 +310,7 @@ function AssetsPage() {
                   <Presentation className="size-4" /> Brochure
                 </Link>
               </Button>
+              <ShareDialog assetId={asset.id} />
               <Button variant="ghost" size="icon" aria-label="Modifier" onClick={() => openEditor(asset)}>
                 <Pencil className="size-4" />
               </Button>

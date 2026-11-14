@@ -29,6 +29,27 @@
       "when": 1794678972750,
       "tag": "0003_asset_wizard_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794681187359,
+      "tag": "0004_add_admin_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794681213360,
+      "tag": "0005_mandates_shares_spaces",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794681498320,
+      "tag": "0006_mandate_trigger_owner",
+      "breakpoints": true
     }
   ]
 }

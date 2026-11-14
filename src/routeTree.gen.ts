@@ -22,6 +22,7 @@ import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as DossiersRouteImport } from './routes/dossiers'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
+import { Route as MandatsRouteImport } from './routes/mandats'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as NotairesRouteImport } from './routes/notaires'
 import { Route as ParametresRouteImport } from './routes/parametres'
@@ -31,6 +32,7 @@ import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ValidationRouteImport } from './routes/validation'
+import { Route as PartageTokenRouteImport } from './routes/partage.$token'
 import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
 import { Route as ApiPublicCronAiscanTickRouteImport } from './routes/api/public/cron/aiscan-tick'
@@ -109,6 +111,11 @@ const InvestisseursRoute = InvestisseursRouteImport.update({
   path: '/investisseurs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MandatsRoute = MandatsRouteImport.update({
+  id: '/mandats',
+  path: '/mandats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MonProfilRoute = MonProfilRouteImport.update({
   id: '/mon-profil',
   path: '/mon-profil',
@@ -152,6 +159,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ValidationRoute = ValidationRouteImport.update({
   id: '/validation',
   path: '/validation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartageTokenRoute = PartageTokenRouteImport.update({
+  id: '/partage/$token',
+  path: '/partage/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SyntheseTokenRoute = SyntheseTokenRouteImport.update({
@@ -233,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
+  '/mandats': typeof MandatsRoute
   '/mon-profil': typeof MonProfilRoute
   '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
@@ -242,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
+  '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
@@ -269,6 +283,7 @@ export interface FileRoutesByTo {
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
+  '/mandats': typeof MandatsRoute
   '/mon-profil': typeof MonProfilRoute
   '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
@@ -278,6 +293,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
+  '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
@@ -306,6 +322,7 @@ export interface FileRoutesById {
   '/dossiers': typeof DossiersRoute
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
+  '/mandats': typeof MandatsRoute
   '/mon-profil': typeof MonProfilRoute
   '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
@@ -315,6 +332,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
+  '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
@@ -344,6 +362,7 @@ export interface FileRouteTypes {
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
+    | '/mandats'
     | '/mon-profil'
     | '/notaires'
     | '/parametres'
@@ -353,6 +372,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/validation'
+    | '/partage/$token'
     | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/aiscan-tick'
@@ -380,6 +400,7 @@ export interface FileRouteTypes {
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
+    | '/mandats'
     | '/mon-profil'
     | '/notaires'
     | '/parametres'
@@ -389,6 +410,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/validation'
+    | '/partage/$token'
     | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/aiscan-tick'
@@ -416,6 +438,7 @@ export interface FileRouteTypes {
     | '/dossiers'
     | '/envois'
     | '/investisseurs'
+    | '/mandats'
     | '/mon-profil'
     | '/notaires'
     | '/parametres'
@@ -425,6 +448,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/validation'
+    | '/partage/$token'
     | '/synthese/$token'
     | '/api/public/brevo-events'
     | '/api/public/cron/aiscan-tick'
@@ -453,6 +477,7 @@ export interface RootRouteChildren {
   DossiersRoute: typeof DossiersRoute
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
+  MandatsRoute: typeof MandatsRoute
   MonProfilRoute: typeof MonProfilRoute
   NotairesRoute: typeof NotairesRoute
   ParametresRoute: typeof ParametresRoute
@@ -462,6 +487,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ValidationRoute: typeof ValidationRoute
+  PartageTokenRoute: typeof PartageTokenRoute
   SyntheseTokenRoute: typeof SyntheseTokenRoute
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCronAiscanTickRoute: typeof ApiPublicCronAiscanTickRoute
@@ -569,6 +595,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InvestisseursRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mandats': {
+      id: '/mandats'
+      path: '/mandats'
+      fullPath: '/mandats'
+      preLoaderRoute: typeof MandatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mon-profil': {
       id: '/mon-profil'
       path: '/mon-profil'
@@ -630,6 +663,13 @@ declare module '@tanstack/react-router' {
       path: '/validation'
       fullPath: '/validation'
       preLoaderRoute: typeof ValidationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partage/$token': {
+      id: '/partage/$token'
+      path: '/partage/$token'
+      fullPath: '/partage/$token'
+      preLoaderRoute: typeof PartageTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/synthese/$token': {
@@ -733,6 +773,7 @@ const rootRouteChildren: RootRouteChildren = {
   DossiersRoute: DossiersRoute,
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
+  MandatsRoute: MandatsRoute,
   MonProfilRoute: MonProfilRoute,
   NotairesRoute: NotairesRoute,
   ParametresRoute: ParametresRoute,
@@ -742,6 +783,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ValidationRoute: ValidationRoute,
+  PartageTokenRoute: PartageTokenRoute,
   SyntheseTokenRoute: SyntheseTokenRoute,
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCronAiscanTickRoute: ApiPublicCronAiscanTickRoute,

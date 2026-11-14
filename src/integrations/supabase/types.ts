@@ -994,6 +994,7 @@ export type Database = {
           name: string
           name_key: string | null
           notes: string | null
+          owner_id: string | null
           paid_at: string | null
           probability: number | null
           rent: number | null
@@ -1022,6 +1023,7 @@ export type Database = {
           name: string
           name_key?: string | null
           notes?: string | null
+          owner_id?: string | null
           paid_at?: string | null
           probability?: number | null
           rent?: number | null
@@ -1050,6 +1052,7 @@ export type Database = {
           name?: string
           name_key?: string | null
           notes?: string | null
+          owner_id?: string | null
           paid_at?: string | null
           probability?: number | null
           rent?: number | null
@@ -1144,6 +1147,82 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "mailscan_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_share_events: {
+        Row: {
+          created_at: string
+          document_name: string | null
+          id: string
+          kind: string
+          share_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_name?: string | null
+          id?: string
+          kind: string
+          share_id: string
+        }
+        Update: {
+          created_at?: string
+          document_name?: string | null
+          id?: string
+          kind?: string
+          share_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_share_events_share_id_fkey"
+            columns: ["share_id"]
+            isOneToOne: false
+            referencedRelation: "document_shares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_shares: {
+        Row: {
+          asset_id: string
+          created_at: string
+          created_by: string | null
+          document_ids: string[]
+          expires_at: string
+          id: string
+          recipient: string | null
+          revoked_at: string | null
+          token: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          created_by?: string | null
+          document_ids?: string[]
+          expires_at?: string
+          id?: string
+          recipient?: string | null
+          revoked_at?: string | null
+          token?: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          created_by?: string | null
+          document_ids?: string[]
+          expires_at?: string
+          id?: string
+          recipient?: string | null
+          revoked_at?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_shares_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
             referencedColumns: ["id"]
           },
         ]
@@ -1718,6 +1797,44 @@ export type Database = {
         }
         Relationships: []
       }
+      mandates: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          number: number
+          signed_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          number?: number
+          signed_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          number?: number
+          signed_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mandates_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: true
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       news_items: {
         Row: {
           company: string
@@ -2071,6 +2188,7 @@ export type Database = {
     Functions: {
       aiscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       aiscan_stop_internal: { Args: never; Returns: undefined }
+      can_see_owner: { Args: { _owner: string }; Returns: boolean }
       cfnews_scrape_schedule: { Args: { _on: boolean }; Returns: undefined }
       claim_investor_profile: { Args: never; Returns: string }
       claim_role: {
@@ -2107,7 +2225,7 @@ export type Database = {
       trigger_automation: { Args: { path: string }; Returns: undefined }
     }
     Enums: {
-      app_role: "broker" | "investor" | "viewer"
+      app_role: "broker" | "investor" | "viewer" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2235,7 +2353,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["broker", "investor", "viewer"],
+      app_role: ["broker", "investor", "viewer", "admin"],
     },
   },
 } as const
