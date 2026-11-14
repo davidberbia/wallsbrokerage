@@ -18,7 +18,11 @@ Les brochures générées sont gardées dans l'onglet (date, téléchargement, s
 Les réglages fixes (pages Confidentialité / À propos, carte de France, pictos) vont dans Paramètres.
 
 ## Reprise à l'identique
-Rendu de la brochure (Calibri, dégradés, lignes orange, mises en page validées) copié tel quel, sans retouche du design. Comparables : ceux du CRM sont utilisés.
+Rendu de la brochure (Calibri, dégradés, lignes orange, mises en page validées) copié tel quel, sans retouche du design. 
+
+## Fusion des comparables
+Une seule liste dans l'onglet Comparables existant : ceux du générateur sont ajoutés à ceux du CRM. Les doublons (même adresse ou ville + même surface + même prix ou loyer) sont fusionnés en une seule ligne, en gardant les champs les plus complets. La brochure puise ensuite dans cette liste unique.
+Je ne peux pas lire directement la base du générateur : il faudra ouvrir le projet Générateur de brochures et lui demander « Exporte tous les comparables en fichier Excel », puis me déposer ce fichier ici.
 
 ## Pas inclus dans ce lot (plus tard)
 - Champs différents selon le type de bien et étapes réduites pour un appartement : vous me donnerez les règles, je vous les redemanderai.

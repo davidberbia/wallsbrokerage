@@ -50,3 +50,5 @@
 - [ ] 8. Liens en bas du menu ; Cobalt gratuit ou autre outil gratuit ; lien → Cible → recherche web → résumé
 - [x] Actifs : champ d'upload dans le 1er formulaire (caractéristiques) → extraction IA → pré-remplissage des champs avant validation
 - [x] Compression automatique des fichiers à l'upload (images via canvas, PDF via pdf-lib, point unique uploadDocument)
+- [ ] Fusion Générateur de brochures : menus Actif (5 étapes) et Présentation (génération par étapes) — plan en attente de validation
+- [ ] Fusion des comparables du générateur dans l'onglet Comparables, sans doublons — attend l'export Excel du générateur
