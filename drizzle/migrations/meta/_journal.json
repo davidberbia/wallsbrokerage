@@ -57,6 +57,13 @@
       "when": 1794681693174,
       "tag": "0007_mandates_keep_on_asset_delete",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794685034007,
+      "tag": "0008_docusign",
+      "breakpoints": true
     }
   ]
 }

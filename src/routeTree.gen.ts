@@ -44,6 +44,7 @@ import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/
 import { Route as ApiPublicCronMailscanTickRouteImport } from './routes/api/public/cron/mailscan-tick'
 import { Route as ApiPublicCronMailsyncTickRouteImport } from './routes/api/public/cron/mailsync-tick'
 import { Route as ApiPublicCronTargetsCatchupRouteImport } from './routes/api/public/cron/targets-catchup'
+import { Route as ApiPublicDocusignCallbackRouteImport } from './routes/api/public/docusign/callback'
 import { Route as ApiPublicTIdRouteImport } from './routes/api/public/t/$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -225,6 +226,12 @@ const ApiPublicCronTargetsCatchupRoute =
     path: '/api/public/cron/targets-catchup',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicDocusignCallbackRoute =
+  ApiPublicDocusignCallbackRouteImport.update({
+    id: '/api/public/docusign/callback',
+    path: '/api/public/docusign/callback',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
   id: '/api/public/t/$id',
   path: '/api/public/t/$id',
@@ -267,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
+  '/api/public/docusign/callback': typeof ApiPublicDocusignCallbackRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesByTo {
@@ -305,6 +313,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
+  '/api/public/docusign/callback': typeof ApiPublicDocusignCallbackRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRoutesById {
@@ -344,6 +353,7 @@ export interface FileRoutesById {
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
+  '/api/public/docusign/callback': typeof ApiPublicDocusignCallbackRoute
   '/api/public/t/$id': typeof ApiPublicTIdRoute
 }
 export interface FileRouteTypes {
@@ -384,6 +394,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
     | '/api/public/cron/targets-catchup'
+    | '/api/public/docusign/callback'
     | '/api/public/t/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -422,6 +433,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
     | '/api/public/cron/targets-catchup'
+    | '/api/public/docusign/callback'
     | '/api/public/t/$id'
   id:
     | '__root__'
@@ -460,6 +472,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
     | '/api/public/cron/targets-catchup'
+    | '/api/public/docusign/callback'
     | '/api/public/t/$id'
   fileRoutesById: FileRoutesById
 }
@@ -499,6 +512,7 @@ export interface RootRouteChildren {
   ApiPublicCronMailscanTickRoute: typeof ApiPublicCronMailscanTickRoute
   ApiPublicCronMailsyncTickRoute: typeof ApiPublicCronMailsyncTickRoute
   ApiPublicCronTargetsCatchupRoute: typeof ApiPublicCronTargetsCatchupRoute
+  ApiPublicDocusignCallbackRoute: typeof ApiPublicDocusignCallbackRoute
   ApiPublicTIdRoute: typeof ApiPublicTIdRoute
 }
 
@@ -749,6 +763,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronTargetsCatchupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/docusign/callback': {
+      id: '/api/public/docusign/callback'
+      path: '/api/public/docusign/callback'
+      fullPath: '/api/public/docusign/callback'
+      preLoaderRoute: typeof ApiPublicDocusignCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/t/$id': {
       id: '/api/public/t/$id'
       path: '/api/public/t/$id'
@@ -795,6 +816,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronMailscanTickRoute: ApiPublicCronMailscanTickRoute,
   ApiPublicCronMailsyncTickRoute: ApiPublicCronMailsyncTickRoute,
   ApiPublicCronTargetsCatchupRoute: ApiPublicCronTargetsCatchupRoute,
+  ApiPublicDocusignCallbackRoute: ApiPublicDocusignCallbackRoute,
   ApiPublicTIdRoute: ApiPublicTIdRoute,
 }
 export const routeTree = rootRouteImport

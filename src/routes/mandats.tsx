@@ -1,10 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download } from "lucide-react";
+import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { Download, PenLine, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { refreshMandateSignatures, sendMandateForSignature } from "@/lib/docusign.functions";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/mandats")({
@@ -35,7 +41,7 @@ function MandatesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mandates")
-        .select("id, number, status, asset_title, assets(title, city, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)")
+        .select("id, number, status, asset_title, signature_status, assets(title, city, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)")
         .order("number", { ascending: false });
       if (error) throw error;
       return data;
@@ -56,6 +62,7 @@ function MandatesPage() {
       start: fmt(a?.mandate_start ?? null),
       end: fmt(a?.mandate_end ?? null),
       status: expired ? "expiré" : m.status,
+      sig: m.signature_status,
     };
   });
 
@@ -66,6 +73,16 @@ function MandatesPage() {
       .eq("id", id);
     if (error) { toast.error(error.message); return; }
     await qc.invalidateQueries({ queryKey: ["mandates"] });
+  };
+
+  const [target, setTarget] = useState<{ id: string; number: number; owner: string } | null>(null);
+  const refresh = useServerFn(refreshMandateSignatures);
+  const [syncing, setSyncing] = useState(false);
+  const sync = async () => {
+    setSyncing(true);
+    try { const r = await refresh(); toast.success(`${r.updated} mandat(s) mis à jour`); await qc.invalidateQueries({ queryKey: ["mandates"] }); }
+    catch (e) { toast.error((e as Error).message); }
+    setSyncing(false);
   };
 
   const exportXlsx = async () => {
@@ -88,7 +105,10 @@ function MandatesPage() {
           <p className="eyebrow">Registre</p>
           <h1 className="mt-1 text-3xl">Mandats</h1>
         </div>
-        <Button variant="outline" className="min-h-11 sm:ml-auto" onClick={() => void exportXlsx()} disabled={!rows.length}>
+        <Button variant="outline" className="min-h-11 sm:ml-auto" onClick={() => void sync()} disabled={syncing}>
+          <RefreshCw className="size-4" /> Statuts DocuSign
+        </Button>
+        <Button variant="outline" className="min-h-11" onClick={() => void exportXlsx()} disabled={!rows.length}>
           <Download className="size-4" /> Export Excel
         </Button>
       </div>
@@ -100,14 +120,18 @@ function MandatesPage() {
       )}
       <div className="grid gap-3">
         {rows.map((r) => (
-          <div key={r.id} className="panel grid gap-2 p-4 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:items-center">
+          <div key={r.id} className="panel grid gap-2 p-4 sm:grid-cols-[6rem_minmax(0,1fr)_auto_auto] sm:items-center">
             <p className="font-display text-lg">N° {r.number}</p>
             <div className="min-w-0 text-sm">
               <p className="font-medium">{r.title}{r.city ? ` · ${r.city}` : ""}</p>
               <p className="text-muted-foreground">
                 {r.owner} · {r.exclusive} · {r.type} · {r.start} → {r.end}
               </p>
+              {r.sig && <p className="text-xs text-muted-foreground">DocuSign : {SIG[r.sig] ?? r.sig}</p>}
             </div>
+            <Button variant="outline" className="min-h-11" onClick={() => setTarget({ id: r.id, number: r.number, owner: r.owner === "—" ? "" : r.owner })}>
+              <PenLine className="size-4" /> Envoyer en signature
+            </Button>
             <Select value={r.status} onValueChange={(v) => void setStatus(r.id, v)}>
               <SelectTrigger className="min-h-11 w-full sm:w-36"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -117,6 +141,46 @@ function MandatesPage() {
           </div>
         ))}
       </div>
+      <SignDialog target={target} onClose={() => setTarget(null)} onSent={() => void qc.invalidateQueries({ queryKey: ["mandates"] })} />
     </div>
+  );
+}
+
+const SIG: Record<string, string> = { sent: "envoyé", delivered: "ouvert", completed: "signé par tous", declined: "refusé", voided: "annulé" };
+
+function SignDialog({ target, onClose, onSent }: { target: { id: string; number: number; owner: string } | null; onClose: () => void; onSent: () => void }) {
+  const send = useServerFn(sendMandateForSignature);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [lastId, setLastId] = useState<string | null>(null);
+  if (target && lastId !== target.id) { setLastId(target.id); setName(target.owner); setEmail(""); setFile(null); }
+  const submit = async () => {
+    if (!target || !file) return;
+    if (file.size > 9_000_000) { toast.error("Fichier trop lourd (9 Mo max)"); return; }
+    setBusy(true);
+    try {
+      const buf = new Uint8Array(await file.arrayBuffer());
+      let bin = ""; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+      await send({ data: { mandateId: target.id, ownerName: name, ownerEmail: email, fileName: file.name, fileBase64: btoa(bin) } });
+      toast.success("Mandat envoyé en signature"); onSent(); onClose();
+    } catch (e) { toast.error((e as Error).message); }
+    setBusy(false);
+  };
+  return (
+    <Dialog open={!!target} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
+        <DialogHeader><DialogTitle>Mandat n° {target?.number} — signature</DialogTitle></DialogHeader>
+        <div className="space-y-3">
+          <div className="space-y-1"><Label>Nom du propriétaire</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1"><Label>Email du propriétaire</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+          <div className="space-y-1"><Label>Mandat (PDF ou Word)</Label><Input type="file" accept=".pdf,.doc,.docx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></div>
+          <Button className="min-h-11 w-full" disabled={busy || !file || !name || !email} onClick={() => void submit()}>
+            {busy ? "Envoi…" : "Envoyer au propriétaire et à moi"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

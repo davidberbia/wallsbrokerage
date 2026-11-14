@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { MailScanPanel } from "@/components/MailScanPanel";
 import { AiScanPanel } from "@/components/AiScanPanel";
+import { DocusignPanel } from "@/components/DocusignPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,7 +67,8 @@ function SettingsPage() {
           <TabsTrigger value="mailscan">Boîte mail</TabsTrigger>
           <TabsTrigger value="lists">Listes de référence</TabsTrigger>
         </TabsList>
-        <TabsContent value="users" className="mt-6">
+        <TabsContent value="users" className="mt-6 space-y-6">
+          <DocusignPanel />
           <UsersPanel />
         </TabsContent>
         <TabsContent value="mailscan" className="mt-6">

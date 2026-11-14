@@ -1227,6 +1227,45 @@ export type Database = {
           },
         ]
       }
+      docusign_auth: {
+        Row: {
+          access_token: string | null
+          account_email: string | null
+          account_id: string | null
+          base_uri: string | null
+          env: string
+          expires_at: string | null
+          id: boolean
+          pending_state: string | null
+          refresh_token: string | null
+          updated_at: string
+        }
+        Insert: {
+          access_token?: string | null
+          account_email?: string | null
+          account_id?: string | null
+          base_uri?: string | null
+          env?: string
+          expires_at?: string | null
+          id?: boolean
+          pending_state?: string | null
+          refresh_token?: string | null
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string | null
+          account_email?: string | null
+          account_id?: string | null
+          base_uri?: string | null
+          env?: string
+          expires_at?: string | null
+          id?: boolean
+          pending_state?: string | null
+          refresh_token?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       email_queue: {
         Row: {
           attachment_name: string | null
@@ -1802,9 +1841,12 @@ export type Database = {
           asset_id: string | null
           asset_title: string | null
           created_at: string
+          envelope_id: string | null
           id: string
           number: number
+          signature_status: string | null
           signed_at: string | null
+          signer_email: string | null
           status: string
           updated_at: string
         }
@@ -1812,9 +1854,12 @@ export type Database = {
           asset_id?: string | null
           asset_title?: string | null
           created_at?: string
+          envelope_id?: string | null
           id?: string
           number?: number
+          signature_status?: string | null
           signed_at?: string | null
+          signer_email?: string | null
           status?: string
           updated_at?: string
         }
@@ -1822,9 +1867,12 @@ export type Database = {
           asset_id?: string | null
           asset_title?: string | null
           created_at?: string
+          envelope_id?: string | null
           id?: string
           number?: number
+          signature_status?: string | null
           signed_at?: string | null
+          signer_email?: string | null
           status?: string
           updated_at?: string
         }
