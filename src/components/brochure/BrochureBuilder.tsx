@@ -847,7 +847,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
   useEffect(() => {
     if (!storageReady || cloudRestoreTriedRef.current) return;
     cloudRestoreTriedRef.current = true;
-    if (hadLocalDraftRef.current) return;
+    if (hadLocalDraftRef.current || seed) return; // actif du CRM : la fiche de l'actif prime sur le brouillon serveur
     void (async () => {
       try {
         if (!(await hasSupabaseSession())) return;
