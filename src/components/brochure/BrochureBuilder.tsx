@@ -1,4 +1,5 @@
 // @ts-nocheck — code repris tel quel du Générateur de brochures (vérifié sous sa configuration TypeScript d'origine).
+import { Button } from "@/components/ui/button";
 import { Power } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { useState, useCallback, useEffect, useRef, type ChangeEvent, type Dispatch, type SetStateAction } from "react";
@@ -75,10 +76,10 @@ function downloadBase64(base64: string, filename: string) {
 
 function Section({ title, children, open = true }: { title: string; children: React.ReactNode; open?: boolean }) {
   return (
-    <details open={open} className="group rounded-lg border border-slate-700 bg-slate-900/50 overflow-hidden">
-      <summary className="cursor-pointer px-5 py-3 bg-slate-800/60 text-sm font-semibold uppercase tracking-wide text-orange-300 list-none flex items-center justify-between">
+    <details open={open} className="group rounded-lg border border-border bg-card overflow-hidden">
+      <summary className="cursor-pointer px-5 py-3 bg-muted text-sm font-semibold uppercase tracking-wide text-primary list-none flex items-center justify-between">
         <span>{title}</span>
-        <span className="text-slate-400 group-open:rotate-180 transition">▾</span>
+        <span className="text-muted-foreground group-open:rotate-180 transition">▾</span>
       </summary>
       <div className="p-5 space-y-3">{children}</div>
     </details>
@@ -88,7 +89,7 @@ function Section({ title, children, open = true }: { title: string; children: Re
 function Field({ label, bold, children }: { label: React.ReactNode; bold?: boolean; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className={`block text-xs ${bold ? "font-bold" : "font-medium"} text-slate-300 mb-1`}>{label}</span>
+      <span className={`block text-xs ${bold ? "font-bold" : "font-medium"} text-muted-foreground mb-1`}>{label}</span>
       {children}
     </label>
   );
@@ -100,7 +101,7 @@ function InlinePicto({ media, alt }: { media: BrochureMedia | null | undefined; 
     <img
       src={media.dataUrl}
       alt={alt}
-      className="inline-flex h-7 w-7 shrink-0 rounded bg-slate-950 border border-slate-700 object-contain p-1 align-middle"
+      className="inline-flex h-7 w-7 shrink-0 rounded bg-background border border-border object-contain p-1 align-middle"
     />
   );
 }
@@ -115,29 +116,29 @@ function UploadedMediaPreview({
 }) {
   return (
     <div className="relative inline-block group">
-      <img src={media.dataUrl} alt={alt} className={className || "max-h-40 rounded border border-slate-700 bg-slate-900 object-contain"} />
-      <button
+      <img src={media.dataUrl} alt={alt} className={className || "max-h-40 rounded border border-border bg-card object-contain"} />
+      <Button
         type="button"
         aria-label="Supprimer l'image"
         title="Supprimer l'image"
         onClick={onRemove}
-        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-red-600 text-sm font-bold leading-none text-white shadow hover:bg-red-500"
+        className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-sm font-bold leading-none text-primary-foreground shadow hover:bg-destructive"
       >
         ×
-      </button>
+      </Button>
     </div>
   );
 }
 
 
 const inputCls =
-  "w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-700 text-slate-100 text-sm focus:outline-none focus:border-teal-400";
+  "w-full px-3 py-2 rounded-md bg-background border border-border text-foreground text-sm focus:outline-none focus:border-border";
 
 const btnSecondary =
-  "text-xs px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200";
+  "text-xs px-3 py-1.5 rounded bg-muted hover:bg-card border border-border text-foreground";
 
 const btnPrimary =
-  "text-xs px-3 py-1.5 rounded bg-teal-500 hover:bg-teal-400 border border-teal-400 text-slate-950 font-semibold disabled:opacity-50 disabled:cursor-not-allowed";
+  "text-xs px-3 py-1.5 rounded bg-primary hover:bg-primary border border-border text-foreground font-semibold disabled:opacity-50 disabled:cursor-not-allowed";
 
 const REVENU_LABELS: Array<[keyof BrochureData["revenus"], string]> = [
   ["celibataire", "Célibataire"],
@@ -2412,23 +2413,23 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
 
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100" style={{ fontFamily: "'Calibri', 'Inter', system-ui, sans-serif", fontWeight: 300 }}>
-      <header className="border-b border-slate-800 bg-slate-900 px-6 py-3 sticky top-0 z-10">
+    <div className="brochure-editor bg-background text-foreground" >
+      <header className="border-b border-border bg-card px-0 py-3">
         <div className="flex items-center gap-6 mb-3">
-          <div className="text-xs uppercase tracking-[0.3em] text-teal-400 shrink-0">WALLSBROKER</div>
-          <h1 className="flex-1 text-center text-[11px] sm:text-sm md:text-base uppercase tracking-[0.22em] text-white font-light whitespace-nowrap">
-            Générateur de brochures commerciales
+          <div className="text-xs uppercase tracking-normal text-primary shrink-0">WALLSBROKER</div>
+          <h1 className="flex-1 text-center text-[11px] sm:text-sm md:text-base uppercase tracking-normal text-primary-foreground font-semibold whitespace-normal">
+            Teaser
           </h1>
           <div className="w-[110px] shrink-0" />
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <button
+          <Button
             onClick={() => setTab("generator")}
-            className={`h-9 px-3 rounded-md text-xs font-semibold border ${tab === "generator" ? "bg-teal-600 text-white border-teal-500" : "bg-slate-800 text-slate-300 border-slate-700"}`}
+            className={`h-9 px-3 rounded-md text-xs font-semibold border ${tab === "generator" ? "bg-primary text-primary-foreground border-border" : "bg-muted text-muted-foreground border-border"}`}
           >
             Générateur
-          </button>
-          <label className={`h-9 inline-flex items-center px-3 rounded-md text-xs font-semibold border ${importBusy ? "bg-teal-600 text-white border-teal-500 opacity-60 cursor-not-allowed pointer-events-none" : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 cursor-pointer"}`}>
+          </Button>
+          <label className={`h-9 inline-flex items-center px-3 rounded-md text-xs font-semibold border ${importBusy ? "bg-primary text-primary-foreground border-border opacity-60 cursor-not-allowed pointer-events-none" : "bg-muted text-muted-foreground border-border hover:bg-card cursor-pointer"}`}>
             {importBusy ? (importProgress || "Import en cours…") : "Importer"}
             <input
               type="file"
@@ -2444,36 +2445,36 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
               }}
             />
           </label>
-          <button
+          <Button
             onClick={resetAll}
-            className="h-9 px-3 rounded-md bg-red-600 hover:bg-red-500 text-white text-xs font-semibold"
+            className="h-9 px-3 rounded-md bg-destructive hover:bg-destructive text-primary-foreground text-xs font-semibold"
             title="Vider le formulaire (les Paramètres et Comparables sont conservés)"
           >
             Effacer
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onGenerate}
             disabled={busy}
-            className="h-9 px-4 rounded-md bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white font-semibold text-xs shadow-lg"
+            className="h-9 px-4 rounded-md bg-primary hover:bg-primary disabled:opacity-50 text-primary-foreground font-semibold text-xs shadow-lg"
           >
             {busy ? "Génération…" : "Générer PPTX"}
-          </button>
+          </Button>
           {isAdmin && (
-            <button
+            <Button
               onClick={() => setTab("settings")}
               title="Paramètres"
               aria-label="Paramètres"
-              className={`h-9 w-9 inline-flex items-center justify-center rounded-md text-base border ${tab === "settings" ? "bg-teal-600 text-white border-teal-500" : "bg-slate-800 text-slate-300 border-slate-700"}`}
+              className={`h-9 w-9 inline-flex items-center justify-center rounded-md text-base border ${tab === "settings" ? "bg-primary text-primary-foreground border-border" : "bg-muted text-muted-foreground border-border"}`}
             >
               ⚙️
-            </button>
+            </Button>
           )}
         </div>
 
       </header>
 
 
-      <main className="max-w-5xl mx-auto p-6 space-y-4">
+      <main className="max-w-5xl mx-auto py-4 space-y-4">
         {tab === "settings" ? (
           <SettingsTab
             data={data}
@@ -2521,38 +2522,38 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
         ) : (
           <>
             {pipelineStatus && (
-              <div className="rounded-md border border-teal-700 bg-teal-950/40 px-4 py-2 text-xs text-teal-200">
+              <div className="rounded-md border border-border bg-primary px-4 py-2 text-xs text-primary">
                 {pipelineStatus}
               </div>
             )}
-            <div className="rounded-md border border-slate-700 bg-slate-900/60 p-3">
+            <div className="rounded-md border border-border bg-card p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
-                <span className="text-orange-300">
+                <span className="text-primary">
                   Actifs de la brochure {otherAssets.length > 0 ? `(${otherAssets.length + 1} actifs — portefeuille)` : "(1 actif)"} — vos saisies sont conservées quand vous changez d’actif
                 </span>
                 <span
                   role="status"
-                  className={draftStatus === "error" ? "text-red-300" : draftStatus === "saved" ? "text-teal-300" : "text-slate-400"}
+                  className={draftStatus === "error" ? "text-destructive" : draftStatus === "saved" ? "text-primary" : "text-muted-foreground"}
                 >
                   {draftStatus === "loading" ? "Restauration…" : draftStatus === "saving" ? "Sauvegarde…" : draftStatus === "error" ? "Sauvegarde impossible" : "✓ Sauvegardé"}
                 </span>
               </div>
               <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
-                <button
+                <Button
                   type="button"
                   onClick={() => void saveDraftToCloud(false)}
-                  className="rounded-md border border-teal-600 bg-teal-700/40 px-2 py-1 font-semibold text-teal-100 hover:bg-teal-700/70"
+                  className="rounded-md border border-border bg-primary px-2 py-1 font-semibold text-primary hover:bg-primary"
                 >
                   💾 Sauvegarder sur le serveur
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => { if (confirm("Remplacer les actifs actuellement affichés par la dernière sauvegarde serveur ?")) void restoreDraftFromCloud(); }}
-                  className="rounded-md border border-slate-600 bg-slate-800 px-2 py-1 font-semibold text-slate-200 hover:bg-slate-700"
+                  className="rounded-md border border-border bg-muted px-2 py-1 font-semibold text-foreground hover:bg-card"
                 >
                   ⤵ Restaurer la sauvegarde serveur
-                </button>
-                {cloudDraftStatus && <span className="text-slate-300">{cloudDraftStatus}</span>}
+                </Button>
+                {cloudDraftStatus && <span className="text-muted-foreground">{cloudDraftStatus}</span>}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {buildFullAssets().map((asset, i) => {
@@ -2561,38 +2562,38 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                   return (
                     <div
                       key={i}
-                      className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs ${active ? "bg-teal-600 border-teal-500 text-white" : "bg-slate-800 border-slate-700 text-slate-300"}`}
+                      className={`flex items-center gap-1 rounded-md border px-2 py-1 text-xs ${active ? "bg-primary border-border text-primary-foreground" : "bg-muted border-border text-muted-foreground"}`}
                     >
-                      <button type="button" onClick={() => switchToAsset(i)} className="font-semibold">
+                      <Button type="button" onClick={() => switchToAsset(i)} className="font-semibold">
                         {i + 1}. {label}
-                      </button>
+                      </Button>
                       {otherAssets.length > 0 && (
-                        <button
+                        <Button
                           type="button"
                           onClick={() => removeAsset(i)}
                           title="Supprimer cet actif"
-                          className="text-red-300 hover:text-red-200"
+                          className="text-destructive hover:text-destructive"
                         >
                           ✕
-                        </button>
+                        </Button>
                       )}
                     </div>
                   );
                 })}
-                <button
+                <Button
                   type="button"
                   onClick={addAsset}
                   title="Ajoute un actif vierge à la brochure. L’actif en cours est conservé et reste modifiable à tout moment."
-                  className="rounded-md border border-slate-600 bg-slate-800 hover:bg-slate-700 px-3 py-1 text-xs font-semibold text-white"
+                  className="rounded-md border border-border bg-muted hover:bg-card px-3 py-1 text-xs font-semibold text-primary-foreground"
                 >
                   ➕ Ajouter un actif
-                </button>
+                </Button>
               </div>
             </div>
 
             <Stepper>
             <Section title="1. Le bien">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Nom du site (ex: Clémence Isaure Retail Park)">
                   <input className={inputCls} value={data.nomSite} onChange={(e) => update("nomSite", e.target.value)} />
                 </Field>
@@ -2607,7 +2608,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                     onSelect={onAddressSelect}
                   />
                 </Field>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <Field label="Code postal">
                     <input className={inputCls} value={data.codePostal} onChange={(e) => update("codePostal", e.target.value)} />
                   </Field>
@@ -2616,15 +2617,15 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                   </Field>
                 </div>
                 <div className="flex items-center gap-3">
-                  <button
+                  <Button
                     type="button"
                     onClick={onValidateAddress}
                     disabled={pipelineBusy || !data.adresse || !data.ville}
-                    className="h-10 px-4 rounded-md bg-teal-600 hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold shadow"
+                    className="h-10 px-4 rounded-md bg-primary hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground text-xs font-semibold shadow"
                   >
                     {pipelineBusy ? "Recherches en cours…" : "✓ Valider l'adresse & tout générer automatiquement"}
-                  </button>
-                  {pipelineStatus && <span className="text-xs text-slate-400 truncate">{pipelineStatus}</span>}
+                  </Button>
+                  {pipelineStatus && <span className="text-xs text-muted-foreground truncate">{pipelineStatus}</span>}
                 </div>
                 <Field label="Surface (m²)">
                   <input className={inputCls} value={data.surface} onChange={(e) => update("surface", e.target.value)} onBlur={(e) => update("surface", formatFrThousandsStr(e.target.value))} />
@@ -2648,7 +2649,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                       onBlur={(e) => update("prixVente", formatFrThousandsStr(e.target.value))}
                       disabled={data.nousConsulter}
                     />
-                    <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                    <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer">
                       <input
                         type="checkbox"
                         checked={data.nousConsulter}
@@ -2668,62 +2669,62 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
               </div>
 
 
-              <div className="grid grid-cols-[1fr_auto] gap-3 items-end pt-2 border-t border-slate-800 mt-3">
+              <div className="grid grid-cols-[1fr_auto] gap-3 items-end pt-2 border-t border-border mt-3">
                 <Field label="📷 Photo de page de garde (obligatoire)">
                   <input type="file" accept="image/*" className={inputCls} onChange={async (e) => update("photoCouverture", await handleSingle(e))} />
                 </Field>
                 <div className="flex flex-col gap-1">
-                  <span className="text-xs font-medium text-slate-300 mb-1">Position</span>
-                  <div className="flex rounded-md overflow-hidden border border-slate-700">
-                    <button
+                  <span className="text-xs font-medium text-muted-foreground mb-1">Position</span>
+                  <div className="flex rounded-md overflow-hidden border border-border">
+                    <Button
                       type="button"
                       onClick={() => update("photoCouverturePosition", "left")}
-                      className={`px-3 py-2 text-xs font-semibold ${data.photoCouverturePosition === "left" ? "bg-teal-600 text-white" : "bg-slate-800 text-slate-300"}`}
+                      className={`px-3 py-2 text-xs font-semibold ${data.photoCouverturePosition === "left" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
                     >
                       ⬅ Gauche
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       onClick={() => update("photoCouverturePosition", "right")}
-                      className={`px-3 py-2 text-xs font-semibold ${data.photoCouverturePosition === "right" ? "bg-teal-600 text-white" : "bg-slate-800 text-slate-300"}`}
+                      className={`px-3 py-2 text-xs font-semibold ${data.photoCouverturePosition === "right" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
                     >
                       Droite ➡
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
               {!data.photoCouverture && (
-                <p className="text-xs font-semibold text-orange-400 mt-2">⚠ Photo de page de garde obligatoire pour générer le PPTX</p>
+                <p className="text-xs font-semibold text-primary mt-2">⚠ Photo de page de garde obligatoire pour générer le PPTX</p>
               )}
               {data.photoCouverture && (
                 <div className="mt-2">
                   <UploadedMediaPreview
                     media={data.photoCouverture}
                     alt="cover"
-                    className="h-32 rounded border border-slate-700 object-cover"
+                    className="h-32 rounded border border-border object-cover"
                     onRemove={() => update("photoCouverture", null)}
                   />
                 </div>
               )}
               {data.photos.length > 0 && (
-                <div className="mt-3 rounded-lg border border-slate-800 bg-slate-950/40 p-3">
-                  <p className="text-xs font-semibold text-slate-300 mb-2">Ou choisir parmi les photos importées :</p>
+                <div className="mt-3 rounded-lg border border-border bg-background p-3">
+                  <p className="text-xs font-semibold text-muted-foreground mb-2">Ou choisir parmi les photos importées :</p>
                   <div className="grid grid-cols-3 gap-2">
                     {data.photos.map((p, i) => {
                       const isCover = data.photoCouverture?.name === p.name;
                       return (
-                        <button
+                        <Button
                           key={i}
                           type="button"
                           onClick={() => setCoverFromPhoto(p)}
-                          className={`relative rounded overflow-hidden border-2 transition ${isCover ? "border-teal-500" : "border-slate-700 hover:border-slate-500"}`}
+                          className={`relative rounded overflow-hidden border-2 transition ${isCover ? "border-border" : "border-border hover:border-border"}`}
                           title={isCover ? "Photo de couverture actuelle" : "Utiliser comme photo de couverture"}
                         >
                           <img src={p.dataUrl} alt={p.name} className="w-full aspect-video object-cover" />
                           {isCover && (
-                            <span className="absolute bottom-0 inset-x-0 bg-teal-600/90 text-white text-[10px] font-bold py-0.5 text-center">COUVERTURE</span>
+                            <span className="absolute bottom-0 inset-x-0 bg-primary text-primary-foreground text-[10px] font-bold py-0.5 text-center">COUVERTURE</span>
                           )}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -2765,25 +2766,25 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                 })}
               </div>
               <div className="flex gap-2">
-                <button type="button" onClick={() => setAddPointOpen(true)} className={btnSecondary}>
+                <Button type="button" onClick={() => setAddPointOpen(true)} className={btnSecondary}>
                   + Ajouter
-                </button>
+                </Button>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Seuls les points clés remplis apparaissent dans le PPTX. Sans picto, un cercle numéroté orange s'affiche.
               </p>
             </Section>
 
             {addPointOpen && (
               <div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4"
                 onClick={() => setAddPointOpen(false)}
               >
                 <div
-                  className="w-full max-w-md rounded-lg border border-slate-700 bg-slate-900 p-5 shadow-xl"
+                  className="w-full max-w-md rounded-lg border border-border bg-card p-5 shadow-xl"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <h3 className="mb-4 text-lg font-semibold text-white">Ajouter un point clé</h3>
+                  <h3 className="mb-4 text-lg font-semibold text-primary-foreground">Ajouter un point clé</h3>
                   <div className="space-y-4">
                     <Field label="Titre du point clé">
                       <input
@@ -2803,13 +2804,13 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                       />
                     </Field>
                     {newPointPicto && (
-                      <div className="rounded border border-slate-700 bg-slate-950 p-2">
+                      <div className="rounded border border-border bg-background p-2">
                         <img src={newPointPicto.dataUrl} alt="picto" className="h-16 w-16 object-contain" />
                       </div>
                     )}
                   </div>
                   <div className="mt-5 flex justify-end gap-2">
-                    <button
+                    <Button
                       type="button"
                       className={btnSecondary}
                       onClick={() => {
@@ -2819,15 +2820,15 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                       }}
                     >
                       Annuler
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
                       className={btnPrimary}
                       disabled={!newPointTitle.trim()}
                       onClick={submitNewPoint}
                     >
                       Ajouter
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -2842,30 +2843,30 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                 />
               </Field>
               <div className="flex flex-wrap gap-2">
-                <button
+                <Button
                   type="button"
                   onClick={fetchWikipedia}
                   disabled={!data.ville || autoBusy === "wiki"}
-                  className="text-xs px-3 py-1.5 rounded bg-teal-600 hover:bg-teal-500 disabled:opacity-50"
+                  className="text-xs px-3 py-1.5 rounded bg-primary hover:bg-primary disabled:opacity-50"
                 >
                   {autoBusy === "wiki" ? "Recherche…" : "↻ Wikipédia"}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => onAIEnrich("ville")}
                   disabled={!data.ville || autoBusy === "ai-ville"}
                   className="text-xs px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50 font-semibold"
                 >
                   {autoBusy === "ai-ville" ? "IA…" : "✨ Enrichir par IA (Lovable AI)"}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={() => onFetchMap("localisation")}
                   disabled={autoBusy === "map-localisation"}
                   className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 font-semibold"
                 >
                   {autoBusy === "map-localisation" ? "…" : "Relancer carte Google Maps"}
-                </button>
+                </Button>
               </div>
               <InteractiveGoogleMap
                 address={composedAddress()}
@@ -2908,18 +2909,18 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                 </Field>
               </div>
               <div className="pt-2 flex flex-wrap gap-3 items-center">
-                <button
+                <Button
                   type="button"
                   onClick={onGenerateIsochrone}
                   disabled={autoBusy === "iso"}
-                  className="text-xs px-3 py-1.5 rounded bg-teal-600 hover:bg-teal-500 disabled:opacity-50 font-semibold"
+                  className="text-xs px-3 py-1.5 rounded bg-primary hover:bg-primary disabled:opacity-50 font-semibold"
                 >
                   {autoBusy === "iso" ? "Génération…" : "⚡ Relancer la carte OpenStreetMap de chalandise"}
-                </button>
+                </Button>
                 <a
                   href={`https://classic-maps.openrouteservice.org/reach?n1=&n2=&n3=13&b=0&i=0&j1=${data.dureeZone1}&j2=${data.dureeZone2}&k1=fr-FR&k2=km`}
                   target="_blank" rel="noreferrer"
-                  className="text-xs text-teal-400 hover:underline"
+                  className="text-xs text-primary hover:underline"
                 >
                   ↗ OpenRouteService (manuel)
                 </a>
@@ -2929,22 +2930,22 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                   <UploadedMediaPreview
                     media={data.chalandiseImage}
                     alt="isochrone"
-                    className="max-h-64 rounded border-2 border-orange-500 bg-white object-contain"
+                    className="max-h-64 rounded border-2 border-border bg-card object-contain"
                     onRemove={() => update("chalandiseImage", null)}
                   />
                 </div>
               )}
-              <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="col-span-2 flex items-center justify-between">
-                  <div className="text-xs font-semibold uppercase text-orange-300">Revenus mensuels nets à {data.ville || "…"}</div>
-                  <button
+                  <div className="text-xs font-semibold uppercase text-primary">Revenus mensuels nets à {data.ville || "…"}</div>
+                  <Button
                     type="button"
                     onClick={onFetchRevenus}
                     disabled={!data.ville || autoBusy === "revenus"}
                     className="text-xs px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50 font-semibold"
                   >
                     {autoBusy === "revenus" ? "Recherche…" : "Récupérer auto (salairemoyen.com + IA)"}
-                  </button>
+                  </Button>
                 </div>
                 {REVENU_LABELS.map(([k, label], i) => (
                   <Field
@@ -2970,11 +2971,11 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
               <a
                 href={`https://www.salairemoyen.com/salaire-ville-${encodeURIComponent(data.ville || "")}.html`}
                 target="_blank" rel="noreferrer"
-                className="text-xs text-teal-400 hover:underline"
+                className="text-xs text-primary hover:underline"
               >
                 ↗ salairemoyen.com (vérification manuelle)
               </a>
-              <p className="text-xs text-slate-400">Les pictos ménages se règlent dans Paramètres.</p>
+              <p className="text-xs text-muted-foreground">Les pictos ménages se règlent dans Paramètres.</p>
             </Section>
 
             <Section title="5. Environnement commercial (après chalandise)">
@@ -2994,7 +2995,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
               </div>
               {data.includeEnvironnement && (
                 <>
-                  <p className="text-xs text-slate-400">Les enseignes détectées dans un rayon de 500 m sont affichées directement sur la carte.</p>
+                  <p className="text-xs text-muted-foreground">Les enseignes détectées dans un rayon de 500 m sont affichées directement sur la carte.</p>
                   <div className="grid grid-cols-1 gap-3">
                     <Field label={data.envType === "centre-ville" ? "Flux piéton (auto IA)" : "Trafic routier (auto IA)"}>
                       <textarea className={inputCls + " min-h-[80px] whitespace-pre-wrap break-words"} style={{ resize: "vertical" }} value={data.envTrafic} onChange={(e) => update("envTrafic", e.target.value)} onBlur={(e) => update("envTrafic", formatFrThousandsStr(e.target.value))} />
@@ -3007,21 +3008,21 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                     </Field>
                   </div>
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <button type="button" onClick={() => onFetchMap("environnement")} disabled={autoBusy === "map-environnement"} className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 font-semibold">
+                    <Button type="button" onClick={() => onFetchMap("environnement")} disabled={autoBusy === "map-environnement"} className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 font-semibold">
                       {autoBusy === "map-environnement" ? "…" : "Relancer carte Google Maps"}
-                    </button>
-                    <button type="button" onClick={onScanEnseignes} disabled={autoBusy === "nearby"} className="text-xs px-3 py-1.5 rounded bg-green-600 hover:bg-green-500 disabled:opacity-50 font-semibold">
+                    </Button>
+                    <Button type="button" onClick={onScanEnseignes} disabled={autoBusy === "nearby"} className="text-xs px-3 py-1.5 rounded bg-success hover:bg-success disabled:opacity-50 font-semibold">
                       {autoBusy === "nearby" ? "…" : "Actualiser les enseignes sur la carte"}
-                    </button>
-                    <button type="button" onClick={() => onAIEnrich(data.envType === "centre-ville" ? "fluxPieton" : "traficRoutier")} disabled={autoBusy === "ai-fluxPieton" || autoBusy === "ai-traficRoutier"} className="text-xs px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50">
+                    </Button>
+                    <Button type="button" onClick={() => onAIEnrich(data.envType === "centre-ville" ? "fluxPieton" : "traficRoutier")} disabled={autoBusy === "ai-fluxPieton" || autoBusy === "ai-traficRoutier"} className="text-xs px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50">
                       {(autoBusy === "ai-fluxPieton" || autoBusy === "ai-traficRoutier") ? "…" : data.envType === "centre-ville" ? "Relancer flux piéton" : "Relancer trafic routier"}
-                    </button>
-                    <button type="button" onClick={() => onAIEnrich("commerce")} disabled={autoBusy === "ai-commerce"} className="text-xs px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50">
+                    </Button>
+                    <Button type="button" onClick={() => onAIEnrich("commerce")} disabled={autoBusy === "ai-commerce"} className="text-xs px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50">
                       {autoBusy === "ai-commerce" ? "…" : "Relancer CA/commerces"}
-                    </button>
-                    <button type="button" onClick={() => onAIEnrich("projets")} disabled={autoBusy === "ai-projets"} className="text-xs px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50">
+                    </Button>
+                    <Button type="button" onClick={() => onAIEnrich("projets")} disabled={autoBusy === "ai-projets"} className="text-xs px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50">
                       {autoBusy === "ai-projets" ? "…" : "Relancer projets"}
-                    </button>
+                    </Button>
                   </div>
                   <Field label="Plan / carte de l'environnement commercial (upload manuel)">
                     <input type="file" accept="image/*" className={inputCls} onChange={async (e) => update("envCarte", await handleSingle(e))} />
@@ -3042,7 +3043,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                     <UploadedMediaPreview
                       media={data.envCarte}
                       alt="Carte environnement commercial"
-                      className="mt-2 max-h-32 rounded border border-slate-700 bg-slate-900 object-contain"
+                      className="mt-2 max-h-32 rounded border border-border bg-card object-contain"
                       onRemove={() => update("envCarte", null)}
                     />
                   )}
@@ -3051,12 +3052,12 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
             </Section>
 
             <Section title="6. Accessibilité immédiate">
-              <p className="text-xs font-semibold text-orange-400">
+              <p className="text-xs font-semibold text-primary">
                 ⚠ Slide à terminer dans le PPTX en plaçant vos flèches d'accès.
               </p>
-              <button type="button" onClick={() => onFetchMap("accessibilite")} disabled={autoBusy === "map-accessibilite"} className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 font-semibold">
+              <Button type="button" onClick={() => onFetchMap("accessibilite")} disabled={autoBusy === "map-accessibilite"} className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 font-semibold">
                 {autoBusy === "map-accessibilite" ? "…" : "Relancer carte Google Maps satellite"}
-              </button>
+              </Button>
               <Field label="Carte accessibilité manuelle (si besoin)">
                 <input type="file" accept="image/*" className={inputCls} onChange={async (e) => update("accessibiliteCarte", await handleSingle(e))} />
               </Field>
@@ -3075,7 +3076,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                 <UploadedMediaPreview
                   media={data.accessibiliteCarte}
                   alt="Carte accessibilité"
-                  className="mt-2 max-h-32 rounded border border-slate-700 bg-slate-900 object-contain"
+                  className="mt-2 max-h-32 rounded border border-border bg-card object-contain"
                   onRemove={() => update("accessibiliteCarte", null)}
                 />
               )}
@@ -3090,7 +3091,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                   disabled={etatBusy}
                   onChange={onImportEtatLocatif}
                 />
-                <p className="text-[10px] text-slate-400 mt-1">
+                <p className="text-[10px] text-muted-foreground mt-1">
                   {etatBusy ? "Extraction en cours…" : "Remplit automatiquement le tableau ci-dessous à partir du fichier fourni (écrase les lignes actuelles)."}
                 </p>
               </Field>
@@ -3100,7 +3101,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
               <div className="overflow-x-auto">
                 <table className="w-full text-xs border-collapse">
                   <thead>
-                    <tr className="bg-slate-800 text-slate-200">
+                    <tr className="bg-muted text-foreground">
                       <th className="px-2 py-2 text-left font-medium w-16">Ordre</th>
                       {["Enseigne", "Surface (m²)", "Loyer annuel HC-HT", "Loyer/m²", "Début bail", "Prochain Break", "WALB", "Fin bail", "WALT"].map((h) => (
                         <th key={h} className="px-2 py-2 text-left font-medium">{h}</th>
@@ -3110,11 +3111,11 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                   </thead>
                   <tbody>
                     {data.locataires.map((row, i) => (
-                      <tr key={i} className="border-t border-slate-800">
+                      <tr key={i} className="border-t border-border">
                         <td className="p-1">
                           <div className="flex flex-col gap-0.5">
-                            <button type="button" title="Monter" disabled={i === 0} onClick={() => moveLocataire(i, -1)} className="px-1 py-0.5 text-xs rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30">▲</button>
-                            <button type="button" title="Descendre" disabled={i === data.locataires.length - 1} onClick={() => moveLocataire(i, 1)} className="px-1 py-0.5 text-xs rounded bg-slate-800 hover:bg-slate-700 disabled:opacity-30">▼</button>
+                            <Button type="button" title="Monter" disabled={i === 0} onClick={() => moveLocataire(i, -1)} className="px-1 py-0.5 text-xs rounded bg-muted hover:bg-card disabled:opacity-30">▲</Button>
+                            <Button type="button" title="Descendre" disabled={i === data.locataires.length - 1} onClick={() => moveLocataire(i, 1)} className="px-1 py-0.5 text-xs rounded bg-muted hover:bg-card disabled:opacity-30">▼</Button>
                           </div>
                         </td>
                         {(["enseigne", "surface", "loyerAnnuel", "loyerM2", "debutBail", "prochainBreak", "walb", "finBail", "walt"] as Array<keyof RentalRow>).map((field) => {
@@ -3122,7 +3123,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                           return (
                             <td key={field} className="p-1">
                               <input
-                                className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-700 text-slate-100 text-xs"
+                                className="w-full px-2 py-1 rounded bg-background border border-border text-foreground text-xs"
                                 value={row[field]}
                                 onChange={(e) => setLocataire(i, field, e.target.value)}
                                 onBlur={isNumeric ? (e) => setLocataire(i, field, formatFrThousandsStr(e.target.value)) : undefined}
@@ -3132,8 +3133,8 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                         })}
                         <td className="p-1">
                           <div className="flex flex-col gap-0.5">
-                            <button type="button" title="Insérer une ligne en-dessous" onClick={() => insertLocataire(i)} className="px-1 py-0.5 text-xs rounded bg-emerald-700 hover:bg-emerald-600 text-white">+</button>
-                            <button type="button" title="Supprimer la ligne" disabled={data.locataires.length <= 1} onClick={() => removeLocataire(i)} className="px-1 py-0.5 text-xs rounded bg-rose-700 hover:bg-rose-600 text-white disabled:opacity-30">✕</button>
+                            <Button type="button" title="Insérer une ligne en-dessous" onClick={() => insertLocataire(i)} className="px-1 py-0.5 text-xs rounded bg-emerald-700 hover:bg-emerald-600 text-primary-foreground">+</Button>
+                            <Button type="button" title="Supprimer la ligne" disabled={data.locataires.length <= 1} onClick={() => removeLocataire(i)} className="px-1 py-0.5 text-xs rounded bg-rose-700 hover:bg-rose-600 text-primary-foreground disabled:opacity-30">✕</Button>
                           </div>
                         </td>
                       </tr>
@@ -3142,7 +3143,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                 </table>
               </div>
               {data.nbLocataires > 1 && (
-                <p className="text-xs text-slate-400">Une ligne TOTAL sera automatiquement ajoutée. Utilisez ▲▼ pour réordonner et + / ✕ pour ajouter/supprimer une ligne (utile pour saisir manuellement une ligne oubliée à l'import).</p>
+                <p className="text-xs text-muted-foreground">Une ligne TOTAL sera automatiquement ajoutée. Utilisez ▲▼ pour réordonner et + / ✕ pour ajouter/supprimer une ligne (utile pour saisir manuellement une ligne oubliée à l'import).</p>
               )}
             </Section>
 
@@ -3150,7 +3151,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
 
             <Section title="8. Reportage photos (facultatif, jusqu’à 6 photos)">
               <div className="flex items-center gap-2">
-                <label className={`text-xs px-3 py-1.5 rounded font-semibold cursor-pointer ${data.photos.length >= 6 ? "bg-slate-700 text-slate-400" : "bg-teal-600 hover:bg-teal-500 text-white"}`}>
+                <label className={`text-xs px-3 py-1.5 rounded font-semibold cursor-pointer ${data.photos.length >= 6 ? "bg-card text-muted-foreground" : "bg-primary hover:bg-primary text-primary-foreground"}`}>
                   + Ajouter
                   <input
                     type="file"
@@ -3161,30 +3162,30 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                     onChange={(e) => appendMedia("photos", e)}
                   />
                 </label>
-                <span className="text-xs text-slate-400">{data.photos.length} / 6 image(s)</span>
+                <span className="text-xs text-muted-foreground">{data.photos.length} / 6 image(s)</span>
               </div>
               {data.photos.length > 0 && (
                 <>
-                  <p className="text-xs text-slate-400 mt-2">Cochez les photos à inclure dans le reportage. « Couverture » envoie la photo sur la page de garde.</p>
+                  <p className="text-xs text-muted-foreground mt-2">Cochez les photos à inclure dans le reportage. « Couverture » envoie la photo sur la page de garde.</p>
                   <div className="grid grid-cols-3 gap-2 mt-2">
                     {data.photos.map((p, i) => {
                       const exclue = (data.photosExclues || []).includes(p.name);
                       const isCover = data.photoCouverture?.name === p.name;
                       return (
-                        <div key={i} className={`relative group rounded border-2 overflow-hidden transition ${exclue ? "border-slate-800 opacity-50" : isCover ? "border-teal-500" : "border-slate-700"}`}>
+                        <div key={i} className={`relative group rounded border-2 overflow-hidden transition ${exclue ? "border-border opacity-50" : isCover ? "border-border" : "border-border"}`}>
                           <img src={p.dataUrl} alt={p.name} className="w-full aspect-video object-cover" />
                           {isCover && (
-                            <span className="absolute top-1 left-1 bg-teal-600/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">COUVERTURE</span>
+                            <span className="absolute top-1 left-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded">COUVERTURE</span>
                           )}
-                          <button
+                          <Button
                             type="button"
                             onClick={() => removeMedia("photos", i)}
-                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs opacity-0 group-hover:opacity-100 transition"
+                            className="absolute top-1 right-1 w-6 h-6 rounded-full bg-destructive text-primary-foreground text-xs opacity-0 group-hover:opacity-100 transition"
                           >
                             ✕
-                          </button>
-                          <div className="flex items-center justify-between gap-1 px-1.5 py-1 bg-slate-950/80">
-                            <label className="flex items-center gap-1 text-[10px] font-semibold text-slate-200 cursor-pointer">
+                          </Button>
+                          <div className="flex items-center justify-between gap-1 px-1.5 py-1 bg-background">
+                            <label className="flex items-center gap-1 text-[10px] font-semibold text-foreground cursor-pointer">
                               <input
                                 type="checkbox"
                                 checked={!exclue}
@@ -3194,13 +3195,13 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                               Reportage
                             </label>
                             {!isCover && (
-                              <button
+                              <Button
                                 type="button"
                                 onClick={() => setCoverFromPhoto(p)}
-                                className="text-[10px] font-semibold text-teal-400 hover:text-teal-300"
+                                className="text-[10px] font-semibold text-primary hover:text-primary"
                               >
                                 Couverture
-                              </button>
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -3221,25 +3222,25 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                 <div className="space-y-2">
                   <div className="relative group">
                     <div
-                      className="w-full rounded border border-slate-700 bg-slate-900 overflow-hidden"
+                      className="w-full rounded border border-border bg-card overflow-hidden"
                       style={{ aspectRatio: "10.6 / 6.8" }}
                       title="Aperçu à l'échelle : la zone reproduit exactement les proportions du plan dans le PowerPoint (10,6 × 6,8 pouces sur une slide 13,33 × 7,5)."
                     >
                       <img src={data.planMasse.dataUrl} alt="plan de masse" className="w-full h-full object-contain" />
                     </div>
-                    <button
+                    <Button
                       type="button"
                       aria-label="Supprimer le plan de masse"
                       title="Supprimer le plan de masse"
                       onClick={() => update("planMasse", null)}
-                      className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-600 text-base font-bold leading-none text-white shadow hover:bg-red-500"
+                      className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-destructive text-base font-bold leading-none text-primary-foreground shadow hover:bg-destructive"
                     >
                       ×
-                    </button>
+                    </Button>
                   </div>
-                  <button type="button" onClick={() => update("planMasse", null)} className="text-xs px-3 py-1.5 rounded bg-red-900/60 hover:bg-red-800 border border-red-700 text-red-100">
+                  <Button type="button" onClick={() => update("planMasse", null)} className="text-xs px-3 py-1.5 rounded bg-destructive hover:bg-destructive border border-border text-destructive">
                     Supprimer le plan de masse
-                  </button>
+                  </Button>
                 </div>
               )}
             </Section>
@@ -3266,13 +3267,13 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
             </Stepper>
 
             <div className="flex flex-wrap justify-end gap-3 pt-4 pb-12">
-              <button
+              <Button
                 onClick={onGenerate}
                 disabled={busy}
-                className="px-6 py-3 rounded-md bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white font-semibold shadow-lg"
+                className="px-6 py-3 rounded-md bg-primary hover:bg-primary disabled:opacity-50 text-primary-foreground font-semibold shadow-lg"
               >
                 {busy ? "Génération en cours…" : "📥 Générer & télécharger la brochure PPTX"}
-              </button>
+              </Button>
             </div>
           </>
         )}
@@ -3297,7 +3298,7 @@ function MediaSection({
   return (
     <Section title={title}>
       <div className="flex items-center gap-2">
-        <label className={`text-xs px-3 py-1.5 rounded font-semibold cursor-pointer ${atMax ? "bg-slate-700 text-slate-400" : "bg-teal-600 hover:bg-teal-500 text-white"}`}>
+        <label className={`text-xs px-3 py-1.5 rounded font-semibold cursor-pointer ${atMax ? "bg-card text-muted-foreground" : "bg-primary hover:bg-primary text-primary-foreground"}`}>
           + Ajouter
           <input
             type="file"
@@ -3308,7 +3309,7 @@ function MediaSection({
             onChange={onAdd}
           />
         </label>
-        <span className="text-xs text-slate-400">
+        <span className="text-xs text-muted-foreground">
           {items.length}{max ? ` / ${max}` : ""} image(s)
         </span>
       </div>
@@ -3317,7 +3318,7 @@ function MediaSection({
           {items.map((p, i) => (
             <div key={i} className="relative group space-y-1">
               <div
-                className="w-full rounded border border-slate-700 bg-slate-900 overflow-hidden"
+                className="w-full rounded border border-border bg-card overflow-hidden"
                 style={{ aspectRatio: fit === "contain" ? "10.6 / 6.8" : "16 / 9" }}
                 title={fit === "contain" ? "Aperçu à l'échelle : la zone reproduit exactement les proportions du plan dans le PowerPoint." : undefined}
               >
@@ -3329,19 +3330,19 @@ function MediaSection({
               </div>
               {onTitleChange && (
                 <input
-                  className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-700 text-slate-100 text-xs"
+                  className="w-full px-2 py-1 rounded bg-background border border-border text-foreground text-xs"
                   placeholder="Titre de la slide"
                   value={p.title || ""}
                   onChange={(e) => onTitleChange(i, e.target.value)}
                 />
               )}
-              <button
+              <Button
                 type="button"
                 onClick={() => onRemove(i)}
-                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 text-white text-xs opacity-0 group-hover:opacity-100 transition"
+                className="absolute top-1 right-1 w-6 h-6 rounded-full bg-destructive text-primary-foreground text-xs opacity-0 group-hover:opacity-100 transition"
               >
                 ✕
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -3372,9 +3373,9 @@ function SettingsTab({
 
   return (
     <>
-      <div className="rounded-lg border border-teal-800 bg-teal-950/30 p-4 text-sm">
-        <p className="text-teal-300 font-semibold mb-1">Paramètres réutilisables</p>
-        <p className="text-slate-300 text-xs">
+      <div className="rounded-lg border border-border bg-primary p-4 text-sm">
+        <p className="text-primary font-semibold mb-1">Paramètres réutilisables</p>
+        <p className="text-muted-foreground text-xs">
           Les assets ci-dessous sont mémorisés pour toutes les brochures : ils garantissent la cohérence graphique
           (pictos, carte France, équipe). Uploadez-les une fois, ils seront réutilisés à chaque génération.
         </p>
@@ -3397,18 +3398,18 @@ function SettingsTab({
           <UploadedMediaPreview
             media={data.settings.franceMap}
             alt="france"
-            className="max-h-40 rounded border border-slate-700 bg-slate-900 object-contain"
+            className="max-h-40 rounded border border-border bg-card object-contain"
             onRemove={() => updateSettings("franceMap", null)}
           />
         )}
-        <p className="text-xs text-slate-400">Un point orange sera placé au centre par défaut ; à repositionner manuellement dans PowerPoint sur la ville.</p>
+        <p className="text-xs text-muted-foreground">Un point orange sera placé au centre par défaut ; à repositionner manuellement dans PowerPoint sur la ville.</p>
       </Section>
 
       <Section title="Slides fixes — Confidentialité et À propos">
-        <p className="text-xs text-slate-400 mb-2">
+        <p className="text-xs text-muted-foreground mb-2">
           Ces deux slides sont figées et seront ajoutées telles quelles à la fin de chaque brochure générée. Formats acceptés : <b>.pptx</b> (recommandé — la mise en page originale est conservée) ou image.
         </p>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Confidentialité / exclusion (.pptx ou image)">
             <input
               type="file"
@@ -3426,39 +3427,39 @@ function SettingsTab({
             />
           </Field>
         </div>
-        <div className="grid grid-cols-2 gap-3 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
           {data.settings.fixedConfidentialiteSlide && (
-            <div className="rounded border border-slate-700 bg-slate-900 p-2 space-y-2">
+            <div className="rounded border border-border bg-card p-2 space-y-2">
               {/\.pptx?$/i.test(data.settings.fixedConfidentialiteSlide.name || "") || /presentationml/.test(data.settings.fixedConfidentialiteSlide.dataUrl.slice(0, 200)) ? (
-                <div className="text-xs text-teal-300 py-8 text-center">📎 {data.settings.fixedConfidentialiteSlide.name || "Confidentialite.pptx"}<br/><span className="text-slate-400">Slide PPTX — ajoutée telle quelle</span></div>
+                <div className="text-xs text-primary py-8 text-center">📎 {data.settings.fixedConfidentialiteSlide.name || "Confidentialite.pptx"}<br/><span className="text-muted-foreground">Slide PPTX — ajoutée telle quelle</span></div>
               ) : (
                 <img src={data.settings.fixedConfidentialiteSlide.dataUrl} alt="Slide confidentialité" className="w-full rounded object-contain" />
               )}
-              <button type="button" onClick={() => updateSettings("fixedConfidentialiteSlide", null)} className={btnSecondary}>× Retirer</button>
+              <Button type="button" onClick={() => updateSettings("fixedConfidentialiteSlide", null)} className={btnSecondary}>× Retirer</Button>
             </div>
           )}
           {data.settings.fixedAProposSlide && (
-            <div className="rounded border border-slate-700 bg-slate-900 p-2 space-y-2">
+            <div className="rounded border border-border bg-card p-2 space-y-2">
               {/\.pptx?$/i.test(data.settings.fixedAProposSlide.name || "") || /presentationml/.test(data.settings.fixedAProposSlide.dataUrl.slice(0, 200)) ? (
-                <div className="text-xs text-teal-300 py-8 text-center">📎 {data.settings.fixedAProposSlide.name || "A_propos.pptx"}<br/><span className="text-slate-400">Slide PPTX — ajoutée telle quelle</span></div>
+                <div className="text-xs text-primary py-8 text-center">📎 {data.settings.fixedAProposSlide.name || "A_propos.pptx"}<br/><span className="text-muted-foreground">Slide PPTX — ajoutée telle quelle</span></div>
               ) : (
                 <img src={data.settings.fixedAProposSlide.dataUrl} alt="Slide à propos" className="w-full rounded object-contain" />
               )}
-              <button type="button" onClick={() => updateSettings("fixedAProposSlide", null)} className={btnSecondary}>× Retirer</button>
+              <Button type="button" onClick={() => updateSettings("fixedAProposSlide", null)} className={btnSecondary}>× Retirer</Button>
             </div>
           )}
         </div>
       </Section>
 
       <Section title="Pictos points clés (6 slots)">
-        <p className="text-xs text-slate-400 mb-2">Renommez chaque emplacement (ex. « Surface », « Loyer/m² », « Revenu locatif »). Le libellé s'affichera dans le Générateur au-dessus du champ correspondant, et le picto sera utilisé au même emplacement dans la brochure.</p>
+        <p className="text-xs text-muted-foreground mb-2">Renommez chaque emplacement (ex. « Surface », « Loyer/m² », « Revenu locatif »). Le libellé s'affichera dans le Générateur au-dessus du champ correspondant, et le picto sera utilisé au même emplacement dans la brochure.</p>
         <div className="grid grid-cols-3 gap-3">
           {data.settings.pointsClesPictos.map((p, i) => {
             const labels = data.settings.pointsClesPictosLabels || [];
             const label = labels[i] ?? `Point clé #${i + 1}`;
             return (
-              <div key={i} className="rounded border border-slate-700 p-2 space-y-2">
-                <div className="text-[10px] uppercase tracking-wide text-slate-400">Slot #{i + 1}</div>
+              <div key={i} className="rounded border border-border p-2 space-y-2">
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Slot #{i + 1}</div>
                 <input
                   className={inputCls}
                   value={label}
@@ -3481,10 +3482,10 @@ function SettingsTab({
                     <UploadedMediaPreview
                       media={p}
                       alt={`Picto point clé ${i + 1}`}
-                      className="h-12 w-12 object-contain rounded bg-slate-900"
+                      className="h-12 w-12 object-contain rounded bg-card"
                       onRemove={() => setPictoSlot("pointsClesPictos", i, null)}
                     />
-                    <button type="button" onClick={() => setPictoSlot("pointsClesPictos", i, null)} className={btnSecondary}>× Retirer</button>
+                    <Button type="button" onClick={() => setPictoSlot("pointsClesPictos", i, null)} className={btnSecondary}>× Retirer</Button>
                   </div>
                 )}
               </div>
@@ -3494,12 +3495,12 @@ function SettingsTab({
       </Section>
 
       <Section title="Pictos revenus des ménages (6 slots)">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {REVENU_LABELS.map(([, label], i) => {
             const p = data.settings.revenusPictos[i];
             return (
-              <div key={i} className="rounded border border-slate-700 p-2 space-y-2">
-                <div className="text-xs font-semibold text-orange-300">{label}</div>
+              <div key={i} className="rounded border border-border p-2 space-y-2">
+                <div className="text-xs font-semibold text-primary">{label}</div>
                 <input
                   type="file"
                   accept="image/*"
@@ -3511,10 +3512,10 @@ function SettingsTab({
                     <UploadedMediaPreview
                       media={p}
                       alt={`Picto revenu ${label}`}
-                      className="h-10 w-10 object-contain rounded bg-slate-900"
+                      className="h-10 w-10 object-contain rounded bg-card"
                       onRemove={() => setPictoSlot("revenusPictos", i, null)}
                     />
-                    <button type="button" onClick={() => setPictoSlot("revenusPictos", i, null)} className={btnSecondary}>× Retirer</button>
+                    <Button type="button" onClick={() => setPictoSlot("revenusPictos", i, null)} className={btnSecondary}>× Retirer</Button>
                   </div>
                 )}
               </div>
@@ -3607,7 +3608,7 @@ function AllowedUsersSection() {
 
   return (
     <Section title="Utilisateurs autorisés">
-      <p className="text-xs text-slate-400 mb-2">
+      <p className="text-xs text-muted-foreground mb-2">
         Chaque personne ajoutée ici pourra se connecter à l'outil avec son adresse email professionnelle.
       </p>
 
@@ -3621,46 +3622,46 @@ function AllowedUsersSection() {
         <Field label="Email">
           <input type="email" className={inputCls} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="prenom.nom@wallsbroker.com" />
         </Field>
-        <button
+        <Button
           type="submit"
           disabled={busy}
-          className="h-9 rounded-md bg-orange-500 hover:bg-orange-400 disabled:opacity-50 text-white font-semibold text-xs px-3"
+          className="h-9 rounded-md bg-primary hover:bg-primary disabled:opacity-50 text-primary-foreground font-semibold text-xs px-3"
         >
           {busy ? "Ajout…" : "+ Ajouter"}
-        </button>
+        </Button>
       </form>
 
       {err && (
-        <p className="text-xs text-red-400 bg-red-950/50 border border-red-900 rounded p-2 mt-2">{err}</p>
+        <p className="text-xs text-destructive bg-destructive border border-border rounded p-2 mt-2">{err}</p>
       )}
 
       {needsSignIn && (
         <div className="mt-2 rounded border border-amber-800 bg-amber-950/40 p-3 text-xs text-amber-200 flex items-center justify-between gap-3">
           <span>Connecte-toi pour gérer les utilisateurs autorisés.</span>
-          <a href="/auth" className="rounded bg-orange-500 hover:bg-orange-400 text-white font-semibold px-3 py-1.5">Se connecter</a>
+          <a href="/auth" className="rounded bg-primary hover:bg-primary text-primary-foreground font-semibold px-3 py-1.5">Se connecter</a>
         </div>
       )}
 
 
-      <div className="mt-4 rounded border border-slate-700 divide-y divide-slate-800 bg-slate-900/50">
+      <div className="mt-4 rounded border border-border divide-y divide-slate-800 bg-card">
         {loading ? (
-          <div className="p-3 text-xs text-slate-400">Chargement…</div>
+          <div className="p-3 text-xs text-muted-foreground">Chargement…</div>
         ) : users.length === 0 ? (
-          <div className="p-3 text-xs text-slate-400">Aucun utilisateur autorisé.</div>
+          <div className="p-3 text-xs text-muted-foreground">Aucun utilisateur autorisé.</div>
         ) : (
           users.map((u) => (
             <div key={u.id} className="flex items-center gap-3 p-2 text-xs">
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-slate-100">{u.first_name} {u.last_name}</div>
-                <div className="text-slate-400 truncate">{u.email}</div>
+                <div className="font-semibold text-foreground">{u.first_name} {u.last_name}</div>
+                <div className="text-muted-foreground truncate">{u.email}</div>
               </div>
-              <button
+              <Button
                 type="button"
                 onClick={() => onDelete(u)}
-                className="text-xs px-2 py-1 rounded bg-red-600 hover:bg-red-500 text-white"
+                className="text-xs px-2 py-1 rounded bg-destructive hover:bg-destructive text-primary-foreground"
               >
                 Supprimer
-              </button>
+              </Button>
             </div>
           ))
         )}
@@ -3727,7 +3728,7 @@ function ComparablesTab({
   const fmt = (n: number, digits = 0) => isFinite(n) ? n.toLocaleString("fr-FR", { maximumFractionDigits: digits, minimumFractionDigits: digits }) : "—";
   const tableInput = (c: Comparable, field: Exclude<keyof Comparable, "id">, extra = "", placeholder = "") => (
     <input
-      className={`w-full min-w-20 rounded border border-transparent bg-transparent px-1 py-1 text-xs text-slate-100 outline-none hover:border-slate-700 focus:border-teal-500 focus:bg-slate-950 placeholder:text-slate-500 ${extra}`}
+      className={`w-full min-w-20 rounded border border-transparent bg-transparent px-1 py-1 text-xs text-foreground outline-none hover:border-border focus:border-border focus:bg-background placeholder:text-muted-foreground ${extra}`}
       value={String(c[field] ?? "")}
       placeholder={placeholder}
       onChange={(e) => updateComparable(c.id, { [field]: e.target.value } as Partial<Comparable>)}
@@ -3754,46 +3755,46 @@ function ComparablesTab({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-teal-700 bg-teal-950/40 px-5 py-4">
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-primary px-5 py-4">
         <div>
-          <p className="text-teal-300 text-xs uppercase tracking-widest">Base Comparables</p>
-          <p className="text-slate-300 text-xs mt-1">Historique de références locatives (mémorisées localement).</p>
+          <p className="text-primary text-xs uppercase tracking-widest">Base Comparables</p>
+          <p className="text-muted-foreground text-xs mt-1">Historique de références locatives (mémorisées localement).</p>
         </div>
         <div className="text-right">
-          <div className="text-3xl font-bold text-teal-300 leading-none">{data.comparables.filter(c => (c.kind || "location") === kindFilter).length}</div>
-          <div className="text-[10px] uppercase tracking-widest text-slate-400 mt-1">{kindFilter === "location" ? "réf. locatives" : "réf. de prix"}</div>
+          <div className="text-3xl font-bold text-primary leading-none">{data.comparables.filter(c => (c.kind || "location") === kindFilter).length}</div>
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground mt-1">{kindFilter === "location" ? "réf. locatives" : "réf. de prix"}</div>
         </div>
       </div>
 
       {/* Toggle type de comparables */}
       <div className="flex justify-center">
-        <div className="inline-flex rounded-md border border-slate-700 bg-slate-900 overflow-hidden text-xs font-semibold">
-          <button
+        <div className="inline-flex rounded-md border border-border bg-card overflow-hidden text-xs font-semibold">
+          <Button
             type="button"
             onClick={() => setKindFilter("location")}
-            className={`px-4 py-2 ${kindFilter === "location" ? "bg-teal-600 text-white" : "text-slate-300 hover:text-white"}`}
+            className={`px-4 py-2 ${kindFilter === "location" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"}`}
           >
             Comparables locatifs
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={() => setKindFilter("prix")}
-            className={`px-4 py-2 border-l border-slate-700 ${kindFilter === "prix" ? "bg-teal-600 text-white" : "text-slate-300 hover:text-white"}`}
+            className={`px-4 py-2 border-l border-border ${kindFilter === "prix" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary-foreground"}`}
           >
             Comparables prix de vente
-          </button>
+          </Button>
         </div>
       </div>
 
 
-      <div className="rounded-lg border border-teal-800 bg-teal-950/30 p-4 text-sm">
-        <p className="text-slate-300 text-xs">
+      <div className="rounded-lg border border-border bg-primary p-4 text-sm">
+        <p className="text-muted-foreground text-xs">
           Alimentation : état locatif courant, import manuel, import de brochures PDF/PPTX/DOCX,
           ou scan de votre boîte Outlook.
         </p>
       </div>
 
-      <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-4 space-y-2">
+      <div className="rounded-lg border border-border bg-card p-4 space-y-2">
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={data.includeComparables} onChange={(e) => update("includeComparables", e.target.checked)} className="w-4 h-4" />
           Inclure une slide « Comparables » dans la brochure générée
@@ -3801,13 +3802,13 @@ function ComparablesTab({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={openAdd} className="text-xs px-3 py-1.5 rounded bg-orange-500 hover:bg-orange-400 text-white font-semibold">
+        <Button type="button" onClick={openAdd} className="text-xs px-3 py-1.5 rounded bg-primary hover:bg-primary text-primary-foreground font-semibold">
           + Ajouter {kindFilter === "location" ? "un comparable locatif" : "un comparable prix"}
-        </button>
-        <button type="button" onClick={importFromEtatLocatif} className="text-xs px-3 py-1.5 rounded bg-teal-600 hover:bg-teal-500 text-white font-semibold">
+        </Button>
+        <Button type="button" onClick={importFromEtatLocatif} className="text-xs px-3 py-1.5 rounded bg-primary hover:bg-primary text-primary-foreground font-semibold">
           Importer depuis l'état locatif courant
-        </button>
-        <label className={`text-xs px-3 py-1.5 rounded font-semibold cursor-pointer ${importBusy ? "bg-slate-700 text-slate-400" : "bg-purple-600 hover:bg-purple-500 text-white"}`}>
+        </Button>
+        <label className={`text-xs px-3 py-1.5 rounded font-semibold cursor-pointer ${importBusy ? "bg-card text-muted-foreground" : "bg-purple-600 hover:bg-purple-500 text-primary-foreground"}`}>
           {importBusy ? "Analyse IA…" : "Importer PDF/PPTX/DOCX (extraction IA)"}
           <input
             type="file"
@@ -3821,7 +3822,7 @@ function ComparablesTab({
             }}
           />
         </label>
-        <button
+        <Button
           type="button"
           onClick={async () => {
             const XLSX = await import("xlsx");
@@ -3866,36 +3867,36 @@ function ComparablesTab({
             const date = new Date().toISOString().slice(0, 10);
             XLSX.writeFile(wb, `comparables_wallsbroker_${date}.xlsx`);
           }}
-          className="text-xs px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+          className="text-xs px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-primary-foreground font-semibold"
         >
           ⬇ Exporter Excel
-        </button>
+        </Button>
       </div>
 
-      <div className="rounded-lg border border-teal-700/60 bg-teal-950/30 p-4 space-y-2">
+      <div className="rounded-lg border border-border bg-primary p-4 space-y-2">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold uppercase text-teal-300">Remplissage automatique depuis Outlook</span>
-          <button
+          <span className="text-xs font-semibold uppercase text-primary">Remplissage automatique depuis Outlook</span>
+          <Button
             type="button"
             onClick={onRunAutoIngest}
             disabled={autoIngest.busy}
-            className="text-xs px-3 py-1.5 rounded bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white font-semibold"
+            className="text-xs px-3 py-1.5 rounded bg-primary hover:bg-primary disabled:opacity-50 text-primary-foreground font-semibold"
           >
             {autoIngest.busy ? "Analyse…" : "Vérifier maintenant"}
-          </button>
+          </Button>
         </div>
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-muted-foreground">
           Les nouveaux emails reçus (corps + brochures PDF jointes) sont analysés automatiquement à l'ouverture puis toutes les 5 minutes ; les chiffres extraits arrivent directement dans les tableaux ci-dessous, sans doublon.
         </p>
-        {autoIngest.status && <p className="text-xs text-teal-200">{autoIngest.status}</p>}
+        {autoIngest.status && <p className="text-xs text-primary">{autoIngest.status}</p>}
       </div>
 
-      <div className="rounded-lg border border-slate-700 bg-slate-900/50 p-4 space-y-3">
+      <div className="rounded-lg border border-border bg-card p-4 space-y-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold uppercase text-orange-300">Scanner ma boîte Outlook (Microsoft 365)</span>
+          <span className="text-xs font-semibold uppercase text-primary">Scanner ma boîte Outlook (Microsoft 365)</span>
         </div>
-        <p className="text-xs text-slate-400">
-          Compte lié : <code className="text-teal-300">d.berbia@wallsbroker.com</code>. Analyse le corps des emails et les brochures jointes (PDF/PPTX/DOCX). Laissez le mot-clé vide pour voir les emails les plus récents.
+        <p className="text-xs text-muted-foreground">
+          Compte lié : <code className="text-primary">d.berbia@wallsbroker.com</code>. Analyse le corps des emails et les brochures jointes (PDF/PPTX/DOCX). Laissez le mot-clé vide pour voir les emails les plus récents.
         </p>
         <div className="flex gap-2">
           <input
@@ -3904,81 +3905,81 @@ function ComparablesTab({
             value={mailKeyword}
             onChange={(e) => setMailKeyword(e.target.value)}
           />
-          <button
+          <Button
             type="button"
             onClick={onScanOutlook}
             disabled={mailBusy === "list"}
-            className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold whitespace-nowrap"
+            className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-primary-foreground font-semibold whitespace-nowrap"
           >
             {mailBusy === "list" ? "Recherche…" : "Rechercher"}
-          </button>
+          </Button>
         </div>
         {mailList.length > 0 && (
-          <div className="max-h-72 overflow-y-auto rounded border border-slate-700 divide-y divide-slate-800">
+          <div className="max-h-72 overflow-y-auto rounded border border-border divide-y divide-slate-800">
             {mailList.map((m) => (
-              <div key={m.id} className="flex items-center gap-2 p-2 text-xs hover:bg-slate-900">
+              <div key={m.id} className="flex items-center gap-2 p-2 text-xs hover:bg-card">
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold truncate">{m.subject || "(sans objet)"}</div>
-                  <div className="text-slate-500 truncate">{m.from} • {m.date?.slice(0, 10)}</div>
+                  <div className="text-muted-foreground truncate">{m.from} • {m.date?.slice(0, 10)}</div>
                 </div>
-                <button
+                <Button
                   type="button"
                   onClick={() => onExtractFromMail(m.id, m.subject)}
                   disabled={mailBusy === m.id}
-                  className="text-xs px-2 py-1 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white whitespace-nowrap"
+                  className="text-xs px-2 py-1 rounded bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-primary-foreground whitespace-nowrap"
                 >
                   {mailBusy === m.id ? "…" : "Extraire"}
-                </button>
+                </Button>
               </div>
             ))}
           </div>
         )}
 
         {/* Scan complet arrière-plan (inclut Archive) */}
-        <div className="mt-3 rounded border border-orange-800/60 bg-orange-950/20 p-3 space-y-2">
+        <div className="mt-3 rounded border border-border bg-primary p-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <div className="text-xs text-orange-200">
+            <div className="text-xs text-primary">
               <b>Scan complet</b> de la boîte (Inbox, Archive, sous-dossiers) — s'exécute en arrière-plan. Les fichiers sont lus en mémoire uniquement et ne sont jamais stockés.
             </div>
             {fullScan?.running ? (
-              <button
+              <Button
                 type="button"
                 onClick={stopFullMailboxScan}
-                className="text-xs px-3 py-1.5 rounded bg-red-600 hover:bg-red-500 text-white font-semibold whitespace-nowrap"
+                className="text-xs px-3 py-1.5 rounded bg-destructive hover:bg-destructive text-primary-foreground font-semibold whitespace-nowrap"
               >
                 Arrêter
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
                 type="button"
                 onClick={startFullMailboxScan}
-                className="text-xs px-3 py-1.5 rounded bg-orange-600 hover:bg-orange-500 text-white font-semibold whitespace-nowrap"
+                className="text-xs px-3 py-1.5 rounded bg-primary hover:bg-primary text-primary-foreground font-semibold whitespace-nowrap"
               >
                 Scanner toute la boîte
-              </button>
+              </Button>
             )}
           </div>
           {fullScan && (
-            <div className="text-[11px] text-slate-300 space-y-1">
+            <div className="text-[11px] text-muted-foreground space-y-1">
               <div>
-                {fullScan.running ? "En cours" : "Terminé"} — dossier {fullScan.foldersDone}/{fullScan.foldersTotal || "…"} ({fullScan.folder}) • {fullScan.mailsDone} email(s) analysé(s) • <b className="text-teal-300">{fullScan.added}</b> fiche(s) ajoutée(s) • <b className="text-orange-300">{fullScan.updated}</b> mise(s) à jour
+                {fullScan.running ? "En cours" : "Terminé"} — dossier {fullScan.foldersDone}/{fullScan.foldersTotal || "…"} ({fullScan.folder}) • {fullScan.mailsDone} email(s) analysé(s) • <b className="text-primary">{fullScan.added}</b> fiche(s) ajoutée(s) • <b className="text-primary">{fullScan.updated}</b> mise(s) à jour
               </div>
-              {fullScan.lastError && <div className="text-red-300">Dernière erreur : {fullScan.lastError}</div>}
+              {fullScan.lastError && <div className="text-destructive">Dernière erreur : {fullScan.lastError}</div>}
             </div>
           )}
-          {mailError && <div className="text-[11px] text-red-300">{mailError}</div>}
+          {mailError && <div className="text-[11px] text-destructive">{mailError}</div>}
         </div>
       </div>
 
 
 
       {showAdd && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setShowAdd(false)}>
-          <div className="bg-slate-900 border border-teal-600 rounded-lg p-6 max-w-2xl w-full space-y-3" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-teal-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 p-4" onClick={() => setShowAdd(false)}>
+          <div className="bg-card border border-border rounded-lg p-6 max-w-2xl w-full space-y-3" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-primary">
               Ajouter un comparable {draft.kind === "prix" ? "prix de vente" : "locatif"}
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Field label={draft.kind === "prix" ? "Enseignes * (séparées par virgules)" : "Enseigne *"}>
                 <input className={inputCls} value={draft.enseigne} onChange={(e) => setDraft({ ...draft, enseigne: e.target.value })} />
               </Field>
@@ -4013,12 +4014,12 @@ function ComparablesTab({
               )}
             </div>
             {draft.kind === "prix" && (
-              <p className="text-[11px] text-slate-400">Loyer/m², Prix/m² et Rendement seront calculés automatiquement à partir de la surface totale, du loyer total et du prix de vente.</p>
+              <p className="text-[11px] text-muted-foreground">Loyer/m², Prix/m² et Rendement seront calculés automatiquement à partir de la surface totale, du loyer total et du prix de vente.</p>
             )}
             <Field label="Notes"><textarea className={inputCls + " min-h-[60px]"} value={draft.notes} onChange={(e) => setDraft({ ...draft, notes: e.target.value })} /></Field>
             <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setShowAdd(false)} className={btnSecondary}>Annuler</button>
-              <button type="button" onClick={submit} className="text-xs px-4 py-1.5 rounded bg-orange-500 hover:bg-orange-400 text-white font-semibold">Ajouter</button>
+              <Button type="button" onClick={() => setShowAdd(false)} className={btnSecondary}>Annuler</Button>
+              <Button type="button" onClick={submit} className="text-xs px-4 py-1.5 rounded bg-primary hover:bg-primary text-primary-foreground font-semibold">Ajouter</Button>
             </div>
           </div>
         </div>
@@ -4061,9 +4062,9 @@ function ComparablesTab({
           .sort((a, b) => (b.dateSignature || "").localeCompare(a.dateSignature || ""));
 
         const SearchBar = (
-          <div className="rounded-t-lg border border-b-0 border-slate-700 bg-slate-900/70 px-3 py-2 space-y-2">
+          <div className="rounded-t-lg border border-b-0 border-border bg-card px-3 py-2 space-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] uppercase tracking-widest text-slate-400">Rechercher</span>
+              <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Rechercher</span>
               <input
                 className={inputCls + " flex-1"}
                 placeholder="Département (2 chiffres), code postal ou ville…"
@@ -4071,28 +4072,28 @@ function ComparablesTab({
                 onChange={(e) => setSearch(e.target.value)}
               />
               {search && (
-                <button type="button" onClick={() => setSearch("")} className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Effacer</button>
+                <Button type="button" onClick={() => setSearch("")} className="text-xs px-2 py-1 rounded bg-muted hover:bg-card text-muted-foreground">Effacer</Button>
               )}
-              <span className="text-[11px] text-slate-500 whitespace-nowrap">{rows.length} résultat{rows.length > 1 ? "s" : ""}</span>
+              <span className="text-[11px] text-muted-foreground whitespace-nowrap">{rows.length} résultat{rows.length > 1 ? "s" : ""}</span>
             </div>
             {kindFilter === "location" ? (
               <div className="flex items-center gap-2">
-                <span className="text-[11px] uppercase tracking-widest text-slate-400">Surface (m²)</span>
+                <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Surface (m²)</span>
                 <input className={inputCls + " w-28"} placeholder="min" value={surfMin} onChange={(e) => setSurfMin(e.target.value)} />
-                <span className="text-slate-500">—</span>
+                <span className="text-muted-foreground">—</span>
                 <input className={inputCls + " w-28"} placeholder="max" value={surfMax} onChange={(e) => setSurfMax(e.target.value)} />
                 {(surfMin || surfMax) && (
-                  <button type="button" onClick={() => { setSurfMin(""); setSurfMax(""); }} className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Effacer</button>
+                  <Button type="button" onClick={() => { setSurfMin(""); setSurfMax(""); }} className="text-xs px-2 py-1 rounded bg-muted hover:bg-card text-muted-foreground">Effacer</Button>
                 )}
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="text-[11px] uppercase tracking-widest text-slate-400">Prix de vente (€)</span>
+                <span className="text-[11px] uppercase tracking-widest text-muted-foreground">Prix de vente (€)</span>
                 <input className={inputCls + " w-36"} placeholder="min" value={prixMin} onChange={(e) => setPrixMin(e.target.value)} />
-                <span className="text-slate-500">—</span>
+                <span className="text-muted-foreground">—</span>
                 <input className={inputCls + " w-36"} placeholder="max" value={prixMax} onChange={(e) => setPrixMax(e.target.value)} />
                 {(prixMin || prixMax) && (
-                  <button type="button" onClick={() => { setPrixMin(""); setPrixMax(""); }} className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Effacer</button>
+                  <Button type="button" onClick={() => { setPrixMin(""); setPrixMax(""); }} className="text-xs px-2 py-1 rounded bg-muted hover:bg-card text-muted-foreground">Effacer</Button>
                 )}
               </div>
             )}
@@ -4103,9 +4104,9 @@ function ComparablesTab({
           return (
             <div>
               {SearchBar}
-              <div className="rounded-b-lg border border-slate-700 overflow-auto max-h-[70vh]">
+              <div className="rounded-b-lg border border-border overflow-auto max-h-[70vh]">
                 <table className="w-full text-xs">
-                  <thead className="bg-slate-800 text-slate-200 sticky top-0 z-10">
+                  <thead className="bg-muted text-foreground sticky top-0 z-10">
                     <tr>
                       {["Date", <span>Type<br />d'actif</span>, "Enseigne", "Code Postal", "Ville", "Adresse", "Surface", <span>Surface<br />pondérée</span>, "Loyer/an", "€/m²", <span>Loyer<br />/m²p</span>, ""].map((h, i) => (
                         <th key={i} className="px-2 py-2 text-left font-medium whitespace-nowrap">{h}</th>
@@ -4114,7 +4115,7 @@ function ComparablesTab({
                   </thead>
                   <tbody>
                     {rows.length === 0 ? (
-                      <tr><td colSpan={12} className="text-center text-slate-400 py-8">Aucun comparable locatif {q ? "ne correspond à la recherche" : "pour le moment"}.</td></tr>
+                      <tr><td colSpan={12} className="text-center text-muted-foreground py-8">Aucun comparable locatif {q ? "ne correspond à la recherche" : "pour le moment"}.</td></tr>
                     ) : rows.map((c) => {
                       const surf = num(c.surface);
                       const surfP = num(c.surfacePonderee);
@@ -4124,8 +4125,8 @@ function ComparablesTab({
                       const lm2p = num(c.loyerM2Pondere);
                       const loyerM2Pondere = isFinite(lm2p) ? lm2p : (isFinite(loyer) && surfP > 0 ? loyer / surfP : NaN);
                       return (
-                        <tr key={c.id} className="border-t border-slate-800 hover:bg-slate-900/50">
-                          <td className="px-1 py-1 text-slate-400 whitespace-nowrap">{tableInput(c, "dateSignature", "min-w-24 text-slate-400")}</td>
+                        <tr key={c.id} className="border-t border-border hover:bg-card">
+                          <td className="px-1 py-1 text-muted-foreground whitespace-nowrap">{tableInput(c, "dateSignature", "min-w-24 text-muted-foreground")}</td>
                           <td className="px-1 py-1">{tableInput(c, "typeActif", "min-w-32")}</td>
                           <td className="px-1 py-1 font-semibold">{tableInput(c, "enseigne", "min-w-32 font-semibold")}</td>
                           <td className="px-1 py-1 whitespace-nowrap">{tableInput(c, "codePostal", "min-w-16")}</td>
@@ -4134,9 +4135,9 @@ function ComparablesTab({
                           <td className="px-1 py-1">{tableInput(c, "surface", "min-w-20 text-right")}</td>
                           <td className="px-1 py-1">{tableInput(c, "surfacePonderee", "min-w-20 text-right")}</td>
                           <td className="px-1 py-1">{tableInput(c, "loyerAnnuel", "min-w-24 text-right")}</td>
-                          <td className="px-1 py-1">{tableInput(c, "loyerM2", "min-w-20 text-right text-orange-300 font-semibold", fmt(loyerM2))}</td>
-                          <td className="px-1 py-1">{tableInput(c, "loyerM2Pondere", "min-w-20 text-right text-orange-300 font-semibold", fmt(loyerM2Pondere))}</td>
-                          <td className="px-2 py-1.5"><button onClick={() => removeComparable(c.id)} className="text-red-400 hover:text-red-300">✕</button></td>
+                          <td className="px-1 py-1">{tableInput(c, "loyerM2", "min-w-20 text-right text-primary font-semibold", fmt(loyerM2))}</td>
+                          <td className="px-1 py-1">{tableInput(c, "loyerM2Pondere", "min-w-20 text-right text-primary font-semibold", fmt(loyerM2Pondere))}</td>
+                          <td className="px-2 py-1.5"><Button onClick={() => removeComparable(c.id)} className="text-destructive hover:text-destructive">✕</Button></td>
                         </tr>
                       );
                     })}
@@ -4149,9 +4150,9 @@ function ComparablesTab({
         return (
           <div>
             {SearchBar}
-            <div className="rounded-b-lg border border-slate-700 overflow-auto max-h-[70vh]">
+            <div className="rounded-b-lg border border-border overflow-auto max-h-[70vh]">
               <table className="w-full text-xs">
-                <thead className="bg-slate-800 text-slate-200 sticky top-0 z-10">
+                <thead className="bg-muted text-foreground sticky top-0 z-10">
                   <tr>
                     {["Date", "Enseignes", "Code Postal", "Ville", "Adresse", "Surface totale", "Loyer annuel total", "Loyer/m²", "Prix de vente", "Prix/m²", "Rendement %", ""].map((h, i) => (
                       <th key={i} className="px-2 py-2 text-left font-medium whitespace-nowrap">{h}</th>
@@ -4160,7 +4161,7 @@ function ComparablesTab({
                 </thead>
                 <tbody>
                   {rows.length === 0 ? (
-                    <tr><td colSpan={12} className="text-center text-slate-400 py-8">Aucun comparable de prix {q ? "ne correspond à la recherche" : "pour le moment"}.</td></tr>
+                    <tr><td colSpan={12} className="text-center text-muted-foreground py-8">Aucun comparable de prix {q ? "ne correspond à la recherche" : "pour le moment"}.</td></tr>
                   ) : rows.map((c) => {
                     const surf = num(c.surface);
                     const loyer = num(c.loyerAnnuel);
@@ -4169,19 +4170,19 @@ function ComparablesTab({
                     const prixM2 = isFinite(prix) && surf > 0 ? prix / surf : NaN;
                     const rendement = isFinite(loyer) && isFinite(prix) && prix > 0 ? (loyer / prix * 100) : NaN;
                     return (
-                      <tr key={c.id} className="border-t border-slate-800 hover:bg-slate-900/50">
-                        <td className="px-1 py-1 text-slate-400 whitespace-nowrap">{tableInput(c, "dateSignature", "min-w-24 text-slate-400")}</td>
+                      <tr key={c.id} className="border-t border-border hover:bg-card">
+                        <td className="px-1 py-1 text-muted-foreground whitespace-nowrap">{tableInput(c, "dateSignature", "min-w-24 text-muted-foreground")}</td>
                         <td className="px-1 py-1 font-semibold">{tableInput(c, "enseigne", "min-w-40 font-semibold")}</td>
                         <td className="px-1 py-1 whitespace-nowrap">{tableInput(c, "codePostal", "min-w-16")}</td>
                         <td className="px-1 py-1">{tableInput(c, "ville", "min-w-28")}</td>
                         <td className="px-1 py-1">{tableInput(c, "adresse", "min-w-40")}</td>
                         <td className="px-1 py-1">{tableInput(c, "surface", "min-w-20 text-right")}</td>
                         <td className="px-1 py-1">{tableInput(c, "loyerAnnuel", "min-w-24 text-right")}</td>
-                        <td className="px-1 py-1">{tableInput(c, "loyerM2", "min-w-20 text-right text-orange-300 font-semibold", fmt(loyerM2))}</td>
+                        <td className="px-1 py-1">{tableInput(c, "loyerM2", "min-w-20 text-right text-primary font-semibold", fmt(loyerM2))}</td>
                         <td className="px-1 py-1">{tableInput(c, "prixVente", "min-w-24 text-right")}</td>
-                        <td className="px-1 py-1">{tableInput(c, "prixM2", "min-w-20 text-right text-orange-300 font-semibold", fmt(prixM2))}</td>
-                        <td className="px-1 py-1">{tableInput(c, "rendement", "min-w-20 text-right text-orange-300 font-semibold", isFinite(rendement) ? rendement.toFixed(2) + " %" : "—")}</td>
-                        <td className="px-2 py-1.5"><button onClick={() => removeComparable(c.id)} className="text-red-400 hover:text-red-300">✕</button></td>
+                        <td className="px-1 py-1">{tableInput(c, "prixM2", "min-w-20 text-right text-primary font-semibold", fmt(prixM2))}</td>
+                        <td className="px-1 py-1">{tableInput(c, "rendement", "min-w-20 text-right text-primary font-semibold", isFinite(rendement) ? rendement.toFixed(2) + " %" : "—")}</td>
+                        <td className="px-2 py-1.5"><Button onClick={() => removeComparable(c.id)} className="text-destructive hover:text-destructive">✕</Button></td>
                       </tr>
                     );
                   })}
@@ -4205,15 +4206,15 @@ function SignOutButton() {
     router.navigate({ to: "/auth", replace: true });
   };
   return (
-    <button
+    <Button
       type="button"
       onClick={handleSignOut}
       title="Se déconnecter"
       aria-label="Se déconnecter"
-      className="h-9 w-9 inline-flex items-center justify-center rounded-md border bg-slate-800 text-slate-300 border-slate-700 hover:text-white hover:bg-slate-700"
+      className="h-9 w-9 inline-flex items-center justify-center rounded-md border bg-muted text-muted-foreground border-border hover:text-primary-foreground hover:bg-card"
     >
       <Power size={18} />
-    </button>
+    </Button>
   );
 }
 
@@ -4232,25 +4233,25 @@ function Stepper({ children }: { children: React.ReactNode }) {
     <div className="space-y-4">
       <div className="flex gap-1 overflow-x-auto pb-1">
         {steps.map((c, n) => (
-          <button
+          <Button
             key={n}
             type="button"
             onClick={() => go(n)}
-            className={`shrink-0 rounded-md border px-3 py-2 text-xs font-semibold ${n === cur ? "bg-teal-600 border-teal-500 text-white" : n < cur ? "bg-slate-800 border-teal-800 text-teal-200" : "bg-slate-800 border-slate-700 text-slate-300"}`}
+            className={`shrink-0 rounded-md border px-3 py-2 text-xs font-semibold ${n === cur ? "bg-primary border-border text-primary-foreground" : n < cur ? "bg-muted border-border text-primary" : "bg-muted border-border text-muted-foreground"}`}
           >
             {n + 1}. {label(c, n)}
-          </button>
+          </Button>
         ))}
       </div>
       <div key={cur}>{steps[cur]}</div>
       <div className="flex items-center justify-between gap-3">
-        <button type="button" disabled={cur === 0} onClick={() => go(cur - 1)} className="min-h-11 rounded-md border border-slate-600 bg-slate-800 px-5 text-sm font-semibold text-white disabled:opacity-30">
+        <Button type="button" disabled={cur === 0} onClick={() => go(cur - 1)} className="min-h-11 rounded-md border border-border bg-muted px-5 text-sm font-semibold text-primary-foreground disabled:opacity-30">
           ← Retour
-        </button>
-        <span className="text-xs text-slate-400">Étape {cur + 1} / {steps.length}</span>
-        <button type="button" disabled={cur >= steps.length - 1} onClick={() => go(cur + 1)} className="min-h-11 rounded-md bg-teal-600 px-5 text-sm font-semibold text-white disabled:opacity-30">
+        </Button>
+        <span className="text-xs text-muted-foreground">Étape {cur + 1} / {steps.length}</span>
+        <Button type="button" disabled={cur >= steps.length - 1} onClick={() => go(cur + 1)} className="min-h-11 rounded-md bg-primary px-5 text-sm font-semibold text-primary-foreground disabled:opacity-30">
           Suivant →
-        </button>
+        </Button>
       </div>
     </div>
   );

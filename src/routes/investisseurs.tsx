@@ -242,6 +242,7 @@ function InvestorsPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full sm:w-56"
           />
+          {canEdit && <Button className="min-h-11" variant="outline" onClick={() => {setBands({});setAssetStrategies({});setEditing({...emptyDraft,investor_profile:"Acheteur habitation",asset_classes:["Appartement"],residential_criteria:{}});}}><Plus className="size-4" /> Nouvel acheteur (habitation)</Button>}
           {canEdit && (
             <Dialog
               open={editing !== null}
@@ -307,7 +308,7 @@ function InvestorsPage() {
         {filtered.map((investor) => (
           <CompactRow
             key={investor.id}
-            title={[investor.company, displayName(investor)].filter(Boolean).join(" · ")}
+            title={investor.company?.trim() || displayName(investor)}
             subtitle={[investor.email, investor.phone, investor.city].filter(Boolean).join(" · ")}
             summary={investor.status}
             onOpen={() => setDetail(investor)}

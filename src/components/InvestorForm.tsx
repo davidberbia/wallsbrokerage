@@ -1,3 +1,4 @@
+import { ResidentialFields } from "@/components/ResidentialFields";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -134,6 +135,11 @@ export function InvestorForm({
           )}
         </div>
 
+        {draft.investor_profile === "Acheteur habitation" && <>
+          <Field label="Type recherché"><Select value={draft.asset_classes?.[0] || "Appartement"} onValueChange={v => set({asset_classes:[v]})}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{["Appartement","Maison"].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></Field>
+          <div className="grid gap-4 sm:grid-cols-2">{([ ["budget_min","Budget minimum (€)"], ["budget_max","Budget maximum (€)"] ] as const).map(([key,label]) => <Field key={key} label={label}><Input type="number" min={0} value={draft[key] ?? ""} onChange={e => set({[key]:e.target.value ? Number(e.target.value) : null})} /></Field>)}</div>
+          <ResidentialFields buyer value={draft.residential_criteria ?? {}} onChange={v => set({residential_criteria:v})} />
+        </>}
         <Field label="Notes">
           <Textarea
             rows={3}
@@ -168,6 +174,7 @@ export function InvestorForm({
 
 export function investorPayload(draft: InvestorDraft) {
   return {
+    residential_criteria: draft.residential_criteria ?? {},
     full_name: draft.full_name,
     first_name: draft.first_name ?? null,
     company: draft.company ?? null,

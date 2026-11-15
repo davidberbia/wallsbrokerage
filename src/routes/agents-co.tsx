@@ -1,0 +1,29 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { Plus, Mail, RefreshCw, Download, FileSignature } from "lucide-react";
+import { toast } from "sonner";
+import { AppLayout } from "@/components/AppLayout";
+import { CompactRow, RecordDialog } from "@/components/CompactRow";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { createCommercialAgent, inviteCommercialAgent, sendAgentContract, refreshAgentContracts } from "@/lib/agents.functions";
+export const Route=createFileRoute("/agents-co")({head:()=>({meta:[{title:"Agents Co — Wallsbrokerage"},{name:"description",content:"Registre privé des agents commerciaux et contrats signés."},{property:"og:title",content:"Agents Co — Wallsbrokerage"},{property:"og:description",content:"Gestion sécurisée des comptes et contrats des agents commerciaux."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}),component:()=> <AppLayout requireBroker><AgentsPage/></AppLayout>});
+const EMPTY={first_name:"",last_name:"",email:"",phone:"",address:"",siren:"",birth_date:""};
+function AgentsPage(){
+  const {isSuperAdmin}=useAuth();const qc=useQueryClient();const [selected,setSelected]=useState<string|null>(null);const [newOpen,setNewOpen]=useState(false);const [form,setForm]=useState(EMPTY);const [busy,setBusy]=useState(false);
+  const create=useServerFn(createCommercialAgent);const invite=useServerFn(inviteCommercialAgent);const sign=useServerFn(sendAgentContract);const refreshSign=useServerFn(refreshAgentContracts);
+  const agents=useQuery({queryKey:["commercial-agents"],enabled:isSuperAdmin,queryFn:async()=>{const {data,error}=await supabase.from("commercial_agents").select("*").order("last_name");if(error)throw error;return data ?? [];}});
+  const detail=agents.data?.find(a=>a.id===selected);const refresh=()=>qc.invalidateQueries({queryKey:["commercial-agents"]});
+  const run=async(fn:()=>Promise<unknown>)=>{setBusy(true);try{await fn();await refresh();}catch(e){toast.error(e instanceof Error?e.message:"Échec");}finally{setBusy(false);}};
+  if(!isSuperAdmin)return <p>Accès réservé au super administrateur.</p>;
+  return <div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-2xl">Agents Co</h1><div className="flex gap-2"><Button size="icon" variant="outline" title="Actualiser les signatures" disabled={busy} onClick={()=>run(()=>refreshSign())}><RefreshCw className="size-4"/></Button><Button onClick={()=>{setForm(EMPTY);setNewOpen(true);}}><Plus className="size-4"/>Créer</Button></div></div>
+    <div className="border-y border-border">{agents.data?.map(a=><CompactRow key={a.id} title={`${a.first_name} ${a.last_name}`} subtitle={a.email} summary={a.signature_status || (a.user_id?"Compte créé":"À inviter")} onOpen={()=>setSelected(a.id)} onEdit={()=>setSelected(a.id)}/>)}</div>
+    <RecordDialog title="Nouvel agent commercial" open={newOpen} onClose={()=>setNewOpen(false)}><form className="space-y-4" onSubmit={e=>{e.preventDefault();void run(async()=>{await create({data:form});setNewOpen(false);toast.success("Agent enregistré");});}}>{(Object.keys(EMPTY) as (keyof typeof EMPTY)[]).map(key=><div key={key}><Label htmlFor={`agent-${key}`}>{({first_name:"Prénom",last_name:"Nom",email:"Email",phone:"Téléphone",address:"Adresse",siren:"SIREN (facultatif)",birth_date:"Date de naissance"})[key]}</Label><Input id={`agent-${key}`} required={["first_name","last_name","email"].includes(key)} type={key==="email"?"email":key==="birth_date"?"date":"text"} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/></div>)}<Button disabled={busy} type="submit">Enregistrer</Button></form></RecordDialog>
+    <RecordDialog title={detail?`${detail.first_name} ${detail.last_name}`:"Agent"} open={!!detail} onClose={()=>setSelected(null)}>{detail && <div className="space-y-4"><p>{detail.email} · {detail.phone}</p><p>{detail.address}</p><p>SIREN : {detail.siren || "—"} · Naissance : {detail.birth_date || "—"}</p><Button disabled={busy || !!detail.user_id} onClick={()=>run(async()=>{await invite({data:{id:detail.id}});toast.success("Invitation envoyée");})}><Mail className="size-4"/>Inviter au compte vierge</Button><Label>Contrat PDF validé</Label><Input type="file" accept="application/pdf" disabled={busy || !!detail.envelope_id} onChange={async e=>{const file=e.target.files?.[0];if(!file)return;if(!window.confirm("Envoyer ce contrat validé en signature à vous et à l'agent ?"))return;await run(async()=>{const bytes=new Uint8Array(await file.arrayBuffer());let binary="";for(const b of bytes)binary+=String.fromCharCode(b);await sign({data:{id:detail.id,name:file.name,base64:btoa(binary)}});toast.success("Contrat envoyé");});}}/><p className="text-sm text-muted-foreground">Modèle de contrat attendu pour la génération automatique.</p>{detail.signed_contract_path && <Button variant="outline" onClick={()=>run(async()=>{const {data,error}=await supabase.storage.from("agent-contracts").createSignedUrl(detail.signed_contract_path || "",60);if(error)throw error;if(data)window.open(data.signedUrl,"_blank","noopener,noreferrer");})}><Download className="size-4"/>Contrat signé</Button>}<p><FileSignature className="inline size-4"/> {detail.signature_status || "Non envoyé"}</p></div>}</RecordDialog>
+  </div>;
+}

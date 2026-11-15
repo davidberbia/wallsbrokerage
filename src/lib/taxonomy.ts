@@ -1,5 +1,7 @@
 // Taxonomie reprise à l'identique de l'outil Wallsbrokerage (import du 01/09/2026).
 export const ASSET_CLASSES = [
+  "Appartement",
+  "Maison",
   "Immeubles de bureaux",
   "Plateaux ou lots de bureaux",
   "Murs de commerces de pied d'immeuble",

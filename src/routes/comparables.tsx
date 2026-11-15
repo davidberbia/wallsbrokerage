@@ -1,4 +1,5 @@
 import { CompactRow, RecordDialog } from "@/components/CompactRow";
+import { comparableMetric } from "@/lib/comparable-metrics";
 import { Label } from "@/components/ui/label";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
@@ -418,7 +419,7 @@ function ComparablesPage() {
             subtitle={[r.address, r.asset_class, r.deal_date?.slice(0, 10)]
               .filter(Boolean)
               .join(" · ")}
-            summary={`${fmt(num(r.surface))} m² · ${fmt(num(kind === "location" ? r.rent : r.price))} €`}
+            summary={(() => {const m = comparableMetric(r);return `${m.label} : ${m.value == null ? "à renseigner" : `${fmt(m.value,2)} ${m.unit}`}`;})()}
             onOpen={() => setDetailId(r.id)}
             onEdit={isBroker ? () => setDetailId(r.id) : undefined}
             onDelete={isBroker ? () => void remove(r.id) : undefined}
@@ -433,6 +434,8 @@ function ComparablesPage() {
       <RecordDialog title="Fiche du comparable" open={!!detail} onClose={() => setDetailId(null)}>
         {detail && (
           <div className="grid gap-3 sm:grid-cols-2">
+            {([["keys","Nombre de chambres / clés"],["notary_total","Total droits et frais de notaire (€)"],["agency_pct","Honoraires agence (% HT)"]] as const).map(([key,label]) => <div key={key}><Label>{label}</Label><Input type="number" min="0" disabled={!isBroker} placeholder={key === "agency_pct" ? "3" : ""} defaultValue={String((detail.acquisition_details as Record<string,unknown> | null)?.[key] ?? "")} onBlur={async e => {const next={...(detail.acquisition_details as Record<string,unknown> ?? {}),[key]: e.target.value === "" ? null : Number(e.target.value)};const {error}=await supabase.from("comparables").update({acquisition_details:JSON.parse(JSON.stringify(next))}).eq("id",detail.id);if(error)toast.error(error.message);else qc.invalidateQueries({queryKey:["comparables"]});}} /></div>)}
+
             {[
               ...cols,
               ...(kind === "vente"

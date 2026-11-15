@@ -73,7 +73,7 @@ function normalizeStage(v: unknown): string {
 }
 
 export function DealsTable({ mode }: { mode: Mode }) {
-  const { canEdit } = useAuth();
+  const { canEdit, user } = useAuth();
   const qc = useQueryClient();
   const isMobile = useIsMobile();
   const thisYear = new Date().getFullYear();
@@ -145,7 +145,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
       if (mode === "targets" && v.stage !== TARGET_STAGE)
         toast.success(`Basculé dans « Affaires en cours » (${v.stage})`);
       if (mode === "pipeline" && v.stage === TARGET_STAGE)
-        toast.success("Renvoyé dans « Prospection »");
+        toast.success("Renvoyé dans « À relancer »");
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: refresh,
@@ -159,6 +159,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
         .from("deals")
         .insert({
           name,
+          owner_id: user?.id ?? null,
           name_key: nameKey(name),
           stage: draft.stage,
           amount: parseNum(draft.price),
@@ -263,7 +264,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     }
   };
 
-  const title = mode === "targets" ? "Prospection" : "Affaires en cours";
+  const title = mode === "targets" ? "À relancer" : "Affaires en cours";
 
   return (
     <div className="space-y-4">
@@ -318,17 +319,17 @@ export function DealsTable({ mode }: { mode: Mode }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {mode === "pipeline" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {[
           ["Lignes", String(rows.length)],
           ["Honoraires", eur(totals.fee)],
           [
-            mode === "targets" ? "Prix cumulés" : "CA pondéré",
-            mode === "targets" ? eur(totals.price) : eur(totals.weighted),
+            "CA pondéré",
+            eur(totals.weighted),
           ],
           [
-            mode === "targets" ? "CA pondéré" : "CA réalisé (Acte)",
-            mode === "targets" ? eur(totals.weighted) : eur(realised),
+            "CA réalisé (Acte)",
+            eur(realised),
           ],
         ].map(([k, v]) => (
           <div key={k} className="rounded-sm border border-border bg-card p-3">
@@ -336,7 +337,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
             <div className="font-mono text-base font-semibold">{v}</div>
           </div>
         ))}
-      </div>
+      </div>}
 
       <div className="overflow-hidden border-y border-border">
         {rows.map((d) => (
@@ -344,7 +345,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
             key={d.id}
             title={d.name}
             subtitle={`${d.stage} · ${m2(d.surface)} · Prix ${eur(d.amount)} · Loyer ${eur(d.rent)}`}
-            summary={`Honoraires ${eur(dealFee(d))} · CA pondéré ${eur(weightedFee(d))}`}
+            summary={mode === "targets" ? d.company || d.address : `Honoraires ${eur(dealFee(d))} · CA pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
             onEdit={canEdit ? () => setOpenId(d.id) : undefined}
             onDelete={

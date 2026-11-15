@@ -1,3 +1,4 @@
+import { ResidentialFields } from "@/components/ResidentialFields";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
@@ -127,6 +128,7 @@ function AssetsPage() {
     mutationFn: async (draft: Draft) => {
       const payload = {
         title: draft.title,
+        residential_details: draft.residential_details ?? {},
         reference: draft.reference ?? null,
         asset_class: draft.asset_class ?? null,
         strategy: draft.strategy ?? null,
@@ -588,7 +590,7 @@ function AssetForm({
                 onChange={(e) => set({ rent: parseThousands(e.target.value) })}
               />
             </Field>
-            <Field label="Référence">
+            <Field label="Mandat / Référence">
               <Input
                 value={draft.reference ?? ""}
                 onChange={(e) => set({ reference: e.target.value })}
@@ -641,6 +643,7 @@ function AssetForm({
               />
             </Field>
           </div>
+          { /^(Appartement|Maison)$/.test(draft.asset_class ?? "") && <ResidentialFields value={draft.residential_details ?? {}} onChange={v => set({residential_details:v})} /> }
           <Field label="Documents de l'actif (brochures, annexes — 9 Mo max. par fichier)">
             {(keptDocuments.length > 0 || newFiles.length > 0) && (
               <ul className="mb-2 space-y-1 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
@@ -906,7 +909,7 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
       </div>
       <RecordFacts
         facts={[
-          ["Référence", asset.reference],
+          ["Mandat / Référence", asset.reference],
           ["Type", asset.asset_class],
           ["Transaction", asset.transaction_type],
           ["Adresse", [asset.address, asset.postal_code, asset.city].filter(Boolean).join(" · ")],
@@ -918,10 +921,11 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Statut", asset.status],
           ["Stratégie", asset.strategy],
           ["Description", asset.description],
+          ...Object.entries(asset.residential_details ?? {}).map(([key,value]) => [key, value == null ? null : String(value)] as [string, string | null]),
           ["Propriétaire", asset.owner_name],
           ["Email propriétaire", asset.owner_email],
           ["Téléphone propriétaire", asset.owner_phone],
-          ["Mandat", asset.mandate_type],
+          ["Type de mandat", asset.mandate_type],
           [
             "Exclusivité",
             asset.mandate_exclusive == null

@@ -64,6 +64,20 @@
       "when": 1794685034007,
       "tag": "0008_docusign",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794784387388,
+      "tag": "0009_residential_agents_extraction_queue",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794784630069,
+      "tag": "0010_extraction_wake_and_prospect_notes",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,5 @@
+import { useServerFn } from "@tanstack/react-start";
+import { queueTargetResearch } from "@/lib/extraction.functions";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -61,6 +63,8 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
     },
   });
 
+  const research=useServerFn(queueTargetResearch);
+  const [researchBusy,setResearchBusy]=useState(false);
   const [form, setForm] = useState<(Partial<Deal> & { address?: string | null }) | null>(null);
   const current = form ?? deal.data ?? null;
   const [email, setEmail] = useState("");
@@ -290,27 +294,28 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
             onChange={(e) => set({ vintage: e.target.value === "" ? new Date().getFullYear() : Number(e.target.value) })}
           />
         </div>
-        <div>
+        {current.stage !== "Cible" && <div>
           <Label>Encaissement prévu le</Label>
           <Input
             type="date"
             value={current.expected_payment_at ?? ""}
             onChange={(e) => set({ expected_payment_at: e.target.value || null })}
           />
-        </div>
-        <div>
+        </div>}
+        {current.stage !== "Cible" && <div>
           <Label>Encaissé le</Label>
           <Input
             type="date"
             value={current.paid_at ?? ""}
             onChange={(e) => set({ paid_at: e.target.value || null })}
           />
-        </div>
+        </div>}
         <div className="sm:col-span-2">
           <Label>Notes</Label>
           <Textarea rows={3} value={current.notes ?? ""} onChange={(e) => set({ notes: e.target.value })} />
         </div>
       </div>
+      {current.stage === "Cible" && <Button variant="outline" disabled={researchBusy} onClick={async()=>{setResearchBusy(true);try{await research({data:{id:id}});toast.success("Recherche en attente");}catch(e){toast.error(e instanceof Error ? e.message : "Échec de la recherche");}finally{setResearchBusy(false);}}}>Rechercher les informations publiques</Button>}
       {(current.suggestion || current.enrichment) && (
         <section className="space-y-1 rounded-sm border border-border bg-muted/40 p-3 text-sm">
           {current.suggestion && (

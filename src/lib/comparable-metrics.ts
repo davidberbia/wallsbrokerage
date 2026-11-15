@@ -1,0 +1,21 @@
+export type AcquisitionDetails = {
+  keys?: number; agency_pct?: number; agency_included?: boolean; agency_vat_recoverable?: boolean;
+  reduced_eligible?: boolean; notary_total?: number; departmental_rate?: number;
+};
+export function acquisitionCost(price: number, details: AcquisitionDetails) {
+  if (!(price > 0)) return null;
+  // Departmental rate must be confirmed for the transaction date, never guessed.
+  const notary = details.notary_total ?? (details.reduced_eligible ? price * 0.018 : null);
+  if (notary == null) return null;
+  const agency = details.agency_included ? 0 : price * (details.agency_pct ?? 3) / 100 * (details.agency_vat_recoverable ? 1 : 1.2);
+  return price + notary + agency;
+}
+export function comparableMetric(row: {kind: string; asset_class?: string | null; surface?: number | null; rent?: number | null; rent_m2?: number | null; price?: number | null; price_m2?: number | null; acquisition_details?: unknown}) {
+  const details = (row.acquisition_details ?? {}) as AcquisitionDetails;
+  if (row.kind === "location") return {label: "Loyer/m²/an", value: row.rent_m2 ?? (row.rent != null && Number(row.surface) > 0 ? row.rent / Number(row.surface) : null), unit: "€"};
+  const kind = (row.asset_class ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  if (/hotel/.test(kind)) return {label: "Prix/clé", value: row.price != null && Number(details.keys) > 0 ? row.price / Number(details.keys) : null, unit: "€"};
+  if (/appartement/.test(kind)) return {label: "Prix/m²", value: row.price_m2 ?? (row.price != null && Number(row.surface) > 0 ? row.price / Number(row.surface) : null), unit: "€"};
+  const cost = acquisitionCost(Number(row.price), details);
+  return {label: "Rendement acte en main", value: cost && row.rent != null ? row.rent / cost * 100 : null, unit: "%"};
+}

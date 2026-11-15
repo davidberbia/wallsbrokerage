@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "broker" | "investor" | "viewer";
+export type AppRole = "broker" | "investor" | "viewer" | "admin";
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null);
@@ -49,12 +49,13 @@ export function useAuth() {
     session,
     user: (session?.user ?? null) as User | null,
     role,
-    isBroker: role === "broker",
+    isBroker: role === "broker" || role === "admin",
+    isSuperAdmin: role === "admin",
     isViewer: role === "viewer",
     /** Accès au back-office (courtier ou lecteur). */
-    isStaff: role === "broker" || role === "viewer",
+    isStaff: role === "broker" || role === "viewer" || role === "admin",
     /** Droit de modification / suppression. */
-    canEdit: role === "broker",
+    canEdit: role === "broker" || role === "admin",
     loading: loading || (Boolean(session) && role === null),
   };
 }

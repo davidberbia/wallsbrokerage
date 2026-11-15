@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AQualifierRouteImport } from './routes/a-qualifier'
 import { Route as ActifsRouteImport } from './routes/actifs'
+import { Route as AgentsCoRouteImport } from './routes/agents-co'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrokersRouteImport } from './routes/brokers'
@@ -41,6 +42,7 @@ import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronDailyDigestRouteImport } from './routes/api/public/cron/daily-digest'
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
+import { Route as ApiPublicCronExtractionsRouteImport } from './routes/api/public/cron/extractions'
 import { Route as ApiPublicCronMailscanTickRouteImport } from './routes/api/public/cron/mailscan-tick'
 import { Route as ApiPublicCronMailsyncTickRouteImport } from './routes/api/public/cron/mailsync-tick'
 import { Route as ApiPublicCronTargetsCatchupRouteImport } from './routes/api/public/cron/targets-catchup'
@@ -60,6 +62,11 @@ const AQualifierRoute = AQualifierRouteImport.update({
 const ActifsRoute = ActifsRouteImport.update({
   id: '/actifs',
   path: '/actifs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsCoRoute = AgentsCoRouteImport.update({
+  id: '/agents-co',
+  path: '/agents-co',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArbitrageRoute = ArbitrageRouteImport.update({
@@ -208,6 +215,12 @@ const ApiPublicCronEmailTickRoute = ApiPublicCronEmailTickRouteImport.update({
   path: '/api/public/cron/email-tick',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronExtractionsRoute =
+  ApiPublicCronExtractionsRouteImport.update({
+    id: '/api/public/cron/extractions',
+    path: '/api/public/cron/extractions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronMailscanTickRoute =
   ApiPublicCronMailscanTickRouteImport.update({
     id: '/api/public/cron/mailscan-tick',
@@ -242,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
+  '/agents-co': typeof AgentsCoRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/brokers': typeof BrokersRoute
@@ -271,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
+  '/api/public/cron/extractions': typeof ApiPublicCronExtractionsRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
@@ -281,6 +296,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
+  '/agents-co': typeof AgentsCoRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/brokers': typeof BrokersRoute
@@ -310,6 +326,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
+  '/api/public/cron/extractions': typeof ApiPublicCronExtractionsRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
@@ -321,6 +338,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
+  '/agents-co': typeof AgentsCoRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/brokers': typeof BrokersRoute
@@ -350,6 +368,7 @@ export interface FileRoutesById {
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
+  '/api/public/cron/extractions': typeof ApiPublicCronExtractionsRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
@@ -362,6 +381,7 @@ export interface FileRouteTypes {
     | '/'
     | '/a-qualifier'
     | '/actifs'
+    | '/agents-co'
     | '/arbitrage'
     | '/auth'
     | '/brokers'
@@ -391,6 +411,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
     | '/api/public/cron/email-tick'
+    | '/api/public/cron/extractions'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
     | '/api/public/cron/targets-catchup'
@@ -401,6 +422,7 @@ export interface FileRouteTypes {
     | '/'
     | '/a-qualifier'
     | '/actifs'
+    | '/agents-co'
     | '/arbitrage'
     | '/auth'
     | '/brokers'
@@ -430,6 +452,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
     | '/api/public/cron/email-tick'
+    | '/api/public/cron/extractions'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
     | '/api/public/cron/targets-catchup'
@@ -440,6 +463,7 @@ export interface FileRouteTypes {
     | '/'
     | '/a-qualifier'
     | '/actifs'
+    | '/agents-co'
     | '/arbitrage'
     | '/auth'
     | '/brokers'
@@ -469,6 +493,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
     | '/api/public/cron/email-tick'
+    | '/api/public/cron/extractions'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
     | '/api/public/cron/targets-catchup'
@@ -480,6 +505,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AQualifierRoute: typeof AQualifierRoute
   ActifsRoute: typeof ActifsRoute
+  AgentsCoRoute: typeof AgentsCoRoute
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
   BrokersRoute: typeof BrokersRoute
@@ -509,6 +535,7 @@ export interface RootRouteChildren {
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronDailyDigestRoute: typeof ApiPublicCronDailyDigestRoute
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
+  ApiPublicCronExtractionsRoute: typeof ApiPublicCronExtractionsRoute
   ApiPublicCronMailscanTickRoute: typeof ApiPublicCronMailscanTickRoute
   ApiPublicCronMailsyncTickRoute: typeof ApiPublicCronMailsyncTickRoute
   ApiPublicCronTargetsCatchupRoute: typeof ApiPublicCronTargetsCatchupRoute
@@ -537,6 +564,13 @@ declare module '@tanstack/react-router' {
       path: '/actifs'
       fullPath: '/actifs'
       preLoaderRoute: typeof ActifsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents-co': {
+      id: '/agents-co'
+      path: '/agents-co'
+      fullPath: '/agents-co'
+      preLoaderRoute: typeof AgentsCoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/arbitrage': {
@@ -742,6 +776,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronEmailTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/extractions': {
+      id: '/api/public/cron/extractions'
+      path: '/api/public/cron/extractions'
+      fullPath: '/api/public/cron/extractions'
+      preLoaderRoute: typeof ApiPublicCronExtractionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/mailscan-tick': {
       id: '/api/public/cron/mailscan-tick'
       path: '/api/public/cron/mailscan-tick'
@@ -784,6 +825,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AQualifierRoute: AQualifierRoute,
   ActifsRoute: ActifsRoute,
+  AgentsCoRoute: AgentsCoRoute,
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
   BrokersRoute: BrokersRoute,
@@ -813,6 +855,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronDailyDigestRoute: ApiPublicCronDailyDigestRoute,
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
+  ApiPublicCronExtractionsRoute: ApiPublicCronExtractionsRoute,
   ApiPublicCronMailscanTickRoute: ApiPublicCronMailscanTickRoute,
   ApiPublicCronMailsyncTickRoute: ApiPublicCronMailsyncTickRoute,
   ApiPublicCronTargetsCatchupRoute: ApiPublicCronTargetsCatchupRoute,

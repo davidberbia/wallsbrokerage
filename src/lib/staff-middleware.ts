@@ -12,6 +12,7 @@ export const requireStaffAuth = createMiddleware({ type: "function" })
       const { data: v } = await supabase.rpc("has_role", { _user_id: userId, _role: "viewer" });
       ok = Boolean(v);
     }
+    if (!ok) {const {data:a}=await supabase.rpc("has_role",{_user_id:userId,_role:"admin"});ok=Boolean(a);}
     if (!ok) throw new Error("Accès réservé à l'équipe Wallsbroker");
     return next();
   });

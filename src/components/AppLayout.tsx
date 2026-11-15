@@ -46,9 +46,9 @@ const NAV_ITEMS = [
   { to: "/mandats", label: "Mandats", icon: FileSignature, admin: false },
   { to: "/matching", label: "Matching", icon: Target, admin: false },
   { to: "/envois", label: "Envois", icon: Send, admin: false },
-  { to: "/cibles", label: "Prospection", icon: Crosshair, admin: false },
+  { to: "/cibles", label: "À relancer", icon: Crosshair, admin: false },
   { to: "/investisseurs", label: "Contacts", icon: BookUser, admin: false },
-  { to: "/partager", label: "Veille", icon: Link2, admin: false },
+  { to: "/partager", label: "Extractions", icon: Link2, admin: false },
   { to: "/comparables", label: "Comparables", icon: Scale, admin: false },
   { to: "/parametres", label: "Paramètres", icon: Settings, admin: true },
 ] as const;

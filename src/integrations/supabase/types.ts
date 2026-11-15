@@ -387,6 +387,7 @@ export type Database = {
           reference: string | null
           region: string | null
           rent: number | null
+          residential_details: Json
           status: string
           strategy: string | null
           surface: number | null
@@ -416,6 +417,7 @@ export type Database = {
           reference?: string | null
           region?: string | null
           rent?: number | null
+          residential_details?: Json
           status?: string
           strategy?: string | null
           surface?: number | null
@@ -445,6 +447,7 @@ export type Database = {
           reference?: string | null
           region?: string | null
           rent?: number | null
+          residential_details?: Json
           status?: string
           strategy?: string | null
           surface?: number | null
@@ -843,8 +846,63 @@ export type Database = {
         }
         Relationships: []
       }
+      commercial_agents: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          contract_fields: Json
+          contract_path: string | null
+          created_at: string
+          email: string
+          envelope_id: string | null
+          first_name: string
+          id: string
+          last_name: string
+          phone: string | null
+          signature_status: string | null
+          signed_contract_path: string | null
+          siren: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          contract_fields?: Json
+          contract_path?: string | null
+          created_at?: string
+          email: string
+          envelope_id?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          phone?: string | null
+          signature_status?: string | null
+          signed_contract_path?: string | null
+          siren?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          contract_fields?: Json
+          contract_path?: string | null
+          created_at?: string
+          email?: string
+          envelope_id?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string | null
+          signature_status?: string | null
+          signed_contract_path?: string | null
+          siren?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       comparables: {
         Row: {
+          acquisition_details: Json
           address: string | null
           asset_class: string | null
           city: string | null
@@ -869,6 +927,7 @@ export type Database = {
           yield_pct: number | null
         }
         Insert: {
+          acquisition_details?: Json
           address?: string | null
           asset_class?: string | null
           city?: string | null
@@ -893,6 +952,7 @@ export type Database = {
           yield_pct?: number | null
         }
         Update: {
+          acquisition_details?: Json
           address?: string | null
           asset_class?: string | null
           city?: string | null
@@ -1341,6 +1401,72 @@ export type Database = {
           },
         ]
       }
+      extraction_control: {
+        Row: {
+          deployment_ready: boolean
+          id: boolean
+          lease_until: string | null
+          next_fetch_at: string | null
+          paused_reason: string | null
+        }
+        Insert: {
+          deployment_ready?: boolean
+          id?: boolean
+          lease_until?: string | null
+          next_fetch_at?: string | null
+          paused_reason?: string | null
+        }
+        Update: {
+          deployment_ready?: boolean
+          id?: boolean
+          lease_until?: string | null
+          next_fetch_at?: string | null
+          paused_reason?: string | null
+        }
+        Relationships: []
+      }
+      extraction_jobs: {
+        Row: {
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          lease_until: string | null
+          next_run_at: string
+          owner_id: string
+          result: Json | null
+          status: string
+          target_id: string | null
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind: string
+          lease_until?: string | null
+          next_run_at?: string
+          owner_id: string
+          result?: Json | null
+          status?: string
+          target_id?: string | null
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          id?: string
+          kind?: string
+          lease_until?: string | null
+          next_run_at?: string
+          owner_id?: string
+          result?: Json | null
+          status?: string
+          target_id?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
       followup_reminders: {
         Row: {
           id: string
@@ -1453,6 +1579,7 @@ export type Database = {
           postal_code: string | null
           profile_updated_at: string
           regions: string[]
+          residential_criteria: Json
           status: string
           strategies: string[]
           updated_at: string
@@ -1484,6 +1611,7 @@ export type Database = {
           postal_code?: string | null
           profile_updated_at?: string
           regions?: string[]
+          residential_criteria?: Json
           status?: string
           strategies?: string[]
           updated_at?: string
@@ -1515,6 +1643,7 @@ export type Database = {
           postal_code?: string | null
           profile_updated_at?: string
           regions?: string[]
+          residential_criteria?: Json
           status?: string
           strategies?: string[]
           updated_at?: string
@@ -2018,6 +2147,7 @@ export type Database = {
           full_name: string
           id: string
           job_title: string | null
+          notes: string | null
           phone: string | null
           source_url: string | null
           updated_at: string
@@ -2031,6 +2161,7 @@ export type Database = {
           full_name: string
           id?: string
           job_title?: string | null
+          notes?: string | null
           phone?: string | null
           source_url?: string | null
           updated_at?: string
@@ -2044,6 +2175,7 @@ export type Database = {
           full_name?: string
           id?: string
           job_title?: string | null
+          notes?: string | null
           phone?: string | null
           source_url?: string | null
           updated_at?: string
@@ -2241,12 +2373,38 @@ export type Database = {
       aiscan_stop_internal: { Args: never; Returns: undefined }
       can_see_owner: { Args: { _owner: string }; Returns: boolean }
       cfnews_scrape_schedule: { Args: { _on: boolean }; Returns: undefined }
+      claim_extraction_job: {
+        Args: never
+        Returns: {
+          created_at: string
+          error: string | null
+          id: string
+          kind: string
+          lease_until: string | null
+          next_run_at: string
+          owner_id: string
+          result: Json | null
+          status: string
+          target_id: string | null
+          url: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "extraction_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       claim_investor_profile: { Args: never; Returns: string }
       claim_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
       deal_touch_activity: { Args: { _deal: string }; Returns: undefined }
+      directory_to_prospect: {
+        Args: { _company: string; _id: string }
+        Returns: string
+      }
       email_pump_tick: { Args: never; Returns: undefined }
       has_role: {
         Args: {
@@ -2271,9 +2429,11 @@ export type Database = {
         Args: { _key: string; _limit: number; _window_seconds: number }
         Returns: boolean
       }
+      sleep_extractions_if_empty: { Args: never; Returns: undefined }
       start_email_pump: { Args: never; Returns: undefined }
       targets_catchup_unschedule: { Args: never; Returns: undefined }
       trigger_automation: { Args: { path: string }; Returns: undefined }
+      wake_extractions: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "broker" | "investor" | "viewer" | "admin"

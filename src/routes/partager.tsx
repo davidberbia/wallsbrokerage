@@ -1,3 +1,4 @@
+import { ExtractionSites } from "@/components/ExtractionSites";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -24,13 +25,13 @@ export const Route = createFileRoute("/partager")({
   validateSearch: search,
   head: () => ({
     meta: [
-      { title: "Veille — Walls Brokerage CRM" },
+      { title: "Extractions — Walls Brokerage CRM" },
       {
         name: "description",
         content:
           "Envoyez un article, une vidéo ou un reel : l'IA en extrait contacts, comparables et actualités.",
       },
-      { property: "og:title", content: "Veille — Walls Brokerage CRM" },
+      { property: "og:title", content: "Extractions — Walls Brokerage CRM" },
       {
         property: "og:description",
         content: "Analyse automatique des liens partagés depuis le téléphone.",
@@ -124,7 +125,7 @@ function PartagerPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold">Veille</h1>
+        <h1 className="font-display text-2xl font-semibold">Extractions</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Article, vidéo YouTube, reel Instagram ou TikTok : l'IA regarde la vidéo en entier, en
           tire contacts, actualités et une cible, puis la complète par une recherche web. Sur
@@ -155,6 +156,7 @@ function PartagerPage() {
         </Button>
       </div>
 
+      <ExtractionSites />
       <div className="overflow-hidden border-y border-border">
         {links.map((l) => (
           <CompactRow
@@ -183,7 +185,7 @@ function PartagerPage() {
         )}
       </div>
       <RecordDialog
-        title={detail?.title || "Lien de veille"}
+        title={detail?.title || "Extraction"}
         open={!!detail}
         onClose={() => setDetailId(null)}
       >

@@ -200,6 +200,7 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
               ]}
             />
             <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={async () => {const company = window.prompt("Société du prospect",detail.company || "");if(!company?.trim())return;const {error}=await supabase.rpc("directory_to_prospect",{_id:detail.id,_company:company});if(error)toast.error(error.message);else {toast.success("Déplacé dans Prospects");setDetailId(null);refresh();void qc.invalidateQueries({queryKey:["prospects"]});}}}>Vers Prospects</Button>
               {(Object.keys(LABELS) as Kind[])
                 .filter((k) => k !== kind)
                 .map((k) => (

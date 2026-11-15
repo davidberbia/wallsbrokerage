@@ -51,6 +51,8 @@ type SendRow = {
   tracking_id: string;
   sent_at: string;
   opened_at: string | null;
+  delivered_at: string | null;
+  bounced_at: string | null;
   resent_at: string | null;
   email_to: string | null;
   subject: string | null;
@@ -108,6 +110,7 @@ function mergeRows(list: SendRow[]): MergedRow[] {
       ...(newer ? r : existing),
       attempts: existing.attempts + 1,
       opened_at: existing.opened_at ?? r.opened_at ?? null,
+      delivered_at: existing.delivered_at ?? r.delivered_at ?? null,
       resent_at:
         existing.resent_at ?? r.resent_at ?? (newer ? existing.sent_at : r.sent_at) ?? null,
     };
@@ -151,7 +154,7 @@ function SendsPage() {
       const { data, error } = await supabase
         .from("brochure_sends")
         .select(
-          "id, asset_id, campaign_id, tracking_id, sent_at, opened_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), prospect_contacts(full_name, first_name, email, prospect_companies(name)), campaigns(subject, body_html, brochure_path, brochure_name, documents)",
+          "id, asset_id, campaign_id, tracking_id, sent_at, opened_at, delivered_at, bounced_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), prospect_contacts(full_name, first_name, email, prospect_companies(name)), campaigns(subject, body_html, brochure_path, brochure_name, documents)",
         )
         .order("sent_at", { ascending: false })
         .limit(2000);
@@ -324,6 +327,8 @@ function SendsPage() {
             summary={r.status}
             onOpen={() => setDetail(r)}
             trailing={
+              <>
+              {!r.bounced_at && (r.opened_at || r.delivered_at) && <span title={r.opened_at ? "Ouvert" : "Reçu"} aria-label={r.opened_at ? "Ouvert" : "Reçu"} className={r.opened_at ? "text-success" : "text-muted-foreground"}><Eye className="size-5" /></span>}
               <Button
                 size="icon"
                 variant="ghost"
@@ -335,6 +340,7 @@ function SendsPage() {
               >
                 <RotateCw className="size-4" />
               </Button>
+              </>
             }
           />
         ))}

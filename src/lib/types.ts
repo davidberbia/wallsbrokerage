@@ -13,6 +13,7 @@ export type InvestorCriteria = {
 };
 
 export type Investor = {
+  residential_criteria?: Record<string, string | number | boolean | null>;
   id: string;
   full_name: string;
   first_name: string | null;
@@ -43,6 +44,7 @@ export type Investor = {
 };
 
 export type Asset = {
+  residential_details?: Record<string, string | number | boolean | null>;
   id: string;
   title: string;
   reference: string | null;
