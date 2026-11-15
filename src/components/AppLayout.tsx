@@ -30,6 +30,15 @@ import { useNavCounts } from "@/hooks/useNavCounts";
 import { AssistantBar } from "@/components/AssistantBar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
+const CONTACT_ITEMS = [
+  { to: "/investisseurs", label: "Acquéreurs", icon: Users, admin: false },
+  { to: "/prospects", label: "Prospects", icon: Contact, admin: false },
+  { to: "/brokers", label: "Brokers", icon: Handshake, admin: true },
+  { to: "/notaires", label: "Notaires", icon: Landmark, admin: true },
+  { to: "/contacts", label: "Divers", icon: BookUser, admin: true },
+  { to: "/a-qualifier", label: "À qualifier", icon: Mail, admin: true },
+] as const;
+
 const NAV_ITEMS = [
   { to: "/dossiers", label: "Affaires en cours", icon: FolderKanban, admin: false },
   { to: "/actifs", label: "Actifs", icon: Building2, admin: false },
@@ -38,12 +47,7 @@ const NAV_ITEMS = [
   { to: "/", label: "Matching", icon: Target, admin: false },
   { to: "/envois", label: "Envois", icon: Send, admin: false },
   { to: "/cibles", label: "Prospection", icon: Crosshair, admin: false },
-  { to: "/investisseurs", label: "Acquéreurs", icon: Users, admin: false },
-  { to: "/prospects", label: "Prospects", icon: Contact, admin: false },
-  { to: "/brokers", label: "Brokers", icon: Handshake, admin: true },
-  { to: "/notaires", label: "Notaires", icon: Landmark, admin: true },
-  { to: "/contacts", label: "Contacts divers", icon: BookUser, admin: true },
-  { to: "/a-qualifier", label: "À qualifier", icon: Mail, admin: true },
+  { to: "/investisseurs", label: "Contacts", icon: BookUser, admin: false },
   { to: "/partager", label: "Veille", icon: Link2, admin: false },
   { to: "/comparables", label: "Comparables", icon: Scale, admin: false },
   { to: "/parametres", label: "Paramètres", icon: Settings, admin: true },
@@ -64,6 +68,10 @@ export function AppLayout({
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const contactTabs = CONTACT_ITEMS.filter((item) => item.admin || isBroker);
+  const isContactsPage = CONTACT_ITEMS.some((item) => item.to === pathname);
+  const isActiveNav = (to: string) =>
+    to === "/investisseurs" && isStaff ? isContactsPage : pathname === to;
   const counts = useNavCounts(!!session && isStaff).data;
   const badge = (to: string) => {
     const n = counts?.[to];
@@ -74,7 +82,9 @@ export function AppLayout({
     );
   };
   const NAV = isStaff
-    ? NAV_ITEMS.filter((item) => item.admin || isBroker)
+    ? NAV_ITEMS.filter((item) => item.admin || isBroker).map((item) =>
+        item.label === "Contacts" ? { ...item, to: contactTabs[0]?.to ?? "/investisseurs" } : item,
+      )
     : [...INVESTOR_NAV];
 
   useEffect(() => {
@@ -87,6 +97,14 @@ export function AppLayout({
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!isContactsPage) return;
+    document.querySelector('[data-contact-active="true"]')?.scrollIntoView({
+      block: "nearest",
+      inline: "nearest",
+    });
+  }, [pathname, isContactsPage, loading]);
 
   if (loading || !session || (requireBroker && !isStaff) || (requireAdmin && !isBroker)) {
     return (
@@ -115,7 +133,7 @@ export function AppLayout({
               </SheetHeader>
               <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
                 {NAV.map((item) => {
-                  const active = pathname === item.to;
+                  const active = item.label === "Contacts" ? isContactsPage : isActiveNav(item.to);
                   return (
                     <Link
                       key={item.to}
@@ -129,7 +147,7 @@ export function AppLayout({
                     >
                       <item.icon className="size-5" />
                       {item.label}
-                      {badge(item.to)}
+                      {item.label !== "Contacts" && badge(item.to)}
                     </Link>
                   );
                 })}
@@ -157,15 +175,15 @@ export function AppLayout({
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-1 md:flex">
+          <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto md:flex">
             {NAV.map((item) => {
-              const active = pathname === item.to;
+              const active = item.label === "Contacts" ? isContactsPage : isActiveNav(item.to);
               return (
                 <Link
                   key={item.to}
                   to={item.to}
                   className={cn(
-                    "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                    "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors",
                     active
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
                       : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60",
@@ -173,7 +191,7 @@ export function AppLayout({
                 >
                   <item.icon className="size-4" />
                   {item.label}
-                  {badge(item.to)}
+                  {item.label !== "Contacts" && badge(item.to)}
                 </Link>
               );
             })}
@@ -198,7 +216,34 @@ export function AppLayout({
         </div>
       </header>
       {isStaff && <AssistantBar userId={session.user.id} />}
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-10">{children}</main>
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-10">
+        {isStaff && isContactsPage && (
+          <section className="mb-6 min-w-0" aria-label="Contacts">
+            <h1 className="mb-3 font-display text-2xl font-semibold">Contacts</h1>
+            <nav aria-label="Annuaires de contacts" className="flex max-w-full gap-1 overflow-x-auto border-b border-border">
+              {contactTabs.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  aria-current={pathname === item.to ? "page" : undefined}
+                  data-contact-active={pathname === item.to ? "true" : undefined}
+                  className={cn(
+                    "flex min-h-12 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm transition-colors",
+                    pathname === item.to
+                      ? "border-primary font-semibold text-primary"
+                      : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <item.icon className="size-4" />
+                  {item.label}
+                  {badge(item.to)}
+                </Link>
+              ))}
+            </nav>
+          </section>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

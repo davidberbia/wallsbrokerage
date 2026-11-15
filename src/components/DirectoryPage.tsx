@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 type Kind = "contact" | "broker" | "notary";
 const LABELS: Record<Kind, { plural: string; one: string; desc: string }> = {
   broker: { plural: "Brokers", one: "broker", desc: "Vos confrères, pour partager dossiers et honoraires." },
-  contact: { plural: "Contacts", one: "contact", desc: "Vos contacts professionnels qualifiés." },
+  contact: { plural: "Divers", one: "contact", desc: "Vos contacts professionnels qualifiés." },
   notary: { plural: "Notaires", one: "notaire", desc: "Vos notaires partenaires." },
 };
 const EMPTY = { full_name: "", company: "", email: "", phone: "", job_title: "", notes: "" };

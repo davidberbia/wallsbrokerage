@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Regrouper les six annuaires sous Contacts et vérifier la navigation au toucher sur téléphone et sur ordinateur, sans publication.
+
 - [x] Journaliser les URLs CFNews renvoyant une erreur 404.
 - [x] Continuer le scraping après un 404 sans perdre les données importées.
 - [x] Arrêter proprement la pagination après trois 404 consécutives.
