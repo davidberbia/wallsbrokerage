@@ -151,7 +151,7 @@ export function InvestorForm({
 
       {footer ?? (
         <div className="flex shrink-0 flex-col gap-2 border-t border-border bg-background pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-          {onStrategyClick ? (
+          {onStrategyClick && draft.investor_profile !== "Acheteur habitation" ? (
             <Button
               type="button"
               onClick={onStrategyClick}
@@ -163,7 +163,7 @@ export function InvestorForm({
             <span />
           )}
           <Button className="min-h-11 w-full sm:w-auto" type="submit" disabled={saving}>
-            {saving ? "Enregistrement…" : submitLabel}
+            {saving ? "Enregistrement…" : draft.investor_profile === "Acheteur habitation" ? "Enregistrer l’acheteur" : submitLabel}
           </Button>
         </div>
       )}

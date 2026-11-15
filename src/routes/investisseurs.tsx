@@ -256,7 +256,7 @@ function InvestorsPage() {
               <DialogContent className="flex max-h-[96dvh] max-w-xl flex-col overflow-hidden sm:max-h-[90vh] sm:w-[calc(100%-2rem)]">
                 <DialogHeader>
                   <DialogTitle>
-                    {editing?.id ? "Modifier le profil" : "Nouveau profil investisseur"}
+                    {editing?.id ? "Modifier le profil" : editing?.investor_profile === "Acheteur habitation" ? "Nouvel acheteur habitation" : "Nouvel acquéreur"}
                   </DialogTitle>
                 </DialogHeader>
                 {editing && (

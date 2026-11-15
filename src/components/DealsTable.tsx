@@ -345,7 +345,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
             key={d.id}
             title={d.name}
             subtitle={`${d.stage} · ${m2(d.surface)} · Prix ${eur(d.amount)} · Loyer ${eur(d.rent)}`}
-            summary={mode === "targets" ? d.company || d.address : `Honoraires ${eur(dealFee(d))} · CA pondéré ${eur(weightedFee(d))}`}
+            summary={mode === "targets" ? [d.company,d.address].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · CA pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
             onEdit={canEdit ? () => setOpenId(d.id) : undefined}
             onDelete={

@@ -8,4 +8,7 @@ describe("ratios des comparables", () => {
   it("frais réduits éligibles de 1,8 %", () => expect(acquisitionCost(1000000,{reduced_eligible:true,agency_included:true})).toBe(1018000));
   it("pas de rendement exact sans frais connus", () => expect(acquisitionCost(1000000,{})).toBeNull());
   it("aucune division sans clés", () => expect(comparableMetric({kind:"vente",asset_class:"Hôtel",price:2000000}).value).toBeNull());
+  it("honoraires déjà inclus non comptés deux fois",()=>expect(acquisitionCost(1000000,{notary_total:80000,agency_included:true})).toBe(1080000));
+  it("TVA récupérable : honoraires HT",()=>expect(acquisitionCost(1000000,{notary_total:80000,agency_vat_recoverable:true})).toBe(1110000));
+  it("département Indre au taux de 3,8 en juin 2026",()=>expect(acquisitionCost(1000000,{department:"36",transaction_date:"2026-06-15",agency_included:true})).toBeCloseTo(1063165.3,1));
 });

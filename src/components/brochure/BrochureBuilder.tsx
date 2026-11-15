@@ -138,7 +138,7 @@ const btnSecondary =
   "text-xs px-3 py-1.5 rounded bg-muted hover:bg-card border border-border text-foreground";
 
 const btnPrimary =
-  "text-xs px-3 py-1.5 rounded bg-primary hover:bg-primary border border-border text-foreground font-semibold disabled:opacity-50 disabled:cursor-not-allowed";
+  "text-xs px-3 py-1.5 rounded bg-primary hover:bg-primary border border-border text-primary-foreground font-semibold disabled:opacity-50 disabled:cursor-not-allowed";
 
 const REVENU_LABELS: Array<[keyof BrochureData["revenus"], string]> = [
   ["celibataire", "Célibataire"],
@@ -2417,7 +2417,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
       <header className="border-b border-border bg-card px-0 py-3">
         <div className="flex items-center gap-6 mb-3">
           <div className="text-xs uppercase tracking-normal text-primary shrink-0">WALLSBROKER</div>
-          <h1 className="flex-1 text-center text-[11px] sm:text-sm md:text-base uppercase tracking-normal text-primary-foreground font-semibold whitespace-normal">
+          <h1 className="flex-1 text-center text-[11px] sm:text-sm md:text-base uppercase tracking-normal text-foreground font-semibold whitespace-normal">
             Teaser
           </h1>
           <div className="w-[110px] shrink-0" />
@@ -2522,14 +2522,14 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
         ) : (
           <>
             {pipelineStatus && (
-              <div className="rounded-md border border-border bg-primary px-4 py-2 text-xs text-primary">
+              <div className="rounded-md border border-border bg-primary px-4 py-2 text-xs text-primary-foreground">
                 {pipelineStatus}
               </div>
             )}
             <div className="rounded-md border border-border bg-card p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold">
                 <span className="text-primary">
-                  Actifs de la brochure {otherAssets.length > 0 ? `(${otherAssets.length + 1} actifs — portefeuille)` : "(1 actif)"} — vos saisies sont conservées quand vous changez d’actif
+                  Actifs de la brochure {otherAssets.length > 0 ? `(${otherAssets.length + 1} actifs — portefeuille)` : "(1 actif)"} — 
                 </span>
                 <span
                   role="status"
@@ -2542,7 +2542,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
                 <Button
                   type="button"
                   onClick={() => void saveDraftToCloud(false)}
-                  className="rounded-md border border-border bg-primary px-2 py-1 font-semibold text-primary hover:bg-primary"
+                  className="rounded-md border border-border bg-primary px-2 py-1 font-semibold text-primary-foreground hover:bg-primary"
                 >
                   💾 Sauvegarder sur le serveur
                 </Button>

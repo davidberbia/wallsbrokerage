@@ -1,4 +1,4 @@
-import { ResidentialFields } from "@/components/ResidentialFields";
+import { ResidentialFields, RESIDENTIAL_LABELS } from "@/components/ResidentialFields";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
@@ -511,6 +511,7 @@ function AssetForm({
       )}
       {(fullEdit || step === 0) && (
         <div className="grid gap-4">
+          <Field label="Mandat / Référence"><Input value={draft.reference ?? ""} onChange={e=>set({reference:e.target.value})}/></Field>
           <Field label="Intitulé *">
             <Input required value={draft.title} onChange={(e) => set({ title: e.target.value })} />
           </Field>
@@ -590,12 +591,7 @@ function AssetForm({
                 onChange={(e) => set({ rent: parseThousands(e.target.value) })}
               />
             </Field>
-            <Field label="Mandat / Référence">
-              <Input
-                value={draft.reference ?? ""}
-                onChange={(e) => set({ reference: e.target.value })}
-              />
-            </Field>
+
             <Field label="Stratégie">
               <Choice
                 options={STRATEGIES}
@@ -921,7 +917,7 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Statut", asset.status],
           ["Stratégie", asset.strategy],
           ["Description", asset.description],
-          ...Object.entries(asset.residential_details ?? {}).map(([key,value]) => [key, value == null ? null : String(value)] as [string, string | null]),
+          ...Object.entries(asset.residential_details ?? {}).map(([key,value]) => [RESIDENTIAL_LABELS[key] || key, value == null ? null : String(value)] as [string, string | null]),
           ["Propriétaire", asset.owner_name],
           ["Email propriétaire", asset.owner_email],
           ["Téléphone propriétaire", asset.owner_phone],

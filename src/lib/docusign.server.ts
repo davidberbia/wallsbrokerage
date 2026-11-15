@@ -45,8 +45,8 @@ export async function getDsAccess() {
   const admin = await getAdmin();
   const { data: row } = await admin.from("docusign_auth").select("*").eq("id", true).maybeSingle();
   if (!row?.refresh_token || !row.base_uri || !row.account_id) throw new Error("DocuSign n'est pas connecté (Paramètres)");
-  let token = row.access_token!;
-  if (!row.expires_at || new Date(row.expires_at).getTime() < Date.now() + 120_000) {
+  let token = row.access_token;
+  if (!token || !row.expires_at || new Date(row.expires_at).getTime() < Date.now() + 120_000) {
     const tok = await tokenCall(row.env, new URLSearchParams({ grant_type: "refresh_token", refresh_token: row.refresh_token }));
     token = tok.access_token;
     await admin.from("docusign_auth").update({
@@ -54,5 +54,6 @@ export async function getDsAccess() {
       expires_at: new Date(Date.now() + tok.expires_in * 1000).toISOString(), updated_at: new Date().toISOString(),
     }).eq("id", true);
   }
+  if (!token) throw new Error("DocuSign : connexion à renouveler");
   return { api: `${row.base_uri}/restapi/v2.1/accounts/${row.account_id}`, token, email: row.account_email };
 }

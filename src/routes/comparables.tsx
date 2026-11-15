@@ -1,3 +1,4 @@
+import { AcquisitionFields } from "@/components/AcquisitionFields";
 import { CompactRow, RecordDialog } from "@/components/CompactRow";
 import { comparableMetric } from "@/lib/comparable-metrics";
 import { Label } from "@/components/ui/label";
@@ -434,7 +435,7 @@ function ComparablesPage() {
       <RecordDialog title="Fiche du comparable" open={!!detail} onClose={() => setDetailId(null)}>
         {detail && (
           <div className="grid gap-3 sm:grid-cols-2">
-            {([["keys","Nombre de chambres / clés"],["notary_total","Total droits et frais de notaire (€)"],["agency_pct","Honoraires agence (% HT)"]] as const).map(([key,label]) => <div key={key}><Label>{label}</Label><Input type="number" min="0" disabled={!isBroker} placeholder={key === "agency_pct" ? "3" : ""} defaultValue={String((detail.acquisition_details as Record<string,unknown> | null)?.[key] ?? "")} onBlur={async e => {const next={...(detail.acquisition_details as Record<string,unknown> ?? {}),[key]: e.target.value === "" ? null : Number(e.target.value)};const {error}=await supabase.from("comparables").update({acquisition_details:JSON.parse(JSON.stringify(next))}).eq("id",detail.id);if(error)toast.error(error.message);else qc.invalidateQueries({queryKey:["comparables"]});}} /></div>)}
+            <AcquisitionFields value={detail.acquisition_details as import("@/lib/comparable-metrics").AcquisitionDetails ?? {}} price={detail.price ?? 0} disabled={!isBroker} onChange={async next=>{const {error}=await supabase.from("comparables").update({acquisition_details:JSON.parse(JSON.stringify(next))}).eq("id",detail.id);if(error)toast.error(error.message);else await qc.invalidateQueries({queryKey:["comparables"]});}} />
 
             {[
               ...cols,

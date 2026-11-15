@@ -1,17 +1,17 @@
 # Roadmap
 
-## Demandes du 16 novembre — plan à valider, sans publication
-- [ ] Harmoniser l'interface Teasers avec Wallsbrokerage, sans modifier le rendu des brochures.
-- [ ] Acquéreurs : société prioritaire et nouvel acheteur habitation avec critères usuels.
-- [ ] Envois : vu gris livré, vu vert ouvert selon les événements réels.
-- [ ] Renommer Prospection en À relancer et Veille en Extractions ; retirer encaissements, nombre de lignes et CA pondéré d'À relancer.
-- [ ] Enrichissement public automatique par actif : caractéristiques, occupants, propriétaire, dirigeants et contacts professionnels sourcés, dans le plafond IA existant.
-- [ ] Extractions multi-sites publics autorisés, cadence lente et arrêt sur restrictions ; conserver les extractions de newsletters reçues.
-- [ ] Divers : requalification vers Prospects sans doublons ni perte d'informations.
-- [ ] Comparables : ratios adaptés au type de bien, frais acte en main par département, frais d'agence 3 % HT par défaut.
-- [ ] Agents Co réservé au super administrateur : comptes vierges, données contractuelles, signatures DocuSign et archivage — modèle du contrat attendu de David.
-- [ ] Actifs habitation : Appartement/Maison en tête, caractéristiques facultatives et champ Mandat/Référence unique.
-- [ ] Tests métier, vérifications téléphone et ordinateur, validation des brochures et des signatures avec données autorisées.
+## Demandes du 16 novembre — plan approuvé, sans publication
+- [ ] Teasers : interface CRM harmonisée et ouverture au toucher vérifiée ; validation visuelle des exports contre références encore à réaliser.
+- [x] Acquéreurs : société prioritaire et nouvel acheteur habitation avec critères usuels.
+- [x] Envois : vu gris livré, vu vert ouvert selon les événements réels.
+- [x] Renommer Prospection en À relancer et Veille en Extractions ; retirer encaissements, nombre de lignes et CA pondéré d'À relancer.
+- [ ] Enrichissement : file et déclencheur créés ; recherche réelle Hôtel Pavillon Opéra terminée et résultat lu dans la fiche mobile. Activation automatique bloquée avant publication ; compléter contrôles de reprise/pauses et visibilité des sources structurées.
+- [ ] Extractions multi-sites : interface, file globale, règles robots et séparation des requêtes 5–15 min ajoutées ; tâche 34 volontairement en pause. Finaliser reprise propriétaire, tests complets et protection DNS avant activation. Newsletters écrites conservées ; opportunités seulement vers Cible, aucune modification des affaires manuelles.
+- [x] Divers : requalification vers Prospects sans doublons ni perte d'informations.
+- [ ] Comparables : ratios et frais agence/régime réduit testés, formulaires et taux officiels juin 2026 ajoutés ; périodes hors juin demandent taux confirmé ou total notaire. Compléter l’historique des taux pour les autres dates.
+- [ ] Agents Co : écran, données, invitation séparée, signature PDF et archive privée ajoutés. Génération bloquée par modèle David absent ; signature réelle bloquée par connexion DocuSign absente. Session de test broker : refus admin vérifié, parcours admin complet non vérifié.
+- [x] Actifs habitation : Appartement/Maison en tête, caractéristiques facultatives et champ Mandat/Référence unique.
+- [ ] Vérifications : 19 tests ciblés réussis, six écrans à 390 px sans débordement et formulaire/éditeur/fiches ouverts au toucher. Restent tests desktop, scénario admin, requalification réelle, export référence et signatures autorisées.
 
 - [x] Arrivée sur Affaires en cours, recherche ville/rue et listes compactes avec fiches et pictogrammes ; parcours testés au toucher avec données réelles sur téléphone et sur ordinateur, sans publication. Registre Mandats vide : rendu sans données vérifié, signature non testée.
 

@@ -30,7 +30,7 @@ export function CompactRow({
       {leading && <div className="flex shrink-0 items-center justify-center">{leading}</div>}
       <Button
         variant="ghost"
-        className="h-full min-w-0 flex-1 justify-start overflow-hidden rounded-none px-2 text-left font-normal"
+        className="h-full min-w-0 flex-1 flex-col items-start justify-center sm:flex-row sm:items-center sm:justify-start overflow-hidden rounded-none px-2 text-left font-normal"
         onClick={onOpen}
         aria-label={`Ouvrir ${title}`}
       >
@@ -46,7 +46,7 @@ export function CompactRow({
           </span>
         )}
         {summary && (
-          <span className="hidden shrink-0 text-xs text-muted-foreground lg:block">{summary}</span>
+          <span className="max-w-full truncate text-xs text-muted-foreground lg:shrink-0">{summary}</span>
         )}
       </Button>
       {trailing && <div className="flex shrink-0 items-center gap-1">{trailing}</div>}

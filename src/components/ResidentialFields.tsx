@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export type ResidentialValues = Record<string, string | number | boolean | null>;
+export const RESIDENTIAL_LABELS:Record<string,string>={bedrooms:"Chambres",carrez:"Surface Carrez (m²)",rooms:"Pièces",bathrooms:"Salles de bain",wc:"WC",floor:"Étage",balcony_surface:"Surface balcon (m²)",terrace_surface:"Surface terrasse (m²)",parking:"Stationnements",kitchen:"Cuisine",elevator:"Ascenseur",air_conditioning:"Climatisation",fireplace:"Cheminée",balcony:"Balcon",terrace:"Terrasse",heating:"Chauffage",flooring:"Type de sol"};
 const NUMBERS = [
   ["bedrooms", "Chambres"], ["carrez", "Surface Carrez (m²)"], ["rooms", "Pièces"],
   ["bathrooms", "Salles de bain"], ["wc", "WC"], ["floor", "Étage"],

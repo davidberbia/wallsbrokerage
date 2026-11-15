@@ -237,7 +237,7 @@ function PresentationPage() {
       )}
 
       {assetId && asset && !cover.isLoading && (
-        <div data-brochure-editor className="-mx-4 overflow-hidden rounded-lg sm:mx-0">
+        <div data-brochure-editor className="min-w-0">
           <ClientOnly>
             <Suspense fallback={<Loader2 className="m-6 h-6 w-6 animate-spin" />}>
               <BrochureBuilder {...(seed ? { seed } : {})} onGenerated={onGenerated} />

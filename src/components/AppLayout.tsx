@@ -50,6 +50,7 @@ const NAV_ITEMS = [
   { to: "/investisseurs", label: "Contacts", icon: BookUser, admin: false },
   { to: "/partager", label: "Extractions", icon: Link2, admin: false },
   { to: "/comparables", label: "Comparables", icon: Scale, admin: false },
+  { to: "/agents-co", label: "Agents Co", icon: Users, admin: true },
   { to: "/parametres", label: "Paramètres", icon: Settings, admin: true },
 ] as const;
 
@@ -64,7 +65,7 @@ export function AppLayout({
   requireBroker?: boolean;
   requireAdmin?: boolean;
 }) {
-  const { session, loading, isBroker, isStaff } = useAuth();
+  const { session, loading, isBroker, isStaff, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -82,7 +83,7 @@ export function AppLayout({
     );
   };
   const NAV = isStaff
-    ? NAV_ITEMS.filter((item) => item.admin || isBroker).map((item) =>
+    ? NAV_ITEMS.filter((item) => (item.admin || isBroker) && (item.to !== "/agents-co" || isSuperAdmin)).map((item) =>
         item.label === "Contacts" ? { ...item, to: contactTabs[0]?.to ?? "/investisseurs" } : item,
       )
     : [...INVESTOR_NAV];
