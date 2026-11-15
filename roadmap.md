@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Corriger l’arrivée sur Affaires en cours, ajouter la recherche ville/rue des actifs et uniformiser toutes les listes en lignes compactes cliquables avec fiches et actions éditer/supprimer — plan soumis à validation, sans publication.
+
 - [x] Regrouper les six annuaires sous Contacts et vérifier la navigation au toucher sur téléphone et sur ordinateur, sans publication.
 
 - [x] Journaliser les URLs CFNews renvoyant une erreur 404.
