@@ -1,5 +1,18 @@
 # Roadmap
 
+## Demandes du 16 novembre — plan à valider, sans publication
+- [ ] Harmoniser l'interface Teasers avec Wallsbrokerage, sans modifier le rendu des brochures.
+- [ ] Acquéreurs : société prioritaire et nouvel acheteur habitation avec critères usuels.
+- [ ] Envois : vu gris livré, vu vert ouvert selon les événements réels.
+- [ ] Renommer Prospection en À relancer et Veille en Extractions ; retirer encaissements, nombre de lignes et CA pondéré d'À relancer.
+- [ ] Enrichissement public automatique par actif : caractéristiques, occupants, propriétaire, dirigeants et contacts professionnels sourcés, dans le plafond IA existant.
+- [ ] Extractions multi-sites publics autorisés, cadence lente et arrêt sur restrictions ; conserver les extractions de newsletters reçues.
+- [ ] Divers : requalification vers Prospects sans doublons ni perte d'informations.
+- [ ] Comparables : ratios adaptés au type de bien, frais acte en main par département, frais d'agence 3 % HT par défaut.
+- [ ] Agents Co réservé au super administrateur : comptes vierges, données contractuelles, signatures DocuSign et archivage — modèle du contrat attendu de David.
+- [ ] Actifs habitation : Appartement/Maison en tête, caractéristiques facultatives et champ Mandat/Référence unique.
+- [ ] Tests métier, vérifications téléphone et ordinateur, validation des brochures et des signatures avec données autorisées.
+
 - [x] Arrivée sur Affaires en cours, recherche ville/rue et listes compactes avec fiches et pictogrammes ; parcours testés au toucher avec données réelles sur téléphone et sur ordinateur, sans publication. Registre Mandats vide : rendu sans données vérifié, signature non testée.
 
 - [x] Regrouper les six annuaires sous Contacts et vérifier la navigation au toucher sur téléphone et sur ordinateur, sans publication.
