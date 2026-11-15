@@ -58,6 +58,6 @@
 - [ ] Signature DocuSign — en attente du compte DocuSign de David
 - [x] Objet email sans ville en double ; Modifier/Supprimer dans la sélection
 - [x] Doublons des comparables fusionnés (1 138 → 1 031) ; brochure lit la liste unique du CRM
-- [ ] Comparables restants du générateur — attend l'export Excel depuis le projet Générateur
+- [x] Comparables du fichier Comparables_Wallsbroker.xlsx fusionnés : 100 nouvelles lignes et 28 lignes rapprochées ; sources et différences conservées.
 - [ ] DocuSign : raccorder le compte et envoyer les mandats en signature (propriétaire + David, ordre libre) — modèles fournis plus tard
 - [x] Menu latéral réordonné : Affaires en cours, Actifs, Teasers, Mandats, Matching, Envois, Prospection, Acquéreurs, Prospects, Brokers, Notaires, Contacts divers, À qualifier, Veille, Comparables, Paramètres ; onglet Appels supprimé
