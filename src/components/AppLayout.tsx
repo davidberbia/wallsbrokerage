@@ -44,7 +44,7 @@ const NAV_ITEMS = [
   { to: "/actifs", label: "Actifs", icon: Building2, admin: false },
   { to: "/presentation", label: "Teasers", icon: Presentation, admin: false },
   { to: "/mandats", label: "Mandats", icon: FileSignature, admin: false },
-  { to: "/", label: "Matching", icon: Target, admin: false },
+  { to: "/matching", label: "Matching", icon: Target, admin: false },
   { to: "/envois", label: "Envois", icon: Send, admin: false },
   { to: "/cibles", label: "Prospection", icon: Crosshair, admin: false },
   { to: "/investisseurs", label: "Contacts", icon: BookUser, admin: false },

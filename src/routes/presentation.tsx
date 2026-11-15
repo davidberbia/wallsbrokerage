@@ -1,3 +1,5 @@
+import { useAuth } from "@/hooks/useAuth";
+import { CompactRow } from "@/components/CompactRow";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
 import { lazy, Suspense, useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -6,7 +8,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { openDocument, safeFileName } from "@/lib/documents";
 
 const BrochureBuilder = lazy(() =>
@@ -14,11 +22,16 @@ const BrochureBuilder = lazy(() =>
 );
 
 export const Route = createFileRoute("/presentation")({
-  validateSearch: (s: Record<string, unknown>): { asset?: string | undefined } => ({ asset: typeof s["asset"] === "string" ? s["asset"] : undefined }),
+  validateSearch: (s: Record<string, unknown>): { asset?: string | undefined } => ({
+    asset: typeof s["asset"] === "string" ? s["asset"] : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Teasers — brochures de vente — Walls Brokerage CRM" },
-      { name: "description", content: "Générez étape par étape la brochure de vente PowerPoint d'un actif." },
+      {
+        name: "description",
+        content: "Générez étape par étape la brochure de vente PowerPoint d'un actif.",
+      },
       { property: "og:title", content: "Teasers — Walls Brokerage CRM" },
       { property: "og:description", content: "Génération des brochures de vente par étapes." },
       { property: "og:type", content: "website" },
@@ -32,9 +45,11 @@ export const Route = createFileRoute("/presentation")({
   ),
 });
 
-const fr = (n: number | null | undefined) => (n == null ? "" : new Intl.NumberFormat("fr-FR").format(n));
+const fr = (n: number | null | undefined) =>
+  n == null ? "" : new Intl.NumberFormat("fr-FR").format(n);
 
 function PresentationPage() {
+  const { canEdit } = useAuth();
   const { asset: assetId } = Route.useSearch();
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
@@ -44,7 +59,9 @@ function PresentationPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("assets")
-        .select("id, title, city, surface, price, asset_class, description, address, postal_code, rent, transaction_type")
+        .select(
+          "id, title, city, surface, price, asset_class, description, address, postal_code, rent, transaction_type",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
@@ -122,15 +139,19 @@ function PresentationPage() {
       contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     });
     if (error) throw error;
-    const { count } = await supabase.from("asset_documents").select("id", { count: "exact", head: true }).eq("asset_id", assetId);
-    const { error: e2 } = await supabase.from("asset_documents").insert({ asset_id: assetId, path, name, sort_order: count ?? 0 });
+    const { count } = await supabase
+      .from("asset_documents")
+      .select("id", { count: "exact", head: true })
+      .eq("asset_id", assetId);
+    const { error: e2 } = await supabase
+      .from("asset_documents")
+      .insert({ asset_id: assetId, path, name, sort_order: count ?? 0 });
     if (e2) throw e2;
     toast.success("Brochure enregistrée dans l'actif");
     qc.invalidateQueries({ queryKey: ["presentation-history", assetId] });
   };
 
   const remove = async (id: string, path: string) => {
-    if (!confirm("Supprimer cette brochure ?")) return;
     await supabase.from("asset_documents").delete().eq("id", id);
     await supabase.storage.from("brochures").remove([path]);
     qc.invalidateQueries({ queryKey: ["presentation-history", assetId] });
@@ -140,20 +161,38 @@ function PresentationPage() {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold">Teasers</h1>
-        <p className="text-sm text-muted-foreground">Choisissez un actif puis générez sa brochure étape par étape.</p>
+        <p className="text-sm text-muted-foreground">
+          Choisissez un actif puis générez sa brochure étape par étape.
+        </p>
       </div>
-      <Select value={assetId ?? ""} onValueChange={(v) => navigate({ search: { asset: v } })}>
-        <SelectTrigger className="h-11 w-full max-w-xl">
-          <SelectValue placeholder={assets.isLoading ? "Chargement…" : "Choisir un actif"} />
-        </SelectTrigger>
-        <SelectContent>
+      {!assetId && (
+        <div className="overflow-hidden border-y border-border">
           {(assets.data ?? []).map((a) => (
-            <SelectItem key={a.id} value={a.id}>
-              {a.title}{a.city ? ` — ${a.city}` : ""}
-            </SelectItem>
+            <CompactRow
+              key={a.id}
+              title={[a.city, a.title].filter(Boolean).join(" · ")}
+              subtitle={a.asset_class}
+              onOpen={() => navigate({ search: { asset: a.id } })}
+              onEdit={canEdit ? () => navigate({ search: { asset: a.id } }) : undefined}
+            />
           ))}
-        </SelectContent>
-      </Select>
+        </div>
+      )}
+      {assetId && (
+        <Select value={assetId} onValueChange={(v) => navigate({ search: { asset: v } })}>
+          <SelectTrigger className="h-11 w-full max-w-xl">
+            <SelectValue placeholder="Choisir un actif" />
+          </SelectTrigger>
+          <SelectContent>
+            {(assets.data ?? []).map((a) => (
+              <SelectItem key={a.id} value={a.id}>
+                {a.title}
+                {a.city ? ` — ${a.city}` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       {assetId && (
         <div className="rounded-lg border p-3">
@@ -161,16 +200,34 @@ function PresentationPage() {
           {history.data?.length ? (
             <ul className="space-y-1">
               {history.data.map((d) => (
-                <li key={d.id} className="flex items-center gap-2 text-sm">
-                  <span className="min-w-0 flex-1 truncate">{d.name}</span>
-                  <span className="hidden text-xs text-muted-foreground sm:inline">{new Date(d.created_at).toLocaleString("fr-FR")}</span>
-                  <Button size="icon" variant="ghost" className="h-10 w-10" aria-label="Télécharger" onClick={() => openDocument(d.path)}>
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" className="h-10 w-10" aria-label="Supprimer" onClick={() => remove(d.id, d.path)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </li>
+                <CompactRow
+                  key={d.id}
+                  title={d.name}
+                  subtitle={new Date(d.created_at).toLocaleString("fr-FR")}
+                  onOpen={() => void openDocument(d.path)}
+                  onEdit={
+                    canEdit
+                      ? () => {
+                          document
+                            .querySelector("[data-brochure-editor]")
+                            ?.scrollIntoView({ behavior: "smooth" });
+                        }
+                      : undefined
+                  }
+                  onDelete={canEdit ? () => void remove(d.id, d.path) : undefined}
+                  trailing={
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="size-11"
+                      aria-label={`Télécharger ${d.name}`}
+                      title="Télécharger"
+                      onClick={() => void openDocument(d.path)}
+                    >
+                      <Download className="size-4" />
+                    </Button>
+                  }
+                />
               ))}
             </ul>
           ) : (
@@ -180,11 +237,11 @@ function PresentationPage() {
       )}
 
       {assetId && asset && !cover.isLoading && (
-        <div className="-mx-4 overflow-hidden rounded-lg sm:mx-0">
+        <div data-brochure-editor className="-mx-4 overflow-hidden rounded-lg sm:mx-0">
           <ClientOnly>
-          <Suspense fallback={<Loader2 className="m-6 h-6 w-6 animate-spin" />}>
-            <BrochureBuilder {...(seed ? { seed } : {})} onGenerated={onGenerated} />
-          </Suspense>
+            <Suspense fallback={<Loader2 className="m-6 h-6 w-6 animate-spin" />}>
+              <BrochureBuilder {...(seed ? { seed } : {})} onGenerated={onGenerated} />
+            </Suspense>
           </ClientOnly>
         </div>
       )}

@@ -22,6 +22,7 @@ import { Route as DossiersRouteImport } from './routes/dossiers'
 import { Route as EnvoisRouteImport } from './routes/envois'
 import { Route as InvestisseursRouteImport } from './routes/investisseurs'
 import { Route as MandatsRouteImport } from './routes/mandats'
+import { Route as MatchingRouteImport } from './routes/matching'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as NotairesRouteImport } from './routes/notaires'
 import { Route as ParametresRouteImport } from './routes/parametres'
@@ -109,6 +110,11 @@ const InvestisseursRoute = InvestisseursRouteImport.update({
 const MandatsRoute = MandatsRouteImport.update({
   id: '/mandats',
   path: '/mandats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchingRoute = MatchingRouteImport.update({
+  id: '/matching',
+  path: '/matching',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MonProfilRoute = MonProfilRouteImport.update({
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mandats': typeof MandatsRoute
+  '/matching': typeof MatchingRoute
   '/mon-profil': typeof MonProfilRoute
   '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
@@ -284,6 +291,7 @@ export interface FileRoutesByTo {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mandats': typeof MandatsRoute
+  '/matching': typeof MatchingRoute
   '/mon-profil': typeof MonProfilRoute
   '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
@@ -323,6 +331,7 @@ export interface FileRoutesById {
   '/envois': typeof EnvoisRoute
   '/investisseurs': typeof InvestisseursRoute
   '/mandats': typeof MandatsRoute
+  '/matching': typeof MatchingRoute
   '/mon-profil': typeof MonProfilRoute
   '/notaires': typeof NotairesRoute
   '/parametres': typeof ParametresRoute
@@ -363,6 +372,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mandats'
+    | '/matching'
     | '/mon-profil'
     | '/notaires'
     | '/parametres'
@@ -401,6 +411,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mandats'
+    | '/matching'
     | '/mon-profil'
     | '/notaires'
     | '/parametres'
@@ -439,6 +450,7 @@ export interface FileRouteTypes {
     | '/envois'
     | '/investisseurs'
     | '/mandats'
+    | '/matching'
     | '/mon-profil'
     | '/notaires'
     | '/parametres'
@@ -478,6 +490,7 @@ export interface RootRouteChildren {
   EnvoisRoute: typeof EnvoisRoute
   InvestisseursRoute: typeof InvestisseursRoute
   MandatsRoute: typeof MandatsRoute
+  MatchingRoute: typeof MatchingRoute
   MonProfilRoute: typeof MonProfilRoute
   NotairesRoute: typeof NotairesRoute
   ParametresRoute: typeof ParametresRoute
@@ -594,6 +607,13 @@ declare module '@tanstack/react-router' {
       path: '/mandats'
       fullPath: '/mandats'
       preLoaderRoute: typeof MandatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/matching': {
+      id: '/matching'
+      path: '/matching'
+      fullPath: '/matching'
+      preLoaderRoute: typeof MatchingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mon-profil': {
@@ -774,6 +794,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnvoisRoute: EnvoisRoute,
   InvestisseursRoute: InvestisseursRoute,
   MandatsRoute: MandatsRoute,
+  MatchingRoute: MatchingRoute,
   MonProfilRoute: MonProfilRoute,
   NotairesRoute: NotairesRoute,
   ParametresRoute: ParametresRoute,

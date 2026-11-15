@@ -1,17 +1,28 @@
+import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { CopyEmail } from "@/components/CopyEmail";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type Kind = "contact" | "broker" | "notary";
 const LABELS: Record<Kind, { plural: string; one: string; desc: string }> = {
-  broker: { plural: "Brokers", one: "broker", desc: "Vos confrères, pour partager dossiers et honoraires." },
+  broker: {
+    plural: "Brokers",
+    one: "broker",
+    desc: "Vos confrères, pour partager dossiers et honoraires.",
+  },
   contact: { plural: "Divers", one: "contact", desc: "Vos contacts professionnels qualifiés." },
   notary: { plural: "Notaires", one: "notaire", desc: "Vos notaires partenaires." },
 };
@@ -20,6 +31,8 @@ const EMPTY = { full_name: "", company: "", email: "", phone: "", job_title: "",
 export function DirectoryPage({ kind }: { kind: Kind }) {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(EMPTY);
   const title = LABELS[kind].plural;
@@ -41,7 +54,11 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
   const rows = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return data;
-    return data.filter((r) => [r.full_name, r.company, r.email, r.phone, r.job_title].some((v) => v?.toLowerCase().includes(q)));
+    return data.filter((r) =>
+      [r.full_name, r.company, r.email, r.phone, r.job_title].some((v) =>
+        v?.toLowerCase().includes(q),
+      ),
+    );
   }, [data, search]);
 
   const refresh = () => {
@@ -51,14 +68,28 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
 
   const add = useMutation({
     mutationFn: async () => {
-      const clean = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, v.trim() || null]));
-      if (!clean["full_name"] && !clean["company"] && !clean["email"]) throw new Error("Indiquez au moins un nom, une société ou un email.");
-      const { error } = await supabase.from("directory_contacts").insert({ ...clean, kind });
-      if (error) throw new Error(error.code === "23505" ? "Cet email est déjà dans l'annuaire." : error.message);
+      const clean = {
+        full_name: form.full_name.trim() || null,
+        company: form.company.trim() || null,
+        email: form.email.trim() || null,
+        phone: form.phone.trim() || null,
+        job_title: form.job_title.trim() || null,
+        notes: form.notes.trim() || null,
+      };
+      if (!clean["full_name"] && !clean["company"] && !clean["email"])
+        throw new Error("Indiquez au moins un nom, une société ou un email.");
+      const { error } = editingId
+        ? await supabase.from("directory_contacts").update(clean).eq("id", editingId)
+        : await supabase.from("directory_contacts").insert({ ...clean, kind });
+      if (error)
+        throw new Error(
+          error.code === "23505" ? "Cet email est déjà dans l'annuaire." : error.message,
+        );
     },
     onSuccess: () => {
       toast.success(`${LABELS[kind].plural} : fiche ajoutée`);
       setForm(EMPTY);
+      setEditingId(null);
       setOpen(false);
       refresh();
     },
@@ -74,28 +105,51 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
     }
   };
   const remove = async (id: string) => {
-    if (!confirm("Supprimer définitivement cette fiche ?")) return;
     const { error } = await supabase.from("directory_contacts").delete().eq("id", id);
     if (error) toast.error(error.message);
     else refresh();
   };
 
+  const detail = data.find((r) => r.id === detailId);
+  const edit = (r: (typeof data)[number]) => {
+    setEditingId(r.id);
+    setForm({
+      full_name: r.full_name ?? "",
+      company: r.company ?? "",
+      email: r.email ?? "",
+      phone: r.phone ?? "",
+      job_title: r.job_title ?? "",
+      notes: r.notes ?? "",
+    });
+    setDetailId(null);
+    setOpen(true);
+  };
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="eyebrow">Annuaire</p>
           <h1 className="mt-1 text-3xl">{title}</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            {LABELS[kind].desc}
-          </p>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{LABELS[kind].desc}</p>
         </div>
-        <Button className="min-h-11 sm:min-h-9" onClick={() => setOpen(true)}>
+        <Button
+          className="min-h-11 sm:min-h-9"
+          onClick={() => {
+            setForm(EMPTY);
+            setEditingId(null);
+            setOpen(true);
+          }}
+        >
           <Plus className="size-4" /> Ajouter
         </Button>
       </div>
 
-      <Input placeholder="Rechercher un nom, une société, un email…" value={search} onChange={(e) => setSearch(e.target.value)} className="w-full sm:w-80" />
+      <Input
+        placeholder="Rechercher un nom, une société, un email…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full sm:w-80"
+      />
 
       {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
       {!isLoading && rows.length === 0 && (
@@ -104,46 +158,73 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
         </div>
       )}
 
-      <div className="grid min-w-0 grid-cols-1 gap-3">
+      <div className="overflow-hidden border-y border-border">
         {rows.map((r) => (
-          <div key={r.id} className="panel flex min-w-0 flex-col gap-3 overflow-hidden p-4 md:flex-row md:items-start">
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <p className="truncate font-semibold">{r.company || "—"}</p>
-              <p className="truncate text-sm">{r.full_name || "—"}</p>
-              <p className="truncate text-sm text-muted-foreground">{r.job_title || ""}</p>
-              {r.notes && <p className="pt-1 text-xs text-muted-foreground whitespace-pre-line">{r.notes}</p>}
-            </div>
-            <div className="min-w-0 space-y-0.5 md:w-64">
-              {r.email && (
-                <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <span className="truncate">{r.email}</span>
-                  <CopyEmail email={r.email} />
-                </p>
-              )}
-              {r.phone && (
-                <a href={`tel:${r.phone.replace(/\s/g, "")}`} className="text-sm text-muted-foreground underline-offset-2 hover:underline">
-                  {r.phone}
-                </a>
-              )}
-            </div>
-            <div className="flex shrink-0 flex-wrap gap-2">
-              {(Object.keys(LABELS) as Kind[]).filter((k) => k !== kind).map((k) => (
-                <Button key={k} variant="outline" size="sm" className="min-h-10 sm:min-h-8" onClick={() => move(r.id, k)}>
-                  Vers {LABELS[k].plural}
-                </Button>
-              ))}
-              <Button variant="ghost" size="icon" aria-label="Supprimer" onClick={() => remove(r.id)}>
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
-          </div>
+          <CompactRow
+            key={r.id}
+            title={[r.company, r.full_name || r.email].filter(Boolean).join(" · ")}
+            subtitle={[r.email, r.phone, r.job_title].filter(Boolean).join(" · ")}
+            onOpen={() => setDetailId(r.id)}
+            onEdit={() => edit(r)}
+            onDelete={() => void remove(r.id)}
+          />
         ))}
       </div>
+      <RecordDialog
+        title={detail?.full_name || detail?.company || "Contact"}
+        open={!!detail}
+        onClose={() => setDetailId(null)}
+      >
+        {detail && (
+          <>
+            <Button onClick={() => edit(detail)}>
+              <Pencil className="size-4" /> Modifier
+            </Button>
+            <RecordFacts
+              facts={[
+                ["Nom", detail.full_name],
+                ["Société", detail.company],
+                ["Fonction", detail.job_title],
+                [
+                  "Email",
+                  <span className="flex items-center gap-1 break-all">
+                    {detail.email}
+                    <CopyEmail email={detail.email} />
+                  </span>,
+                ],
+                [
+                  "Téléphone",
+                  detail.phone ? <a href={`tel:${detail.phone}`}>{detail.phone}</a> : null,
+                ],
+                ["Notes", detail.notes],
+              ]}
+            />
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(LABELS) as Kind[])
+                .filter((k) => k !== kind)
+                .map((k) => (
+                  <Button
+                    key={k}
+                    variant="outline"
+                    onClick={() => {
+                      void move(detail.id, k);
+                      setDetailId(null);
+                    }}
+                  >
+                    Vers {LABELS[k].plural}
+                  </Button>
+                ))}
+            </div>
+          </>
+        )}
+      </RecordDialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Nouvelle fiche — {LABELS[kind].one}</DialogTitle>
+            <DialogTitle>
+              {editingId ? "Modifier la fiche" : "Nouvelle fiche"} — {LABELS[kind].one}
+            </DialogTitle>
           </DialogHeader>
           <form
             className="grid gap-3"
@@ -152,12 +233,39 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
               add.mutate();
             }}
           >
-            <Input placeholder="Nom complet" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
-            <Input placeholder="Société" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
-            <Input placeholder="Fonction" value={form.job_title} onChange={(e) => setForm({ ...form, job_title: e.target.value })} />
-            <Input type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-            <Input type="tel" placeholder="Téléphone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-            <Textarea placeholder="Notes (dossiers partagés, clé de répartition des honoraires…)" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={3} />
+            <Input
+              placeholder="Nom complet"
+              value={form.full_name}
+              onChange={(e) => setForm({ ...form, full_name: e.target.value })}
+            />
+            <Input
+              placeholder="Société"
+              value={form.company}
+              onChange={(e) => setForm({ ...form, company: e.target.value })}
+            />
+            <Input
+              placeholder="Fonction"
+              value={form.job_title}
+              onChange={(e) => setForm({ ...form, job_title: e.target.value })}
+            />
+            <Input
+              type="email"
+              placeholder="Email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+            <Input
+              type="tel"
+              placeholder="Téléphone"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+            />
+            <Textarea
+              placeholder="Notes (dossiers partagés, clé de répartition des honoraires…)"
+              value={form.notes}
+              onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              rows={3}
+            />
             <DialogFooter>
               <Button type="submit" className="min-h-11 w-full sm:w-auto" disabled={add.isPending}>
                 {add.isPending ? "Enregistrement…" : "Enregistrer"}

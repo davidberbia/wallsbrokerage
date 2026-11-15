@@ -1,3 +1,4 @@
+import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,9 +25,16 @@ export const Route = createFileRoute("/partager")({
   head: () => ({
     meta: [
       { title: "Veille — Walls Brokerage CRM" },
-      { name: "description", content: "Envoyez un article, une vidéo ou un reel : l'IA en extrait contacts, comparables et actualités." },
+      {
+        name: "description",
+        content:
+          "Envoyez un article, une vidéo ou un reel : l'IA en extrait contacts, comparables et actualités.",
+      },
       { property: "og:title", content: "Veille — Walls Brokerage CRM" },
-      { property: "og:description", content: "Analyse automatique des liens partagés depuis le téléphone." },
+      {
+        property: "og:description",
+        content: "Analyse automatique des liens partagés depuis le téléphone.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -48,9 +56,13 @@ function findUrl(...parts: (string | undefined)[]) {
 
 function PartagerPage() {
   const params = Route.useSearch();
-  const { session } = useAuth();
+  const { session, canEdit } = useAuth();
   const qc = useQueryClient();
   const send = useServerFn(submitLink);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editNote, setEditNote] = useState("");
   const [url, setUrl] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -61,7 +73,11 @@ function PartagerPage() {
     enabled: !!session,
     refetchInterval: 15000,
     queryFn: async () => {
-      const { data } = await supabase.from("shared_links").select("*").order("created_at", { ascending: false }).limit(100);
+      const { data } = await supabase
+        .from("shared_links")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
       return data ?? [];
     },
   });
@@ -74,7 +90,9 @@ function PartagerPage() {
     setBusy(true);
     try {
       const r = await send({ data: { url: u, note: n || undefined, force } });
-      toast.success(r.already ? "Ce lien avait déjà été analysé." : "Lien analysé et ajouté au CRM.");
+      toast.success(
+        r.already ? "Ce lien avait déjà été analysé." : "Lien analysé et ajouté au CRM.",
+      );
       setUrl("");
       setNote("");
     } catch (e) {
@@ -102,53 +120,135 @@ function PartagerPage() {
     qc.invalidateQueries({ queryKey: ["shared_links"] });
   };
 
+  const detail = links.find((l) => l.id === detailId);
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Veille</h1>
+        <h1 className="font-display text-2xl font-semibold">Veille</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Article, vidéo YouTube, reel Instagram ou TikTok : l'IA regarde la vidéo en entier, en tire contacts, actualités et une cible, puis la complète par une recherche web.
-          Sur téléphone, utilisez simplement le bouton « Partager » puis « Wallsbroker ».
+          Article, vidéo YouTube, reel Instagram ou TikTok : l'IA regarde la vidéo en entier, en
+          tire contacts, actualités et une cible, puis la complète par une recherche web. Sur
+          téléphone, utilisez simplement le bouton « Partager » puis « Wallsbroker ».
         </p>
       </div>
 
       <div className="space-y-3 rounded-lg border border-border bg-card p-4">
-        <Input placeholder="https://…" value={url} onChange={(e) => setUrl(e.target.value)} inputMode="url" />
-        <Textarea placeholder="Remarque (facultatif)" value={note} onChange={(e) => setNote(e.target.value)} rows={2} />
-        <Button onClick={() => go(url.trim(), note.trim())} disabled={busy || !url.trim()} className="min-h-11 w-full sm:w-auto">
+        <Input
+          placeholder="https://…"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          inputMode="url"
+        />
+        <Textarea
+          placeholder="Remarque (facultatif)"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          rows={2}
+        />
+        <Button
+          onClick={() => go(url.trim(), note.trim())}
+          disabled={busy || !url.trim()}
+          className="min-h-11 w-full sm:w-auto"
+        >
           {busy ? <Loader2 className="size-4 animate-spin" /> : <Link2 className="size-4" />}
           {busy ? "Analyse en cours…" : "Analyser le lien"}
         </Button>
       </div>
 
-      <ul className="space-y-3">
+      <div className="overflow-hidden border-y border-border">
         {links.map((l) => (
-          <li key={l.id} className="rounded-lg border border-border bg-card p-4">
-            <div className="flex items-start gap-3">
-              <div className="min-w-0 flex-1">
-                <a href={l.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 font-medium hover:underline">
-                  <span className="truncate">{l.title || l.url}</span>
-                  <ExternalLink className="size-3.5 shrink-0" />
-                </a>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {new Date(l.created_at).toLocaleString("fr-FR")} · {l.status}
-                  {l.status === "analysé" &&
-                    ` · ${l.found_contacts} contact(s), ${l.found_news} actualité(s) · cible ajoutée`}
-                </p>
-              </div>
-              <Button variant="ghost" size="icon" disabled={busy} onClick={() => go(l.url, l.note ?? "", true)} aria-label="Relancer l'analyse">
-                <RefreshCw className={busy ? "size-4 animate-spin" : "size-4"} />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => remove(l.id)} aria-label="Supprimer">
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
-            {l.summary && <p className="mt-2 whitespace-pre-line text-sm">{l.summary}</p>}
-            {l.error && <p className="mt-2 text-sm text-destructive">{l.error}</p>}
-          </li>
+          <CompactRow
+            key={l.id}
+            title={l.title || l.url}
+            subtitle={`${new Date(l.created_at).toLocaleString("fr-FR")} · ${l.status}`}
+            onOpen={() => {
+              setDetailId(l.id);
+              setEditing(false);
+            }}
+            onEdit={
+              canEdit
+                ? () => {
+                    setDetailId(l.id);
+                    setEditing(true);
+                    setEditTitle(l.title ?? "");
+                    setEditNote(l.note ?? "");
+                  }
+                : undefined
+            }
+            onDelete={canEdit ? () => void remove(l.id) : undefined}
+          />
         ))}
-        {!links.length && <p className="text-sm text-muted-foreground">Aucun lien pour l'instant.</p>}
-      </ul>
+        {!links.length && (
+          <p className="py-4 text-sm text-muted-foreground">Aucun lien pour l’instant.</p>
+        )}
+      </div>
+      <RecordDialog
+        title={detail?.title || "Lien de veille"}
+        open={!!detail}
+        onClose={() => setDetailId(null)}
+      >
+        {detail && (
+          <>
+            {editing ? (
+              <form
+                className="space-y-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void (async () => {
+                    const { error } = await supabase
+                      .from("shared_links")
+                      .update({ title: editTitle, note: editNote })
+                      .eq("id", detail.id);
+                    if (error) toast.error(error.message);
+                    else {
+                      setEditing(false);
+                      void qc.invalidateQueries({ queryKey: ["shared_links"] });
+                    }
+                  })();
+                }}
+              >
+                <label className="grid gap-1 text-sm">
+                  Titre
+                  <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+                </label>
+                <label className="grid gap-1 text-sm">
+                  Remarque
+                  <Textarea value={editNote} onChange={(e) => setEditNote(e.target.value)} />
+                </label>
+                <Button type="submit">Enregistrer</Button>
+              </form>
+            ) : (
+              <RecordFacts
+                facts={[
+                  [
+                    "Lien",
+                    <a
+                      className="break-all underline"
+                      href={detail.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {detail.url}
+                    </a>,
+                  ],
+                  ["Date", new Date(detail.created_at).toLocaleString("fr-FR")],
+                  ["Statut", detail.status],
+                  ["Remarque", detail.note],
+                  ["Résumé", detail.summary],
+                  ["Erreur", detail.error],
+                ]}
+              />
+            )}
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => go(detail.url, detail.note ?? "", true)}
+            >
+              <RefreshCw className="size-4" /> Relancer l’analyse
+            </Button>
+          </>
+        )}
+      </RecordDialog>
     </div>
   );
 }

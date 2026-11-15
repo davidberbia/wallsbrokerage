@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Corriger l’arrivée sur Affaires en cours, ajouter la recherche ville/rue des actifs et uniformiser toutes les listes en lignes compactes cliquables avec fiches et actions éditer/supprimer — plan soumis à validation, sans publication.
+- [x] Arrivée sur Affaires en cours, recherche ville/rue et listes compactes avec fiches et pictogrammes ; parcours testés au toucher avec données réelles sur téléphone et sur ordinateur, sans publication. Registre Mandats vide : rendu sans données vérifié, signature non testée.
 
 - [x] Regrouper les six annuaires sous Contacts et vérifier la navigation au toucher sur téléphone et sur ordinateur, sans publication.
 

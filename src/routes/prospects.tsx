@@ -1,3 +1,6 @@
+import { useAuth } from "@/hooks/useAuth";
+import { CompactRow, RecordDialog } from "@/components/CompactRow";
+import { Pencil } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -12,10 +15,7 @@ import {
   X,
 } from "lucide-react";
 import type { BandsByAsset } from "@/components/AssetClassBands";
-import {
-  StrategyMatrixDialog,
-  type StrategiesByAsset,
-} from "@/components/StrategyMatrixDialog";
+import { StrategyMatrixDialog, type StrategiesByAsset } from "@/components/StrategyMatrixDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
@@ -155,6 +155,12 @@ function toTaxonomyClasses(stored: string[], taxonomy: readonly string[]): strin
 }
 
 function ProspectsPage() {
+  const { canEdit } = useAuth();
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [companyName, setCompanyName] = useState("");
+  const [companyCity, setCompanyCity] = useState("");
+  const [companySector, setCompanySector] = useState("");
+  const [companyView, setCompanyView] = useState(false);
   const [companyQuery, setCompanyQuery] = useState("");
   const [nameQuery, setNameQuery] = useState("");
   const [cityQuery, setCityQuery] = useState("");
@@ -179,7 +185,15 @@ function ProspectsPage() {
   const { investorProfiles, assetClasses: taxonomyClasses } = useLists();
 
   const companies = useQuery({
-    queryKey: ["prospect-companies", companyQuery, nameQuery, cityQuery, emailFilter, profileFilter, sort],
+    queryKey: [
+      "prospect-companies",
+      companyQuery,
+      nameQuery,
+      cityQuery,
+      emailFilter,
+      profileFilter,
+      sort,
+    ],
     queryFn: async () => {
       let ids: string[] | null = null;
       if (nameQuery.trim()) {
@@ -222,7 +236,8 @@ function ProspectsPage() {
       if (ids) q = q.in("id", ids);
       if (profileFilter === "sans_profil") q = q.is("investor_profile", null);
       else if (profileFilter !== "tous") q = q.eq("investor_profile", profileFilter);
-      if (sort === "city") q = q.order("city", { ascending: true, nullsFirst: false }).order("name");
+      if (sort === "city")
+        q = q.order("city", { ascending: true, nullsFirst: false }).order("name");
       else q = q.order("name");
       const { data, error } = await q;
       if (error) throw error;
@@ -278,6 +293,9 @@ function ProspectsPage() {
   useEffect(() => {
     if (!openCompany) return;
     setAddress(openCompany.address ?? "");
+    setCompanyName(openCompany.name);
+    setCompanyCity(openCompany.city ?? "");
+    setCompanySector(openCompany.sector ?? "");
     setProfile(openCompany.investor_profile ?? "");
     const bands = openCompany.bands ?? {};
     const strategiesByAsset = openCompany.strategies_by_asset ?? {};
@@ -315,6 +333,9 @@ function ProspectsPage() {
       const { error: upError } = await supabase
         .from("prospect_companies")
         .update({
+          name: companyName.trim() || company.name,
+          city: companyCity.trim() || null,
+          sector: companySector.trim() || null,
           address: address.trim() || null,
           investor_profile: profile || null,
           asset_classes: matrix.assetClasses,
@@ -333,9 +354,7 @@ function ProspectsPage() {
 
       const primary = withEmail[0]!;
       const notes = list
-        .map((c) =>
-          [c.full_name, c.job_title, c.email, c.phone].filter(Boolean).join(" — "),
-        )
+        .map((c) => [c.full_name, c.job_title, c.email, c.phone].filter(Boolean).join(" — "))
         .join("\n");
 
       const { data: investor, error: invError } = await supabase
@@ -424,14 +443,13 @@ function ProspectsPage() {
         defval: "",
         raw: false,
       });
-      return grid
-        .map((r) => r.map((c) => String(c ?? "").trim()))
-        .filter((r) => r.some((c) => c));
+      return grid.map((r) => r.map((c) => String(c ?? "").trim())).filter((r) => r.some((c) => c));
     }
     const text = await file.text();
     const lines = text.split(/\r?\n/).filter((l) => l.trim());
     if (!lines[0]) return [];
-    const sep = (lines[0].match(/;/g)?.length ?? 0) >= (lines[0].match(/,/g)?.length ?? 0) ? ";" : ",";
+    const sep =
+      (lines[0].match(/;/g)?.length ?? 0) >= (lines[0].match(/,/g)?.length ?? 0) ? ";" : ",";
     return lines.map((l) => splitCsvLine(l, sep));
   };
 
@@ -461,7 +479,10 @@ function ProspectsPage() {
       // Toutes les sociétés existantes (comparaison insensible à la casse)
       const existing = new Map<string, string>();
       {
-        const { data, error } = await supabase.from("prospect_companies").select("id, name").limit(10000);
+        const { data, error } = await supabase
+          .from("prospect_companies")
+          .select("id, name")
+          .limit(10000);
         if (error) throw error;
         (data ?? []).forEach((c) => existing.set(c.name.toLowerCase(), c.id));
       }
@@ -469,14 +490,22 @@ function ProspectsPage() {
       const infoOf = (name: string) => {
         const row = rows.find((r) => r[iCompany]!.trim() === name)!;
         const address =
-          [cell(row, iAddress), cell(row, iZip), cell(row, iCity)].filter(Boolean).join(" ").trim() || null;
+          [cell(row, iAddress), cell(row, iZip), cell(row, iCity)]
+            .filter(Boolean)
+            .join(" ")
+            .trim() || null;
         const assets = cell(row, iAssets);
         return {
           city: cell(row, iCity),
           address,
           sector: cell(row, iProfile),
           investor_profile: cell(row, iProfile),
-          asset_classes: assets ? assets.split(/[|,]/).map((s) => s.trim()).filter(Boolean) : [],
+          asset_classes: assets
+            ? assets
+                .split(/[|,]/)
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : [],
         };
       };
 
@@ -520,7 +549,9 @@ function ProspectsPage() {
       }
 
       // Contacts existants, pour éviter les doublons (contrainte company_id + nom)
-      const companyIds = [...new Set(companyNames.map((n) => existing.get(n.toLowerCase())).filter(Boolean))] as string[];
+      const companyIds = [
+        ...new Set(companyNames.map((n) => existing.get(n.toLowerCase())).filter(Boolean)),
+      ] as string[];
       const seen = new Set<string>();
       for (let i = 0; i < companyIds.length; i += 200) {
         const { data, error } = await supabase
@@ -545,7 +576,8 @@ function ProspectsPage() {
         if (!companyId) continue;
         const email = cell(r, iEmail);
         const phone = cell(r, iPhone);
-        const fullName = (iName >= 0 ? (r[iName] ?? "").trim() : "") || (email || phone ? "Contact général" : "");
+        const fullName =
+          (iName >= 0 ? (r[iName] ?? "").trim() : "") || (email || phone ? "Contact général" : "");
         if (!fullName) continue;
         const key = `${companyId}|${fullName.toLowerCase()}`;
         if (seen.has(key)) continue;
@@ -748,139 +780,279 @@ function ProspectsPage() {
           const isOpen = open === company.id;
           return (
             <div key={company.id}>
-              <button
-                type="button"
-                className="grid min-h-12 w-full grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 sm:flex"
-                onClick={() => setOpen(isOpen ? null : company.id)}
-              >
-                {isOpen ? (
-                  <ChevronDown className="size-4 shrink-0" />
-                ) : (
-                  <ChevronRight className="size-4 shrink-0" />
-                )}
-                <Building2 className="size-4 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 break-words font-medium">{company.name}</span>
-                <span className="col-start-3 min-w-0 break-words text-sm text-muted-foreground sm:truncate">
-                  {[company.address ?? company.city, company.investor_profile, company.sector]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </span>
-              </button>
+              <CompactRow
+                title={company.name}
+                subtitle={[
+                  company.address ?? company.city,
+                  company.investor_profile,
+                  company.sector,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+                onOpen={() => {
+                  setOpen(company.id);
+                  setCompanyView(true);
+                }}
+                onEdit={
+                  canEdit
+                    ? () => {
+                        setOpen(company.id);
+                        setCompanyView(true);
+                      }
+                    : undefined
+                }
+                onDelete={
+                  canEdit
+                    ? () => {
+                        void (async () => {
+                          const { error } = await supabase
+                            .from("prospect_companies")
+                            .delete()
+                            .eq("id", company.id);
+                          if (error) toast.error(error.message);
+                          else {
+                            void qc.invalidateQueries({ queryKey: ["prospect-companies"] });
+                          }
+                        })();
+                      }
+                    : undefined
+                }
+              />
 
-              {isOpen && (
-                <div className="border-t border-border/60 bg-muted/20 px-4 py-2">
-                  <div className="grid gap-3 border-b border-border/40 py-3 sm:grid-cols-[1fr_auto] sm:items-end">
+              {isOpen && companyView && (
+                <RecordDialog
+                  title={company.name}
+                  open
+                  onClose={() => {
+                    setOpen(null);
+                    setCompanyView(false);
+                  }}
+                >
+                  <div className="border-t border-border/60 bg-muted/20 px-4 py-2">
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label htmlFor={`address-${company.id}`} className="flex items-center gap-2">
-                          <MapPin className="size-4 text-muted-foreground" /> Adresse
-                        </Label>
+                      <label className="grid gap-1 text-sm">
+                        Société
                         <Input
-                          id={`address-${company.id}`}
-                          value={address}
-                          placeholder="Adresse de la société"
-                          onChange={(e) => setAddress(e.target.value)}
+                          value={companyName}
+                          onChange={(e) => setCompanyName(e.target.value)}
                         />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Catégorie d'investisseur</Label>
-                        <Select
-                          value={profile || "none"}
-                          onValueChange={(v) => setProfile(v === "none" ? "" : v)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="—" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">—</SelectItem>
-                            {investorProfiles.map((p) => (
-                              <SelectItem key={p} value={p}>
-                                {p}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
-                      <Button type="button" variant="outline" onClick={() => setStrategyOpen(true)}>
-                        <SlidersHorizontal className="size-4" /> Stratégie
-                      </Button>
-                      <Button
-                        type="button"
-                        disabled={saveCompany.isPending}
-                        onClick={() => saveCompany.mutate()}
-                      >
-                        {saveCompany.isPending ? "Enregistrement…" : "Enregistrer"}
-                      </Button>
-                      {companyEmails.length > 0 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={async () => {
-                            await navigator.clipboard.writeText(companyEmails.join("; "));
-                            toast.success(`${companyEmails.length} adresse(s) copiée(s)`);
-                          }}
-                        >
-                          <Copy className="size-4" /> Copier les emails
-                        </Button>
-                      )}
-                    </div>
-                    <p className="text-xs text-muted-foreground sm:col-span-2">
-                      {hasStrategy
-                        ? companyEmails.length > 0
-                          ? "Stratégie renseignée et email disponible : à l'enregistrement, ce prospect passe dans l'onglet Investisseurs."
-                          : "Stratégie renseignée, mais aucun email sur la fiche : le prospect reste ici."
-                        : "Complétez la stratégie et ajoutez au moins un email pour basculer ce prospect dans les investisseurs."}
-                    </p>
-                  </div>
-                  {contacts.isLoading && (
-                    <p className="py-3 text-sm text-muted-foreground">Chargement…</p>
-                  )}
-                  {!contacts.isLoading && (contacts.data ?? []).length === 0 && (
-                    <p className="py-3 text-sm text-muted-foreground">
-                      Aucun collaborateur enregistré pour cette société.
-                    </p>
-                  )}
-                  {(contacts.data ?? []).map((c) => (
-                    <div
-                      key={c.id}
-                      className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-border/40 py-3 last:border-0 sm:flex sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1 sm:py-2"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium">{c.full_name}</p>
-                        <p className="text-xs text-muted-foreground">{c.job_title ?? "—"}</p>
-                      </div>
-                      <div className="col-span-2 flex min-w-0 items-center gap-1 text-sm sm:min-w-64">
-                        {c.email ? (
-                          <>
-                            <span className="break-all" title={c.email}>
-                              {c.email}
-                            </span>
-                            <CopyEmail email={c.email} />
-                          </>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </div>
-                      <div className="min-w-0 text-sm text-muted-foreground sm:min-w-32">{c.phone ?? "—"}</div>
-                      <label className="ml-auto flex min-h-11 cursor-pointer items-center gap-2 text-sm">
-                        <Checkbox
-                          checked={Boolean(selected[c.id])}
-                          disabled={!c.email}
-                          onCheckedChange={() => toggle(c, company.name)}
+                      </label>
+                      <label className="grid gap-1 text-sm">
+                        Ville
+                        <Input
+                          value={companyCity}
+                          onChange={(e) => setCompanyCity(e.target.value)}
                         />
-                        Envoi
+                      </label>
+                      <label className="grid gap-1 text-sm">
+                        Secteur
+                        <Input
+                          value={companySector}
+                          onChange={(e) => setCompanySector(e.target.value)}
+                        />
                       </label>
                     </div>
-                  ))}
-                </div>
+                    <div className="grid gap-3 border-b border-border/40 py-3 sm:grid-cols-[1fr_auto] sm:items-end">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label
+                            htmlFor={`address-${company.id}`}
+                            className="flex items-center gap-2"
+                          >
+                            <MapPin className="size-4 text-muted-foreground" /> Adresse
+                          </Label>
+                          <Input
+                            id={`address-${company.id}`}
+                            value={address}
+                            placeholder="Adresse de la société"
+                            onChange={(e) => setAddress(e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Catégorie d'investisseur</Label>
+                          <Select
+                            value={profile || "none"}
+                            onValueChange={(v) => setProfile(v === "none" ? "" : v)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="—" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">—</SelectItem>
+                              {investorProfiles.map((p) => (
+                                <SelectItem key={p} value={p}>
+                                  {p}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setStrategyOpen(true)}
+                        >
+                          <SlidersHorizontal className="size-4" /> Stratégie
+                        </Button>
+                        <Button
+                          type="button"
+                          disabled={saveCompany.isPending}
+                          onClick={() => saveCompany.mutate()}
+                        >
+                          {saveCompany.isPending ? "Enregistrement…" : "Enregistrer"}
+                        </Button>
+                        {companyEmails.length > 0 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={async () => {
+                              await navigator.clipboard.writeText(companyEmails.join("; "));
+                              toast.success(`${companyEmails.length} adresse(s) copiée(s)`);
+                            }}
+                          >
+                            <Copy className="size-4" /> Copier les emails
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground sm:col-span-2">
+                        {hasStrategy
+                          ? companyEmails.length > 0
+                            ? "Stratégie renseignée et email disponible : à l'enregistrement, ce prospect passe dans l'onglet Investisseurs."
+                            : "Stratégie renseignée, mais aucun email sur la fiche : le prospect reste ici."
+                          : "Complétez la stratégie et ajoutez au moins un email pour basculer ce prospect dans les investisseurs."}
+                      </p>
+                    </div>
+                    {contacts.isLoading && (
+                      <p className="py-3 text-sm text-muted-foreground">Chargement…</p>
+                    )}
+                    {!contacts.isLoading && (contacts.data ?? []).length === 0 && (
+                      <p className="py-3 text-sm text-muted-foreground">
+                        Aucun collaborateur enregistré pour cette société.
+                      </p>
+                    )}
+                    {(contacts.data ?? []).map((c) => (
+                      <CompactRow
+                        key={c.id}
+                        title={c.full_name || c.email || "Collaborateur"}
+                        subtitle={[c.email, c.phone, c.job_title].filter(Boolean).join(" · ")}
+                        leading={
+                          <Checkbox
+                            aria-label={`Sélectionner ${c.full_name}`}
+                            checked={Boolean(selected[c.id])}
+                            disabled={!c.email}
+                            onCheckedChange={() => toggle(c, company.name)}
+                          />
+                        }
+                        onOpen={() => {
+                          setEditingContact({ ...c });
+                          setCompanyView(false);
+                        }}
+                        onEdit={
+                          canEdit
+                            ? () => {
+                                setEditingContact({ ...c });
+                                setCompanyView(false);
+                              }
+                            : undefined
+                        }
+                        onDelete={
+                          canEdit
+                            ? () => {
+                                void (async () => {
+                                  const { error } = await supabase
+                                    .from("prospect_contacts")
+                                    .delete()
+                                    .eq("id", c.id);
+                                  if (error) toast.error(error.message);
+                                  else {
+                                    setSelected((old) => {
+                                      const next = { ...old };
+                                      delete next[c.id];
+                                      return next;
+                                    });
+                                    void qc.invalidateQueries({ queryKey: ["prospect-contacts"] });
+                                  }
+                                })();
+                              }
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </div>
+                </RecordDialog>
               )}
             </div>
           );
         })}
       </div>
 
+      <RecordDialog
+        title={editingContact?.full_name || "Collaborateur"}
+        open={!!editingContact}
+        onClose={() => {
+          setEditingContact(null);
+          setCompanyView(true);
+        }}
+      >
+        {editingContact && (
+          <form
+            className="grid gap-3"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void (async () => {
+                const { id, company_id, ...fields } = editingContact;
+                const { error } = await supabase
+                  .from("prospect_contacts")
+                  .update(fields)
+                  .eq("id", id);
+                if (error) toast.error(error.message);
+                else {
+                  setSelected((prev) => {
+                    if (!prev[id]) return prev;
+                    const next = { ...prev };
+                    if (!fields.email) delete next[id];
+                    else
+                      next[id] = {
+                        id,
+                        email: fields.email,
+                        full_name: fields.full_name,
+                        first_name: fields.first_name,
+                        company: openCompany?.name ?? "",
+                      };
+                    return next;
+                  });
+                  setEditingContact(null);
+                  setCompanyView(true);
+                  void qc.invalidateQueries({ queryKey: ["prospect-contacts"] });
+                  toast.success("Fiche enregistrée");
+                }
+              })();
+            }}
+          >
+            {(
+              [
+                ["full_name", "Nom"],
+                ["first_name", "Prénom"],
+                ["job_title", "Fonction"],
+                ["email", "Email"],
+                ["phone", "Téléphone"],
+              ] as const
+            ).map(([key, label]) => (
+              <label key={key} className="grid gap-1 text-sm">
+                {label}
+                <Input
+                  type={key === "email" ? "email" : "text"}
+                  value={editingContact[key] ?? ""}
+                  onChange={(e) => setEditingContact({ ...editingContact, [key]: e.target.value })}
+                />
+              </label>
+            ))}
+            <Button type="submit">Enregistrer</Button>
+          </form>
+        )}
+      </RecordDialog>
       <StrategyMatrixDialog
         open={strategyOpen}
         onOpenChange={setStrategyOpen}

@@ -1,3 +1,4 @@
+import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -17,7 +18,6 @@ import {
 } from "@/components/ui/select";
 import { PUBLIC_APP_URL } from "@/lib/app-url";
 import { escapeHtml, SIGNATURE_HTML } from "@/components/CampaignDialog";
-
 
 export const Route = createFileRoute("/envois")({
   head: () => ({
@@ -129,6 +129,7 @@ const dt = (v: string | null) =>
 const ALL = "__all__";
 
 function SendsPage() {
+  const [detail, setDetail] = useState<MergedRow | null>(null);
   const [assetId, setAssetId] = useState<string>(ALL);
   const [resending, setResending] = useState<string | null>(null);
 
@@ -314,124 +315,68 @@ function SendsPage() {
         <Stat label="Ouverts" value={opened} icon={<Eye className="size-4" />} />
       </div>
 
-      <div className="hidden panel overflow-x-auto md:block">
-        <table className="w-full text-sm">
-          <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3">Date et heure d'envoi</th>
-              <th className="py-3 pl-4 pr-8">Société</th>
-              <th className="px-4 py-3">Contact</th>
-              <th className="px-4 py-3">Actif</th>
-              <th className="px-4 py-3">Statut</th>
-              <th className="px-4 py-3">Ouverture</th>
-              <th className="px-4 py-3">Renvoyer</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sends.isLoading && (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                  Chargement…
-                </td>
-              </tr>
-            )}
-            {!sends.isLoading && rows.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
-                  Aucun envoi enregistré pour le moment.
-                </td>
-              </tr>
-            )}
-            {rows.map((r) => (
-              <tr key={r.id} className="border-b border-border/60 last:border-0">
-                <td className="whitespace-nowrap px-4 py-3">
-                  {dt(r.sent_at)}
-                  {r.attempts > 1 ? (
-                    <span className="block text-xs text-muted-foreground">
-                      {r.attempts} envois cumulés
-                    </span>
-                  ) : null}
-                </td>
-                <td className="py-3 pl-4 pr-8 font-medium">{companyOf(r)}</td>
-                <td className="min-w-[140px] px-4 py-3">
-                  <p>{contactOf(r)}</p>
-                  <p className="text-xs text-muted-foreground">{emailOf(r)}</p>
-                </td>
-                <td className="min-w-[140px] px-4 py-3">
-                  <p>{r.assets?.title ?? "—"}</p>
-                  <p className="text-xs text-muted-foreground">{r.assets?.reference ?? ""}</p>
-                </td>
-                <td className="min-w-[140px] px-4 py-3">
-                  <Badge variant={r.status === "erreur" ? "outline" : "secondary"}>
-                    {r.status}
-                  </Badge>
-                </td>
-                <td className="whitespace-nowrap px-4 py-3">
-                  {r.opened_at ? (
-                    <span className="inline-flex items-center gap-1 text-foreground">
-                      <CheckCircle2 className="size-4" /> {dt(r.opened_at)}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">non ouvert</span>
-                  )}
-                </td>
-                <td className="whitespace-nowrap px-4 py-3">
-                  {r.resent_at ? (
-                    <span className="mb-1 flex items-center gap-1 text-xs text-muted-foreground">
-                      <RotateCw className="size-3" /> renvoyé le {dt(r.resent_at)}
-                    </span>
-                  ) : null}
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={resending === r.id}
-                    onClick={() => resend(r)}
-                  >
-                    <RotateCw className="size-4" /> Renvoyer
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <div className="grid gap-3 md:hidden">
-        {sends.isLoading && <div className="panel p-6 text-center text-sm text-muted-foreground">Chargement…</div>}
-        {!sends.isLoading && rows.length === 0 && <div className="panel p-6 text-center text-sm text-muted-foreground">Aucun envoi enregistré pour le moment.</div>}
+      <div className="overflow-hidden border-y border-border">
         {rows.map((r) => (
-          <article key={r.id} className="panel space-y-4 p-4">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-              <div className="min-w-0">
-                <p className="break-words font-semibold">{companyOf(r)}</p>
-                <p className="break-words text-sm">{contactOf(r)}</p>
-                <p className="break-all text-xs text-muted-foreground">{emailOf(r)}</p>
-              </div>
-              <Badge variant={r.status === "erreur" ? "outline" : "secondary"}>{r.status}</Badge>
-            </div>
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-              <div><dt className="eyebrow">Envoi</dt><dd className="mt-1">{dt(r.sent_at)}</dd>{r.attempts > 1 && <dd className="text-xs text-muted-foreground">{r.attempts} envois cumulés</dd>}</div>
-              <div><dt className="eyebrow">Ouverture</dt><dd className="mt-1">{r.opened_at ? dt(r.opened_at) : "non ouvert"}</dd></div>
-              <div className="col-span-2"><dt className="eyebrow">Actif</dt><dd className="mt-1 break-words">{r.assets?.title ?? "—"}</dd>{r.assets?.reference && <dd className="text-xs text-muted-foreground">{r.assets.reference}</dd>}</div>
-            </dl>
-            {r.resent_at && <p className="flex items-center gap-1 text-xs text-muted-foreground"><RotateCw className="size-3" /> renvoyé le {dt(r.resent_at)}</p>}
-            <Button className="min-h-11 w-full" size="sm" variant="outline" disabled={resending === r.id} onClick={() => resend(r)}><RotateCw className="size-4" /> Renvoyer</Button>
-          </article>
+          <CompactRow
+            key={r.id}
+            title={[companyOf(r), contactOf(r)].join(" · ")}
+            subtitle={`${r.assets?.title ?? "—"} · ${dt(r.sent_at)}`}
+            summary={r.status}
+            onOpen={() => setDetail(r)}
+            trailing={
+              <Button
+                size="icon"
+                variant="ghost"
+                className="size-11"
+                title="Renvoyer"
+                aria-label={`Renvoyer à ${contactOf(r)}`}
+                disabled={resending === r.id}
+                onClick={() => resend(r)}
+              >
+                <RotateCw className="size-4" />
+              </Button>
+            }
+          />
         ))}
+        {!rows.length && (
+          <p className="p-6 text-sm text-muted-foreground">
+            {sends.isLoading ? "Chargement…" : "Aucun envoi enregistré."}
+          </p>
+        )}
       </div>
+      <RecordDialog title="Détail de l’envoi" open={!!detail} onClose={() => setDetail(null)}>
+        {detail && (
+          <>
+            <RecordFacts
+              facts={[
+                ["Société", companyOf(detail)],
+                ["Contact", contactOf(detail)],
+                ["Email", emailOf(detail)],
+                ["Actif", detail.assets?.title],
+                ["Référence", detail.assets?.reference],
+                ["Objet", detail.subject],
+                ["Date et heure d’envoi", dt(detail.sent_at)],
+                ["Statut", detail.status],
+                ["Ouverture", detail.opened_at ? dt(detail.opened_at) : "non ouvert"],
+                ["Renvoi", detail.resent_at ? dt(detail.resent_at) : "—"],
+                ["Nombre d’envois", detail.attempts],
+              ]}
+            />
+            <Button
+              variant="outline"
+              disabled={resending === detail.id}
+              onClick={() => resend(detail)}
+            >
+              <RotateCw className="size-4" /> Renvoyer
+            </Button>
+          </>
+        )}
+      </RecordDialog>
     </div>
   );
 }
 
-
-function Stat({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-}) {
+function Stat({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
     <div className="panel flex min-w-0 items-center gap-3 px-4 py-4 sm:px-5">
       <span className="text-muted-foreground">{icon}</span>

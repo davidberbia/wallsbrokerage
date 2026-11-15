@@ -1,3 +1,4 @@
+import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,7 +11,6 @@ import { InvestorForm, investorPayload, type InvestorDraft } from "@/components/
 import type { BandsByAsset } from "@/components/AssetClassBands";
 import { StrategyMatrixDialog, type StrategiesByAsset } from "@/components/StrategyMatrixDialog";
 import { useAuth } from "@/hooks/useAuth";
-
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,12 +92,12 @@ const statusPill = (status: string) => STATUS_PILL[status] ?? "status-pill statu
 function InvestorsPage() {
   const qc = useQueryClient();
   const { canEdit } = useAuth();
+  const [detail, setDetail] = useState<Investor | null>(null);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
   const [bands, setBands] = useState<BandsByAsset>({});
   const [assetStrategies, setAssetStrategies] = useState<StrategiesByAsset>({});
   const [strategyOpen, setStrategyOpen] = useState(false);
-
 
   const openEdit = async (investor?: Investor) => {
     if (!investor) {
@@ -135,7 +135,9 @@ function InvestorsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("investor_criteria")
-        .select("id, investor_id, bubble_id, asset_class, investor_profile, strategies, amount_bands, regions, city_scope, periphery_scope, city_targets");
+        .select(
+          "id, investor_id, bubble_id, asset_class, investor_profile, strategies, amount_bands, regions, city_scope, periphery_scope, city_targets",
+        );
       if (error) throw error;
       return data as InvestorCriteria[];
     },
@@ -292,7 +294,6 @@ function InvestorsPage() {
             />
           )}
         </div>
-
       </div>
 
       {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
@@ -302,155 +303,64 @@ function InvestorsPage() {
         </div>
       )}
 
-      <div className="grid gap-3">
+      <div className="overflow-hidden border-y border-border">
         {filtered.map((investor) => (
-          <div key={investor.id} className="panel p-4">
-            {/* ── Desktop : mise en page comme l'image (3 colonnes) ── */}
-            <div className="hidden items-start gap-6 md:flex">
-              {/* Colonne 1 : société / type / contact / adresse */}
-              <div className="min-w-0 flex-1 space-y-0.5">
-                <p className="truncate font-semibold">
-                  {investor.company || displayName(investor)}
-                </p>
-                <p className="truncate text-sm text-muted-foreground">
-                  {investor.investor_profile || "—"}
-                </p>
-                <p className="truncate pt-3 text-sm text-muted-foreground">
-                  {displayName(investor)}
-                </p>
-                <p className="truncate text-sm text-muted-foreground">
-                  {formatInvestorAddress(investor)}
-                </p>
-              </div>
-
-              {/* Colonne 2 : tranche / email / téléphone */}
-              <div className="shrink-0 space-y-0.5">
-                <p className="eyebrow">Tranche d'investissement</p>
-                <p className="text-sm font-medium">{bandOf(investor)}</p>
-                <p className="flex items-center gap-1 pt-3 text-sm text-muted-foreground">
-                  <span className="truncate">{investor.email || "—"}</span>
-                  <CopyEmail email={investor.email} />
-                </p>
-                <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <span>{investor.phone || "—"}</span>
-                  {investor.phone && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-6 text-muted-foreground hover:text-foreground"
-                      asChild
-                      aria-label="Appeler"
-                      title="Appeler"
-                    >
-                      <a href={`tel:${investor.phone}`}>
-                        <Phone className="size-3.5" />
-                      </a>
-                    </Button>
-                  )}
-                </p>
-              </div>
-
-              {/* Colonne 3 : statut + actions */}
-              <div className="flex shrink-0 items-center gap-2">
-                <span className={statusPill(investor.status)}>
-                  {investor.status}
-                </span>
-                {canEdit && (
-                  <>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Modifier"
-                      onClick={() => openEdit(investor)}
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => remove.mutate(investor.id)}
-                      aria-label="Supprimer"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* ── Tablette / mobile : 2 colonnes ── */}
-            <div className="grid items-start gap-4 md:hidden sm:grid-cols-[minmax(0,1fr)_auto]">
-              <div className="min-w-0 space-y-1">
-                <p className="truncate font-semibold">
-                  {investor.company || displayName(investor)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {investor.investor_profile || "—"}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {displayName(investor)}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {formatInvestorAddress(investor)}
-                </p>
-              </div>
-              <div className="min-w-0 space-y-1 text-sm">
-                <p className="eyebrow">Tranche d'investissement</p>
-                <p>{bandOf(investor)}</p>
-                <p className="flex items-center gap-1 text-muted-foreground">
-                  <span className="truncate">{investor.email || "—"}</span>
-                  <CopyEmail email={investor.email} />
-                </p>
-                <p className="flex items-center gap-1 text-muted-foreground">
-                  <span className="truncate">{investor.phone || "—"}</span>
-                  {investor.phone && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-6 text-muted-foreground hover:text-foreground"
-                      asChild
-                      aria-label="Appeler"
-                      title="Appeler"
-                    >
-                      <a href={`tel:${investor.phone}`}>
-                        <Phone className="size-3.5" />
-                      </a>
-                    </Button>
-                  )}
-                </p>
-                <div className="flex items-center gap-2 pt-1">
-                  <span className={statusPill(investor.status)}>
-
-                    {investor.status}
-                  </span>
-                  {canEdit && (
-                    <>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label="Modifier"
-                        onClick={() => openEdit(investor)}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => remove.mutate(investor.id)}
-                        aria-label="Supprimer"
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <CompactRow
+            key={investor.id}
+            title={[investor.company, displayName(investor)].filter(Boolean).join(" · ")}
+            subtitle={[investor.email, investor.phone, investor.city].filter(Boolean).join(" · ")}
+            summary={investor.status}
+            onOpen={() => setDetail(investor)}
+            onEdit={canEdit ? () => void openEdit(investor) : undefined}
+            onDelete={canEdit ? () => remove.mutate(investor.id) : undefined}
+          />
         ))}
       </div>
+      <RecordDialog
+        title={detail ? displayName(detail) : "Acquéreur"}
+        open={!!detail}
+        onClose={() => setDetail(null)}
+      >
+        {detail && (
+          <>
+            {canEdit && (
+              <Button
+                onClick={() => {
+                  void openEdit(detail);
+                  setDetail(null);
+                }}
+              >
+                <Pencil className="size-4" /> Modifier
+              </Button>
+            )}
+            <RecordFacts
+              facts={[
+                ["Société", detail.company],
+                ["Nom", displayName(detail)],
+                [
+                  "Email",
+                  <span className="flex items-center gap-1 break-all">
+                    {detail.email}
+                    <CopyEmail email={detail.email} />
+                  </span>,
+                ],
+                [
+                  "Téléphone",
+                  detail.phone ? <a href={`tel:${detail.phone}`}>{detail.phone}</a> : null,
+                ],
+                ["Adresse", formatInvestorAddress(detail)],
+                ["Profil", detail.investor_profile],
+                ["Statut", detail.status],
+                ["Budget", bandOf(detail)],
+                ["Types d’actifs", detail.asset_classes?.join(" · ")],
+                ["Stratégies", detail.strategies?.join(" · ")],
+                ["Régions", detail.regions?.join(" · ")],
+                ["Notes", detail.notes],
+              ]}
+            />
+          </>
+        )}
+      </RecordDialog>
     </div>
   );
 }

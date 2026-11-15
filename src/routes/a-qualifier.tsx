@@ -1,3 +1,6 @@
+import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
+import { Pencil } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -54,6 +57,16 @@ function DetectedContactsPage() {
   const classify = useServerFn(classifyMailscanCandidates);
   const ignore = useServerFn(ignoreMailscanCandidates);
 
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({
+    full_name: "",
+    company_name: "",
+    email: "",
+    phone: "",
+    job_title: "",
+    address: "",
+  });
   const [search, setSearch] = useState("");
   const [visible, setVisible] = useState(100);
   const [onlyImmo, setOnlyImmo] = useState(false);
@@ -88,7 +101,9 @@ function DetectedContactsPage() {
   // Retire tout de suite les fiches classées de l'écran (sans attendre le rechargement de la liste).
   const hide = (ids: string[]) => {
     const gone = new Set(ids);
-    qc.setQueryData(["mailscan-candidates"], (old: typeof data) => (old ?? []).filter((r) => !gone.has(r.id)));
+    qc.setQueryData(["mailscan-candidates"], (old: typeof data) =>
+      (old ?? []).filter((r) => !gone.has(r.id)),
+    );
     setSelected((prev) => prev.filter((id) => !gone.has(id)));
   };
   const restore = (e: Error) => {
@@ -111,10 +126,13 @@ function DetectedContactsPage() {
   });
 
   const classifyMutation = useMutation({
-    mutationFn: (v: { ids: string[]; kind: "contact" | "broker" | "notary" }) => classify({ data: v }),
+    mutationFn: (v: { ids: string[]; kind: "contact" | "broker" | "notary" }) =>
+      classify({ data: v }),
     onMutate: (v) => hide(v.ids),
     onSuccess: (r, v) => {
-      toast.success(`${r.count} contact(s) classé(s) dans ${v.kind === "broker" ? "Brokers" : v.kind === "notary" ? "Notaires" : "Contacts"}`);
+      toast.success(
+        `${r.count} contact(s) classé(s) dans ${v.kind === "broker" ? "Brokers" : v.kind === "notary" ? "Notaires" : "Contacts"}`,
+      );
       done();
     },
     onError: restore,
@@ -131,6 +149,30 @@ function DetectedContactsPage() {
     onError: restore,
   });
 
+  const detail = (data ?? []).find((r) => r.id === detailId);
+  const edit = (row: NonNullable<typeof data>[number]) => {
+    setDetailId(row.id);
+    setEditing(true);
+    setForm({
+      full_name: row.full_name ?? "",
+      company_name: row.company_name ?? "",
+      email: row.email ?? "",
+      phone: row.phone ?? "",
+      job_title: row.job_title ?? "",
+      address: row.address ?? "",
+    });
+  };
+  const saveContact = async () => {
+    if (!detailId) return;
+    const { error } = await supabase.from("mailscan_candidates").update(form).eq("id", detailId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setEditing(false);
+    void qc.invalidateQueries({ queryKey: ["mailscan-candidates"] });
+    toast.success("Fiche enregistrée");
+  };
   const allSelected = rows.length > 0 && selected.length === rows.length;
 
   return (
@@ -139,7 +181,9 @@ function DetectedContactsPage() {
         <p className="eyebrow">Boîte mail</p>
         <h1 className="mt-1 text-3xl">À qualifier</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Tous les contacts trouvés automatiquement (emails, newsletters, pièces jointes). Classez chaque fiche en un clic : Contacts, Brokers (confrères) ou Prospects.</p>
+          Tous les contacts trouvés automatiquement (emails, newsletters, pièces jointes). Classez
+          chaque fiche en un clic : Contacts, Brokers (confrères) ou Prospects.
+        </p>
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -183,7 +227,11 @@ function DetectedContactsPage() {
             className="min-h-11 sm:min-h-9"
             disabled={selected.length === 0 || deleteMutation.isPending}
             onClick={() => {
-              if (confirm(`Supprimer définitivement ${selected.length} contact(s) ? Ils ne seront plus jamais réimportés.`))
+              if (
+                confirm(
+                  `Supprimer définitivement ${selected.length} contact(s) ? Ils ne seront plus jamais réimportés.`,
+                )
+              )
                 deleteMutation.mutate(selected);
             }}
           >
@@ -194,7 +242,9 @@ function DetectedContactsPage() {
             disabled={selected.length === 0 || integrateMutation.isPending}
             onClick={() => integrateMutation.mutate(selected)}
           >
-            {integrateMutation.isPending ? "Déplacement…" : `Déplacer vers Prospects (${selected.length})`}
+            {integrateMutation.isPending
+              ? "Déplacement…"
+              : `Déplacer vers Prospects (${selected.length})`}
           </Button>
         </div>
       </div>
@@ -216,84 +266,137 @@ function DetectedContactsPage() {
         </label>
       )}
 
-      <div className="grid min-w-0 grid-cols-1 gap-3">
+      <div className="overflow-hidden border-y border-border">
         {rows.slice(0, visible).map((row) => (
-          <div key={row.id} className="panel flex min-w-0 flex-col gap-3 overflow-hidden p-4 md:flex-row md:items-start">
-            <Checkbox
-              className="mt-1"
-              checked={selected.includes(row.id)}
-              onCheckedChange={(v) =>
-                setSelected((prev) =>
-                  v === true ? [...prev, row.id] : prev.filter((id) => id !== row.id),
-                )
-              }
-            />
-            <div className="min-w-0 flex-1 space-y-0.5">
-              <p className="truncate font-semibold">{row.company_name || row.domain}</p>
-              <p className="truncate text-sm text-muted-foreground">{row.job_title || "—"}</p>
-              <p className="truncate pt-3 text-sm text-muted-foreground">{row.full_name || "—"}</p>
-              <p className="truncate text-sm text-muted-foreground">{row.address || "—"}</p>
-            </div>
-            <div className="min-w-0 shrink-0 space-y-0.5 md:w-64">
-              <p className="eyebrow">Contact</p>
-              <p className="flex items-center gap-1 text-sm text-muted-foreground">
-                <span className="truncate">{row.email}</span>
-                <CopyEmail email={row.email} />
-              </p>
-              <p className="text-sm text-muted-foreground">{row.phone || "—"}</p>
-              <p className="pt-1 text-xs text-muted-foreground">
-                {row.occurrences} échange(s) dans votre boîte
-              </p>
-            </div>
-            <div className="shrink-0 space-y-1 md:w-60">
-              <div className="flex flex-wrap gap-1.5 pb-2">
-                {(
-                  [
-                    ["Contacts", () => classifyMutation.mutate({ ids: [row.id], kind: "contact" })],
-                    ["Brokers", () => classifyMutation.mutate({ ids: [row.id], kind: "broker" })],
-                    ["Notaires", () => classifyMutation.mutate({ ids: [row.id], kind: "notary" })],
-                    ["Prospects", () => integrateMutation.mutate([row.id])],
-                    ["Supprimer", () => deleteMutation.mutate([row.id])],
-                  ] as const
-                ).map(([label, fn]) => (
-                  <Button
-                    key={label}
-                    size="sm"
-                    variant={label === "Prospects" ? "default" : label === "Supprimer" ? "destructive" : "outline"}
-                    className="min-h-10 sm:min-h-8"
-                    onClick={fn}
-                  >
-                    {label}
-                  </Button>
-                ))}
-              </div>
-              <span className={VERDICT_PILL[row.verdict] ?? "status-pill status-en-veille"}>
-                {row.verdict}
-              </span>
-              {row.reason && (
-                <p className="break-words text-xs text-muted-foreground">
-                  {row.reason}
-                  {row.site_url ? (
-                    <>
-                      {" — "}
-                      <a
-                        href={row.site_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline underline-offset-2"
-                      >
-                        site
-                      </a>
-                    </>
-                  ) : null}
-                </p>
-              )}
-            </div>
-          </div>
+          <CompactRow
+            key={row.id}
+            title={[row.company_name, row.full_name || row.email].filter(Boolean).join(" · ")}
+            subtitle={row.email}
+            leading={
+              <Checkbox
+                aria-label={`Sélectionner ${row.email}`}
+                checked={selected.includes(row.id)}
+                onCheckedChange={(v) =>
+                  setSelected((prev) =>
+                    v === true ? [...prev, row.id] : prev.filter((id) => id !== row.id),
+                  )
+                }
+              />
+            }
+            onOpen={() => {
+              setDetailId(row.id);
+              setEditing(false);
+            }}
+            onEdit={() => edit(row)}
+            onDelete={() => deleteMutation.mutate([row.id])}
+          />
         ))}
       </div>
+      <RecordDialog
+        title={detail?.full_name || detail?.email || "Contact à qualifier"}
+        open={!!detail}
+        onClose={() => {
+          setDetailId(null);
+          setEditing(false);
+        }}
+      >
+        {detail && (
+          <>
+            {editing ? (
+              <form
+                className="grid gap-3"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void saveContact();
+                }}
+              >
+                {(
+                  [
+                    ["full_name", "Nom"],
+                    ["company_name", "Société"],
+                    ["email", "Email"],
+                    ["phone", "Téléphone"],
+                    ["job_title", "Fonction"],
+                    ["address", "Adresse"],
+                  ] as const
+                ).map(([key, label]) => (
+                  <label key={key} className="grid gap-1 text-sm">
+                    {label}
+                    <Input
+                      type={key === "email" ? "email" : "text"}
+                      value={form[key]}
+                      onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                    />
+                  </label>
+                ))}
+                <Button type="submit">Enregistrer</Button>
+              </form>
+            ) : (
+              <>
+                <Button onClick={() => edit(detail)}>
+                  <Pencil className="size-4" /> Modifier
+                </Button>
+                <RecordFacts
+                  facts={[
+                    ["Nom", detail.full_name],
+                    ["Société", detail.company_name],
+                    [
+                      "Email",
+                      <span className="flex items-center gap-1 break-all">
+                        {detail.email}
+                        <CopyEmail email={detail.email} />
+                      </span>,
+                    ],
+                    ["Téléphone", detail.phone],
+                    ["Fonction", detail.job_title],
+                    ["Adresse", detail.address],
+                    ["Échanges", detail.occurrences],
+                    ["Qualification", detail.verdict],
+                    ["Motif", detail.reason],
+                    ["Site", detail.site_url],
+                  ]}
+                />
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      [
+                        "Divers",
+                        () => classifyMutation.mutate({ ids: [detail.id], kind: "contact" }),
+                      ],
+                      [
+                        "Brokers",
+                        () => classifyMutation.mutate({ ids: [detail.id], kind: "broker" }),
+                      ],
+                      [
+                        "Notaires",
+                        () => classifyMutation.mutate({ ids: [detail.id], kind: "notary" }),
+                      ],
+                      ["Prospects", () => integrateMutation.mutate([detail.id])],
+                    ] as const
+                  ).map(([label, action]) => (
+                    <Button
+                      key={label}
+                      variant="outline"
+                      onClick={() => {
+                        action();
+                        setDetailId(null);
+                      }}
+                    >
+                      Vers {label}
+                    </Button>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
+        )}
+      </RecordDialog>
       {rows.length > visible && (
-        <Button variant="outline" className="min-h-11 w-full" onClick={() => setVisible((v) => v + 100)}>
+        <Button
+          variant="outline"
+          className="min-h-11 w-full"
+          onClick={() => setVisible((v) => v + 100)}
+        >
           Afficher plus ({rows.length - visible} restants)
         </Button>
       )}

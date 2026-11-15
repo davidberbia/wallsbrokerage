@@ -14,3 +14,6 @@
 - Mandate numbers come from `mandate_number_seq` via the assets trigger; mandates survive asset deletion (asset_id SET NULL + asset_title). Why: legal registry must never lose numbers.
 - Public document shares go through `src/lib/share.functions.ts` (token + 15-day expiry checked server-side, events logged). Why: /partage is unauthenticated.
 - Contact directories share the Contacts navigation in AppLayout while retaining their existing route URLs and access guards. Why: grouping must not move data or break existing links and permissions.
+
+- The root route redirects authenticated staff to the deal pipeline and investors to their profile; Matching has its own /matching route, with legacy asset query links forwarded. Why: the site address must open the operational homepage without losing matching links.
+- Record lists use CompactRow with separate open/edit/delete controls and RecordDialog for secondary details; legal registries and send histories retain their deletion restrictions. Why: keep a consistent single-row mobile overview without losing workflows or legal records.
