@@ -1,7 +1,7 @@
 {
   "name": "Walls Brokerage CRM",
   "short_name": "Wallsbroker",
-  "start_url": "/",
+  "start_url": "/dossiers",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0e1b24",

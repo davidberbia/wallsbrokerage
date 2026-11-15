@@ -32,6 +32,7 @@ import { AssistantBar } from "@/components/AssistantBar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const BROKER_NAV = [
+  { to: "/dossiers", label: "Affaires en cours", icon: FolderKanban },
   { to: "/", label: "Matching", icon: Target },
   { to: "/investisseurs", label: "Investisseurs", icon: Users },
   { to: "/prospects", label: "Prospects", icon: Contact },
@@ -39,7 +40,6 @@ const BROKER_NAV = [
   { to: "/mandats", label: "Mandats", icon: FileSignature },
   { to: "/presentation", label: "Présentation", icon: Presentation },
   { to: "/cibles", label: "Cibles", icon: Crosshair },
-  { to: "/dossiers", label: "Affaires en cours", icon: FolderKanban },
   { to: "/comparables", label: "Comparables", icon: Scale },
   { to: "/appels", label: "Appels", icon: Phone },
   { to: "/envois", label: "Envois", icon: Send },

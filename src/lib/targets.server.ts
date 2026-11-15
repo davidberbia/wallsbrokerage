@@ -65,6 +65,9 @@ export async function saveTargets(
   source: string,
   date: string,
 ): Promise<{ targets: number; fees: number; ids: string[] }> {
+  // Création automatique des affaires désactivée (David, 15/11/2026) : affaires créées à la main uniquement.
+  void admin; void targets; void fees; void source; void date;
+  if (true as boolean) return { targets: 0, fees: 0, ids: [] };
   let created = 0;
   let feeCount = 0;
   const ids: string[] = [];

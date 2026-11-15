@@ -87,7 +87,7 @@ function AuthPage() {
   const priceEuros = parseThousands(form.price);
 
   useEffect(() => {
-    if (!loading && session) navigate({ to: isBroker ? "/" : "/mon-profil" });
+    if (!loading && session) navigate({ to: isBroker ? "/dossiers" : "/mon-profil" });
   }, [loading, session, isBroker, navigate]);
 
   const submit = async (e: React.FormEvent) => {

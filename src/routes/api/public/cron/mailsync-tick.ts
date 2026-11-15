@@ -46,10 +46,9 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
         }
         const admin = await getAdmin();
 
-        const [{ data: contacts }, { data: deals }] = await Promise.all([
-          admin.from("deal_contacts").select("deal_id,email"),
-          admin.from("deals").select("id,name"),
-        ]);
+        // Rattachement automatique mails → affaires désactivé (affaires gérées à la main).
+        const contacts: { deal_id: string; email: string }[] = [];
+        const deals: { id: string; name: string }[] = [];
         const byEmail = new Map<string, string>();
         const byDomain = new Map<string, string>();
         const personal = new Set<string>(PERSONAL_EMAIL_DOMAINS);
