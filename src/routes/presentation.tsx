@@ -17,9 +17,9 @@ export const Route = createFileRoute("/presentation")({
   validateSearch: (s: Record<string, unknown>): { asset?: string | undefined } => ({ asset: typeof s["asset"] === "string" ? s["asset"] : undefined }),
   head: () => ({
     meta: [
-      { title: "Présentation — brochures de vente — Walls Brokerage CRM" },
+      { title: "Teasers — brochures de vente — Walls Brokerage CRM" },
       { name: "description", content: "Générez étape par étape la brochure de vente PowerPoint d'un actif." },
-      { property: "og:title", content: "Présentation — Walls Brokerage CRM" },
+      { property: "og:title", content: "Teasers — Walls Brokerage CRM" },
       { property: "og:description", content: "Génération des brochures de vente par étapes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -139,7 +139,7 @@ function PresentationPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-semibold">Présentation</h1>
+        <h1 className="text-2xl font-semibold">Teasers</h1>
         <p className="text-sm text-muted-foreground">Choisissez un actif puis générez sa brochure étape par étape.</p>
       </div>
       <Select value={assetId ?? ""} onValueChange={(v) => navigate({ search: { asset: v } })}>

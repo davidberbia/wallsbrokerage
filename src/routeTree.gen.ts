@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AQualifierRouteImport } from './routes/a-qualifier'
 import { Route as ActifsRouteImport } from './routes/actifs'
-import { Route as AppelsRouteImport } from './routes/appels'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BrokersRouteImport } from './routes/brokers'
@@ -60,11 +59,6 @@ const AQualifierRoute = AQualifierRouteImport.update({
 const ActifsRoute = ActifsRouteImport.update({
   id: '/actifs',
   path: '/actifs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppelsRoute = AppelsRouteImport.update({
-  id: '/appels',
-  path: '/appels',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArbitrageRoute = ArbitrageRouteImport.update({
@@ -242,7 +236,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
-  '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/brokers': typeof BrokersRoute
@@ -281,7 +274,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
-  '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/brokers': typeof BrokersRoute
@@ -321,7 +313,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/a-qualifier': typeof AQualifierRoute
   '/actifs': typeof ActifsRoute
-  '/appels': typeof AppelsRoute
   '/arbitrage': typeof ArbitrageRoute
   '/auth': typeof AuthRoute
   '/brokers': typeof BrokersRoute
@@ -362,7 +353,6 @@ export interface FileRouteTypes {
     | '/'
     | '/a-qualifier'
     | '/actifs'
-    | '/appels'
     | '/arbitrage'
     | '/auth'
     | '/brokers'
@@ -401,7 +391,6 @@ export interface FileRouteTypes {
     | '/'
     | '/a-qualifier'
     | '/actifs'
-    | '/appels'
     | '/arbitrage'
     | '/auth'
     | '/brokers'
@@ -440,7 +429,6 @@ export interface FileRouteTypes {
     | '/'
     | '/a-qualifier'
     | '/actifs'
-    | '/appels'
     | '/arbitrage'
     | '/auth'
     | '/brokers'
@@ -480,7 +468,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AQualifierRoute: typeof AQualifierRoute
   ActifsRoute: typeof ActifsRoute
-  AppelsRoute: typeof AppelsRoute
   ArbitrageRoute: typeof ArbitrageRoute
   AuthRoute: typeof AuthRoute
   BrokersRoute: typeof BrokersRoute
@@ -537,13 +524,6 @@ declare module '@tanstack/react-router' {
       path: '/actifs'
       fullPath: '/actifs'
       preLoaderRoute: typeof ActifsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/appels': {
-      id: '/appels'
-      path: '/appels'
-      fullPath: '/appels'
-      preLoaderRoute: typeof AppelsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/arbitrage': {
@@ -784,7 +764,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AQualifierRoute: AQualifierRoute,
   ActifsRoute: ActifsRoute,
-  AppelsRoute: AppelsRoute,
   ArbitrageRoute: ArbitrageRoute,
   AuthRoute: AuthRoute,
   BrokersRoute: BrokersRoute,

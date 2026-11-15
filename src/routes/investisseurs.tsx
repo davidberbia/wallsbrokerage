@@ -27,13 +27,13 @@ import type { Investor, InvestorCriteria } from "@/lib/types";
 export const Route = createFileRoute("/investisseurs")({
   head: () => ({
     meta: [
-      { title: "Base investisseurs — Walls Brokerage CRM" },
+      { title: "Base acquéreurs — Walls Brokerage CRM" },
       {
         name: "description",
         content:
           "Gérez les profils investisseurs : tranche d'investissement, classes d'actifs, stratégies et régions.",
       },
-      { property: "og:title", content: "Base investisseurs — Walls Brokerage CRM" },
+      { property: "og:title", content: "Base acquéreurs — Walls Brokerage CRM" },
       {
         property: "og:description",
         content: "Tous les profils acquéreurs et leurs critères d'investissement.",
@@ -231,7 +231,7 @@ function InvestorsPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
         <div>
           <p className="eyebrow">Base acquéreurs</p>
-          <h1 className="mt-1 text-3xl">Investisseurs</h1>
+          <h1 className="mt-1 text-3xl">Acquéreurs</h1>
         </div>
         <div className="grid w-full grid-cols-1 gap-3 sm:ml-auto sm:flex sm:w-auto">
           <Input

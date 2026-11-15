@@ -13,7 +13,6 @@ import {
   LogOut,
   Mail,
   Menu,
-  Phone,
   Presentation,
   FileSignature,
   Scale,
@@ -31,29 +30,24 @@ import { useNavCounts } from "@/hooks/useNavCounts";
 import { AssistantBar } from "@/components/AssistantBar";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
-const BROKER_NAV = [
-  { to: "/dossiers", label: "Affaires en cours", icon: FolderKanban },
-  { to: "/", label: "Matching", icon: Target },
-  { to: "/investisseurs", label: "Investisseurs", icon: Users },
-  { to: "/prospects", label: "Prospects", icon: Contact },
-  { to: "/actifs", label: "Actif", icon: Building2 },
-  { to: "/mandats", label: "Mandats", icon: FileSignature },
-  { to: "/presentation", label: "Présentation", icon: Presentation },
-  { to: "/cibles", label: "Cibles", icon: Crosshair },
-  { to: "/comparables", label: "Comparables", icon: Scale },
-  { to: "/appels", label: "Appels", icon: Phone },
-  { to: "/envois", label: "Envois", icon: Send },
+const NAV_ITEMS = [
+  { to: "/dossiers", label: "Affaires en cours", icon: FolderKanban, admin: false },
+  { to: "/actifs", label: "Actifs", icon: Building2, admin: false },
+  { to: "/presentation", label: "Teasers", icon: Presentation, admin: false },
+  { to: "/mandats", label: "Mandats", icon: FileSignature, admin: false },
+  { to: "/", label: "Matching", icon: Target, admin: false },
+  { to: "/envois", label: "Envois", icon: Send, admin: false },
+  { to: "/cibles", label: "Prospection", icon: Crosshair, admin: false },
+  { to: "/investisseurs", label: "Acquéreurs", icon: Users, admin: false },
+  { to: "/prospects", label: "Prospects", icon: Contact, admin: false },
+  { to: "/brokers", label: "Brokers", icon: Handshake, admin: true },
+  { to: "/notaires", label: "Notaires", icon: Landmark, admin: true },
+  { to: "/contacts", label: "Contacts divers", icon: BookUser, admin: true },
+  { to: "/a-qualifier", label: "À qualifier", icon: Mail, admin: true },
+  { to: "/partager", label: "Veille", icon: Link2, admin: false },
+  { to: "/comparables", label: "Comparables", icon: Scale, admin: false },
+  { to: "/parametres", label: "Paramètres", icon: Settings, admin: true },
 ] as const;
-
-const ADMIN_CONTACTS_NAV = [
-  { to: "/brokers", label: "Brokers", icon: Handshake },
-  { to: "/contacts", label: "Contacts", icon: BookUser },
-  { to: "/notaires", label: "Notaires", icon: Landmark },
-  { to: "/a-qualifier", label: "À qualifier", icon: Mail },
-] as const;
-
-const LINKS_NAV = [{ to: "/partager", label: "Liens", icon: Link2 }] as const;
-const ADMIN_NAV = [{ to: "/parametres", label: "Paramètres", icon: Settings }] as const;
 
 const INVESTOR_NAV = [{ to: "/mon-profil", label: "Mon profil", icon: UserCircle }] as const;
 
@@ -80,7 +74,7 @@ export function AppLayout({
     );
   };
   const NAV = isStaff
-    ? [...BROKER_NAV, ...(isBroker ? ADMIN_CONTACTS_NAV : []), ...LINKS_NAV, ...(isBroker ? ADMIN_NAV : [])]
+    ? NAV_ITEMS.filter((item) => item.admin || isBroker)
     : [...INVESTOR_NAV];
 
   useEffect(() => {

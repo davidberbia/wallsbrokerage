@@ -23,9 +23,9 @@ export const Route = createFileRoute("/partager")({
   validateSearch: search,
   head: () => ({
     meta: [
-      { title: "Liens partagés — Walls Brokerage CRM" },
+      { title: "Veille — Walls Brokerage CRM" },
       { name: "description", content: "Envoyez un article, une vidéo ou un reel : l'IA en extrait contacts, comparables et actualités." },
-      { property: "og:title", content: "Liens partagés — Walls Brokerage CRM" },
+      { property: "og:title", content: "Veille — Walls Brokerage CRM" },
       { property: "og:description", content: "Analyse automatique des liens partagés depuis le téléphone." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -105,7 +105,7 @@ function PartagerPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold tracking-tight">Liens partagés</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-tight">Veille</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Article, vidéo YouTube, reel Instagram ou TikTok : l'IA regarde la vidéo en entier, en tire contacts, actualités et une cible, puis la complète par une recherche web.
           Sur téléphone, utilisez simplement le bouton « Partager » puis « Wallsbroker ».

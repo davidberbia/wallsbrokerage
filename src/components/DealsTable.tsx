@@ -87,7 +87,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     onMutate: ({ id, stage }) => qc.setQueryData<Deal[]>(["deals"], (old) => old?.map((d) => (d.id === id ? { ...d, stage } : d))),
     onSuccess: (_r, v) => {
       if (mode === "targets" && v.stage !== TARGET_STAGE) toast.success(`Basculé dans « Affaires en cours » (${v.stage})`);
-      if (mode === "pipeline" && v.stage === TARGET_STAGE) toast.success("Renvoyé dans « Cibles »");
+      if (mode === "pipeline" && v.stage === TARGET_STAGE) toast.success("Renvoyé dans « Prospection »");
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: refresh,
@@ -181,7 +181,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     }
   };
 
-  const title = mode === "targets" ? "Cibles" : "Affaires en cours";
+  const title = mode === "targets" ? "Prospection" : "Affaires en cours";
 
   return (
     <div className="space-y-4">
