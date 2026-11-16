@@ -12,6 +12,7 @@ export function CompactRow({
   onOpen,
   onEdit,
   onDelete,
+  tone,
 }: {
   title: string;
   subtitle?: string | null;
@@ -21,11 +22,12 @@ export function CompactRow({
   onOpen: () => void;
   onEdit?: (() => void) | undefined;
   onDelete?: (() => void) | undefined;
+  tone?: "success" | "danger";
 }) {
   return (
     <div
       data-compact-row
-      className="flex h-14 min-w-0 items-center gap-1 border-b border-border bg-card px-1 last:border-b-0 sm:gap-2 sm:px-3"
+      className={`flex h-14 min-w-0 items-center gap-1 border-b border-border ${tone === "success" ? "bg-success/15" : tone === "danger" ? "bg-destructive/15" : "bg-card"} px-1 last:border-b-0 sm:gap-2 sm:px-3`}
     >
       {leading && <div className="flex shrink-0 items-center justify-center">{leading}</div>}
       <Button

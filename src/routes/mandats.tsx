@@ -224,6 +224,7 @@ function MandatesPage() {
             summary={`Début ${r.begin} · Signature ${r.start}`}
             onOpen={() => setDetailId(r.id)}
             onEdit={() => setDetailId(r.id)}
+            tone={r.sig === "completed" || r.start !== "—" ? "success" : "danger"}
           />
         ))}
       </div>
