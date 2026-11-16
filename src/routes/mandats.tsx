@@ -55,7 +55,7 @@ function MandatesPage() {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
+          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
@@ -107,6 +107,16 @@ function MandatesPage() {
       agentId: m.agent_id,
       status: expired ? "expiré" : m.status,
       sig: m.signature_status,
+      assetId: a ? (m as { asset_id?: string }).asset_id ?? null : null,
+      raw: {
+        address: m.address ?? [a?.address, a?.postal_code, a?.city].filter(Boolean).join(" ") ?? "",
+        owner: a?.owner_name ?? "",
+        exclusive: a?.mandate_exclusive ?? null,
+        type: a?.mandate_type ?? "",
+        begin: (m.start_date ?? a?.mandate_start ?? "")?.slice(0, 10) ?? "",
+        signed: m.signed_at?.slice(0, 10) ?? "",
+        end: (m.expires_at ?? a?.mandate_end ?? "")?.slice(0, 10) ?? "",
+      },
     };
   });
 
@@ -216,19 +226,8 @@ function MandatesPage() {
       >
         {detail && (
           <>
-            <RecordFacts
-              facts={[
-                ["Adresse", detail.street],
-                ["Ville", detail.town || "—"],
-                ["Propriétaire", detail.owner],
-                ["Exclusivité", detail.exclusive],
-                ["Type", detail.type],
-                ["Début mandat", detail.begin],
-                ["Signature mandat", detail.start],
-                ["Fin", detail.end],
-                ["Signature", detail.sig ? (SIG[detail.sig] ?? detail.sig) : "—"],
-              ]}
-            />
+            <MandateEditor key={detail.id} row={detail} onSaved={() => void qc.invalidateQueries({ queryKey: ["mandates"] })} />
+            {detail.sig && <p className="text-sm text-muted-foreground">Signature : {SIG[detail.sig] ?? detail.sig}</p>}
             <Label>Agent concerné</Label>
             <Select
               value={detail.agentId ?? "none"}
@@ -485,5 +484,83 @@ function SignDialog({
         </div>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function MandateEditor({
+  row,
+  onSaved,
+}: {
+  row: { id: string; assetId: string | null; raw: { address: string; owner: string; exclusive: boolean | null; type: string; begin: string; signed: string; end: string } };
+  onSaved: () => void;
+}) {
+  const [f, setF] = useState(row.raw);
+  const [busy, setBusy] = useState(false);
+  const set = (k: keyof typeof f, v: string | boolean | null) => setF({ ...f, [k]: v });
+  const save = async () => {
+    setBusy(true);
+    const { error } = await supabase
+      .from("mandates")
+      .update({
+        address: f.address || null,
+        start_date: f.begin || null,
+        signed_at: f.signed ? new Date(f.signed).toISOString() : null,
+        expires_at: f.end || null,
+      })
+      .eq("id", row.id);
+    let err = error;
+    if (!err && row.assetId) {
+      const r = await supabase
+        .from("assets")
+        .update({
+          owner_name: f.owner || null,
+          mandate_exclusive: f.exclusive,
+          mandate_type: f.type || null,
+          mandate_start: f.begin || null,
+          mandate_end: f.end || null,
+        })
+        .eq("id", row.assetId);
+      err = r.error;
+    }
+    setBusy(false);
+    if (err) return void toast.error(err.message);
+    toast.success("Mandat mis à jour");
+    onSaved();
+  };
+  return (
+    <div className="grid gap-3">
+      <Label>Adresse</Label>
+      <Input className="min-h-11" value={f.address} onChange={(e) => set("address", e.target.value)} />
+      {row.assetId && (
+        <>
+          <Label>Propriétaire</Label>
+          <Input className="min-h-11" value={f.owner} onChange={(e) => set("owner", e.target.value)} />
+          <Label>Exclusivité</Label>
+          <Select value={f.exclusive == null ? "none" : f.exclusive ? "oui" : "non"} onValueChange={(v) => set("exclusive", v === "none" ? null : v === "oui")}>
+            <SelectTrigger className="min-h-11"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">—</SelectItem>
+              <SelectItem value="oui">Exclusif</SelectItem>
+              <SelectItem value="non">Non exclusif</SelectItem>
+            </SelectContent>
+          </Select>
+          <Label>Type de mandat</Label>
+          <Select value={f.type || "none"} onValueChange={(v) => set("type", v === "none" ? "" : v)}>
+            <SelectTrigger className="min-h-11"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">—</SelectItem>
+              <SelectItem value="Mandat de vente">Mandat de vente</SelectItem>
+              <SelectItem value="Mandat de location">Mandat de location</SelectItem>
+            </SelectContent>
+          </Select>
+        </>
+      )}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="grid gap-1"><Label>Début mandat</Label><Input type="date" className="min-h-11" value={f.begin} onChange={(e) => set("begin", e.target.value)} /></div>
+        <div className="grid gap-1"><Label>Signature mandat</Label><Input type="date" className="min-h-11" value={f.signed} onChange={(e) => set("signed", e.target.value)} /></div>
+        <div className="grid gap-1"><Label>Fin</Label><Input type="date" className="min-h-11" value={f.end} onChange={(e) => set("end", e.target.value)} /></div>
+      </div>
+      <Button className="min-h-11" disabled={busy} onClick={() => void save()}>Enregistrer</Button>
+    </div>
   );
 }
