@@ -1,0 +1,1 @@
+SELECT setval('public.mandate_number_seq', 202193, true);

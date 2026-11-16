@@ -183,6 +183,13 @@
       "when": 1794863746876,
       "tag": "0025_arbitrage_requests_insert_check",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794865231911,
+      "tag": "0026_reset_mandate_counter",
+      "breakpoints": true
     }
   ]
 }
