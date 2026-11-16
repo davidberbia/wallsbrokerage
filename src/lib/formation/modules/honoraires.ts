@@ -1,0 +1,48 @@
+import type { FormationModule, Page, Question, Quiz } from "../types";
+const p = (title: string, ...body: string[]): Page => ({ kind: "page", title, body });
+const q = (q: string, options: string[], answer: number, explain: string): Question => ({ q, options, answer, explain });
+const quiz = (...questions: Question[]): Quiz => ({ kind: "quiz", questions });
+export const module: FormationModule = {
+  slug: "honoraires", title: "Rémunération et honoraires", minutes: 45,
+  summary: "Afficher, calculer et percevoir une rémunération transparente en transaction, location et coopération interprofessionnelle.",
+  steps: [
+    p("Le droit à rémunération", "Le droit aux honoraires suppose notamment un mandat écrit préalable valable, une rémunération déterminée ou déterminable et l'identification de celui qui la supporte.", "La réalisation de l'opération et l'intervention du professionnel doivent également être établies. Un travail important ou une visite ne créent pas seuls un droit à commission."),
+    p("Un barème visible", "L'arrêté du 10 janvier 2017, modifié en 2022, impose l'affichage des prix maximums des prestations et du débiteur. Une négociation à la baisse reste possible.", "Le barème doit être lisible à l'entrée, visible de l'extérieur et accessible sur les supports numériques concernés. Sur internet, rendez-le aisément accessible, notamment depuis les annonces par un lien identifié."),
+    p("TTC et calcul", "Présentez au consommateur des honoraires toutes taxes comprises. Si le tarif dépend du prix du bien, détaillez la base, les tranches et leur mode d'application.", "Distinguez un taux appliqué à l'ensemble du prix d'un calcul cumulatif par tranches. Faites apparaître le montant effectivement convenu dans le mandat, sans dépasser le maximum affiché."),
+    p("Qui paie ?", "Le mandat puis l'engagement des parties doivent préciser si les honoraires incombent au vendeur, à l'acquéreur ou sont répartis. Les documents doivent rester cohérents.", "N'annoncez pas une charge vendeur pour la déplacer tardivement sur l'acquéreur. Toute évolution doit être juridiquement sécurisée, consentie et répercutée dans les documents avant engagement."),
+    quiz(
+      q("Depuis 2022, le barème affiche des prix…", ["Minimums", "Maximums", "Toujours HT", "Imposés par l'État"], 1, "Les tarifs affichés sont des maximums pouvant être négociés à la baisse."),
+      q("Le travail accompli suffit-il à justifier la commission ?", ["Toujours", "Après dix visites", "Si le vendeur est satisfait", "Non"], 3, "La rémunération suppose le respect des conditions contractuelles et légales.")
+    ),
+    p("Net vendeur et FAI", "Le net vendeur est ce qui revient au vendeur avant ses propres frais et dettes ; le prix FAI inclut les honoraires d'agence. Il n'inclut pas automatiquement les frais d'acquisition notariés.", "Exemple : 250 000 € net vendeur et 10 000 € d'honoraires donnent 260 000 € FAI. Le débiteur des honoraires reste à préciser : l'addition seule ne le désigne pas."),
+    p("Rédiger l'annonce", "À charge acquéreur, indiquez le prix honoraires inclus, le prix hors honoraires et le pourcentage TTC calculé sur le prix hors honoraires. Le prix inclus apparaît plus visiblement.", "Précisez toujours qui supporte les honoraires. À charge vendeur, affichez le prix de vente et cette charge, sans présentation trompeuse du coût pour l'acheteur."),
+    p("Quand encaisser ?", "L'article 6 de la loi Hoguet interdit d'exiger ou de recevoir une rémunération avant la conclusion effective de l'opération constatée dans un acte écrit engageant les parties, sous réserve des exceptions légales.", "Pour la vente résidentielle habituelle avec conditions suspensives et paiement à la réitération, aucun acompte d'honoraires : attendez l'acte authentique. Un séquestre destiné au prix n'est pas une avance sur commission et relève d'un régime distinct."),
+    p("Échec de la vente", "Si une condition suspensive échoue sans faute de l'acquéreur, la commission n'est en principe pas due. Ne transformez pas une facture d'entremise en frais de dossier pour contourner cette règle.", "Une faute ou un contournement peut ouvrir une action distincte en réparation ou l'application d'une clause valable. Ce n'est ni une commission automatique ni une autorisation d'encaissement anticipé."),
+    quiz(
+      q("260 000 € FAI moins 10 000 € d'honoraires donnent…", ["270 000 € net vendeur", "260 000 € net vendeur", "250 000 € net vendeur", "Un montant impossible à calculer"], 2, "Le net vendeur de cet exemple est le prix FAI diminué des honoraires."),
+      q("Peut-on contourner l'interdiction d'avance par des frais de négociation ?", ["Non", "Oui, sous 500 €", "Oui, avec facture", "Oui, en espèces"], 0, "La dénomination des sommes ne permet pas de contourner l'article 6.")
+    ),
+    p("Location : prestations", "Pour les baux d'habitation relevant de la loi de 1989, seuls visite, dossier, rédaction du bail et état des lieux d'entrée peuvent être partagés avec le locataire.", "Les autres frais de mise en location restent au bailleur. Pour les prestations partageables, la part du locataire ne dépasse ni celle du bailleur ni les plafonds applicables."),
+    p("Plafonds ALUR en 2026", "Pour visite, dossier et bail réunis, les plafonds locataire 2026 sont de 12,10 €/m² en zone très tendue, 10,09 €/m² en zone tendue et 8,07 €/m² ailleurs, en surface habitable et TTC.", "L'état des lieux d'entrée est plafonné séparément à 3,03 €/m² TTC. Vérifiez le zonage et la revalorisation annuelle ; les premières prestations sont dues à la signature du bail, l'état des lieux lors de sa réalisation."),
+    p("Rétrocession", "Deux professionnels peuvent convenir de partager les honoraires dans un cadre régulier. Formalisez les missions, le montant ou pourcentage, la TVA applicable et le fait générateur du versement.", "La convention ne doit pas augmenter discrètement la facture du client ni rémunérer une intervention réglementée exercée sans habilitation. Conservez les justificatifs et émettez les factures appropriées."),
+    p("Délégation de mandat", "Avant de déléguer une mission, vérifiez que le mandat l'autorise et que le confrère dispose des capacités nécessaires. La délégation ne peut dépasser les pouvoirs initialement confiés.", "Écrivez le périmètre, la durée, la circulation des offres et le partage d'honoraires. Le mandat principal demeure la référence ; une coopération n'autorise pas à modifier seul le débiteur ou le total convenu."),
+    quiz(
+      q("Quelle surface sert aux plafonds locatifs ?", ["La surface du terrain", "La surface Carrez", "La surface cadastrale", "La surface habitable"], 3, "Les plafonds d'honoraires locatifs sont calculés sur la surface habitable."),
+      q("Une délégation permet-elle de dépasser le mandat initial ?", ["Oui, entre agences", "Non", "Oui, avec facture", "Oui, en exclusivité"], 1, "Le délégataire intervient dans les limites des pouvoirs délégués.")
+    )
+  ],
+  final: [
+    q("Quelle information rend un pourcentage d'honoraires calculable ?", ["Le nombre de visites", "La date du DPE", "Sa base et ses modalités", "La surface du jardin"], 2, "Un taux n'est intelligible qu'avec sa base et ses règles de calcul."),
+    q("Un client peut-il négocier sous le maximum affiché ?", ["Oui", "Non", "Seulement en location", "Seulement après l'acte"], 0, "L'affichage d'un maximum laisse possible une réduction négociée."),
+    q("Quel affichage convient au consommateur ?", ["HT seulement", "Sans TVA précisée", "Taux interne seul", "Prix TTC lisible"], 3, "L'information tarifaire du consommateur doit être exprimée TTC."),
+    q("Quel ensemble doit rester cohérent sur le débiteur ?", ["DPE et audit", "Mandat, annonce et engagement", "Cadastre et plan", "Bail et règlement sanitaire"], 1, "La répartition des honoraires ne doit pas varier entre les documents contractuels et publicitaires."),
+    q("Le prix FAI comprend-il nécessairement les frais notariés ?", ["Toujours", "Seulement dans l'ancien", "Non", "Seulement à crédit"], 2, "FAI vise les honoraires d'agence et non l'ensemble des frais d'acquisition."),
+    q("10 000 € sur 250 000 € hors honoraires représentent…", ["4 %", "3 %", "5 %", "10 %"], 0, "Le rapport de 10 000 à 250 000 est égal à 4 %."),
+    q("Dans une vente résidentielle financée, quand percevoir normalement les honoraires ?", ["Au mandat", "À la visite", "À l'offre", "À l'acte authentique"], 3, "La pratique sécurisée attend la réalisation de la vente et la réitération authentique."),
+    q("Un prêt est refusé conformément à la condition suspensive, sans faute : quelle conséquence ?", ["Commission doublée", "Pas de commission en principe", "Moitié due automatiquement", "Paiement par la banque"], 1, "L'échec régulier de la condition empêche en principe le droit à commission."),
+    q("Qui supporte la diffusion de l'annonce locative ?", ["Le locataire seul", "Les voisins", "Le bailleur", "Le garant"], 2, "La publicité ne fait pas partie des prestations partageables avec le locataire."),
+    q("En zone très tendue, quel plafond 2026 pour visite, dossier et bail de 40 m² ?", ["484 € TTC", "400 € TTC", "121,20 € TTC", "600 € TTC"], 0, "Le plafond est de 40 × 12,10 €, sous réserve de ne pas dépasser la part du bailleur."),
+    q("Pour un état des lieux de 40 m², quel plafond locataire 2026 ?", ["320 € TTC", "240 € TTC", "160 € TTC", "121,20 € TTC"], 3, "Le plafond propre à l'état des lieux est de 40 × 3,03 €."),
+    q("Quel document sécurise le partage entre confrères ?", ["Un bon de visite seul", "Une convention écrite détaillée", "Une annonce commune seule", "Une facture au client doublée"], 1, "La convention formalise la coopération sans modifier illicitement les engagements du client.")
+  ]
+};

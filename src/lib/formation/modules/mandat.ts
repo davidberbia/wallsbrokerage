@@ -1,0 +1,48 @@
+import type { FormationModule, Page, Question, Quiz } from "../types";
+const p = (title: string, ...body: string[]): Page => ({ kind: "page", title, body });
+const q = (q: string, options: string[], answer: number, explain: string): Question => ({ q, options, answer, explain });
+const quiz = (...questions: Question[]): Quiz => ({ kind: "quiz", questions });
+export const module: FormationModule = {
+  slug: "mandat", title: "Le mandat", minutes: 45,
+  summary: "Sécuriser la prise de mandat, choisir ses clauses et gérer sa fin sans confondre résiliation et rétractation.",
+  steps: [
+    p("Un écrit préalable", "La loi Hoguet impose un mandat écrit avant toute négociation ou engagement pour autrui. Une autorisation orale ou un bon de visite ne le remplace pas.", "Le mandat définit la mission, sans donner automatiquement pouvoir de vendre. Une habilitation expresse est nécessaire pour engager le propriétaire par une signature."),
+    p("Identifier les parties", "Vérifiez identité, capacité et qualité du mandant : propriétaire, indivisaire, représentant d'une société ou titulaire d'une procuration.", "Identifiez précisément le bien et les droits vendus. En indivision ou démembrement, faites contrôler les pouvoirs nécessaires avant de commercialiser."),
+    p("Mentions essentielles", "Le mandat précise son objet, sa durée limitée, le prix demandé, les pouvoirs confiés et les conditions de rémunération, notamment son calcul et son débiteur.", "Inscrivez-le chronologiquement au registre des mandats. Reportez son numéro sur l'exemplaire remis au mandant et conservez la preuve de cette remise."),
+    p("Durée et reconduction", "Indiquez une date de départ, une échéance et, si elle existe, une reconduction encadrée dans le temps. Un mandat sans limite ne sécurise pas la mission.", "Expliquez les modalités de dénonciation et les éventuelles obligations d'information liées à la reconduction tacite. Une période d'irrévocabilité n'autorise pas une exclusivité perpétuelle."),
+    quiz(
+      q("Quand recueillir le mandat ?", ["Après l'offre", "Avant la négociation", "À l'acte", "Après la visite seulement"], 1, "Le mandat écrit doit précéder la négociation pour autrui."),
+      q("Que prouve principalement le bon de visite ?", ["Un pouvoir de vendre", "Une exclusivité", "Un transfert de propriété", "La présentation du bien"], 3, "Le bon de visite trace la présentation mais ne remplace pas le mandat.")
+    ),
+    p("Le mandat simple", "Le mandat simple permet généralement au vendeur de confier le bien à plusieurs agences et de trouver lui-même son acquéreur, selon les clauses signées.", "La commission ne revient pas automatiquement au premier professionnel ayant fait visiter. Son droit dépend de son intervention effective, des stipulations et des circonstances de la vente."),
+    p("Le mandat exclusif", "L'exclusivité réserve la mission au professionnel dans les limites du contrat. Précisez notamment si le vendeur peut traiter directement et les conséquences d'une violation.", "Le contrat doit détailler les actions promises et les modalités de compte rendu. L'exclusivité appelle un suivi démontrable, pas seulement une interdiction imposée au client."),
+    p("Le semi-exclusif", "Le semi-exclusif est une formule contractuelle : généralement, une seule agence intervient mais le vendeur conserve la possibilité de trouver lui-même un acquéreur.", "Le nom ne suffit pas. Décrivez le sort des contacts directs, leur transmission et une éventuelle rémunération réduite, dans les limites légales applicables."),
+    p("La clause pénale", "Une clause pénale prévoit une indemnité en cas de manquement déterminé, par exemple le contournement d'une exclusivité. Elle n'est pas une commission automatiquement acquise.", "Selon l'article 78 du décret de 1972, les clauses concernées doivent être expresses, très apparentes et figurer dans l'exemplaire remis. La somme stipulée ne peut excéder les honoraires prévus ; le juge peut modérer une pénalité manifestement excessive."),
+    quiz(
+      q("Que signifie nécessairement « semi-exclusif » ?", ["Une commission doublée", "Une durée annuelle", "Rien sans lecture des clauses", "Une vente directe interdite"], 2, "Le contenu du semi-exclusif dépend des stipulations convenues."),
+      q("La pénalité de l'article 78 peut-elle dépasser les honoraires stipulés ?", ["Non", "Oui, du double", "Oui, avec exclusivité", "Oui, sans plafond"], 0, "L'article 78 plafonne la somme stipulée au montant des honoraires prévus.")
+    ),
+    p("Résilier après trois mois", "Pour les mandats comportant les clauses visées à l'article 78, notamment l'exclusivité ou une clause pénale, chaque partie peut en principe dénoncer le mandat après trois mois.", "Respectez un préavis d'au moins quinze jours par lettre recommandée avec demande d'avis de réception. Ce régime comporte des exceptions, notamment pour certaines ventes d'immeubles par lots ; ne le généralisez pas à tout mandat."),
+    p("Quatorze jours pour réfléchir", "Le consommateur bénéficie en principe de quatorze jours pour se rétracter d'un mandat conclu hors établissement ou à distance. Le délai court à compter de sa conclusion.", "Remettez les informations et le formulaire requis. Une exécution anticipée exige une demande expresse ; elle ne supprime pas, à elle seule, la rétractation. Hors établissement, aucun paiement ne peut en principe être reçu pendant sept jours, sans préjudice des restrictions Hoguet."),
+    p("Le mandat de recherche", "L'acquéreur peut mandater un professionnel pour rechercher un bien. Le contrat précise secteur, critères, budget, durée, mission et honoraires à sa charge.", "Signez-le avant les démarches relevant de la mission. Évitez tout cumul opaque avec un mandat de vente : les interventions et rémunérations doivent être licites, distinctes et transparentes."),
+    p("Avenants et clôture", "Une baisse de prix, une nouvelle répartition des honoraires ou une modification de mission nécessite un avenant accepté et signé par les parties avant application.", "Rattachez l'avenant au mandat et remettez-en un exemplaire au client. À la fin, arrêtez la commercialisation et expliquez les éventuelles clauses postérieures, limitées et proportionnées, sans inventer un droit automatique à commission."),
+    quiz(
+      q("Quel acte sécurise une baisse de prix ?", ["Une note interne", "Un appel non tracé", "Une nouvelle annonce seule", "Un avenant signé"], 3, "La modification du prix doit être acceptée et formalisée avant son application."),
+      q("Un début d'exécution anticipé supprime-t-il seul la rétractation ?", ["Toujours", "Non", "Après une visite", "Après une annonce"], 1, "La demande d'exécution anticipée ne vaut pas à elle seule perte du droit de rétractation.")
+    )
+  ],
+  final: [
+    q("Un propriétaire demande de négocier avant de signer : que faire ?", ["Accepter oralement", "Utiliser un bon de visite", "Obtenir d'abord le mandat écrit", "Attendre le compromis"], 2, "L'écrit préalable conditionne l'intervention de négociation."),
+    q("Un mandat de vente ordinaire permet-il de signer la vente pour le vendeur ?", ["Non, sans pouvoir exprès", "Oui, toujours", "Oui, au prix affiché", "Oui, après trois mois"], 0, "Le pouvoir de s'engager pour le vendeur doit être expressément conféré."),
+    q("Qui contrôler pour un bien détenu par une société ?", ["Le voisin", "Le diagnostiqueur", "Le gardien", "Le représentant et ses pouvoirs"], 3, "L'identité du représentant ne suffit pas sans contrôle de ses pouvoirs."),
+    q("Où reporter le numéro du registre ?", ["Uniquement dans le logiciel", "Sur l'exemplaire du mandant", "Sur le DPE", "Sur le titre de propriété"], 1, "Le numéro d'inscription doit figurer sur l'exemplaire remis au mandant."),
+    q("Quelle durée choisir ?", ["Une durée illimitée", "Une durée implicite", "Une durée limitée et explicite", "Aucune en exclusivité"], 2, "Le mandat doit comporter une limitation de ses effets dans le temps."),
+    q("En mandat simple, plusieurs agences peuvent-elles être missionnées ?", ["Oui, selon les clauses", "Jamais", "Après un an seulement", "Avec accord du notaire seulement"], 0, "Le mandat simple permet généralement la pluralité d'intermédiaires."),
+    q("Que prévoir en contrepartie de l'exclusivité ?", ["Aucun suivi", "Une vente garantie", "Un prix garanti", "Des actions et comptes rendus définis"], 3, "Le mandat exclusif précise les actions promises et la reddition de compte."),
+    q("Comment présenter une clause pénale relevant de l'article 78 ?", ["En annexe non remise", "En caractères très apparents", "Seulement à l'oral", "Après la vente"], 1, "La clause doit être expresse, très apparente et remise au mandant."),
+    q("Quel préavis minimal prévoit le régime ordinaire de l'article 78 après trois mois ?", ["Deux jours", "Sept jours", "Quinze jours", "Six mois"], 2, "La dénonciation exige au moins quinze jours de préavis par LRAR."),
+    q("Pour un mandat à distance, quand débute en principe la rétractation ?", ["À la conclusion du contrat", "À la première visite", "À l'offre", "À l'acte"], 0, "Pour cette prestation de services, le délai commence à la conclusion du mandat."),
+    q("Quel document définit une mission confiée par l'acheteur ?", ["Un DDT", "Un état daté", "Un bail", "Un mandat de recherche"], 3, "Le mandat de recherche organise la mission donnée par l'acquéreur."),
+    q("À l'expiration du mandat, quelle conduite adopter ?", ["Continuer sans limite", "Cesser la commercialisation non autorisée", "Reconduire oralement", "Facturer une commission automatique"], 1, "L'intervention ne peut se poursuivre sans titre contractuel valable.")
+  ]
+};
