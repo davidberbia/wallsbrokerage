@@ -78,7 +78,7 @@ export function AssistantBar({ userId }: { userId: string }) {
   };
 
   return (
-    <div className="sticky top-16 z-20">
+    <div className="sticky top-16 z-20 md:top-0">
       {(pending.data ?? 0) > 0 && (
         <Link
           to="/validation"

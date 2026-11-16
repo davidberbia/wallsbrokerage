@@ -116,8 +116,48 @@ export function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-sidebar text-sidebar-foreground">
+    <div className="min-h-screen bg-background md:pl-60">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+        <Link to={isStaff ? "/" : "/mon-profil"} className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-4">
+          <img src="/icon-192.png" alt="" className="mr-2 size-7 rounded-md" />
+          <span className="truncate font-display text-base font-semibold tracking-tight text-accent">WALLSBROKERAGE</span>
+        </Link>
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2" aria-label="Menu principal">
+          {NAV.map((item) => {
+            const active = item.label === "Contacts" ? isContactsPage : isActiveNav(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  active
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60",
+                )}
+              >
+                <item.icon className="size-4 shrink-0" />
+                <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                {item.label !== "Contacts" && badge(item.to)}
+              </Link>
+            );
+          })}
+        </nav>
+        <div className="border-t border-sidebar-border p-3">
+          <p className="mb-1 truncate px-3 text-xs text-sidebar-foreground/60">{session.user.email}</p>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            onClick={async () => {
+              await supabase.auth.signOut();
+              navigate({ to: "/auth" });
+            }}
+          >
+            <LogOut className="size-4" /> Se déconnecter
+          </Button>
+        </div>
+      </aside>
+      <header className="sticky top-0 z-30 border-b border-border bg-sidebar text-sidebar-foreground md:hidden">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:gap-8 sm:px-5">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -176,27 +216,6 @@ export function AppLayout({
             </span>
           </Link>
 
-          <nav className="hidden min-w-0 flex-1 items-center gap-1 overflow-x-auto md:flex">
-            {NAV.map((item) => {
-              const active = item.label === "Contacts" ? isContactsPage : isActiveNav(item.to);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={cn(
-                    "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors",
-                    active
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60",
-                  )}
-                >
-                  <item.icon className="size-4" />
-                  {item.label}
-                  {item.label !== "Contacts" && badge(item.to)}
-                </Link>
-              );
-            })}
-          </nav>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <span className="hidden text-xs text-sidebar-foreground/60 lg:block">
               {session.user.email}
@@ -217,7 +236,7 @@ export function AppLayout({
         </div>
       </header>
       {isStaff && <AssistantBar userId={session.user.id} />}
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-5 sm:py-10">
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-5 sm:py-10">
         {isStaff && isContactsPage && (
           <section className="mb-6 min-w-0" aria-label="Contacts">
             <h1 className="mb-3 font-display text-2xl font-semibold">Contacts</h1>
