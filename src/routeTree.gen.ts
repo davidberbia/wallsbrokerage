@@ -34,6 +34,8 @@ import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ValidationRouteImport } from './routes/validation'
+import { Route as FormationIndexRouteImport } from './routes/formation.index'
+import { Route as FormationSlugRouteImport } from './routes/formation.$slug'
 import { Route as PartageTokenRouteImport } from './routes/partage.$token'
 import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
@@ -176,6 +178,16 @@ const ValidationRoute = ValidationRouteImport.update({
   path: '/validation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FormationIndexRoute = FormationIndexRouteImport.update({
+  id: '/formation/',
+  path: '/formation/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FormationSlugRoute = FormationSlugRouteImport.update({
+  id: '/formation/$slug',
+  path: '/formation/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PartageTokenRoute = PartageTokenRouteImport.update({
   id: '/partage/$token',
   path: '/partage/$token',
@@ -289,8 +301,10 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
+  '/formation/$slug': typeof FormationSlugRoute
   '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
+  '/formation/': typeof FormationIndexRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
@@ -332,8 +346,10 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
+  '/formation/$slug': typeof FormationSlugRoute
   '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
+  '/formation': typeof FormationIndexRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
@@ -376,8 +392,10 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
+  '/formation/$slug': typeof FormationSlugRoute
   '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
+  '/formation/': typeof FormationIndexRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
@@ -421,8 +439,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/validation'
+    | '/formation/$slug'
     | '/partage/$token'
     | '/synthese/$token'
+    | '/formation/'
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
@@ -464,8 +484,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/validation'
+    | '/formation/$slug'
     | '/partage/$token'
     | '/synthese/$token'
+    | '/formation'
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
@@ -507,8 +529,10 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/sitemap.xml'
     | '/validation'
+    | '/formation/$slug'
     | '/partage/$token'
     | '/synthese/$token'
+    | '/formation/'
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
@@ -551,8 +575,10 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ValidationRoute: typeof ValidationRoute
+  FormationSlugRoute: typeof FormationSlugRoute
   PartageTokenRoute: typeof PartageTokenRoute
   SyntheseTokenRoute: typeof SyntheseTokenRoute
+  FormationIndexRoute: typeof FormationIndexRoute
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCatalogueRoute: typeof ApiPublicCatalogueRoute
   ApiPublicCronAiscanTickRoute: typeof ApiPublicCronAiscanTickRoute
@@ -746,6 +772,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ValidationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/formation/': {
+      id: '/formation/'
+      path: '/formation'
+      fullPath: '/formation/'
+      preLoaderRoute: typeof FormationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/formation/$slug': {
+      id: '/formation/$slug'
+      path: '/formation/$slug'
+      fullPath: '/formation/$slug'
+      preLoaderRoute: typeof FormationSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/partage/$token': {
       id: '/partage/$token'
       path: '/partage/$token'
@@ -887,8 +927,10 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ValidationRoute: ValidationRoute,
+  FormationSlugRoute: FormationSlugRoute,
   PartageTokenRoute: PartageTokenRoute,
   SyntheseTokenRoute: SyntheseTokenRoute,
+  FormationIndexRoute: FormationIndexRoute,
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCatalogueRoute: ApiPublicCatalogueRoute,
   ApiPublicCronAiscanTickRoute: ApiPublicCronAiscanTickRoute,

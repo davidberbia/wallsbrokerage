@@ -21,6 +21,7 @@ import {
   Target,
   UserCircle,
   Users,
+  GraduationCap,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -51,6 +52,7 @@ const NAV_ITEMS = [
   { to: "/partager", label: "Extractions", icon: Link2, admin: false },
   { to: "/comparables", label: "Comparables", icon: Scale, admin: false },
   { to: "/mon-contrat", label: "Mon contrat", icon: FileSignature, admin: false },
+  { to: "/formation", label: "Formation immo", icon: GraduationCap, admin: false },
   { to: "/agents-co", label: "Agents Co", icon: Users, admin: true },
   { to: "/parametres", label: "Paramètres", icon: Settings, admin: true },
 ] as const;
@@ -75,7 +77,7 @@ export function AppLayout({
   const contactTabs = CONTACT_ITEMS.filter((item) => item.admin || isBroker);
   const isContactsPage = CONTACT_ITEMS.some((item) => item.to === pathname);
   const isActiveNav = (to: string) =>
-    to === "/investisseurs" && isStaff ? isContactsPage : pathname === to;
+    to === "/investisseurs" && isStaff ? isContactsPage : pathname === to || (to === "/formation" && pathname.startsWith("/formation/"));
   const counts = useNavCounts(!!session && isStaff).data;
   const badge = (to: string) => {
     const n = counts?.[to];

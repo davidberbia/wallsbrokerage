@@ -148,6 +148,13 @@
       "when": 1794840089911,
       "tag": "0020_visibility_hidden_agents",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794841277187,
+      "tag": "0021_training_progress",
+      "breakpoints": true
     }
   ]
 }

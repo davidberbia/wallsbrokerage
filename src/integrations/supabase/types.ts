@@ -2476,6 +2476,39 @@ export type Database = {
         }
         Relationships: []
       }
+      training_progress: {
+        Row: {
+          attempts: number
+          best_score: number | null
+          id: string
+          module_slug: string
+          passed_at: string | null
+          step_index: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          best_score?: number | null
+          id?: string
+          module_slug: string
+          passed_at?: string | null
+          step_index?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          attempts?: number
+          best_score?: number | null
+          id?: string
+          module_slug?: string
+          passed_at?: string | null
+          step_index?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
