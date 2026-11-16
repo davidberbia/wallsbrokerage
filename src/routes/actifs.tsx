@@ -169,6 +169,31 @@ function AssetsPage() {
           .single();
         if (error) throw error;
         assetId = created.id;
+        // Numéro de mandat attribué uniquement quand l'actif est réellement créé.
+        let { data: m } = await supabase
+          .from("mandates")
+          .select("number, number_suffix")
+          .eq("asset_id", assetId!)
+          .maybeSingle();
+        if (!m) {
+          const { data: me } = await supabase.auth.getUser();
+          const { data: agent } = await supabase
+            .from("commercial_agents")
+            .select("id")
+            .eq("user_id", me.user?.id ?? "")
+            .maybeSingle();
+          const { data: inserted, error: mErr } = await supabase
+            .from("mandates")
+            .insert({ asset_id: assetId!, asset_title: draft.title, agent_id: agent?.id ?? null })
+            .select("number, number_suffix")
+            .single();
+          if (mErr) throw mErr;
+          m = inserted;
+        }
+        if (m) {
+          const ref = `${m.number}${m.number_suffix ? ` ${m.number_suffix}` : ""}`;
+          await supabase.from("assets").update({ reference: ref }).eq("id", assetId!);
+        }
       }
 
       if (removedDocs.length > 0) {
@@ -518,7 +543,6 @@ function AssetForm({
       )}
       {(fullEdit || step === 0) && (
         <div className="grid gap-4">
-          <Field label="Mandat / Référence"><Input value={draft.reference ?? ""} onChange={e=>set({reference:e.target.value})}/></Field>
           <Field label="Intitulé *">
             <Input required value={draft.title} onChange={(e) => set({ title: e.target.value })} />
           </Field>
@@ -766,6 +790,11 @@ function AssetForm({
       )}
       {(fullEdit || step === 3) && (
         <div className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <Field label="Mandat / Référence">
+              <Input disabled value={draft.reference ?? ""} placeholder="Généré automatiquement à la création" />
+            </Field>
+          </div>
           <Field label="Propriétaire">
             <Input
               value={draft.owner_name ?? ""}
