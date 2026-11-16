@@ -52,12 +52,14 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ASSET_CLASSES, ASSET_STATUS, REGIONS, STRATEGIES, formatEUR } from "@/lib/taxonomy";
-import type { Asset } from "@/lib/types";
+import { ASSET_CLASSES, ASSET_CLASS_GROUPS, ASSET_SUBCLASSES, ASSET_STATUS, REGIONS, STRATEGIES, assetKindLabel, formatEUR } from "@/lib/taxonomy";
+import type { Asset, PortfolioLot } from "@/lib/types";
 
 export const Route = createFileRoute("/actifs")({
   head: () => ({
@@ -142,6 +144,9 @@ function AssetsPage() {
         hide_street_name: draft.hide_street_name ?? false,
         reference: draft.reference ?? null,
         asset_class: draft.asset_class ?? null,
+        asset_subclass: ASSET_SUBCLASSES[draft.asset_class ?? ""] ? draft.asset_subclass ?? null : null,
+        is_portfolio: draft.is_portfolio ?? false,
+        portfolio_lots: draft.is_portfolio ? (draft.portfolio_lots ?? []) : [],
         strategy: draft.strategy ?? null,
         region: draft.region ?? null,
         city: draft.city ?? null,
@@ -597,12 +602,27 @@ function AssetForm({
             <Input required value={draft.title} onChange={(e) => set({ title: e.target.value })} />
           </Field>
           <Field label="Type de bien *">
-            <Choice
+            <ClassChoice
               options={PROPERTY_TYPES}
               value={draft.asset_class ?? ""}
-              onChange={(v) => set({ asset_class: v })}
+              onChange={(v) => set({ asset_class: v, asset_subclass: null })}
             />
           </Field>
+          {ASSET_SUBCLASSES[draft.asset_class ?? ""] && (
+            <Field label="Sous-classe">
+              <div className="grid grid-cols-3 gap-2">
+                {ASSET_SUBCLASSES[draft.asset_class ?? ""]!.map((t) => (
+                  <Button key={t} type="button" className="min-h-11" variant={draft.asset_subclass === t ? "default" : "outline"} onClick={() => set({ asset_subclass: t })}>
+                    {t}
+                  </Button>
+                ))}
+              </div>
+            </Field>
+          )}
+          <label className="flex min-h-11 items-center gap-3 rounded-md border px-3">
+            <input type="checkbox" className="size-5 accent-primary" checked={draft.is_portfolio ?? false} onChange={(e) => set({ is_portfolio: e.target.checked, portfolio_lots: e.target.checked && !(draft.portfolio_lots ?? []).length ? [{}, {}] : (draft.portfolio_lots ?? []) })} />
+            <span className="text-sm">Portefeuille (plusieurs biens à des adresses différentes)</span>
+          </label>
           <Field label="Transaction *">
             <div className="grid grid-cols-2 gap-2">
               {["Vente", "Location"].map((t) => (
@@ -715,7 +735,12 @@ function AssetForm({
             <Field label="Statut">
               <Choice options={ASSET_STATUS} value={draft.status ?? "disponible"} onChange={(v) => set({ status: v })} />
             </Field>
-            <Field label="Surface (m²)">
+            {draft.is_portfolio && (
+              <div className="sm:col-span-2">
+                <LotsEditor lots={draft.portfolio_lots ?? []} onChange={(lots) => set({ portfolio_lots: lots, surface: sumOf(lots, "surface"), rent: sumOf(lots, "rent") })} />
+              </div>
+            )}
+            <Field label={draft.is_portfolio ? "Surface totale (m²)" : "Surface (m²)"}>
               <Input type="number" value={draft.surface ?? ""} onChange={(e) => set({ surface: e.target.value ? Number(e.target.value) : null })} />
             </Field>
             {!residential && (
@@ -938,6 +963,70 @@ function Choice({
   );
 }
 
+function ClassChoice({ options, value, onChange }: { options: readonly string[]; value: string; onChange: (v: string) => void }) {
+  const grouped = new Set(ASSET_CLASS_GROUPS.flatMap(([, l]) => l));
+  const others = options.filter((o) => !grouped.has(o));
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger>
+        <SelectValue placeholder="—" />
+      </SelectTrigger>
+      <SelectContent>
+        {ASSET_CLASS_GROUPS.map(([g, list]) => {
+          const items = list.filter((o) => options.includes(o));
+          return items.length ? (
+            <SelectGroup key={g}>
+              <SelectLabel>{g}</SelectLabel>
+              {items.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+            </SelectGroup>
+          ) : null;
+        })}
+        {others.length > 0 && (
+          <SelectGroup>
+            <SelectLabel>Autres</SelectLabel>
+            {others.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+          </SelectGroup>
+        )}
+      </SelectContent>
+    </Select>
+  );
+}
+
+const sumOf = (lots: PortfolioLot[], k: "surface" | "rent") => {
+  const t = lots.reduce((a, l) => a + (Number(l[k]) || 0), 0);
+  return t || null;
+};
+
+function LotsEditor({ lots, onChange }: { lots: PortfolioLot[]; onChange: (l: PortfolioLot[]) => void }) {
+  const up = (i: number, patch: Partial<PortfolioLot>) => onChange(lots.map((l, j) => (j === i ? { ...l, ...patch } : l)));
+  const num = (v: string) => (v ? Number(v) : null);
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-medium">Biens du portefeuille (état locatif)</p>
+      {lots.map((l, i) => (
+        <div key={i} className="grid gap-2 rounded-md border p-3 sm:grid-cols-2">
+          <div className="flex items-center justify-between sm:col-span-2">
+            <span className="text-sm font-medium">Bien {i + 1}</span>
+            <Button type="button" variant="ghost" size="sm" className="min-h-11" onClick={() => onChange(lots.filter((_, j) => j !== i))}>
+              <Trash2 className="size-4" /> Retirer
+            </Button>
+          </div>
+          <Input className="sm:col-span-2" placeholder="Adresse" value={l.address ?? ""} onChange={(e) => up(i, { address: e.target.value })} />
+          <Input inputMode="numeric" placeholder="Code postal" value={l.postal_code ?? ""} onChange={(e) => up(i, { postal_code: e.target.value })} />
+          <Input placeholder="Ville" value={l.city ?? ""} onChange={(e) => up(i, { city: e.target.value })} />
+          <ClassChoice options={PROPERTY_TYPES} value={l.asset_class ?? ""} onChange={(v) => up(i, { asset_class: v })} />
+          <Input type="number" placeholder="Surface (m²)" value={l.surface ?? ""} onChange={(e) => up(i, { surface: num(e.target.value) })} />
+          <Input placeholder="Locataire (vide si libre)" value={l.tenant ?? ""} onChange={(e) => up(i, { tenant: e.target.value })} />
+          <Input inputMode="numeric" placeholder="Loyer annuel (€ HT HC)" value={formatThousands(l.rent ?? null)} onChange={(e) => up(i, { rent: parseThousands(e.target.value) })} />
+        </div>
+      ))}
+      <Button type="button" variant="outline" className="min-h-11 w-full" onClick={() => onChange([...lots, {}])}>
+        <Plus className="size-4" /> Ajouter un bien
+      </Button>
+    </div>
+  );
+}
+
 const STRATEGY_HELP: [string, string][] = [
   ["Core", "Actifs de première catégorie, bien localisés, loués à des locataires solides sur des baux longs. Rendement sécurisé, liquidité forte."],
   ["Core+", "Fondamentaux du Core avec une marge de valorisation limitée : renégociation de baux, relocation ponctuelle, optimisation des charges."],
@@ -1091,7 +1180,8 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
       <RecordFacts
         facts={[
           ["Mandat / Référence", asset.reference],
-          ["Type", asset.asset_class],
+          ["Type", [asset.asset_class, asset.asset_subclass].filter(Boolean).join(" · ") || null],
+          ...((asset.is_portfolio ? (asset.portfolio_lots ?? []) : []).map((l, i) => [`Bien ${i + 1}`, [[l.address, l.postal_code, l.city].filter(Boolean).join(" "), l.asset_class, l.surface ? `${l.surface} m²` : "", l.tenant, l.rent ? formatEUR(l.rent) : ""].filter(Boolean).join(" · ")] as [string, string | null])),
           ["Transaction", asset.transaction_type],
           ["Adresse", [asset.address, asset.postal_code, asset.city].filter(Boolean).join(" · ")],
           ["Région", asset.region],

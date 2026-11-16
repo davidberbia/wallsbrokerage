@@ -1,0 +1,14 @@
+ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS asset_subclass text;
+ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS is_portfolio boolean NOT NULL DEFAULT false;
+ALTER TABLE public.assets ADD COLUMN IF NOT EXISTS portfolio_lots jsonb NOT NULL DEFAULT '[]'::jsonb;
+UPDATE public.assets SET asset_subclass = 'Immeuble(s)', asset_class = 'Bureaux' WHERE asset_class = 'Immeubles de bureaux';
+UPDATE public.assets SET asset_subclass = 'Plateau(x)', asset_class = 'Bureaux' WHERE asset_class = 'Plateaux ou lots de bureaux';
+UPDATE public.investor_criteria SET asset_class = 'Bureaux' WHERE asset_class IN ('Immeubles de bureaux','Plateaux ou lots de bureaux');
+UPDATE public.investors SET asset_classes = ARRAY(SELECT DISTINCT CASE WHEN c IN ('Immeubles de bureaux','Plateaux ou lots de bureaux') THEN 'Bureaux' ELSE c END FROM unnest(asset_classes) c) WHERE asset_classes && ARRAY['Immeubles de bureaux','Plateaux ou lots de bureaux'];
+UPDATE public.prospect_companies SET asset_classes = ARRAY(SELECT DISTINCT CASE WHEN c IN ('Immeubles de bureaux','Plateaux ou lots de bureaux') THEN 'Bureaux' ELSE c END FROM unnest(asset_classes) c) WHERE asset_classes && ARRAY['Immeubles de bureaux','Plateaux ou lots de bureaux'];
+UPDATE public.comparables SET asset_class = 'Bureaux' WHERE asset_class IN ('Immeubles de bureaux','Plateaux ou lots de bureaux');
+UPDATE public.arbitrage_requests SET asset_class = 'Bureaux' WHERE asset_class IN ('Immeubles de bureaux','Plateaux ou lots de bureaux');
+UPDATE public.taxonomy_items SET label = 'Bureaux' WHERE kind = 'asset_class' AND label = 'Immeubles de bureaux';
+UPDATE public.taxonomy_items SET active = false WHERE kind = 'asset_class' AND label = 'Plateaux ou lots de bureaux';
+INSERT INTO public.taxonomy_items (kind, label, sort_order) SELECT 'asset_class', 'Loisirs', 16 WHERE NOT EXISTS (SELECT 1 FROM public.taxonomy_items WHERE kind='asset_class' AND label='Loisirs');
+INSERT INTO public.taxonomy_items (kind, label, sort_order) SELECT 'asset_class', 'Murs de restaurants', 17 WHERE NOT EXISTS (SELECT 1 FROM public.taxonomy_items WHERE kind='asset_class' AND label='Murs de restaurants');

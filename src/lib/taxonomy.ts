@@ -2,8 +2,7 @@
 export const ASSET_CLASSES = [
   "Appartement",
   "Maison",
-  "Immeubles de bureaux",
-  "Plateaux ou lots de bureaux",
+  "Bureaux",
   "Murs de commerces de pied d'immeuble",
   "Locaux commerciaux de périphérie",
   "Ensemble commercial de périphérie",
@@ -19,12 +18,42 @@ export const ASSET_CLASSES = [
   "Santé",
   "Salle de sport",
   "Buffets à volonté",
+  "Loisirs",
+  "Murs de restaurants",
   "Immeubles de logements ou mixtes",
   "Immeubles à restructurer",
   "Activité",
   "Logistique",
   "Terrains à bâtir",
 ] as const;
+
+/** Sous-classes proposées pour certaines classes. */
+export const ASSET_SUBCLASSES: Record<string, readonly string[]> = {
+  Bureaux: ["Immeuble(s)", "Plateau(x)", "Lot(s)"],
+};
+
+/** Rubriques du menu déroulant (simple aide au choix : chaque classe reste distincte). */
+export const ASSET_CLASS_GROUPS: [string, readonly string[]][] = [
+  ["Bureaux", ["Bureaux"]],
+  ["Commerces", ["Murs de commerces de pied d'immeuble", "Locaux commerciaux de périphérie", "Ensemble commercial de périphérie", "Retail Park complet", "Galeries commerciales", "Centres commerciaux", "Murs de restaurants", "Buffets à volonté"]],
+  ["Hôtellerie", ["City Hôtel (sans fonds)", "City Hôtel (murs et fonds)", "Resort Hôtel (sans fonds)", "Resort Hôtel (murs et fonds)"]],
+  ["Résidentiel", ["Appartement", "Maison", "Immeubles de logements ou mixtes", "Résidence étudiants"]],
+  ["Santé", ["EHPAD", "Santé"]],
+  ["Sport et loisirs", ["Salle de sport", "Loisirs"]],
+  ["Industriel", ["Activité", "Logistique"]],
+  ["Foncier", ["Terrains à bâtir", "Immeubles à restructurer"]],
+];
+
+/** Libellé lisible d'un actif : "Bureaux – Immeuble(s)" → "immeuble de bureaux". */
+export function assetKindLabel(cls?: string | null, sub?: string | null): string {
+  if (cls === "Bureaux") {
+    if (sub === "Immeuble(s)") return "immeuble de bureaux";
+    if (sub === "Plateau(x)") return "plateau(x) de bureaux";
+    if (sub === "Lot(s)") return "lot(s) de bureaux";
+    return "bureaux";
+  }
+  return (cls ?? "").trim();
+}
 
 export const STRATEGIES = ["CORE", "CORE +", "VALUE ADDED", "OPPORTUNISTE", "MULTICASE"] as const;
 

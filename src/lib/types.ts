@@ -81,6 +81,19 @@ export type Asset = {
   fee_payer?: string | null;
   mandate_start?: string | null;
   mandate_end?: string | null;
+  asset_subclass?: string | null;
+  is_portfolio?: boolean;
+  portfolio_lots?: PortfolioLot[];
+};
+
+export type PortfolioLot = {
+  address?: string;
+  postal_code?: string;
+  city?: string;
+  asset_class?: string;
+  surface?: number | null;
+  tenant?: string;
+  rent?: number | null;
 };
 
 export type Criteria = {

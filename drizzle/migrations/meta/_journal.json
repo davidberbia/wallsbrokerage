@@ -190,6 +190,13 @@
       "when": 1794865231911,
       "tag": "0026_reset_mandate_counter",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1794872730537,
+      "tag": "0027_bureaux_subclasses_portfolio",
+      "breakpoints": true
     }
   ]
 }

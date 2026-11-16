@@ -84,7 +84,8 @@ export const refreshMandateSignatures = createServerFn({ method: "POST" })
     return { updated };
   });
 
-const anchorTab = (anchor: string) => ({
+const anchorTab = (anchor: string, initials: string) => ({
+  initialHereTabs: [{ anchorString: initials, anchorUnits: "pixels", anchorYOffset: "-4", anchorXOffset: "0" }],
   signHereTabs: [{ anchorString: anchor, anchorUnits: "pixels", anchorYOffset: "-40", anchorXOffset: "0" }],
   dateSignedTabs: [{ anchorString: anchor, anchorUnits: "pixels", anchorYOffset: "8", anchorXOffset: "0" }],
 });
@@ -103,7 +104,7 @@ export const prepareMandateSignature = createServerFn({ method: "POST" })
     if (error || !m) throw new Error("Mandat introuvable");
     if (m.envelope_id && m.signature_status && !["prêt à envoyer", "voided", "declined"].includes(m.signature_status)) throw new Error("Ce mandat est déjà parti en signature.");
     const { getDsAccess } = await import("@/lib/docusign.server");
-    const { ANCHOR_MANDANT, ANCHOR_MANDATAIRE } = await import("@/lib/mandate-template");
+    const { ANCHOR_MANDANT, ANCHOR_MANDATAIRE, ANCHOR_INIT_MANDANT, ANCHOR_INIT_MANDATAIRE } = await import("@/lib/mandate-template");
     const ds = await getDsAccess();
     const H = { Authorization: `Bearer ${ds.token}`, "Content-Type": "application/json" };
     if (m.envelope_id && m.signature_status === "prêt à envoyer")
@@ -116,8 +117,8 @@ export const prepareMandateSignature = createServerFn({ method: "POST" })
         emailSubject: `Mandat n° ${m.number} — signature`,
         documents: [{ documentBase64: btoa(bin), name: `Mandat ${m.number}.html`, fileExtension: "html", documentId: "1" }],
         recipients: { signers: [
-          { email: data.mandantEmail, name: data.mandantName, recipientId: "1", routingOrder: "1", roleName: "Mandant", tabs: anchorTab(ANCHOR_MANDANT) },
-          { email: ds.email || "d.berbia@wallsbroker.com", name: "Wallsbroker — David Berbia", recipientId: "2", routingOrder: "1", roleName: "Mandataire", tabs: anchorTab(ANCHOR_MANDATAIRE) },
+          { email: data.mandantEmail, name: data.mandantName, recipientId: "1", routingOrder: "1", roleName: "Mandant", tabs: anchorTab(ANCHOR_MANDANT, ANCHOR_INIT_MANDANT) },
+          { email: ds.email || "d.berbia@wallsbroker.com", name: "Wallsbroker — David Berbia", recipientId: "2", routingOrder: "1", roleName: "Mandataire", tabs: anchorTab(ANCHOR_MANDATAIRE, ANCHOR_INIT_MANDATAIRE) },
         ] },
         status: "created",
       }),

@@ -62,7 +62,7 @@ function PresentationPage() {
       const { data, error } = await supabase
         .from("assets")
         .select(
-          "id, owner_id, title, city, surface, price, asset_class, description, address, postal_code, rent, transaction_type",
+          "id, owner_id, title, city, surface, price, asset_class, description, address, postal_code, rent, transaction_type, is_portfolio, portfolio_lots",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -152,6 +152,17 @@ function PresentationPage() {
             codePostal: asset.postal_code ?? "",
             loyerAnnuel: fr(asset.rent),
             typeVente: asset.transaction_type ?? "",
+            ...(asset.is_portfolio && Array.isArray(asset.portfolio_lots) && asset.portfolio_lots.length
+              ? {
+                  locataires: (asset.portfolio_lots as { address?: string; city?: string; tenant?: string; surface?: number | null; rent?: number | null }[]).map((l) => ({
+                    enseigne: [l.tenant || "Libre", [l.address, l.city].filter(Boolean).join(" ")].filter(Boolean).join(" — "),
+                    surface: fr(l.surface ?? null),
+                    loyerAnnuel: fr(l.rent ?? null),
+                    loyerM2: l.surface && l.rent ? fr(Math.round(l.rent / l.surface)) : "",
+                    debutBail: "", prochainBreak: "", walb: "", finBail: "", walt: "",
+                  })),
+                }
+              : {}),
             ...(cover.data ? { photoCouverture: cover.data } : {}),
             ...(planImages.data?.length ? { plans: planImages.data } : {}),
           }

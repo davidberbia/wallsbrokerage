@@ -123,7 +123,7 @@ const norm = (v: string) =>
  * et les classes d'actifs de la taxonomie, pour pré-cocher la matrice de stratégie.
  */
 const ASSET_CLASS_ALIASES: Record<string, string> = {
-  bureaux: "Immeubles de bureaux",
+  bureaux: "Bureaux",
   commerce: "Murs de commerces de pied d'immeuble",
   commerces: "Murs de commerces de pied d'immeuble",
   retail: "Murs de commerces de pied d'immeuble",

@@ -116,4 +116,4 @@
 
 - Formulaire actif : réorganisation, stratégies (?), 1 seul dépôt, parkings/surface ext., photos, diffusion, propriétaire physique/moral + SIREN (gérant modifiable), champs appartement
 - Surface pondérée pour immobilier d entreprise
-- Plan mandats/classes/portefeuille : en attente de validation
+- [x] Plan mandats/classes/portefeuille

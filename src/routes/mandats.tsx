@@ -7,6 +7,9 @@ import { Download, PenLine, RefreshCw } from "lucide-react";
 import { useMandateTemplates, downloadWord, printPdf } from "@/components/MandateTemplatesPanel";
 import { addOneYear, fillTemplate, templateFields, feeText, feeChargeText, templateToHtml, withSignatures, templateKind } from "@/lib/mandate-template";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
+import { assetKindLabel } from "@/lib/taxonomy";
+import { RESIDENTIAL_LABELS } from "@/components/ResidentialFields";
+import type { PortfolioLot } from "@/lib/types";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
@@ -55,7 +58,7 @@ function MandatesPage() {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_email, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, fee_mode, fee_value, fee_payer, mandate_start, mandate_end, asset_class, surface, price, rent, residential_details)",
+          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_email, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, fee_mode, fee_value, fee_payer, mandate_start, mandate_end, asset_class, asset_subclass, surface, weighted_surface, outdoor_surface, parking_count, is_portfolio, portfolio_lots, price, rent, residential_details)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
@@ -110,8 +113,9 @@ function MandatesPage() {
       agentId: m.agent_id,
       status: expired ? "expiré" : m.status,
       sig: m.signature_status,
-      designation: [a?.asset_class ?? a?.title ?? "", a?.surface ? `d'environ ${Number(a.surface).toLocaleString("fr-FR")} m²` : ""].filter(Boolean).join(" "),
-      situation: a?.rent ? `loué, loyer annuel ${Number(a.rent).toLocaleString("fr-FR")} € HT HC` : String(((a?.residential_details ?? {}) as Record<string, unknown>)["occupancy"] ?? "") || "libre de toute occupation",
+      designation: designationText(a),
+      etat: a?.is_portfolio ? etatLocatif((a.portfolio_lots ?? []) as PortfolioLot[]) : "",
+      situation: a?.is_portfolio ? "voir l'état locatif ci-dessus" : a?.rent ? `loué, loyer annuel ${Number(a.rent).toLocaleString("fr-FR")} € HT HC` : String(((a?.residential_details ?? {}) as Record<string, unknown>)["occupancy"] ?? "") || "libre de toute occupation",
       price: a?.price ? `${Number(a.price).toLocaleString("fr-FR")} €` : "",
       fees: feeText(a?.fee_mode, a?.fee_value),
       feeCharge: feeChargeText(a?.fee_payer),
@@ -311,13 +315,44 @@ const toIso = (fr: string) => {
 };
 const frDate = (iso: string) => (iso ? new Date(iso).toLocaleDateString("fr-FR") : "");
 
-type AutoRow = { number: number; street: string; town: string; owner: string; mandant?: string; mandantAddress?: string; fees?: string; feeCharge?: string; designation?: string; situation?: string; price?: string };
+const m2 = (n: unknown) => `${Number(n).toLocaleString("fr-FR")} m²`;
+type DesigAsset = { asset_class?: string | null; asset_subclass?: string | null; title?: string | null; surface?: number | null; weighted_surface?: number | null; outdoor_surface?: number | null; parking_count?: number | null; is_portfolio?: boolean | null; portfolio_lots?: unknown; residential_details?: unknown } | null;
+/** Désignation complète reprise de l'actif. */
+function designationText(a: DesigAsset): string {
+  if (!a) return "";
+  const lots = (a.portfolio_lots ?? []) as PortfolioLot[];
+  const kind = a.is_portfolio
+    ? `Un portefeuille de ${lots.length} bien${lots.length > 1 ? "s" : ""} (${assetKindLabel(a.asset_class, a.asset_subclass) || "actifs"})`
+    : assetKindLabel(a.asset_class, a.asset_subclass) || a.title || "";
+  const parts = [
+    a.surface ? `d'une surface ${a.is_portfolio ? "totale " : ""}d'environ ${m2(a.surface)}` : "",
+    a.weighted_surface ? `soit ${m2(a.weighted_surface)} pondérés` : "",
+    a.outdoor_surface ? `avec ${m2(a.outdoor_surface)} de surface extérieure` : "",
+    a.parking_count ? `${a.parking_count} place${a.parking_count > 1 ? "s" : ""} de parking` : "",
+    ...Object.entries((a.residential_details ?? {}) as Record<string, unknown>)
+      .filter(([k, v]) => k !== "occupancy" && v != null && v !== "" && v !== false)
+      .map(([k, v]) => `${(RESIDENTIAL_LABELS[k] || k).toLowerCase()} : ${v === true ? "oui" : String(v)}`),
+  ].filter(Boolean);
+  return [kind.charAt(0).toUpperCase() + kind.slice(1), ...parts].join(", ");
+}
+/** Tableau de l'état locatif d'un portefeuille. */
+function etatLocatif(lots: PortfolioLot[]): string {
+  if (!lots.length) return "";
+  const eur = (n?: number | null) => (n ? `${n.toLocaleString("fr-FR")} €` : "—");
+  const rows = lots.map((l) => `| ${[l.address, l.postal_code, l.city].filter(Boolean).join(" ") || "—"} | ${l.asset_class || "—"} | ${l.surface ? m2(l.surface) : "—"} | ${l.tenant || "Libre"} | ${eur(l.rent)} |`);
+  const ts = lots.reduce((t, l) => t + (Number(l.surface) || 0), 0);
+  const tr = lots.reduce((t, l) => t + (Number(l.rent) || 0), 0);
+  return ["| Adresse | Type | Surface | Locataire | Loyer annuel HT HC |", ...rows, `| Total | | ${ts ? m2(ts) : "—"} | | ${eur(tr)} |`].join("\n");
+}
+
+type AutoRow = { etat?: string; number: number; street: string; town: string; owner: string; mandant?: string; mandantAddress?: string; fees?: string; feeCharge?: string; designation?: string; situation?: string; price?: string };
 function autoValues(row: AutoRow, agent: string, begin: string): Record<string, string> {
   return {
     numero: String(row.number),
     mandant: row.mandant || (row.owner === "—" ? "" : row.owner),
     mandant_adresse: row.mandantAddress ?? "",
-    adresse_bien: [row.street, row.town].filter(Boolean).join(", "),
+    adresse_bien: row.etat ? "aux adresses détaillées dans l'état locatif ci-dessous" : [row.street, row.town].filter(Boolean).join(", "),
+    etat_locatif: row.etat ?? "",
     agent: agent && agent !== "—" ? agent : "David BERBIA PEREZ, Président",
     date_debut: frDate(begin),
     date_fin: frDate(addOneYear(begin)),

@@ -369,6 +369,7 @@ export type Database = {
         Row: {
           address: string | null
           asset_class: string | null
+          asset_subclass: string | null
           brochure_url: string | null
           city: string | null
           created_at: string
@@ -379,6 +380,7 @@ export type Database = {
           hide_street_name: boolean
           hide_street_number: boolean
           id: string
+          is_portfolio: boolean
           mandate_end: string | null
           mandate_exclusive: boolean | null
           mandate_start: string | null
@@ -391,6 +393,7 @@ export type Database = {
           owner_name: string | null
           owner_phone: string | null
           parking_count: number | null
+          portfolio_lots: Json
           postal_code: string | null
           price: number | null
           publish_on_site: boolean
@@ -410,6 +413,7 @@ export type Database = {
         Insert: {
           address?: string | null
           asset_class?: string | null
+          asset_subclass?: string | null
           brochure_url?: string | null
           city?: string | null
           created_at?: string
@@ -420,6 +424,7 @@ export type Database = {
           hide_street_name?: boolean
           hide_street_number?: boolean
           id?: string
+          is_portfolio?: boolean
           mandate_end?: string | null
           mandate_exclusive?: boolean | null
           mandate_start?: string | null
@@ -432,6 +437,7 @@ export type Database = {
           owner_name?: string | null
           owner_phone?: string | null
           parking_count?: number | null
+          portfolio_lots?: Json
           postal_code?: string | null
           price?: number | null
           publish_on_site?: boolean
@@ -451,6 +457,7 @@ export type Database = {
         Update: {
           address?: string | null
           asset_class?: string | null
+          asset_subclass?: string | null
           brochure_url?: string | null
           city?: string | null
           created_at?: string
@@ -461,6 +468,7 @@ export type Database = {
           hide_street_name?: boolean
           hide_street_number?: boolean
           id?: string
+          is_portfolio?: boolean
           mandate_end?: string | null
           mandate_exclusive?: boolean | null
           mandate_start?: string | null
@@ -473,6 +481,7 @@ export type Database = {
           owner_name?: string | null
           owner_phone?: string | null
           parking_count?: number | null
+          portfolio_lots?: Json
           postal_code?: string | null
           price?: number | null
           publish_on_site?: boolean
