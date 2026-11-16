@@ -109,3 +109,7 @@
 - [ ] Connexion boîtes grand public (Gmail, Hotmail, Yahoo…) avec mêmes accès
 - [x] Textes invitation + étape boîte mail : ton vendeur, bénéfices agent
 - [x] Avantage ajouté : accès aux comparables de toute l'entreprise
+
+## Formation et manuel (16 novembre)
+- [x] Formation immo : 16 modules écrits, Suivant + %, quiz toutes les 3-4 pages, final 12-15 questions, validation 80 %.
+- [ ] Manuel du CRM : présentation générale avec images et voix, puis un module par onglet (après accord sur la génération de la voix).
