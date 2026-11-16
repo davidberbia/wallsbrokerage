@@ -382,7 +382,7 @@ function SignDialog({
   const auto: Record<string, string> = target ? autoValues(target, agent, begin) : {};
   const all: Record<string, string> = { ...auto, ...vals, mandant: vals["mandant"] ?? (name || auto["mandant"] || "") };
   const fields = tpl
-    ? templateFields(tpl.body).filter((f) => !["date_debut", "date_fin", "mandant", "date_signature"].includes(f))
+    ? templateFields(tpl.body).filter((f) => !["date_debut", "date_fin", "mandant", "date_signature", "mediateur"].includes(f))
     : [];
   const missing = fields.filter((f) => !all[f]);
   const filled = fields.filter((f) => !!all[f]);

@@ -7,6 +7,8 @@ export function addOneYear(iso: string): string {
 }
 
 export function fillTemplate(body: string, values: Record<string, string | null | undefined>): string {
+  // Médiateur facultatif : sans valeur, la phrase qui le cite est retirée.
+  if (!values["mediateur"]) body = body.replace(/^[^\n]*\{\{mediateur\}\}[^\n]*\n?/gm, "");
   return body.replace(/\{\{(\w+)\}\}/g, (all, k: string) => {
     const v = values[k];
     return v && v.trim() ? v : all;
