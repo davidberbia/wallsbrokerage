@@ -7,7 +7,14 @@ Oui. Si Ladislas connecte lui-même sa boîte au CRM, vous n'avez pas besoin de 
 - Boîtes acceptées, avec les mêmes accès : Outlook professionnel, Hotmail/Outlook.com et Gmail (adresse Gmail ou Google Workspace).
 - Yahoo et les autres boîtes n'ont pas de connexion directe. Je proposerai le transfert automatique des mails vers une adresse de réception du CRM. À valider.
 - Pour Microsoft et Google, vous devrez créer une seule fois une « application » de connexion. Je vous guiderai pas à pas.
-- Une étape facultative s'ajoute à son parcours. Elle explique que le CRM retrouve ses contacts et ses comparables, et lui rappelle les mails à relancer.
+- Une étape facultative et vendeuse s'ajoute, avec ce type de message : « Connectez votre boîte et le CRM travaille pour vous. » Elle présente les avantages :
+  - Créer et gérer vos biens.
+  - Générer automatiquement un teaser et l'envoyer à vos clients en un clic.
+  - Avoir un accusé de réception et de lecture qui prouve votre antériorité sur le client.
+  - Créer et envoyer vos mandats en signature électronique automatiquement.
+  - Suivre votre chiffre d'affaires en temps réel.
+  - Être aidé dans vos relances : le CRM repère les prospects à relancer.
+  - Retrouver vos contacts déjà classés, sans saisie.
 - L'analyse ne fait pas appel à l'IA payante. Elle évite les doublons et respecte la priorité investisseurs > prospects > à qualifier. Elle ne recrée jamais un contact supprimé.
 - Les contacts et les mails à relancer restent dans l'espace de l'agent. Les comparables vont dans la base commune.
 - Tout alimente aussi votre base générale.
@@ -15,6 +22,7 @@ Oui. Si Ladislas connecte lui-même sa boîte au CRM, vous n'avez pas besoin de 
 ## 2. E-mail d'invitation de chaque agent
 - Il est envoyé quand vous créez le compte d'un agent, jamais sans votre clic. Il lui demande de se connecter pour signer en ligne son contrat d'agent commercial, conformément à la réglementation.
 - Il précise que les numéros de mandat se demandent désormais dans le CRM : il crée un actif, puis le mandat est généré et envoyé en signature électronique aux parties.
+- Le ton est vendeur : le CRM est présenté comme un outil qui fait gagner du temps et des affaires (teasers, envois suivis, mandats automatiques, suivi du chiffre d'affaires, aide aux relances).
 - Vous validerez le texte avant le premier envoi.
 
 ## 3. Première connexion d'un agent

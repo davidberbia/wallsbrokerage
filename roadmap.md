@@ -107,3 +107,4 @@
 - [ ] Quotes-parts fixes pré-remplies
 - [ ] Connexion boîte mail facultative par agent dans le parcours
 - [ ] Connexion boîtes grand public (Gmail, Hotmail, Yahoo…) avec mêmes accès
+- [ ] Textes invitation + étape boîte mail : ton vendeur, bénéfices agent
