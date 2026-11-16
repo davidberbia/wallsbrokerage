@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, Mail, RefreshCw, Download, FileSignature } from "lucide-react";
+import { Plus, Mail, RefreshCw, Download, FileSignature, Send } from "lucide-react";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
 import { CompactRow, RecordDialog } from "@/components/CompactRow";
@@ -11,19 +11,204 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { createCommercialAgent, inviteCommercialAgent, sendAgentContract, refreshAgentContracts } from "@/lib/agents.functions";
-export const Route=createFileRoute("/agents-co")({head:()=>({meta:[{title:"Agents Co — Wallsbrokerage"},{name:"description",content:"Registre privé des agents commerciaux et contrats signés."},{property:"og:title",content:"Agents Co — Wallsbrokerage"},{property:"og:description",content:"Gestion sécurisée des comptes et contrats des agents commerciaux."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}),component:()=> <AppLayout requireBroker><AgentsPage/></AppLayout>});
-const EMPTY={first_name:"",last_name:"",email:"",phone:"",address:"",siren:"",birth_date:""};
-function AgentsPage(){
-  const {isSuperAdmin}=useAuth();const qc=useQueryClient();const [selected,setSelected]=useState<string|null>(null);const [newOpen,setNewOpen]=useState(false);const [form,setForm]=useState(EMPTY);const [busy,setBusy]=useState(false);
-  const create=useServerFn(createCommercialAgent);const invite=useServerFn(inviteCommercialAgent);const sign=useServerFn(sendAgentContract);const refreshSign=useServerFn(refreshAgentContracts);
-  const agents=useQuery({queryKey:["commercial-agents"],enabled:isSuperAdmin,queryFn:async()=>{const {data,error}=await supabase.from("commercial_agents").select("*").order("last_name");if(error)throw error;return data ?? [];}});
-  const detail=agents.data?.find(a=>a.id===selected);const refresh=()=>qc.invalidateQueries({queryKey:["commercial-agents"]});
-  const run=async(fn:()=>Promise<unknown>)=>{setBusy(true);try{await fn();await refresh();}catch(e){toast.error(e instanceof Error?e.message:"Échec");}finally{setBusy(false);}};
-  if(!isSuperAdmin)return <p>Accès réservé au super administrateur.</p>;
-  return <div className="space-y-4"><div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-2xl">Agents Co</h1><div className="flex gap-2"><Button size="icon" variant="outline" title="Actualiser les signatures" disabled={busy} onClick={()=>run(()=>refreshSign())}><RefreshCw className="size-4"/></Button><Button onClick={()=>{setForm(EMPTY);setNewOpen(true);}}><Plus className="size-4"/>Créer</Button></div></div>
-    <div className="border-y border-border">{agents.data?.map(a=><CompactRow key={a.id} title={`${a.first_name} ${a.last_name}`} subtitle={a.email} summary={a.signature_status || (a.user_id?"Compte créé":"À inviter")} onOpen={()=>setSelected(a.id)} onEdit={()=>setSelected(a.id)}/>)}</div>
-    <RecordDialog title="Nouvel agent commercial" open={newOpen} onClose={()=>setNewOpen(false)}><form className="space-y-4" onSubmit={e=>{e.preventDefault();void run(async()=>{await create({data:form});setNewOpen(false);toast.success("Agent enregistré");});}}>{(Object.keys(EMPTY) as (keyof typeof EMPTY)[]).map(key=><div key={key}><Label htmlFor={`agent-${key}`}>{({first_name:"Prénom",last_name:"Nom",email:"Email",phone:"Téléphone",address:"Adresse",siren:"SIREN (facultatif)",birth_date:"Date de naissance"})[key]}</Label><Input id={`agent-${key}`} required={["first_name","last_name","email"].includes(key)} type={key==="email"?"email":key==="birth_date"?"date":"text"} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/></div>)}<Button disabled={busy} type="submit">Enregistrer</Button></form></RecordDialog>
-    <RecordDialog title={detail?`${detail.first_name} ${detail.last_name}`:"Agent"} open={!!detail} onClose={()=>setSelected(null)}>{detail && <div className="space-y-4"><p>{detail.email} · {detail.phone}</p><p>{detail.address}</p><p>SIREN : {detail.siren || "—"} · Naissance : {detail.birth_date || "—"}</p><Button disabled={busy || !!detail.user_id} onClick={()=>run(async()=>{await invite({data:{id:detail.id}});toast.success("Invitation envoyée");})}><Mail className="size-4"/>Inviter au compte vierge</Button><Label>Contrat PDF validé</Label><Input type="file" accept="application/pdf" disabled={busy || !!detail.envelope_id} onChange={async e=>{const file=e.target.files?.[0];if(!file)return;if(!window.confirm("Envoyer ce contrat validé en signature à vous et à l'agent ?"))return;await run(async()=>{const bytes=new Uint8Array(await file.arrayBuffer());let binary="";for(const b of bytes)binary+=String.fromCharCode(b);await sign({data:{id:detail.id,name:file.name,base64:btoa(binary)}});toast.success("Contrat envoyé");});}}/><p className="text-sm text-muted-foreground">Modèle de contrat attendu pour la génération automatique.</p>{detail.signed_contract_path && <Button variant="outline" onClick={()=>run(async()=>{const {data,error}=await supabase.storage.from("agent-contracts").createSignedUrl(detail.signed_contract_path || "",60);if(error)throw error;if(data)window.open(data.signedUrl,"_blank","noopener,noreferrer");})}><Download className="size-4"/>Contrat signé</Button>}<p><FileSignature className="inline size-4"/> {detail.signature_status || "Non envoyé"}</p></div>}</RecordDialog>
-  </div>;
+import { missingContractFields, type AgentContractFields } from "@/lib/agent-contract";
+import {
+  createCommercialAgent,
+  inviteCommercialAgent,
+  prepareAgentContract,
+  refreshAgentContracts,
+  saveAgentContractFields,
+  sendAgentContract,
+} from "@/lib/agents.functions";
+
+export const Route = createFileRoute("/agents-co")({
+  head: () => ({
+    meta: [
+      { title: "Agents Co — Wallsbrokerage" },
+      { name: "description", content: "Registre privé des agents commerciaux et contrats signés." },
+      { property: "og:title", content: "Agents Co — Wallsbrokerage" },
+      { property: "og:description", content: "Gestion sécurisée des comptes et contrats des agents commerciaux." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: () => (
+    <AppLayout requireBroker>
+      <AgentsPage />
+    </AppLayout>
+  ),
+});
+
+const STATUS: Record<string, string> = {
+  "prêt à envoyer": "Prêt — à signer par David puis l'agent",
+  sent: "Envoyé pour signature",
+  delivered: "Ouvert par un signataire",
+  completed: "Signé par tous",
+  declined: "Refusé",
+  voided: "Annulé",
+};
+type Agent = {
+  id: string; first_name: string; last_name: string; email: string; phone: string | null;
+  user_id: string | null; contract_fields: unknown; contract_path: string | null;
+  signed_contract_path: string | null; signature_status: string | null; envelope_id: string | null;
+};
+const STEPS: { title: string; fields: [keyof AgentContractFields, string, string?][] }[] = [
+  { title: "Statut et société", fields: [["denomination", "Nom ou société"], ["adresse", "Adresse / siège social"], ["siren", "SIREN"], ["rsac", "RSAC (facultatif)"], ["qualite", "Qualité (ex. Agent commercial indépendant)"]] },
+  { title: "Assurance RC professionnelle", fields: [["assureur", "Assureur"], ["rc_numero", "N° de contrat"], ["rc_echeance", "Échéance", "date"]] },
+  { title: "Rémunération", fields: [["quote_agent", "Quote-part de l'agent (%)", "number"]] },
+  { title: "Prise d'effet", fields: [["date_effet", "Date d'effet", "date"], ["lieu", "Lieu de signature (Paris par défaut)"]] },
+];
+
+function AgentsPage() {
+  const { isSuperAdmin } = useAuth();
+  const qc = useQueryClient();
+  const [selected, setSelected] = useState<string | null>(null);
+  const [newOpen, setNewOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const refreshSign = useServerFn(refreshAgentContracts);
+  const agents = useQuery({
+    queryKey: ["commercial-agents"],
+    enabled: isSuperAdmin,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("commercial_agents").select("*").order("last_name");
+      if (error) throw error;
+      return (data ?? []) as Agent[];
+    },
+  });
+  const detail = agents.data?.find((a) => a.id === selected);
+  const refresh = () => qc.invalidateQueries({ queryKey: ["commercial-agents"] });
+  if (!isSuperAdmin) return <p>Accès réservé au super administrateur.</p>;
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl">Agents Co</h1>
+        <div className="flex gap-2">
+          <Button size="icon" variant="outline" className="min-h-11 min-w-11" title="Actualiser les signatures" disabled={busy}
+            onClick={async () => { setBusy(true); try { await refreshSign(); await refresh(); } catch (e) { toast.error((e as Error).message); } setBusy(false); }}>
+            <RefreshCw className="size-4" />
+          </Button>
+          <Button className="min-h-11" onClick={() => setNewOpen(true)}><Plus className="size-4" />Créer</Button>
+        </div>
+      </div>
+      <div className="border-y border-border">
+        {agents.data?.map((a) => {
+          const missing = missingContractFields((a.contract_fields ?? {}) as AgentContractFields);
+          return (
+            <CompactRow key={a.id} title={`${a.first_name} ${a.last_name}`} subtitle={a.email || "Email manquant"}
+              summary={a.signature_status ? (STATUS[a.signature_status] ?? a.signature_status) : missing.length ? `${missing.length} champ(s) à compléter` : "Contrat à préparer"}
+              onOpen={() => setSelected(a.id)} onEdit={() => setSelected(a.id)} />
+          );
+        })}
+      </div>
+      <RecordDialog title="Nouvel agent commercial" open={newOpen} onClose={() => setNewOpen(false)}>
+        {newOpen && <NewAgent onCreated={async (id) => { await refresh(); setNewOpen(false); setSelected(id); }} />}
+      </RecordDialog>
+      <RecordDialog title={detail ? `${detail.first_name} ${detail.last_name}` : "Agent"} open={!!detail} onClose={() => setSelected(null)}>
+        {detail && <AgentContract key={detail.id} agent={detail} onChange={refresh} />}
+      </RecordDialog>
+    </div>
+  );
+}
+
+function NewAgent({ onCreated }: { onCreated: (id: string) => Promise<void> }) {
+  const create = useServerFn(createCommercialAgent);
+  const [f, setF] = useState({ first_name: "", last_name: "", email: "", phone: "" });
+  const [busy, setBusy] = useState(false);
+  return (
+    <form className="space-y-3" onSubmit={async (e) => {
+      e.preventDefault(); setBusy(true);
+      try { const r = await create({ data: { ...f, address: "", siren: "", birth_date: "" } }); await onCreated(r.id); }
+      catch (err) { toast.error((err as Error).message); }
+      setBusy(false);
+    }}>
+      <p className="eyebrow">Étape 1 sur 6 · Identité</p>
+      {([["first_name", "Prénom"], ["last_name", "Nom"], ["email", "Email"], ["phone", "Téléphone"]] as const).map(([k, l]) => (
+        <div key={k} className="space-y-1">
+          <Label htmlFor={`n-${k}`}>{l}</Label>
+          <Input id={`n-${k}`} className="min-h-11" required={k !== "phone"} type={k === "email" ? "email" : "text"} value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} />
+        </div>
+      ))}
+      <Button className="min-h-11 w-full" disabled={busy} type="submit">Suivant</Button>
+    </form>
+  );
+}
+
+function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Promise<unknown> }) {
+  const save = useServerFn(saveAgentContractFields);
+  const prepare = useServerFn(prepareAgentContract);
+  const send = useServerFn(sendAgentContract);
+  const invite = useServerFn(inviteCommercialAgent);
+  const [fields, setFields] = useState<AgentContractFields>((agent.contract_fields ?? {}) as AgentContractFields);
+  const [email, setEmail] = useState(agent.email ?? "");
+  const [phone, setPhone] = useState(agent.phone ?? "");
+  const locked = !!agent.signature_status && agent.signature_status !== "prêt à envoyer" && !["declined", "voided"].includes(agent.signature_status);
+  const [step, setStep] = useState(locked || agent.signature_status === "prêt à envoyer" ? STEPS.length : 0);
+  const [busy, setBusy] = useState(false);
+  const run = async (fn: () => Promise<unknown>, ok?: string) => {
+    setBusy(true);
+    try { await fn(); await onChange(); if (ok) toast.success(ok); } catch (e) { toast.error((e as Error).message); }
+    setBusy(false);
+  };
+  const persist = () => save({ data: { id: agent.id, email: email || undefined, phone, fields } });
+  const missing = missingContractFields(fields);
+  const openPdf = async (path: string) => {
+    const { data, error } = await supabase.storage.from("agent-contracts").createSignedUrl(path, 300);
+    if (error) return void toast.error(error.message);
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  };
+  return (
+    <div className="space-y-4">
+      <p className="text-sm"><FileSignature className="inline size-4" /> {agent.signature_status ? (STATUS[agent.signature_status] ?? agent.signature_status) : "Contrat non préparé"}</p>
+      {step < STEPS.length && !locked && (
+        <div className="space-y-3">
+          <p className="eyebrow">Étape {step + 2} sur 6 · {STEPS[step]!.title}</p>
+          {step === 0 && (
+            <>
+              <Label>Email</Label><Input className="min-h-11" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Label>Téléphone</Label><Input className="min-h-11" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </>
+          )}
+          {STEPS[step]!.fields.map(([k, l, t]) => (
+            <div key={k} className="space-y-1">
+              <Label>{l}</Label>
+              <Input className="min-h-11" type={t ?? "text"} value={fields[k] ?? ""} onChange={(e) => setFields({ ...fields, [k]: e.target.value })} />
+            </div>
+          ))}
+          {step === 2 && fields.quote_agent && <p className="text-sm text-muted-foreground">Wallsbroker conserve {100 - Number(fields.quote_agent)} %.</p>}
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" className="min-h-11" disabled={busy || step === 0} onClick={() => setStep(step - 1)}>Retour</Button>
+            <Button className="min-h-11" disabled={busy} onClick={() => run(async () => { await persist(); setStep(step + 1); })}>Suivant</Button>
+          </div>
+        </div>
+      )}
+      {(step >= STEPS.length || locked) && (
+        <div className="space-y-3">
+          <p className="eyebrow">Étape 6 sur 6 · Contrat</p>
+          {missing.length > 0 && !locked && <p className="text-sm text-destructive">À compléter : {missing.join(", ")}</p>}
+          {!locked && (
+            <Button variant="outline" className="min-h-11 w-full" disabled={busy || missing.length > 0}
+              onClick={() => run(() => prepare({ data: { id: agent.id } }), "Contrat préparé — rien n'a été envoyé")}>
+              Préparer le contrat
+            </Button>
+          )}
+          {(agent.signed_contract_path || agent.contract_path) && (
+            <Button variant="outline" className="min-h-11 w-full" onClick={() => void openPdf(agent.signed_contract_path || agent.contract_path || "")}>
+              <Download className="size-4" />{agent.signed_contract_path ? "Contrat signé" : "Voir le contrat préparé"}
+            </Button>
+          )}
+          {agent.signature_status === "prêt à envoyer" && (
+            <Button className="min-h-11 w-full" disabled={busy}
+              onClick={() => { if (window.confirm("Envoyer le contrat en signature DocuSign à vous puis à l'agent ?")) void run(() => send({ data: { id: agent.id } }), "Contrat envoyé"); }}>
+              <Send className="size-4" />Envoyer pour signature DocuSign
+            </Button>
+          )}
+          {!locked && <Button variant="ghost" className="min-h-11 w-full" onClick={() => setStep(0)}>Modifier les informations</Button>}
+        </div>
+      )}
+      <Button variant="outline" className="min-h-11 w-full" disabled={busy || !!agent.user_id || !agent.email}
+        onClick={() => run(() => invite({ data: { id: agent.id } }), "Invitation envoyée")}>
+        <Mail className="size-4" />{agent.user_id ? "Compte créé" : "Inviter au compte vierge"}
+      </Button>
+    </div>
+  );
 }

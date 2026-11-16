@@ -90,3 +90,10 @@
 - [x] Création : début libre, fin = début + 1 an
 - [x] 10 modèles de mandats conformes (+ clause demande d'exécution immédiate avant 14 jours)
 - [x] Paramètres : modèles exportables, modifiables, supprimables, remplaçables
+
+## Contrat agents co (16/11/2026)
+- [x] Modèle Word (62 rue Pierre Charron, J+1 max J+5, carte identique aux mandats)
+- [ ] Contrat pré-rempli par agent, mention « à signer par David puis l'agent », rien envoyé
+- [x] Parcours de création d'agent avec tous les champs + envoi DocuSign final
+- [x] L'agent voit et télécharge son contrat dans son CRM, sans le modifier
+- [x] Modèles de mandats : siège 61 → 62 rue Pierre Charron

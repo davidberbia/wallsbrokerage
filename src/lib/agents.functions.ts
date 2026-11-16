@@ -28,22 +28,65 @@ export const inviteCommercialAgent = createServerFn({method:"POST"}).middleware(
     const {error:linkError}=await context.supabase.from("commercial_agents").update({user_id:invite.user.id}).eq("id",agent.id);if(linkError)throw linkError;
     return {ok:true};
   });
-export const sendAgentContract = createServerFn({method:"POST"}).middleware([requireSuperAdmin])
-  .inputValidator(d=>z.object({id:z.string().uuid(),name:z.string().min(1).max(200),base64:z.string().min(10).max(14000000)}).parse(d))
+const FieldsSchema=z.object({denomination:z.string().max(300).optional(),adresse:z.string().max(500).optional(),siren:z.string().max(20).optional(),rsac:z.string().max(100).optional(),assureur:z.string().max(200).optional(),rc_numero:z.string().max(100).optional(),rc_echeance:z.string().max(20).optional(),quote_agent:z.string().max(10).optional(),date_effet:z.string().max(20).optional(),lieu:z.string().max(100).optional(),qualite:z.string().max(100).optional()});
+export const saveAgentContractFields = createServerFn({method:"POST"}).middleware([requireSuperAdmin])
+  .inputValidator(d=>z.object({id:z.string().uuid(),email:z.string().email().max(255).optional(),phone:z.string().max(50).optional(),fields:FieldsSchema}).parse(d))
   .handler(async({data,context})=>{
-    const {data:agent}=await context.supabase.from("commercial_agents").select("*").eq("id",data.id).maybeSingle();if(!agent)throw new Error("Agent introuvable");
-    if(agent.envelope_id)throw new Error("Un contrat a déjà été envoyé ; vérifiez son statut avant un nouvel envoi.");
-    const {getDsAccess}=await import("@/lib/docusign.server");const ds=await getDsAccess();
-    const bytes=Uint8Array.from(atob(data.base64),c=>c.charCodeAt(0));
-    const path=`agents/${agent.id}/${crypto.randomUUID()}.pdf`;
-    const {error:uploadError}=await context.supabase.storage.from("agent-contracts").upload(path,bytes,{contentType:"application/pdf"});if(uploadError)throw uploadError;
-    const r=await fetch(`${ds.api}/envelopes`,{method:"POST",headers:{Authorization:`Bearer ${ds.token}`,"Content-Type":"application/json"},body:JSON.stringify({emailSubject:`Contrat agent commercial — ${agent.first_name} ${agent.last_name}`,documents:[{documentBase64:data.base64,name:data.name,fileExtension:"pdf",documentId:"1"}],recipients:{signers:[{email:agent.email,name:`${agent.first_name} ${agent.last_name}`,recipientId:"1",routingOrder:"1"},{email:ds.email || "d.berbia@wallsbroker.com",name:"David Berbia",recipientId:"2",routingOrder:"1"}]},status:"sent"})});
-    if(!r.ok)throw new Error(`DocuSign : envoi refusé (${r.status})`);const envelope=await r.json() as {envelopeId:string};
-    const {error}=await context.supabase.from("commercial_agents").update({contract_path:path,envelope_id:envelope.envelopeId,signature_status:"sent"}).eq("id",agent.id);if(error)throw error;
+    const patch:{contract_fields:typeof data.fields;email?:string;phone?:string;address?:string;siren?:string}={contract_fields:data.fields};
+    if(data.email)patch.email=data.email;if(data.phone!==undefined)patch.phone=data.phone;
+    if(data.fields.adresse)patch.address=data.fields.adresse;if(data.fields.siren)patch.siren=data.fields.siren;
+    const {error}=await context.supabase.from("commercial_agents").update(patch).eq("id",data.id);if(error)throw new Error(error.message);
     return {ok:true};
   });
+// Prépare le contrat rempli en brouillon DocuSign (rien n'est envoyé) et stocke son PDF.
+export const prepareAgentContract = createServerFn({method:"POST"}).middleware([requireSuperAdmin])
+  .inputValidator(d=>z.object({id:z.string().uuid()}).parse(d))
+  .handler(async({data,context})=>{
+    const {data:agent}=await context.supabase.from("commercial_agents").select("*").eq("id",data.id).maybeSingle();if(!agent)throw new Error("Agent introuvable");
+    if(agent.envelope_id && agent.signature_status && !["created","prêt à envoyer","voided","declined"].includes(agent.signature_status))throw new Error("Contrat déjà envoyé : il ne peut plus être modifié.");
+    const {missingContractFields,contractValues,fillDocumentXml}=await import("@/lib/agent-contract");
+    const fields=(agent.contract_fields ?? {}) as Record<string,string>;const missing=missingContractFields(fields);
+    if(missing.length)throw new Error(`À compléter : ${missing.join(", ")}`);
+    if(!agent.email)throw new Error("À compléter : email");
+    const {data:tpl,error:tplError}=await context.supabase.storage.from("agent-contracts").download("templates/contrat-cadre.docx");if(tplError || !tpl)throw new Error("Modèle de contrat introuvable");
+    const {unzipSync,zipSync,strFromU8,strToU8}=await import("fflate");
+    const files=unzipSync(new Uint8Array(await tpl.arrayBuffer()));const doc=files["word/document.xml"];if(!doc)throw new Error("Modèle invalide");
+    files["word/document.xml"]=strToU8(fillDocumentXml(strFromU8(doc),contractValues(fields,`${agent.first_name} ${agent.last_name}`)));
+    const docx=zipSync(files);let bin="";for(let i=0;i<docx.length;i+=0x8000)bin+=String.fromCharCode(...docx.subarray(i,i+0x8000));
+    const {getDsAccess}=await import("@/lib/docusign.server");const ds=await getDsAccess();const H={Authorization:`Bearer ${ds.token}`,"Content-Type":"application/json"};
+    if(agent.envelope_id && agent.signature_status==="prêt à envoyer")await fetch(`${ds.api}/folders/recyclebin`,{method:"PUT",headers:H,body:JSON.stringify({envelopeIds:[agent.envelope_id]})});
+    const tab=(a:string)=>({signHereTabs:[{anchorString:a,anchorYOffset:"-10",anchorUnits:"pixels"}],dateSignedTabs:[{anchorString:a,anchorYOffset:"-40",anchorUnits:"pixels"}]});
+    const r=await fetch(`${ds.api}/envelopes`,{method:"POST",headers:H,body:JSON.stringify({emailSubject:`Contrat-cadre Wallsbroker — ${agent.first_name} ${agent.last_name}`,documents:[{documentBase64:btoa(bin),name:`Contrat-cadre ${agent.first_name} ${agent.last_name}.docx`,fileExtension:"docx",documentId:"1"}],recipients:{signers:[{email:ds.email || "d.berbia@wallsbroker.com",name:"David Berbia",recipientId:"1",routingOrder:"1",tabs:tab("\\sigwb\\")},{email:agent.email,name:`${agent.first_name} ${agent.last_name}`,recipientId:"2",routingOrder:"2",tabs:tab("\\sigag\\")}]},status:"created"})});
+    if(!r.ok)throw new Error(`DocuSign : préparation refusée (${r.status}) ${await r.text()}`);const env=await r.json() as {envelopeId:string};
+    const pdf=await fetch(`${ds.api}/envelopes/${env.envelopeId}/documents/combined`,{headers:{Authorization:`Bearer ${ds.token}`}});if(!pdf.ok)throw new Error(`DocuSign : PDF indisponible (${pdf.status})`);
+    const path=`agents/${agent.id}/contrat-prepare.pdf`;
+    const {error:upError}=await context.supabase.storage.from("agent-contracts").upload(path,await pdf.arrayBuffer(),{contentType:"application/pdf",upsert:true});if(upError)throw upError;
+    const {error}=await context.supabase.from("commercial_agents").update({contract_path:path,envelope_id:env.envelopeId,signature_status:"prêt à envoyer"}).eq("id",agent.id);if(error)throw error;
+    return {ok:true};
+  });
+export const sendAgentContract = createServerFn({method:"POST"}).middleware([requireSuperAdmin])
+  .inputValidator(d=>z.object({id:z.string().uuid()}).parse(d))
+  .handler(async({data,context})=>{
+    const {data:agent}=await context.supabase.from("commercial_agents").select("*").eq("id",data.id).maybeSingle();if(!agent)throw new Error("Agent introuvable");
+    if(!agent.envelope_id || agent.signature_status!=="prêt à envoyer")throw new Error("Préparez d'abord le contrat.");
+    const {getDsAccess}=await import("@/lib/docusign.server");const ds=await getDsAccess();
+    const r=await fetch(`${ds.api}/envelopes/${agent.envelope_id}`,{method:"PUT",headers:{Authorization:`Bearer ${ds.token}`,"Content-Type":"application/json"},body:JSON.stringify({status:"sent"})});
+    if(!r.ok)throw new Error(`DocuSign : envoi refusé (${r.status})`);
+    const {error}=await context.supabase.from("commercial_agents").update({signature_status:"sent"}).eq("id",agent.id);if(error)throw error;
+    return {ok:true};
+  });
+// L'agent connecté consulte son propre contrat (lecture seule, PDF).
+export const getMyAgentContract = createServerFn({method:"POST"}).middleware([requireSupabaseAuth])
+  .handler(async({context})=>{
+    const {supabaseAdmin}=await import("@/integrations/supabase/client.server");
+    const {data:agent}=await supabaseAdmin.from("commercial_agents").select("first_name,last_name,contract_path,signed_contract_path,signature_status").eq("user_id",context.userId).maybeSingle();
+    if(!agent)return {url:null,status:null,signed:false};
+    const path=agent.signed_contract_path || agent.contract_path;if(!path)return {url:null,status:agent.signature_status,signed:false};
+    const {data,error}=await supabaseAdmin.storage.from("agent-contracts").createSignedUrl(path,300,{download:`Contrat-cadre ${agent.first_name} ${agent.last_name}.pdf`});if(error)throw new Error(error.message);
+    return {url:data.signedUrl,status:agent.signature_status,signed:!!agent.signed_contract_path};
+  });
 export const refreshAgentContracts=createServerFn({method:"POST"}).middleware([requireSuperAdmin]).handler(async({context})=>{
-  const {data:agents}=await context.supabase.from("commercial_agents").select("id,envelope_id,signed_contract_path").not("envelope_id","is",null);
+  const {data:agents}=await context.supabase.from("commercial_agents").select("id,envelope_id,signed_contract_path").not("envelope_id","is",null).neq("signature_status","prêt à envoyer");
   if(!agents?.length)return {updated:0};const {getDsAccess}=await import("@/lib/docusign.server");const ds=await getDsAccess();let updated=0;
   for(const agent of agents.slice(0,20)){
     const r=await fetch(`${ds.api}/envelopes/${agent.envelope_id}`,{headers:{Authorization:`Bearer ${ds.token}`}});if(!r.ok)throw new Error(`DocuSign : suivi indisponible (${r.status})`);

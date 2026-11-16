@@ -50,6 +50,7 @@ const NAV_ITEMS = [
   { to: "/investisseurs", label: "Contacts", icon: BookUser, admin: false },
   { to: "/partager", label: "Extractions", icon: Link2, admin: false },
   { to: "/comparables", label: "Comparables", icon: Scale, admin: false },
+  { to: "/mon-contrat", label: "Mon contrat", icon: FileSignature, admin: false },
   { to: "/agents-co", label: "Agents Co", icon: Users, admin: true },
   { to: "/parametres", label: "Paramètres", icon: Settings, admin: true },
 ] as const;

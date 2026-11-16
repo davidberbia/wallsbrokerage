@@ -31,9 +31,10 @@ export function useAuth() {
       const { data } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", session.user.id)
-        .maybeSingle();
-      let next = (data?.role as AppRole | undefined) ?? null;
+        .eq("user_id", session.user.id);
+      const roles = (data ?? []).map((r) => r.role as AppRole);
+      const order: AppRole[] = ["admin", "broker", "viewer", "investor"];
+      let next = order.find((r) => roles.includes(r)) ?? null;
       if (!next) {
         const { data: claimed } = await supabase.rpc("claim_role");
         next = (claimed as AppRole | null) ?? null;
