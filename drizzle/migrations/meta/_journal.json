@@ -85,6 +85,13 @@
       "when": 1794784850888,
       "tag": "0011_private_agent_contracts_and_lease_recovery",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794790922192,
+      "tag": "0012_asset_site_publication",
+      "breakpoints": true
     }
   ]
 }

@@ -129,6 +129,9 @@ function AssetsPage() {
       const payload = {
         title: draft.title,
         residential_details: draft.residential_details ?? {},
+        publish_on_site: draft.publish_on_site ?? false,
+        hide_street_number: (draft.hide_street_number || draft.hide_street_name) ?? false,
+        hide_street_name: draft.hide_street_name ?? false,
         reference: draft.reference ?? null,
         asset_class: draft.asset_class ?? null,
         strategy: draft.strategy ?? null,
@@ -638,6 +641,15 @@ function AssetForm({
                 onChange={(v) => set({ status: v })}
               />
             </Field>
+          </div>
+          <div className="space-y-3 rounded-md border border-border p-3">
+            {([["publish_on_site","Publier sur le site Wallsbroker"],["hide_street_number","Masquer le n° de la rue"],["hide_street_name","Masquer le nom de la rue"]] as const).map(([key,label]) => (
+              <label key={key} className="flex min-h-11 items-center gap-3 text-sm">
+                <input type="checkbox" className="size-5 accent-primary" disabled={key === "hide_street_number" && !!draft.hide_street_name}
+                  checked={key === "hide_street_number" ? !!(draft.hide_street_number || draft.hide_street_name) : !!draft[key]}
+                  onChange={e => set(key === "hide_street_name" && e.target.checked ? {hide_street_name:true,hide_street_number:true} : {[key]: e.target.checked})} />
+                {label}
+              </label>))}
           </div>
           { /^(Appartement|Maison)$/.test(draft.asset_class ?? "") && <ResidentialFields value={draft.residential_details ?? {}} onChange={v => set({residential_details:v})} /> }
           <Field label="Documents de l'actif (brochures, annexes — 9 Mo max. par fichier)">

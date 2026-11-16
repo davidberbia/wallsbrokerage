@@ -373,6 +373,8 @@ export type Database = {
           city: string | null
           created_at: string
           description: string | null
+          hide_street_name: boolean
+          hide_street_number: boolean
           id: string
           mandate_end: string | null
           mandate_exclusive: boolean | null
@@ -384,6 +386,7 @@ export type Database = {
           owner_phone: string | null
           postal_code: string | null
           price: number | null
+          publish_on_site: boolean
           reference: string | null
           region: string | null
           rent: number | null
@@ -403,6 +406,8 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          hide_street_name?: boolean
+          hide_street_number?: boolean
           id?: string
           mandate_end?: string | null
           mandate_exclusive?: boolean | null
@@ -414,6 +419,7 @@ export type Database = {
           owner_phone?: string | null
           postal_code?: string | null
           price?: number | null
+          publish_on_site?: boolean
           reference?: string | null
           region?: string | null
           rent?: number | null
@@ -433,6 +439,8 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          hide_street_name?: boolean
+          hide_street_number?: boolean
           id?: string
           mandate_end?: string | null
           mandate_exclusive?: boolean | null
@@ -444,6 +452,7 @@ export type Database = {
           owner_phone?: string | null
           postal_code?: string | null
           price?: number | null
+          publish_on_site?: boolean
           reference?: string | null
           region?: string | null
           rent?: number | null

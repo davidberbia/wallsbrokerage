@@ -45,6 +45,9 @@ export type Investor = {
 
 export type Asset = {
   residential_details?: Record<string, string | number | boolean | null>;
+  publish_on_site?: boolean;
+  hide_street_number?: boolean;
+  hide_street_name?: boolean;
   id: string;
   title: string;
   reference: string | null;

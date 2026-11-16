@@ -36,6 +36,7 @@ import { Route as ValidationRouteImport } from './routes/validation'
 import { Route as PartageTokenRouteImport } from './routes/partage.$token'
 import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
+import { Route as ApiPublicCatalogueRouteImport } from './routes/api/public/catalogue'
 import { Route as ApiPublicCronAiscanTickRouteImport } from './routes/api/public/cron/aiscan-tick'
 import { Route as ApiPublicCronCallsTickRouteImport } from './routes/api/public/cron/calls-tick'
 import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
@@ -184,6 +185,11 @@ const ApiPublicBrevoEventsRoute = ApiPublicBrevoEventsRouteImport.update({
   path: '/api/public/brevo-events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCatalogueRoute = ApiPublicCatalogueRouteImport.update({
+  id: '/api/public/catalogue',
+  path: '/api/public/catalogue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronAiscanTickRoute = ApiPublicCronAiscanTickRouteImport.update({
   id: '/api/public/cron/aiscan-tick',
   path: '/api/public/cron/aiscan-tick',
@@ -279,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
+  '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/calls-tick': typeof ApiPublicCronCallsTickRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -320,6 +327,7 @@ export interface FileRoutesByTo {
   '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
+  '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/calls-tick': typeof ApiPublicCronCallsTickRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -362,6 +370,7 @@ export interface FileRoutesById {
   '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
+  '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/calls-tick': typeof ApiPublicCronCallsTickRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -405,6 +414,7 @@ export interface FileRouteTypes {
     | '/partage/$token'
     | '/synthese/$token'
     | '/api/public/brevo-events'
+    | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/calls-tick'
     | '/api/public/cron/cfnews-tick'
@@ -446,6 +456,7 @@ export interface FileRouteTypes {
     | '/partage/$token'
     | '/synthese/$token'
     | '/api/public/brevo-events'
+    | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/calls-tick'
     | '/api/public/cron/cfnews-tick'
@@ -487,6 +498,7 @@ export interface FileRouteTypes {
     | '/partage/$token'
     | '/synthese/$token'
     | '/api/public/brevo-events'
+    | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/calls-tick'
     | '/api/public/cron/cfnews-tick'
@@ -529,6 +541,7 @@ export interface RootRouteChildren {
   PartageTokenRoute: typeof PartageTokenRoute
   SyntheseTokenRoute: typeof SyntheseTokenRoute
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
+  ApiPublicCatalogueRoute: typeof ApiPublicCatalogueRoute
   ApiPublicCronAiscanTickRoute: typeof ApiPublicCronAiscanTickRoute
   ApiPublicCronCallsTickRoute: typeof ApiPublicCronCallsTickRoute
   ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
@@ -734,6 +747,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBrevoEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/catalogue': {
+      id: '/api/public/catalogue'
+      path: '/api/public/catalogue'
+      fullPath: '/api/public/catalogue'
+      preLoaderRoute: typeof ApiPublicCatalogueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/aiscan-tick': {
       id: '/api/public/cron/aiscan-tick'
       path: '/api/public/cron/aiscan-tick'
@@ -849,6 +869,7 @@ const rootRouteChildren: RootRouteChildren = {
   PartageTokenRoute: PartageTokenRoute,
   SyntheseTokenRoute: SyntheseTokenRoute,
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
+  ApiPublicCatalogueRoute: ApiPublicCatalogueRoute,
   ApiPublicCronAiscanTickRoute: ApiPublicCronAiscanTickRoute,
   ApiPublicCronCallsTickRoute: ApiPublicCronCallsTickRoute,
   ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,
