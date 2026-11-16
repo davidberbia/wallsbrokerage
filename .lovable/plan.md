@@ -13,23 +13,20 @@
 Reprise de toutes les données saisies : type d'actif exact (ex. « immeuble de bureaux »), surfaces (totale, pondérée, extérieure), parkings, étages, nombre de lots et caractéristiques de l'appartement si elles sont renseignées.
 
 ## 3. Classes d'actifs
-Menu à deux niveaux. Toutes les classes actuelles sont conservées, avec ce regroupement :
-- **Bureaux** : Immeuble(s), Plateau(x), Lot(s)
-- **Commerces** : murs de pied d'immeuble, locaux de périphérie, ensemble de périphérie, retail park, galeries, centres commerciaux
-- **Hôtellerie** : city/resort, sans fonds ou murs et fonds
-- **Résidentiel** : appartement, maison, immeuble de logements ou mixte, résidence étudiants
-- **Santé** : EHPAD, santé
-- **Loisirs/Restauration** : salle de sport, buffets à volonté
-- **Industriel** : activité, logistique
-- **Foncier** : terrains à bâtir, immeubles à restructurer
+Le menu déroulant est classé par rubriques pour trouver plus vite le bon actif. Chaque classe reste un actif à part entière, et toutes les classes actuelles sont conservées.
+- « Immeubles de bureaux » et « Plateaux ou lots de bureaux » sont remplacés par **Bureaux**, avec trois sous-classes : Immeuble(s), Plateau(x), Lot(s). Les actifs existants sont convertis automatiquement.
+- Classes ajoutées : **Loisirs** et **Murs de restaurants**. Salle de sport et Buffets à volonté restent des classes distinctes.
+- Le mandat reprend la classe exacte saisie, par exemple « immeuble de bureaux ».
 
-Les actifs, investisseurs et critères de matching existants seront convertis automatiquement, sans perte. Le regroupement est à valider ou à corriger.
+## 5. Formulaire de rétractation
+Il est supprimé de tous les modèles de mandats et de tous les exports.
 
 ## 4. Portefeuille multi-adresses
 - Case « Portefeuille » à la création d'un actif.
 - Ajout de plusieurs biens, chacun avec son adresse, son code postal, sa ville, sa classe d'actif, sa surface et son loyer.
 - Les totaux (surface, loyers) sont calculés automatiquement.
-- Le portefeuille reçoit un seul numéro de mandat, et la désignation du mandat liste tous les biens.
+- Le portefeuille reçoit un seul numéro de mandat.
+- La désignation du mandat reprend le tableau de l'état locatif (adresse, locataire, surface, loyer) pour chaque bien.
 - Les biens apparaissent aussi dans la brochure et la fiche.
 
 ## Points techniques
