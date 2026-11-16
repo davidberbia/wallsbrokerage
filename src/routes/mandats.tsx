@@ -55,7 +55,7 @@ function MandatesPage() {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_email, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, fee_mode, fee_value, fee_payer, mandate_start, mandate_end)",
+          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_email, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, fee_mode, fee_value, fee_payer, mandate_start, mandate_end, asset_class, surface, price, rent, residential_details)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
@@ -110,6 +110,9 @@ function MandatesPage() {
       agentId: m.agent_id,
       status: expired ? "expiré" : m.status,
       sig: m.signature_status,
+      designation: [a?.asset_class ?? a?.title ?? "", a?.surface ? `d'environ ${Number(a.surface).toLocaleString("fr-FR")} m²` : ""].filter(Boolean).join(" "),
+      situation: a?.rent ? `loué, loyer annuel ${Number(a.rent).toLocaleString("fr-FR")} € HT HC` : String(((a?.residential_details ?? {}) as Record<string, unknown>).occupancy ?? "") || "libre de toute occupation",
+      price: a?.price ? `${Number(a.price).toLocaleString("fr-FR")} €` : "",
       fees: feeText(a?.fee_mode, a?.fee_value),
       feeCharge: feeChargeText(a?.fee_payer),
       assetId: a ? (m as { asset_id?: string }).asset_id ?? null : null,
@@ -308,7 +311,7 @@ const toIso = (fr: string) => {
 };
 const frDate = (iso: string) => (iso ? new Date(iso).toLocaleDateString("fr-FR") : "");
 
-type AutoRow = { number: number; street: string; town: string; owner: string; mandant?: string; mandantAddress?: string; fees?: string; feeCharge?: string };
+type AutoRow = { number: number; street: string; town: string; owner: string; mandant?: string; mandantAddress?: string; fees?: string; feeCharge?: string; designation?: string; situation?: string; price?: string };
 function autoValues(row: AutoRow, agent: string, begin: string): Record<string, string> {
   return {
     numero: String(row.number),
@@ -323,6 +326,10 @@ function autoValues(row: AutoRow, agent: string, begin: string): Record<string, 
     delai_suite: "12",
     honoraires: row.fees ?? "",
     charge_honoraires: row.feeCharge ?? "",
+    designation: row.designation ?? "",
+    situation_locative: row.situation ?? "",
+    prix: row.price ?? "",
+    actions_commerciales: "diffusion auprès de la base d'investisseurs Wallsbrokerage, envoi de brochures et campagnes emailing, publication sur le site wallsbrokerage.com, visites et négociation",
   };
 }
 
