@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addOneYear, fillTemplate } from "./mandate-template";
+import { addOneYear, fillTemplate, templateToHtml, withSignatures, templateKind } from "./mandate-template";
 
 describe("fin de mandat", () => {
   it("ajoute un an à la date de début", () => {
@@ -13,5 +13,17 @@ describe("fin de mandat", () => {
 describe("remplissage", () => {
   it("garde les champs non renseignés visibles", () => {
     expect(fillTemplate("N° {{numero}} {{prix}}", { numero: "202193" })).toBe("N° 202193 {{prix}}");
+  });
+});
+
+describe("signatures", () => {
+  it("remplace les anciennes mentions par celles du Mandant et du Mandataire", () => {
+    const html = templateToHtml(withSignatures("Texte\n\n« Lu et approuvé, bon pour mandat » — LE MANDANT\n« Lu et approuvé, mandat accepté » — LE MANDATAIRE"), "t");
+    expect(html).toContain("Lu et accepté, Bon pour Mandat");
+    expect(html).toContain("Lu et Mandat accepté");
+    expect(html).not.toContain("Lu et approuvé");
+  });
+  it("choisit le modèle location", () => {
+    expect(templateKind("Mandat de location")).toBe("location");
   });
 });

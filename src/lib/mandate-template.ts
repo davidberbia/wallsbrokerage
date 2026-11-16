@@ -17,6 +17,38 @@ export function templateFields(body: string): string[] {
   return [...new Set([...body.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1] ?? ""))];
 }
 
+export const MENTION_MANDANT = "Lu et accepté, Bon pour Mandat";
+export const MENTION_MANDATAIRE = "Lu et Mandat accepté";
+export const ANCHOR_MANDANT = "\\sigmandant\\";
+export const ANCHOR_MANDATAIRE = "\\sigmandataire\\";
+const SIGNATURES = "[[SIGNATURES]]";
+
+/** Remplace les anciennes mentions des modèles par le bloc de signatures Mandant / Mandataire. */
+export function withSignatures(body: string): string {
+  const lines = body.split("\n");
+  const idx = lines.findIndex((l) => /LE MANDANT\s*$/.test(l) || /^«\s*Lu et/.test(l));
+  const kept = lines.filter((l) => !(/^«\s*Lu et/.test(l) && /LE MANDA(NT|TAIRE)\s*$/.test(l)));
+  if (idx < 0) return `${body}\n\n${SIGNATURES}`;
+  kept.splice(idx, 0, `\n${SIGNATURES}\n`);
+  return kept.join("\n");
+}
+
+function signaturesHtml(): string {
+  const cell = (who: string, mention: string, anchor: string) =>
+    `<td style="width:50%;vertical-align:top;padding:8px"><strong>${who}</strong><br><em>« ${mention} »</em><div style="height:70px"></div><span style="color:#ffffff;font-size:6pt">${esc(anchor)}</span></td>`;
+  return `<table style="width:100%;margin-top:16px;border-collapse:collapse"><tr>${cell("LE MANDANT", MENTION_MANDANT, ANCHOR_MANDANT)}${cell("LE MANDATAIRE — WALLSBROKER", MENTION_MANDATAIRE, ANCHOR_MANDATAIRE)}</tr></table>`;
+}
+
+/** Choisit le modèle selon le type de mandat et l'exclusivité de l'actif. */
+export function templateKind(type?: string | null): string {
+  const t = (type ?? "").toLowerCase();
+  if (t.includes("fonds")) return "cession_fonds";
+  if (t.includes("bail")) return "cession_bail";
+  if (t.includes("recherche")) return "recherche";
+  if (t.includes("locat")) return "location";
+  return "vente";
+}
+
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 export function templateToHtml(body: string, title: string): string {
@@ -25,6 +57,7 @@ export function templateToHtml(body: string, title: string): string {
     .map((block) => {
       const b = block.trim();
       if (!b) return "";
+      if (b === SIGNATURES) return signaturesHtml();
       if (b === "---") return '<hr style="page-break-after:always">';
       if (b.startsWith("# ")) return `<h1>${esc(b.slice(2))}</h1>`;
       if (b.startsWith("## ")) return `<h2>${esc(b.slice(3))}</h2>`;

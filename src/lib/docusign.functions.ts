@@ -66,7 +66,7 @@ export const refreshMandateSignatures = createServerFn({ method: "POST" })
   .middleware([requireStaffAuth])
   .handler(async ({ context }) => {
     const { data: rows } = await context.supabase.from("mandates").select("id, envelope_id, signature_status")
-      .not("envelope_id", "is", null).neq("signature_status", "completed");
+      .not("envelope_id", "is", null).not("signature_status", "in", '("completed","prêt à envoyer")');
     if (!rows?.length) return { updated: 0 };
     const { getDsAccess } = await import("@/lib/docusign.server");
     const ds = await getDsAccess();
@@ -82,4 +82,68 @@ export const refreshMandateSignatures = createServerFn({ method: "POST" })
       updated++;
     }
     return { updated };
+  });
+
+const anchorTab = (anchor: string) => ({
+  signHereTabs: [{ anchorString: anchor, anchorUnits: "pixels", anchorYOffset: "-40", anchorXOffset: "0" }],
+  dateSignedTabs: [{ anchorString: anchor, anchorUnits: "pixels", anchorYOffset: "8", anchorXOffset: "0" }],
+});
+
+/** Prépare l'enveloppe (non envoyée) depuis le mandat généré et renvoie le PDF à vérifier. */
+export const prepareMandateSignature = createServerFn({ method: "POST" })
+  .middleware([requireStaffAuth])
+  .inputValidator((d) => z.object({
+    mandateId: z.string().uuid(),
+    mandantName: z.string().trim().min(1).max(200),
+    mandantEmail: z.string().trim().email().max(255),
+    html: z.string().min(50).max(2_000_000),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: m, error } = await context.supabase.from("mandates").select("id, number, envelope_id, signature_status").eq("id", data.mandateId).maybeSingle();
+    if (error || !m) throw new Error("Mandat introuvable");
+    if (m.envelope_id && m.signature_status && !["prêt à envoyer", "voided", "declined"].includes(m.signature_status)) throw new Error("Ce mandat est déjà parti en signature.");
+    const { getDsAccess } = await import("@/lib/docusign.server");
+    const { ANCHOR_MANDANT, ANCHOR_MANDATAIRE } = await import("@/lib/mandate-template");
+    const ds = await getDsAccess();
+    const H = { Authorization: `Bearer ${ds.token}`, "Content-Type": "application/json" };
+    if (m.envelope_id && m.signature_status === "prêt à envoyer")
+      await fetch(`${ds.api}/folders/recyclebin`, { method: "PUT", headers: H, body: JSON.stringify({ envelopeIds: [m.envelope_id] }) });
+    const bytes = new TextEncoder().encode(data.html);
+    let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    const r = await fetch(`${ds.api}/envelopes`, {
+      method: "POST", headers: H,
+      body: JSON.stringify({
+        emailSubject: `Mandat n° ${m.number} — signature`,
+        documents: [{ documentBase64: btoa(bin), name: `Mandat ${m.number}.html`, fileExtension: "html", documentId: "1" }],
+        recipients: { signers: [
+          { email: data.mandantEmail, name: data.mandantName, recipientId: "1", routingOrder: "1", roleName: "Mandant", tabs: anchorTab(ANCHOR_MANDANT) },
+          { email: ds.email || "d.berbia@wallsbroker.com", name: "Wallsbroker — David Berbia", recipientId: "2", routingOrder: "1", roleName: "Mandataire", tabs: anchorTab(ANCHOR_MANDATAIRE) },
+        ] },
+        status: "created",
+      }),
+    });
+    const t = await r.text();
+    if (!r.ok) throw new Error(`DocuSign : préparation refusée (${r.status}) ${t}`);
+    const env = JSON.parse(t) as { envelopeId: string };
+    const pdf = await fetch(`${ds.api}/envelopes/${env.envelopeId}/documents/combined`, { headers: { Authorization: `Bearer ${ds.token}` } });
+    if (!pdf.ok) throw new Error(`DocuSign : PDF indisponible (${pdf.status})`);
+    const pb = new Uint8Array(await pdf.arrayBuffer());
+    let pbin = ""; for (let i = 0; i < pb.length; i += 0x8000) pbin += String.fromCharCode(...pb.subarray(i, i + 0x8000));
+    await context.supabase.from("mandates").update({ envelope_id: env.envelopeId, signature_status: "prêt à envoyer", signer_email: data.mandantEmail }).eq("id", m.id);
+    return { pdfBase64: btoa(pbin) };
+  });
+
+/** Envoie au Mandant et au Mandataire l'enveloppe vérifiée. */
+export const sendPreparedMandate = createServerFn({ method: "POST" })
+  .middleware([requireStaffAuth])
+  .inputValidator((d) => z.object({ mandateId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: m } = await context.supabase.from("mandates").select("id, envelope_id, signature_status").eq("id", data.mandateId).maybeSingle();
+    if (!m?.envelope_id || m.signature_status !== "prêt à envoyer") throw new Error("Générez d'abord le PDF du mandat.");
+    const { getDsAccess } = await import("@/lib/docusign.server");
+    const ds = await getDsAccess();
+    const r = await fetch(`${ds.api}/envelopes/${m.envelope_id}`, { method: "PUT", headers: { Authorization: `Bearer ${ds.token}`, "Content-Type": "application/json" }, body: JSON.stringify({ status: "sent" }) });
+    if (!r.ok) throw new Error(`DocuSign : envoi refusé (${r.status}) ${await r.text()}`);
+    await context.supabase.from("mandates").update({ signature_status: "sent", status: "envoyé" }).eq("id", m.id);
+    return { ok: true };
   });

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, FileText, PenLine, RefreshCw } from "lucide-react";
 import { useMandateTemplates, downloadWord, printPdf } from "@/components/MandateTemplatesPanel";
-import { addOneYear, fillTemplate, templateFields, feeText, feeChargeText } from "@/lib/mandate-template";
+import { addOneYear, fillTemplate, templateFields, feeText, feeChargeText, templateToHtml, withSignatures, templateKind } from "@/lib/mandate-template";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { refreshMandateSignatures, sendMandateForSignature } from "@/lib/docusign.functions";
+import { refreshMandateSignatures, prepareMandateSignature, sendPreparedMandate } from "@/lib/docusign.functions";
 import {
   Select,
   SelectContent,
@@ -55,7 +55,7 @@ function MandatesPage() {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, fee_mode, fee_value, fee_payer, mandate_start, mandate_end)",
+          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_email, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, fee_mode, fee_value, fee_payer, mandate_start, mandate_end)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
@@ -93,6 +93,9 @@ function MandatesPage() {
       title: a?.title ?? m.asset_title ?? "—",
       city: a?.city ?? "",
       owner: a?.owner_name ?? "—",
+      ownerEmail: a?.owner_email ?? "",
+      tplType: a?.mandate_type ?? a?.transaction_type ?? "",
+      tplExclusive: a?.mandate_exclusive ?? null,
       mandant: a?.owner_name ? mandantText(a.owner_kind, a.owner_name, (a.owner_details ?? {}) as OwnerDetails) : "",
       mandantAddress: String((a?.owner_details as OwnerDetails | null)?.address ?? ""),
       exclusive:
@@ -140,7 +143,7 @@ function MandatesPage() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const detail = rows.find((r) => r.id === detailId);
   const [gen, setGen] = useState<(typeof rows)[number] | null>(null);
-  const [target, setTarget] = useState<{ id: string; number: number; owner: string } | null>(null);
+  const [target, setTarget] = useState<(typeof rows)[number] | null>(null);
   const refresh = useServerFn(refreshMandateSignatures);
   const [syncing, setSyncing] = useState(false);
   const sync = async () => {
@@ -270,11 +273,7 @@ function MandatesPage() {
                   toast.error("Renseignez les honoraires et qui les paie avant l'envoi en signature.");
                   return;
                 }
-                setTarget({
-                  id: detail.id,
-                  number: detail.number,
-                  owner: detail.owner === "—" ? "" : detail.owner,
-                });
+                setTarget(detail);
                 setDetailId(null);
               }}
             >
@@ -299,6 +298,7 @@ function MandatesPage() {
       />
       <SignDialog
         target={target}
+        agent={target ? agentName(target.agentId) : ""}
         onClose={() => setTarget(null)}
         onSent={() => void qc.invalidateQueries({ queryKey: ["mandates"] })}
       />
@@ -322,6 +322,24 @@ const toIso = (fr: string) => {
 };
 const frDate = (iso: string) => (iso ? new Date(iso).toLocaleDateString("fr-FR") : "");
 
+type AutoRow = { number: number; street: string; town: string; owner: string; mandant?: string; mandantAddress?: string; fees?: string; feeCharge?: string };
+function autoValues(row: AutoRow, agent: string, begin: string): Record<string, string> {
+  return {
+    numero: String(row.number),
+    mandant: row.mandant || (row.owner === "—" ? "" : row.owner),
+    mandant_adresse: row.mandantAddress ?? "",
+    adresse_bien: [row.street, row.town].filter(Boolean).join(", "),
+    agent: agent && agent !== "—" ? agent : "David BERBIA PEREZ, Président",
+    date_debut: frDate(begin),
+    date_fin: frDate(addOneYear(begin)),
+    lieu: "Paris",
+    date_signature: frDate(new Date().toISOString()),
+    delai_suite: "12",
+    honoraires: row.fees ?? "",
+    charge_honoraires: row.feeCharge ?? "",
+  };
+}
+
 function GenerateDialog({
   row,
   agent,
@@ -337,25 +355,10 @@ function GenerateDialog({
   const [vals, setVals] = useState<Record<string, string>>({});
   const tpl = templates?.find((t) => t.id === tplId);
   const begin = start || (row ? toIso(row.begin) : "") || new Date().toISOString().slice(0, 10);
-  const auto: Record<string, string> = row
-    ? {
-        numero: String(row.number),
-        mandant: row.mandant || (row.owner === "—" ? "" : row.owner),
-        mandant_adresse: row.mandantAddress ?? "",
-        adresse_bien: [row.street, row.town].filter(Boolean).join(", "),
-        agent: agent && agent !== "—" ? agent : "David BERBIA PEREZ, Président",
-        date_debut: frDate(begin),
-        date_fin: frDate(addOneYear(begin)),
-        lieu: "Paris",
-        date_signature: frDate(new Date().toISOString()),
-        delai_suite: "12",
-        honoraires: row.fees ?? "",
-        charge_honoraires: row.feeCharge ?? "",
-      }
-    : {};
+  const auto = row ? autoValues(row, agent, begin) : {};
   const all = { ...auto, ...vals };
   const fields = tpl ? templateFields(tpl.body) : [];
-  const text = tpl ? fillTemplate(tpl.body, all) : "";
+  const text = tpl ? fillTemplate(withSignatures(tpl.body), all) : "";
   return (
     <Dialog open={!!row} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
@@ -414,85 +417,128 @@ const SIG: Record<string, string> = {
 
 function SignDialog({
   target,
+  agent,
   onClose,
   onSent,
 }: {
-  target: { id: string; number: number; owner: string } | null;
+  target: (AutoRow & { id: string; begin: string; ownerEmail: string; tplType: string; tplExclusive: boolean | null }) | null;
+  agent: string;
   onClose: () => void;
   onSent: () => void;
 }) {
-  const send = useServerFn(sendMandateForSignature);
+  const prepare = useServerFn(prepareMandateSignature);
+  const send = useServerFn(sendPreparedMandate);
+  const { data: templates } = useMandateTemplates();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [tplId, setTplId] = useState("");
+  const [vals, setVals] = useState<Record<string, string>>({});
+  const [pdf, setPdf] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [lastId, setLastId] = useState<string | null>(null);
   if (target && lastId !== target.id) {
     setLastId(target.id);
-    setName(target.owner);
-    setEmail("");
-    setFile(null);
+    setName(target.owner === "—" ? "" : target.owner);
+    setEmail(target.ownerEmail);
+    setVals({});
+    setPdf(null);
+    setTplId("");
   }
-  const submit = async () => {
-    if (!target || !file) return;
-    if (file.size > 9_000_000) {
-      toast.error("Fichier trop lourd (9 Mo max)");
-      return;
-    }
+  const kind = templateKind(target?.tplType);
+  const tpl =
+    templates?.find((t) => t.id === tplId) ??
+    templates?.find((t) => t.kind === kind && t.exclusive === !!target?.tplExclusive);
+  const begin = (target ? toIso(target.begin) : "") || new Date().toISOString().slice(0, 10);
+  const all = { ...(target ? autoValues(target, agent, begin) : {}), ...vals };
+  const missing = tpl ? templateFields(fillTemplate(tpl.body, all)) : [];
+  const close = () => {
+    if (pdf) URL.revokeObjectURL(pdf);
+    onClose();
+  };
+  const generate = async () => {
+    if (!target || !tpl) return;
     setBusy(true);
     try {
-      const buf = new Uint8Array(await file.arrayBuffer());
-      let bin = "";
-      for (let i = 0; i < buf.length; i += 0x8000)
-        bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
-      await send({
-        data: {
-          mandateId: target.id,
-          ownerName: name,
-          ownerEmail: email,
-          fileName: file.name,
-          fileBase64: btoa(bin),
-        },
-      });
-      toast.success("Mandat envoyé en signature");
+      const html = templateToHtml(withSignatures(fillTemplate(tpl.body, all)), `Mandat ${target.number}`);
+      const r = await prepare({ data: { mandateId: target.id, mandantName: name, mandantEmail: email, html } });
+      const bytes = Uint8Array.from(atob(r.pdfBase64), (c) => c.charCodeAt(0));
+      if (pdf) URL.revokeObjectURL(pdf);
+      setPdf(URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })));
       onSent();
-      onClose();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+    setBusy(false);
+  };
+  const submit = async () => {
+    if (!target) return;
+    setBusy(true);
+    try {
+      await send({ data: { mandateId: target.id } });
+      toast.success("Mandat envoyé au Mandant et au Mandataire");
+      onSent();
+      close();
     } catch (e) {
       toast.error((e as Error).message);
     }
     setBusy(false);
   };
   return (
-    <Dialog open={!!target} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
+    <Dialog open={!!target} onOpenChange={(o) => !o && close()}>
+      <DialogContent className="max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Mandat n° {target?.number} — signature</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <Label>Nom du propriétaire</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
+        {!pdf ? (
+          <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>Modèle</Label>
+              <Select value={tpl?.id ?? ""} onValueChange={setTplId}>
+                <SelectTrigger className="min-h-11">
+                  <SelectValue placeholder="Choisir un modèle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(templates ?? []).map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <Label>Mandant (vendeur ou bailleur)</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label>Email du Mandant</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            {missing.length > 0 && <p className="text-sm text-muted-foreground">À compléter :</p>}
+            {missing.map((f) => (
+              <div key={f} className="space-y-1">
+                <Label>{f.replace(/_/g, " ")}</Label>
+                <Input className="min-h-11" value={vals[f] ?? ""} onChange={(e) => setVals((v) => ({ ...v, [f]: e.target.value }))} />
+              </div>
+            ))}
+            <Button className="min-h-11 w-full" disabled={busy || !tpl || !name || !email} onClick={() => void generate()}>
+              {busy ? "Préparation…" : "Générer le PDF pour vérification"}
+            </Button>
           </div>
-          <div className="space-y-1">
-            <Label>Email du propriétaire</Label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        ) : (
+          <div className="space-y-3">
+            <iframe src={pdf} title="Mandat" className="h-[60vh] w-full rounded border" />
+            <a href={pdf} target="_blank" rel="noreferrer" className="block text-center text-sm underline">
+              Ouvrir le PDF en plein écran
+            </a>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" className="min-h-11" disabled={busy} onClick={() => setPdf(null)}>
+                Corriger
+              </Button>
+              <Button className="min-h-11" disabled={busy} onClick={() => void submit()}>
+                {busy ? "Envoi…" : "Envoyer au Mandant et au Mandataire"}
+              </Button>
+            </div>
           </div>
-          <div className="space-y-1">
-            <Label>Mandat (PDF ou Word)</Label>
-            <Input
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            />
-          </div>
-          <Button
-            className="min-h-11 w-full"
-            disabled={busy || !file || !name || !email}
-            onClick={() => void submit()}
-          >
-            {busy ? "Envoi…" : "Envoyer au propriétaire et à moi"}
-          </Button>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );
