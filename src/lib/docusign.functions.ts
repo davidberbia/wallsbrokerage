@@ -7,8 +7,8 @@ export const getDocusignStatus = createServerFn({ method: "GET" })
   .handler(async () => {
     const { getAdmin } = await import("@/lib/automation.server");
     const admin = await getAdmin();
-    const { data } = await admin.from("docusign_auth").select("env, account_email, refresh_token").eq("id", true).maybeSingle();
-    return { connected: Boolean(data?.refresh_token), email: data?.account_email ?? null, env: data?.env ?? "prod" };
+    const { data } = await admin.from("docusign_auth").select("env, account_email, refresh_token, base_uri").eq("id", true).maybeSingle();
+    return { connected: Boolean(data?.refresh_token), live: Boolean(data?.refresh_token && data?.base_uri && !data.base_uri.includes("demo")), email: data?.account_email ?? null, env: data?.env ?? "prod" };
   });
 
 export const startDocusignConnect = createServerFn({ method: "POST" })

@@ -19,11 +19,11 @@ export function DocusignPanel() {
     <section className="panel space-y-3 p-5">
       <h2 className="text-lg">DocuSign</h2>
       <p className="text-sm text-muted-foreground">
-        {data?.connected ? `Connecté${data.email ? ` (${data.email})` : ""}` : "Non connecté"}
+        {data?.live ? `Connecté au compte réel${data.email ? ` (${data.email})` : ""}` : data?.connected ? "Compte réel non connecté — seul le compte de test est relié" : "Non connecté"}
       </p>
       <div className="flex flex-wrap gap-2">
         <Button className="min-h-11" disabled={busy} onClick={() => void go("prod")}>
-          {data?.connected ? "Reconnecter DocuSign" : "Connecter DocuSign"}
+          {data?.live ? "Reconnecter DocuSign" : "Connecter DocuSign"}
         </Button>
         <Button variant="ghost" className="min-h-11 text-xs" disabled={busy} onClick={() => void go("demo")}>
           Compte de test
