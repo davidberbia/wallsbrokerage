@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, FileText, PenLine, RefreshCw } from "lucide-react";
+import { Download, PenLine, RefreshCw } from "lucide-react";
 import { useMandateTemplates, downloadWord, printPdf } from "@/components/MandateTemplatesPanel";
 import { addOneYear, fillTemplate, templateFields, feeText, feeChargeText, templateToHtml, withSignatures, templateKind } from "@/lib/mandate-template";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
@@ -142,7 +142,6 @@ function MandatesPage() {
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const detail = rows.find((r) => r.id === detailId);
-  const [gen, setGen] = useState<(typeof rows)[number] | null>(null);
   const [target, setTarget] = useState<(typeof rows)[number] | null>(null);
   const refresh = useServerFn(refreshMandateSignatures);
   const [syncing, setSyncing] = useState(false);
@@ -280,23 +279,9 @@ function MandatesPage() {
             >
               <PenLine className="size-4" /> Envoyer en signature
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setGen(detail);
-                setDetailId(null);
-              }}
-            >
-              <FileText className="size-4" /> Rédiger depuis un modèle
-            </Button>
           </>
         )}
       </RecordDialog>
-      <GenerateDialog
-        row={gen}
-        agent={gen ? agentName(gen.agentId) : ""}
-        onClose={() => setGen(null)}
-      />
       <SignDialog
         target={target}
         agent={target ? agentName(target.agentId) : ""}
@@ -341,73 +326,6 @@ function autoValues(row: AutoRow, agent: string, begin: string): Record<string, 
   };
 }
 
-function GenerateDialog({
-  row,
-  agent,
-  onClose,
-}: {
-  row: { number: number; street: string; town: string; owner: string; begin: string; mandant?: string; mandantAddress?: string; fees?: string; feeCharge?: string } | null;
-  agent: string;
-  onClose: () => void;
-}) {
-  const { data: templates } = useMandateTemplates();
-  const [tplId, setTplId] = useState<string>("");
-  const [start, setStart] = useState("");
-  const [vals, setVals] = useState<Record<string, string>>({});
-  const tpl = templates?.find((t) => t.id === tplId);
-  const begin = start || (row ? toIso(row.begin) : "") || new Date().toISOString().slice(0, 10);
-  const auto = row ? autoValues(row, agent, begin) : {};
-  const all = { ...auto, ...vals };
-  const fields = tpl ? templateFields(tpl.body) : [];
-  const text = tpl ? fillTemplate(withSignatures(tpl.body), all) : "";
-  return (
-    <Dialog open={!!row} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Rédiger le mandat n° {row?.number}</DialogTitle>
-        </DialogHeader>
-        <Label>Modèle</Label>
-        <Select value={tplId} onValueChange={setTplId}>
-          <SelectTrigger className="min-h-11">
-            <SelectValue placeholder="Choisir un modèle" />
-          </SelectTrigger>
-          <SelectContent>
-            {(templates ?? []).map((t) => (
-              <SelectItem key={t.id} value={t.id}>
-                {t.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Label>Début du mandat (fin = + 1 an)</Label>
-        <Input type="date" className="min-h-11" value={begin} onChange={(e) => setStart(e.target.value)} />
-        {fields
-          .filter((f) => !["date_debut", "date_fin"].includes(f))
-          .map((f) => (
-            <div key={f} className="space-y-1">
-              <Label>{f.replace(/_/g, " ")}</Label>
-              <Input
-                className="min-h-11"
-                value={all[f] ?? ""}
-                onChange={(e) => setVals((v) => ({ ...v, [f]: e.target.value }))}
-              />
-            </div>
-          ))}
-        {tpl && (
-          <div className="grid grid-cols-2 gap-2 pt-2">
-            <Button className="min-h-11" onClick={() => downloadWord(text, `Mandat ${row?.number} ${tpl.title}`)}>
-              Export Word
-            </Button>
-            <Button variant="outline" className="min-h-11" onClick={() => printPdf(text, `Mandat ${row?.number}`)}>
-              Export PDF
-            </Button>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 const SIG: Record<string, string> = {
   sent: "envoyé",
   delivered: "ouvert",
@@ -433,7 +351,9 @@ function SignDialog({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [tplId, setTplId] = useState("");
+  const [start, setStart] = useState("");
   const [vals, setVals] = useState<Record<string, string>>({});
+  const [showAll, setShowAll] = useState(false);
   const [pdf, setPdf] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [lastId, setLastId] = useState<string | null>(null);
@@ -442,6 +362,8 @@ function SignDialog({
     setName(target.owner === "—" ? "" : target.owner);
     setEmail(target.ownerEmail);
     setVals({});
+    setStart("");
+    setShowAll(false);
     setPdf(null);
     setTplId("");
   }
@@ -449,9 +371,15 @@ function SignDialog({
   const tpl =
     templates?.find((t) => t.id === tplId) ??
     templates?.find((t) => t.kind === kind && t.exclusive === !!target?.tplExclusive);
-  const begin = (target ? toIso(target.begin) : "") || new Date().toISOString().slice(0, 10);
-  const all = { ...(target ? autoValues(target, agent, begin) : {}), ...vals };
-  const missing = tpl ? templateFields(fillTemplate(tpl.body, all)) : [];
+  const begin = start || (target ? toIso(target.begin) : "") || new Date().toISOString().slice(0, 10);
+  const auto: Record<string, string> = target ? autoValues(target, agent, begin) : {};
+  const all: Record<string, string> = { ...auto, ...vals, mandant: vals["mandant"] ?? (name || auto["mandant"] || "") };
+  const fields = tpl
+    ? templateFields(tpl.body).filter((f) => !["date_debut", "date_fin", "mandant", "date_signature"].includes(f))
+    : [];
+  const missing = fields.filter((f) => !all[f]);
+  const filled = fields.filter((f) => !!all[f]);
+  const text = tpl ? fillTemplate(withSignatures(tpl.body), all) : "";
   const close = () => {
     if (pdf) URL.revokeObjectURL(pdf);
     onClose();
@@ -484,6 +412,16 @@ function SignDialog({
     }
     setBusy(false);
   };
+  const fieldInput = (f: string) => (
+    <div key={f} className="space-y-1">
+      <Label>{f.replace(/_/g, " ")}</Label>
+      <Input
+        className="min-h-11"
+        value={vals[f] ?? all[f] ?? ""}
+        onChange={(e) => setVals((v) => ({ ...v, [f]: e.target.value }))}
+      />
+    </div>
+  );
   return (
     <Dialog open={!!target} onOpenChange={(o) => !o && close()}>
       <DialogContent className="max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-2xl">
@@ -506,6 +444,10 @@ function SignDialog({
               </Select>
             </div>
             <div className="space-y-1">
+              <Label>Début du mandat (fin = + 1 an)</Label>
+              <Input type="date" className="min-h-11" value={begin} onChange={(e) => setStart(e.target.value)} />
+            </div>
+            <div className="space-y-1">
               <Label>Mandant (vendeur ou bailleur)</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
@@ -514,15 +456,33 @@ function SignDialog({
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             {missing.length > 0 && <p className="text-sm text-muted-foreground">À compléter :</p>}
-            {missing.map((f) => (
-              <div key={f} className="space-y-1">
-                <Label>{f.replace(/_/g, " ")}</Label>
-                <Input className="min-h-11" value={vals[f] ?? ""} onChange={(e) => setVals((v) => ({ ...v, [f]: e.target.value }))} />
+            {missing.map(fieldInput)}
+            {filled.length > 0 && (
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-auto px-0 text-sm text-muted-foreground"
+                  onClick={() => setShowAll((s) => !s)}
+                >
+                  {showAll ? "Masquer les champs renseignés" : `Modifier un champ renseigné (${filled.length})`}
+                </Button>
+                {showAll && filled.map(fieldInput)}
               </div>
-            ))}
+            )}
             <Button className="min-h-11 w-full" disabled={busy || !tpl || !name || !email} onClick={() => void generate()}>
               {busy ? "Préparation…" : "Générer le PDF pour vérification"}
             </Button>
+            {tpl && (
+              <div className="grid grid-cols-2 gap-2">
+                <Button variant="outline" className="min-h-11" onClick={() => downloadWord(text, `Mandat ${target?.number} ${tpl.title}`)}>
+                  Export Word
+                </Button>
+                <Button variant="outline" className="min-h-11" onClick={() => printPdf(text, `Mandat ${target?.number}`)}>
+                  Export PDF
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
