@@ -1217,6 +1217,7 @@ export type Database = {
           job_title: string | null
           kind: string
           notes: string | null
+          owner_id: string | null
           phone: string | null
           updated_at: string
         }
@@ -1230,6 +1231,7 @@ export type Database = {
           job_title?: string | null
           kind?: string
           notes?: string | null
+          owner_id?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -1243,6 +1245,7 @@ export type Database = {
           job_title?: string | null
           kind?: string
           notes?: string | null
+          owner_id?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -1864,6 +1867,7 @@ export type Database = {
           job_title: string | null
           last_seen_at: string | null
           occurrences: number
+          owner_id: string | null
           phone: string | null
           status: string
           updated_at: string
@@ -1883,6 +1887,7 @@ export type Database = {
           job_title?: string | null
           last_seen_at?: string | null
           occurrences?: number
+          owner_id?: string | null
           phone?: string | null
           status?: string
           updated_at?: string
@@ -1902,6 +1907,7 @@ export type Database = {
           job_title?: string | null
           last_seen_at?: string | null
           occurrences?: number
+          owner_id?: string | null
           phone?: string | null
           status?: string
           updated_at?: string
@@ -2012,45 +2018,64 @@ export type Database = {
       }
       mandates: {
         Row: {
+          address: string | null
+          agent_id: string | null
           asset_id: string | null
           asset_title: string | null
           created_at: string
           envelope_id: string | null
+          expires_at: string | null
           id: string
           number: number
           signature_status: string | null
           signed_at: string | null
           signer_email: string | null
+          source: string | null
           status: string
           updated_at: string
         }
         Insert: {
+          address?: string | null
+          agent_id?: string | null
           asset_id?: string | null
           asset_title?: string | null
           created_at?: string
           envelope_id?: string | null
+          expires_at?: string | null
           id?: string
           number?: number
           signature_status?: string | null
           signed_at?: string | null
           signer_email?: string | null
+          source?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
+          address?: string | null
+          agent_id?: string | null
           asset_id?: string | null
           asset_title?: string | null
           created_at?: string
           envelope_id?: string | null
+          expires_at?: string | null
           id?: string
           number?: number
           signature_status?: string | null
           signed_at?: string | null
           signer_email?: string | null
+          source?: string | null
           status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "mandates_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "commercial_agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "mandates_asset_id_fkey"
             columns: ["asset_id"]
@@ -2130,6 +2155,7 @@ export type Database = {
           id: string
           investor_profile: string | null
           name: string
+          owner_id: string | null
           regions: string[]
           sector: string | null
           source_url: string | null
@@ -2148,6 +2174,7 @@ export type Database = {
           id?: string
           investor_profile?: string | null
           name: string
+          owner_id?: string | null
           regions?: string[]
           sector?: string | null
           source_url?: string | null
@@ -2166,6 +2193,7 @@ export type Database = {
           id?: string
           investor_profile?: string | null
           name?: string
+          owner_id?: string | null
           regions?: string[]
           sector?: string | null
           source_url?: string | null
@@ -2193,6 +2221,7 @@ export type Database = {
           id: string
           job_title: string | null
           notes: string | null
+          owner_id: string | null
           phone: string | null
           source_url: string | null
           updated_at: string
@@ -2207,6 +2236,7 @@ export type Database = {
           id?: string
           job_title?: string | null
           notes?: string | null
+          owner_id?: string | null
           phone?: string | null
           source_url?: string | null
           updated_at?: string
@@ -2221,6 +2251,7 @@ export type Database = {
           id?: string
           job_title?: string | null
           notes?: string | null
+          owner_id?: string | null
           phone?: string | null
           source_url?: string | null
           updated_at?: string
@@ -2459,6 +2490,13 @@ export type Database = {
         Returns: boolean
       }
       is_known_investor_email: { Args: { p_email: string }; Returns: boolean }
+      list_mandate_agents: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       mailscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       mailscan_stop_internal: { Args: never; Returns: undefined }
       person_is_investor: {

@@ -52,13 +52,31 @@ function MandatesPage() {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, number, status, asset_title, signature_status, assets(title, city, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
+          "id, number, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, assets(title, city, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
+
+  const { data: agents } = useQuery({
+    queryKey: ["mandate-agents"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("list_mandate_agents");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const agentName = (id: string | null) => agents?.find((g) => g.id === id)?.name ?? "—";
+  const setAgent = async (id: string, agent: string) => {
+    const { error } = await supabase
+      .from("mandates")
+      .update({ agent_id: agent === "none" ? null : agent })
+      .eq("id", id);
+    if (error) return void toast.error(error.message);
+    await qc.invalidateQueries({ queryKey: ["mandates"] });
+  };
 
   const rows = (data ?? []).map((m) => {
     const a = m.assets;
@@ -73,8 +91,10 @@ function MandatesPage() {
       exclusive:
         a?.mandate_exclusive == null ? "—" : a.mandate_exclusive ? "Exclusif" : "Non exclusif",
       type: a?.mandate_type ?? a?.transaction_type ?? "—",
-      start: fmt(a?.mandate_start ?? null),
-      end: fmt(a?.mandate_end ?? null),
+      start: fmt(m.signed_at ?? a?.mandate_start ?? null),
+      end: fmt(m.expires_at ?? a?.mandate_end ?? null),
+      address: m.address ?? "",
+      agentId: m.agent_id,
       status: expired ? "expiré" : m.status,
       sig: m.signature_status,
     };
@@ -115,12 +135,13 @@ function MandatesPage() {
       rows.map((r) => ({
         "N°": r.number,
         Actif: r.title,
-        Ville: r.city,
+        Adresse: r.address || r.city,
+        Agent: agentName(r.agentId),
         Propriétaire: r.owner,
         Exclusivité: r.exclusive,
         Type: r.type,
-        Début: r.start,
-        Fin: r.end,
+        "Signé le": r.start,
+        Expiration: r.end,
         Statut: r.status,
       })),
     );
@@ -164,7 +185,7 @@ function MandatesPage() {
           <CompactRow
             key={r.id}
             title={`N° ${r.number} · ${r.title}`}
-            subtitle={[r.city, r.owner, r.status].join(" · ")}
+            subtitle={[r.address || r.city, agentName(r.agentId), r.status].filter(Boolean).join(" · ")}
             summary={r.status}
             onOpen={() => setDetailId(r.id)}
             onEdit={() => setDetailId(r.id)}
@@ -181,15 +202,32 @@ function MandatesPage() {
             <RecordFacts
               facts={[
                 ["Actif", detail.title],
-                ["Ville", detail.city],
+                ["Adresse", detail.address || detail.city],
                 ["Propriétaire", detail.owner],
                 ["Exclusivité", detail.exclusive],
                 ["Type", detail.type],
-                ["Début", detail.start],
-                ["Fin", detail.end],
+                ["Signature le", detail.start],
+                ["Expiration", detail.end],
                 ["Signature", detail.sig ? (SIG[detail.sig] ?? detail.sig) : "—"],
               ]}
             />
+            <Label>Agent concerné</Label>
+            <Select
+              value={detail.agentId ?? "none"}
+              onValueChange={(v) => void setAgent(detail.id, v)}
+            >
+              <SelectTrigger className="min-h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Non attribué</SelectItem>
+                {(agents ?? []).map((g) => (
+                  <SelectItem key={g.id} value={g.id}>
+                    {g.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Label>Statut</Label>
             <Select value={detail.status} onValueChange={(v) => void setStatus(detail.id, v)}>
               <SelectTrigger className="min-h-11">

@@ -76,3 +76,11 @@
 - [x] Comparables du fichier Comparables_Wallsbroker.xlsx fusionnés : 100 nouvelles lignes et 28 lignes rapprochées ; sources et différences conservées.
 - [ ] DocuSign : raccorder le compte et envoyer les mandats en signature (propriétaire + David, ordre libre) — modèles fournis plus tard
 - [x] Menu latéral réordonné : Affaires en cours, Actifs, Teasers, Mandats, Matching, Envois, Prospection, Acquéreurs, Prospects, Brokers, Notaires, Contacts divers, À qualifier, Veille, Comparables, Paramètres ; onglet Appels supprimé
+
+## Mandats & agents (16/11)
+- [x] Registre : agent (menu déroulant), adresse, signature, expiration.
+- [x] Fiches agents créées (Ladislas Crausaz, Alexis Capron, Li Wei de Bono, Romain Carini).
+- [x] Agents : uniquement leurs mandats et leurs contacts ; base générale réservée à l'admin.
+- [ ] Import des mandats depuis DocuSign réel — bloqué : clé secrète, API Account ID et User ID du compte réel.
+- [ ] Attribution des agents d'après Outlook — après l'import.
+- [ ] Boîtes mail des agents (Gmail, Outlook.com, Yahoo…) alimentant la base générale — à construire.
