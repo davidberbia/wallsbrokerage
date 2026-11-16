@@ -113,3 +113,5 @@
 ## Formation et manuel (16 novembre)
 - [x] Formation immo : 16 modules écrits, Suivant + %, quiz toutes les 3-4 pages, final 12-15 questions, validation 80 %.
 - [x] Manuel du CRM : présentation commentée (voix, captures encadrées), modules par onglet, FAQ, bouton « Besoin d'aide » sur chaque page, ajout automatique des réponses manquantes.
+
+- Formulaire actif : réorganisation, stratégies (?), 1 seul dépôt, parkings/surface ext., photos, diffusion, propriétaire physique/moral + SIREN (gérant modifiable), champs appartement

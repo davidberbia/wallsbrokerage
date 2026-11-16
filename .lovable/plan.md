@@ -6,6 +6,10 @@
 - « Stratégie (facultatif) » : icône « ? » qui ouvre une bulle (survol sur ordinateur, toucher sur téléphone) expliquant les 4 stratégies, textes repris de wallsbroker.com.
 - Un seul champ de dépôt de fichier : le document déposé pré-remplit les champs vides ET est joint à l'actif (fusion des deux champs actuels).
 
+## Appartement / Maison
+- Déjà en place : quand le type est Appartement ou Maison, un bloc dédié s'affiche (pièces, chambres, Carrez, salles de bain, WC, étage, ascenseur, cuisine ouverte/fermée, cheminée, balcon, terrasse et surfaces, climatisation, chauffage, type de sol, stationnements).
+- Ajout proposé : année de construction, DPE/GES, exposition, cave, gardien, charges annuelles. Le champ parkings général reprend « Stationnements » pour éviter un doublon.
+
 ## Étape 3 « Photos »
 - Aucune photo obligatoire pour créer l'actif.
 - La photo principale reste exigée uniquement au moment de générer la brochure (message clair si elle manque).
@@ -19,6 +23,7 @@
 - Choix « Personne physique » / « Personne morale ».
 - Personne physique : civilité, prénom, nom, adresse, email, téléphone.
 - Personne morale : SIREN obligatoire (9 chiffres) → récupération automatique gratuite (annuaire public des entreprises, sans clé) de la raison sociale, forme, capital, siège, RCS, représentant légal ; puis champs restants à compléter (qualité du signataire, email, téléphone).
+- Représentant légal pré-rempli avec son rôle (Président, Gérant…) tel qu'indiqué au registre ; nom et rôle modifiables, avec option « Signataire par procuration » pour indiquer une autre personne.
 - Ces informations alimentent les champs des modèles de mandat générés.
 
 ## Technique
