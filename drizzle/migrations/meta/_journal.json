@@ -176,6 +176,13 @@
       "when": 1794863650182,
       "tag": "0024_asset_mandate_fees",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794863746876,
+      "tag": "0025_arbitrage_requests_insert_check",
+      "breakpoints": true
     }
   ]
 }
