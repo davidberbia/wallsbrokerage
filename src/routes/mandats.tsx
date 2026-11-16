@@ -3,7 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, PenLine, RefreshCw } from "lucide-react";
+import { Download, FileText, PenLine, RefreshCw } from "lucide-react";
+import { useMandateTemplates, downloadWord, printPdf } from "@/components/MandateTemplatesPanel";
+import { addOneYear, fillTemplate, templateFields } from "@/lib/mandate-template";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
@@ -52,7 +54,7 @@ function MandatesPage() {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, number, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, assets(title, city, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
+          "id, number, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
@@ -80,6 +82,7 @@ function MandatesPage() {
 
   const rows = (data ?? []).map((m) => {
     const a = m.assets;
+    const place = splitPlace(m.address ?? a?.address ?? m.asset_title ?? "", a?.city ?? "", a?.postal_code ?? "");
     const expired =
       a?.mandate_end && new Date(a.mandate_end).getTime() < Date.now() && m.status !== "signé";
     return {
@@ -91,7 +94,10 @@ function MandatesPage() {
       exclusive:
         a?.mandate_exclusive == null ? "—" : a.mandate_exclusive ? "Exclusif" : "Non exclusif",
       type: a?.mandate_type ?? a?.transaction_type ?? "—",
-      start: fmt(m.signed_at ?? a?.mandate_start ?? null),
+      street: place.street,
+      town: place.town,
+      begin: fmt(m.start_date ?? a?.mandate_start ?? null),
+      start: fmt(m.signed_at),
       end: fmt(m.expires_at ?? a?.mandate_end ?? null),
       address: m.address ?? "",
       agentId: m.agent_id,
@@ -114,6 +120,7 @@ function MandatesPage() {
 
   const [detailId, setDetailId] = useState<string | null>(null);
   const detail = rows.find((r) => r.id === detailId);
+  const [gen, setGen] = useState<(typeof rows)[number] | null>(null);
   const [target, setTarget] = useState<{ id: string; number: number; owner: string } | null>(null);
   const refresh = useServerFn(refreshMandateSignatures);
   const [syncing, setSyncing] = useState(false);
@@ -134,13 +141,14 @@ function MandatesPage() {
     const ws = XLSX.utils.json_to_sheet(
       rows.map((r) => ({
         "N°": r.number,
-        Actif: r.title,
-        Adresse: r.address || r.city,
+        Adresse: r.street,
+        Ville: r.town,
         Agent: agentName(r.agentId),
         Propriétaire: r.owner,
         Exclusivité: r.exclusive,
         Type: r.type,
-        "Signé le": r.start,
+        "Début mandat": r.begin,
+        "Signature mandat": r.start,
         Expiration: r.end,
         Statut: r.status,
       })),
@@ -184,9 +192,14 @@ function MandatesPage() {
         {rows.map((r) => (
           <CompactRow
             key={r.id}
-            title={`N° ${r.number} · ${r.title}`}
-            subtitle={[r.address || r.city, agentName(r.agentId), r.status].filter(Boolean).join(" · ")}
-            summary={r.status}
+            title={`N° ${r.number} · ${r.street}${r.town ? `, ${r.town}` : ""}`}
+            subtitle={[
+              `Début ${r.begin}`,
+              `Signature ${r.start}`,
+              `Fin ${r.end}`,
+              agentName(r.agentId),
+            ].join(" · ")}
+            summary={`Début ${r.begin} · Signature ${r.start}`}
             onOpen={() => setDetailId(r.id)}
             onEdit={() => setDetailId(r.id)}
           />
@@ -201,13 +214,14 @@ function MandatesPage() {
           <>
             <RecordFacts
               facts={[
-                ["Actif", detail.title],
-                ["Adresse", detail.address || detail.city],
+                ["Adresse", detail.street],
+                ["Ville", detail.town || "—"],
                 ["Propriétaire", detail.owner],
                 ["Exclusivité", detail.exclusive],
                 ["Type", detail.type],
-                ["Signature le", detail.start],
-                ["Expiration", detail.end],
+                ["Début mandat", detail.begin],
+                ["Signature mandat", detail.start],
+                ["Fin", detail.end],
                 ["Signature", detail.sig ? (SIG[detail.sig] ?? detail.sig) : "—"],
               ]}
             />
@@ -254,15 +268,124 @@ function MandatesPage() {
             >
               <PenLine className="size-4" /> Envoyer en signature
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setGen(detail);
+                setDetailId(null);
+              }}
+            >
+              <FileText className="size-4" /> Rédiger depuis un modèle
+            </Button>
           </>
         )}
       </RecordDialog>
+      <GenerateDialog
+        row={gen}
+        agent={gen ? agentName(gen.agentId) : ""}
+        onClose={() => setGen(null)}
+      />
       <SignDialog
         target={target}
         onClose={() => setTarget(null)}
         onSent={() => void qc.invalidateQueries({ queryKey: ["mandates"] })}
       />
     </div>
+  );
+}
+
+function splitPlace(raw: string, city: string, cp: string) {
+  const m = raw.match(/^(.*?)[\s,-]*\b(\d{5})\s+(.+)$/);
+  if (m) return { street: (m[1] ?? "").trim() || raw, town: `${m[2]} ${m[3]}`.trim() };
+  if (city && raw.toLowerCase().endsWith(city.toLowerCase()))
+    return { street: raw.slice(0, -city.length).replace(/[\s,-]+$/, ""), town: `${cp} ${city}`.trim() };
+  const w = raw.match(/^(.*\d.*?)\s+(Paris|Lyon|Marseille)$/i);
+  if (w) return { street: w[1] ?? raw, town: w[2] ?? "" };
+  return { street: raw || "—", town: city ? `${cp} ${city}`.trim() : "" };
+}
+
+const toIso = (fr: string) => {
+  const m = fr.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  return m ? `${m[3]}-${m[2]}-${m[1]}` : "";
+};
+const frDate = (iso: string) => (iso ? new Date(iso).toLocaleDateString("fr-FR") : "");
+
+function GenerateDialog({
+  row,
+  agent,
+  onClose,
+}: {
+  row: { number: number; street: string; town: string; owner: string; begin: string } | null;
+  agent: string;
+  onClose: () => void;
+}) {
+  const { data: templates } = useMandateTemplates();
+  const [tplId, setTplId] = useState<string>("");
+  const [start, setStart] = useState("");
+  const [vals, setVals] = useState<Record<string, string>>({});
+  const tpl = templates?.find((t) => t.id === tplId);
+  const begin = start || (row ? toIso(row.begin) : "") || new Date().toISOString().slice(0, 10);
+  const auto: Record<string, string> = row
+    ? {
+        numero: String(row.number),
+        mandant: row.owner === "—" ? "" : row.owner,
+        adresse_bien: [row.street, row.town].filter(Boolean).join(", "),
+        agent: agent && agent !== "—" ? agent : "David BERBIA PEREZ, Président",
+        date_debut: frDate(begin),
+        date_fin: frDate(addOneYear(begin)),
+        lieu: "Paris",
+        date_signature: frDate(new Date().toISOString()),
+        delai_suite: "12",
+      }
+    : {};
+  const all = { ...auto, ...vals };
+  const fields = tpl ? templateFields(tpl.body) : [];
+  const text = tpl ? fillTemplate(tpl.body, all) : "";
+  return (
+    <Dialog open={!!row} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Rédiger le mandat n° {row?.number}</DialogTitle>
+        </DialogHeader>
+        <Label>Modèle</Label>
+        <Select value={tplId} onValueChange={setTplId}>
+          <SelectTrigger className="min-h-11">
+            <SelectValue placeholder="Choisir un modèle" />
+          </SelectTrigger>
+          <SelectContent>
+            {(templates ?? []).map((t) => (
+              <SelectItem key={t.id} value={t.id}>
+                {t.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Label>Début du mandat (fin = + 1 an)</Label>
+        <Input type="date" className="min-h-11" value={begin} onChange={(e) => setStart(e.target.value)} />
+        {fields
+          .filter((f) => !["date_debut", "date_fin"].includes(f))
+          .map((f) => (
+            <div key={f} className="space-y-1">
+              <Label>{f.replace(/_/g, " ")}</Label>
+              <Input
+                className="min-h-11"
+                value={all[f] ?? ""}
+                onChange={(e) => setVals((v) => ({ ...v, [f]: e.target.value }))}
+              />
+            </div>
+          ))}
+        {tpl && (
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <Button className="min-h-11" onClick={() => downloadWord(text, `Mandat ${row?.number} ${tpl.title}`)}>
+              Export Word
+            </Button>
+            <Button variant="outline" className="min-h-11" onClick={() => printPdf(text, `Mandat ${row?.number}`)}>
+              Export PDF
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

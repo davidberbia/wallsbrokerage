@@ -113,6 +113,13 @@
       "when": 1794831198256,
       "tag": "0015_mandate_agents_private_contacts",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794834456988,
+      "tag": "0016_mandate_start_and_templates",
+      "breakpoints": true
     }
   ]
 }

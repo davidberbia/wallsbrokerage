@@ -2,6 +2,7 @@ import { ResidentialFields, RESIDENTIAL_LABELS } from "@/components/ResidentialF
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
+import { addOneYear } from "@/lib/mandate-template";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -807,7 +808,12 @@ function AssetForm({
             <Input
               type="date"
               value={draft.mandate_start ?? ""}
-              onChange={(e) => set({ mandate_start: e.target.value })}
+              onChange={(e) =>
+                set({
+                  mandate_start: e.target.value,
+                  mandate_end: e.target.value ? addOneYear(e.target.value) : (draft.mandate_end ?? null),
+                })
+              }
             />
           </Field>
           <Field label="Fin du mandat">

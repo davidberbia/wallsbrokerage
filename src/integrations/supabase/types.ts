@@ -2016,6 +2016,48 @@ export type Database = {
         }
         Relationships: []
       }
+      mandate_templates: {
+        Row: {
+          body: string
+          compliance_notes: string | null
+          created_at: string
+          exclusive: boolean
+          file_name: string | null
+          file_path: string | null
+          id: string
+          kind: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string
+          compliance_notes?: string | null
+          created_at?: string
+          exclusive?: boolean
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          kind: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          compliance_notes?: string | null
+          created_at?: string
+          exclusive?: boolean
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          kind?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mandates: {
         Row: {
           address: string | null
@@ -2031,7 +2073,9 @@ export type Database = {
           signed_at: string | null
           signer_email: string | null
           source: string | null
+          start_date: string | null
           status: string
+          template_id: string | null
           updated_at: string
         }
         Insert: {
@@ -2048,7 +2092,9 @@ export type Database = {
           signed_at?: string | null
           signer_email?: string | null
           source?: string | null
+          start_date?: string | null
           status?: string
+          template_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -2065,7 +2111,9 @@ export type Database = {
           signed_at?: string | null
           signer_email?: string | null
           source?: string | null
+          start_date?: string | null
           status?: string
+          template_id?: string | null
           updated_at?: string
         }
         Relationships: [

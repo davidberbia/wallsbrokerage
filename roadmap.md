@@ -84,3 +84,9 @@
 - [ ] Import des mandats depuis DocuSign réel — bloqué : clé secrète, API Account ID et User ID du compte réel.
 - [ ] Attribution des agents d'après Outlook — après l'import.
 - [ ] Boîtes mail des agents (Gmail, Outlook.com, Yahoo…) alimentant la base générale — à construire.
+
+## Mandats (16/11/2026)
+- [x] Registre : Adresse, Ville, Début mandat, Signature mandat (sans nom d'actif)
+- [x] Création : début libre, fin = début + 1 an
+- [x] 10 modèles de mandats conformes (+ clause demande d'exécution immédiate avant 14 jours)
+- [x] Paramètres : modèles exportables, modifiables, supprimables, remplaçables
