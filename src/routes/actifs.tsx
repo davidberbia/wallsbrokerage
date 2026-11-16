@@ -97,6 +97,7 @@ function AssetsPage() {
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [removedDocs, setRemovedDocs] = useState<string[]>([]);
   const [photos, setPhotos] = useState<{ label: string; file: File }[]>([]);
+  const [plans, setPlans] = useState<File[]>([]);
   const [step, setStep] = useState(0);
   const [fullEdit, setFullEdit] = useState(false);
   const [createdId, setCreatedId] = useState<string | null>(null);
@@ -244,6 +245,18 @@ function AssetsPage() {
         if (error) throw error;
       }
 
+      if (plans.length > 0) {
+        const { count } = await supabase.from("asset_documents").select("id", { count: "exact", head: true }).eq("asset_id", assetId!).eq("category", "plan");
+        const rows = [] as { asset_id: string; path: string; name: string; sort_order: number; category: string }[];
+        for (const [i, f] of plans.entries()) {
+          const up = await uploadDocument(`actifs/${assetId}/plans`, f);
+          rows.push({ asset_id: assetId!, path: up.path, name: up.name, sort_order: (count ?? 0) + i, category: "plan" });
+        }
+        const { error } = await supabase.from("asset_documents").insert(rows);
+        if (error) throw error;
+        setPlans([]);
+      }
+
       // Pas de photo = pas de diffusion sur le site.
       if (payload.publish_on_site) {
         const { count } = await supabase.from("asset_documents").select("id", { count: "exact", head: true }).eq("asset_id", assetId!).eq("category", "photo");
@@ -262,6 +275,7 @@ function AssetsPage() {
       qc.invalidateQueries({ queryKey: ["assets"] });
       qc.invalidateQueries({ queryKey: ["asset-documents", assetId] });
       qc.invalidateQueries({ queryKey: ["asset-photos", assetId] });
+      qc.invalidateQueries({ queryKey: ["asset-plans", assetId] });
       qc.invalidateQueries({ queryKey: ["asset-detail-photos", assetId] });
       if (fullEdit) {
         openEditor(null);
@@ -345,6 +359,8 @@ function AssetsPage() {
                 step={step}
                 onBack={() => setStep((s) => Math.max(0, s - 1))}
                 photos={photos}
+                plans={plans}
+                onPlans={setPlans}
                 onPhotos={setPhotos}
                 draft={editing}
                 onChange={setEditing}
@@ -424,6 +440,8 @@ function AssetForm({
   step,
   onBack,
   photos,
+  plans,
+  onPlans,
   onPhotos,
   draft,
   onChange,
@@ -447,6 +465,8 @@ function AssetForm({
   onBack: () => void;
   photos: { label: string; file: File }[];
   onPhotos: (p: { label: string; file: File }[]) => void;
+  plans: File[];
+  onPlans: (f: File[]) => void;
 }) {
   const residential = /appartement|maison/i.test(draft.asset_class ?? "");
   const slots = residential ? PHOTO_SLOTS_RESIDENTIAL : PHOTO_SLOTS_COMMERCIAL;
@@ -459,6 +479,20 @@ function AssetForm({
         .select("id, name, path")
         .eq("asset_id", draft.id!)
         .eq("category", "photo");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const { data: savedPlans } = useQuery({
+    queryKey: ["asset-plans", draft.id],
+    enabled: Boolean(draft.id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("asset_documents")
+        .select("id, name, path")
+        .eq("asset_id", draft.id!)
+        .eq("category", "plan")
+        .order("sort_order");
       if (error) throw error;
       return data ?? [];
     },
@@ -766,6 +800,28 @@ function AssetForm({
               </Field>
             );
           })}
+          <Field label="Plans (PDF)">
+            {(savedPlans ?? []).length > 0 && (
+              <p className="text-xs text-muted-foreground">✓ {savedPlans!.length} plan(s) enregistré(s)</p>
+            )}
+            <Input
+              type="file"
+              accept="application/pdf,.pdf"
+              multiple
+              onChange={(e) => {
+                const fs = Array.from(e.target.files ?? []);
+                e.target.value = "";
+                if (fs.length) onPlans([...plans, ...fs]);
+              }}
+            />
+            {plans.map((f, i) => (
+              <p key={i} className="flex items-center justify-between gap-2 text-xs">
+                <span className="truncate">{f.name} (à ajouter)</span>
+                <button type="button" className="text-destructive" onClick={() => onPlans(plans.filter((_, j) => j !== i))}>Retirer</button>
+              </p>
+            ))}
+            <p className="text-xs text-muted-foreground">Chaque page devient une page de la brochure.</p>
+          </Field>
         </div>
       )}
       {(fullEdit || step === 3) && (

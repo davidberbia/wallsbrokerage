@@ -508,7 +508,8 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
       const patch: Partial<BrochureData> = {};
       for (const [k, v] of Object.entries(seed)) {
         const ck = k as keyof BrochureData;
-        if (!cur[ck] && v) (patch as Record<string, unknown>)[k] = v;
+        const empty = !cur[ck] || (Array.isArray(cur[ck]) && (cur[ck] as unknown[]).length === 0);
+        if (empty && v) (patch as Record<string, unknown>)[k] = v;
       }
       setData((d) => ({ ...d, ...patch }));
       return;
@@ -518,6 +519,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
     } catch { /* stockage plein : on continue */ }
     let saved: Partial<BrochureData> | null = null;
     try { const raw = localStorage.getItem(keyOf(target)); saved = raw ? JSON.parse(raw) : null; } catch { saved = null; }
+    if (saved && !saved.plans?.length && seed.plans?.length) saved.plans = seed.plans;
     setData((d) => ({ ...emptyBrochure(), ...(saved || seed), settings: d.settings, comparables: d.comparables }));
   }, [storageReady, seedKey]);
 

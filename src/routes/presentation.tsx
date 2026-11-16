@@ -110,6 +110,35 @@ function PresentationPage() {
     },
   });
 
+  const planImages = useQuery({
+    queryKey: ["presentation-plans", assetId],
+    enabled: Boolean(assetId),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("asset_documents")
+        .select("path, name")
+        .eq("asset_id", assetId!)
+        .eq("category", "plan")
+        .order("sort_order");
+      const { pdfToImages } = await import("@/lib/pdf-to-images");
+      const out: { dataUrl: string; name: string; title: string }[] = [];
+      for (const d of data ?? []) {
+        const { data: blob } = await supabase.storage.from("brochures").download(d.path);
+        if (!blob) continue;
+        const base = d.name.replace(/\.pdf$/i, "");
+        try {
+          const pages = await pdfToImages(await blob.arrayBuffer());
+          pages.forEach((dataUrl, i) =>
+            out.push({ dataUrl, name: `${base}-p${i + 1}.jpg`, title: pages.length > 1 ? `Plan — ${base} (${i + 1})` : `Plan — ${base}` }),
+          );
+        } catch (e) {
+          console.warn("Plan illisible", d.name, e);
+        }
+      }
+      return out;
+    },
+  });
+
   const seed = useMemo(
     () =>
       asset
@@ -124,9 +153,10 @@ function PresentationPage() {
             loyerAnnuel: fr(asset.rent),
             typeVente: asset.transaction_type ?? "",
             ...(cover.data ? { photoCouverture: cover.data } : {}),
+            ...(planImages.data?.length ? { plans: planImages.data } : {}),
           }
         : undefined,
-    [asset, cover.data],
+    [asset, cover.data, planImages.data],
   );
 
   const onGenerated = async (base64: string, filename: string) => {
