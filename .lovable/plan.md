@@ -1,31 +1,38 @@
-# Formulaire de création d'actif : réorganisation
+# Mandats, classes d'actifs et portefeuilles
 
-## Étape 2 « Infos de base »
-- Ordre cohérent : Adresse (pleine largeur) → Code postal + Ville côte à côte → Région.
-- Puis : Surface (m²) + Surface extérieure (m²) ; Nombre de parkings ; Prix + Loyer annuel ; Rendement + Statut ; Stratégie.
-- « Stratégie (facultatif) » : icône « ? » qui ouvre une bulle (survol sur ordinateur, toucher sur téléphone) expliquant les 4 stratégies, textes repris de wallsbroker.com.
-- Un seul champ de dépôt de fichier : le document déposé pré-remplit les champs vides ET est joint à l'actif (fusion des deux champs actuels).
+## 1. Mise en page du mandat (PDF DocuSign, Word, PDF)
+- Police agrandie de 2 points (11 → 13 pt, titres en proportion).
+- Première ligne « Mandat N° … » centrée.
+- Noms des sociétés ou prénoms/noms du Mandant et du Mandataire en gras.
+- Lignes « ci-après dénommé(e)… » alignées à droite.
+- Paragraphes de 2 lignes ou plus en texte justifié.
+- Paraphes : un cadre « Paraphes Mandant / Mandataire » en bas de chaque page, avec un champ paraphe DocuSign pour chaque partie.
+- Signatures : cadres visibles pour chaque partie, avec la mention pré-écrite (« Lu et accepté, Bon pour Mandat » / « Lu et Mandat accepté »), le nom, la date et la zone de signature.
 
-## Appartement / Maison
-- Déjà en place : quand le type est Appartement ou Maison, un bloc dédié s'affiche (pièces, chambres, Carrez, salles de bain, WC, étage, ascenseur, cuisine ouverte/fermée, cheminée, balcon, terrasse et surfaces, climatisation, chauffage, type de sol, stationnements).
-- Ajout proposé : année de construction, DPE/GES, exposition, cave, gardien, charges annuelles. Le champ parkings général reprend « Stationnements » pour éviter un doublon.
+## 2. Désignation du bien
+Reprise de toutes les données saisies : type d'actif exact (ex. « immeuble de bureaux »), surfaces (totale, pondérée, extérieure), parkings, étages, nombre de lots et caractéristiques de l'appartement si elles sont renseignées.
 
-## Étape 3 « Photos »
-- Aucune photo obligatoire pour créer l'actif.
-- La photo principale reste exigée uniquement au moment de générer la brochure (message clair si elle manque).
+## 3. Classes d'actifs
+Menu à deux niveaux. Toutes les classes actuelles sont conservées, avec ce regroupement :
+- **Bureaux** : Immeuble(s), Plateau(x), Lot(s)
+- **Commerces** : murs de pied d'immeuble, locaux de périphérie, ensemble de périphérie, retail park, galeries, centres commerciaux
+- **Hôtellerie** : city/resort, sans fonds ou murs et fonds
+- **Résidentiel** : appartement, maison, immeuble de logements ou mixte, résidence étudiants
+- **Santé** : EHPAD, santé
+- **Loisirs/Restauration** : salle de sport, buffets à volonté
+- **Industriel** : activité, logistique
+- **Foncier** : terrains à bâtir, immeubles à restructurer
 
-## Diffusion sur le site
-- « Publier sur le site Wallsbroker » grisé tant qu'aucune photo n'est enregistrée (« Ajoutez une photo pour publier »).
-- « Masquer le n° » et « Masquer la rue » n'apparaissent que si la publication est cochée.
-- Sécurité serveur : un actif sans photo n'apparaît jamais dans le catalogue public.
+Les actifs, investisseurs et critères de matching existants seront convertis automatiquement, sans perte. Le regroupement est à valider ou à corriger.
 
-## Étape 4 « Mandat » : type de propriétaire
-- Choix « Personne physique » / « Personne morale ».
-- Personne physique : civilité, prénom, nom, adresse, email, téléphone.
-- Personne morale : SIREN obligatoire (9 chiffres) → récupération automatique gratuite (annuaire public des entreprises, sans clé) de la raison sociale, forme, capital, siège, RCS, représentant légal ; puis champs restants à compléter (qualité du signataire, email, téléphone).
-- Représentant légal pré-rempli avec son rôle (Président, Gérant…) tel qu'indiqué au registre ; nom et rôle modifiables, avec option « Signataire par procuration » pour indiquer une autre personne.
-- Ces informations alimentent les champs des modèles de mandat générés.
+## 4. Portefeuille multi-adresses
+- Case « Portefeuille » à la création d'un actif.
+- Ajout de plusieurs biens, chacun avec son adresse, son code postal, sa ville, sa classe d'actif, sa surface et son loyer.
+- Les totaux (surface, loyers) sont calculés automatiquement.
+- Le portefeuille reçoit un seul numéro de mandat, et la désignation du mandat liste tous les biens.
+- Les biens apparaissent aussi dans la brochure et la fiche.
 
-## Technique
-- Nouvelles colonnes facultatives sur les actifs : parking_count, outdoor_surface, owner_kind, owner_siren et détails propriétaire (jsonb). Aucun changement destructif.
-- Recherche SIREN via recherche-entreprises.api.gouv.fr côté serveur.
+## Points techniques
+- Modifications dans mandate-template.ts (styles, gras, ancres paraphes \\initmandant\\ et \\initmandataire\\ placées sur chaque page) et dans docusign.functions.ts (onglets initialHere).
+- Ajout d'une sous-classe (asset_subclass) et d'une table asset_lots (actif, adresse, classe, surface, loyer) avec les mêmes règles d'accès que les actifs.
+- Mise à jour du Manuel du CRM.
