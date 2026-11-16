@@ -240,7 +240,7 @@ export function AppLayout({
         {isStaff && isContactsPage && (
           <section className="mb-6 min-w-0" aria-label="Contacts">
             <h1 className="mb-3 font-display text-2xl font-semibold">Contacts</h1>
-            <nav aria-label="Annuaires de contacts" className="flex max-w-full gap-1 overflow-x-auto border-b border-border">
+            <nav aria-label="Annuaires de contacts" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {contactTabs.map((item) => (
                 <Link
                   key={item.to}
@@ -248,15 +248,17 @@ export function AppLayout({
                   aria-current={pathname === item.to ? "page" : undefined}
                   data-contact-active={pathname === item.to ? "true" : undefined}
                   className={cn(
-                    "flex min-h-12 shrink-0 items-center gap-2 whitespace-nowrap border-b-2 px-3 py-3 text-sm transition-colors",
+                    "flex min-h-11 min-w-0 items-center gap-1.5 rounded-md border px-2.5 py-2 text-sm transition-colors",
                     pathname === item.to
-                      ? "border-primary font-semibold text-primary"
-                      : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ? "border-primary bg-primary font-semibold text-primary-foreground"
+                      : "border-border bg-card text-foreground hover:border-primary",
                   )}
                 >
-                  <item.icon className="size-4" />
-                  {item.label}
-                  {badge(item.to)}
+                  <item.icon className="size-4 shrink-0" />
+                  <span className="min-w-0 flex-1 leading-tight">{item.label}</span>
+                  {counts?.[item.to] != null && (
+                    <span className="shrink-0 font-mono text-[10px] opacity-70">{counts[item.to]!.toLocaleString("fr-FR")}</span>
+                  )}
                 </Link>
               ))}
             </nav>
