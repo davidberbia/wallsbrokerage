@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, FileText, PenLine, RefreshCw } from "lucide-react";
 import { useMandateTemplates, downloadWord, printPdf } from "@/components/MandateTemplatesPanel";
-import { addOneYear, fillTemplate, templateFields } from "@/lib/mandate-template";
+import { addOneYear, fillTemplate, templateFields, feeText, feeChargeText } from "@/lib/mandate-template";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,7 +55,7 @@ function MandatesPage() {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
+          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, fee_mode, fee_value, fee_payer, mandate_start, mandate_end)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
@@ -107,6 +107,8 @@ function MandatesPage() {
       agentId: m.agent_id,
       status: expired ? "expiré" : m.status,
       sig: m.signature_status,
+      fees: feeText(a?.fee_mode, a?.fee_value),
+      feeCharge: feeChargeText(a?.fee_payer),
       assetId: a ? (m as { asset_id?: string }).asset_id ?? null : null,
       raw: {
         address: m.address ?? [a?.address, a?.postal_code, a?.city].filter(Boolean).join(" ") ?? "",
@@ -116,6 +118,9 @@ function MandatesPage() {
         begin: (m.start_date ?? a?.mandate_start ?? "")?.slice(0, 10) ?? "",
         signed: m.signed_at?.slice(0, 10) ?? "",
         end: (m.expires_at ?? a?.mandate_end ?? "")?.slice(0, 10) ?? "",
+        feeMode: a?.fee_mode ?? "pct",
+        feeValue: a?.fee_value != null ? String(a.fee_value) : "",
+        feePayer: a?.fee_payer ?? "",
       },
     };
   });
@@ -261,6 +266,10 @@ function MandatesPage() {
             <Button
               variant="outline"
               onClick={() => {
+                if (detail.assetId && (!detail.fees || !detail.feeCharge)) {
+                  toast.error("Renseignez les honoraires et qui les paie avant l'envoi en signature.");
+                  return;
+                }
                 setTarget({
                   id: detail.id,
                   number: detail.number,
@@ -318,7 +327,7 @@ function GenerateDialog({
   agent,
   onClose,
 }: {
-  row: { number: number; street: string; town: string; owner: string; begin: string; mandant?: string; mandantAddress?: string } | null;
+  row: { number: number; street: string; town: string; owner: string; begin: string; mandant?: string; mandantAddress?: string; fees?: string; feeCharge?: string } | null;
   agent: string;
   onClose: () => void;
 }) {
@@ -340,6 +349,8 @@ function GenerateDialog({
         lieu: "Paris",
         date_signature: frDate(new Date().toISOString()),
         delai_suite: "12",
+        honoraires: row.fees ?? "",
+        charge_honoraires: row.feeCharge ?? "",
       }
     : {};
   const all = { ...auto, ...vals };
@@ -491,7 +502,7 @@ function MandateEditor({
   row,
   onSaved,
 }: {
-  row: { id: string; assetId: string | null; raw: { address: string; owner: string; exclusive: boolean | null; type: string; begin: string; signed: string; end: string } };
+  row: { id: string; assetId: string | null; raw: { address: string; owner: string; exclusive: boolean | null; type: string; begin: string; signed: string; end: string; feeMode: string; feeValue: string; feePayer: string } };
   onSaved: () => void;
 }) {
   const [f, setF] = useState(row.raw);
@@ -518,6 +529,9 @@ function MandateEditor({
           mandate_type: f.type || null,
           mandate_start: f.begin || null,
           mandate_end: f.end || null,
+          fee_mode: f.feeValue ? f.feeMode : null,
+          fee_value: f.feeValue ? Number(f.feeValue.replace(",", ".")) : null,
+          fee_payer: f.feePayer || null,
         })
         .eq("id", row.assetId);
       err = r.error;
@@ -551,6 +565,25 @@ function MandateEditor({
               <SelectItem value="none">—</SelectItem>
               <SelectItem value="Mandat de vente">Mandat de vente</SelectItem>
               <SelectItem value="Mandat de location">Mandat de location</SelectItem>
+            </SelectContent>
+          </Select>
+          <Label>Honoraires</Label>
+          <div className="flex gap-2">
+            <Input className="min-h-11" inputMode="decimal" value={f.feeValue} onChange={(e) => set("feeValue", e.target.value)} />
+            <Select value={f.feeMode} onValueChange={(v) => set("feeMode", v)}>
+              <SelectTrigger className="min-h-11 w-28"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pct">% HT</SelectItem>
+                <SelectItem value="ht">€ HT</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Label>Honoraires à la charge de</Label>
+          <Select value={f.feePayer || "none"} onValueChange={(v) => set("feePayer", v === "none" ? "" : v)}>
+            <SelectTrigger className="min-h-11"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">—</SelectItem>
+              {["Mandant", "Acquéreur", "Preneur"].map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
             </SelectContent>
           </Select>
         </>

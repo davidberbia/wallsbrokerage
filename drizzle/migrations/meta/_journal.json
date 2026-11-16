@@ -169,6 +169,13 @@
       "when": 1794854833096,
       "tag": "0023_asset_owner_and_extra_surfaces",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794863650182,
+      "tag": "0024_asset_mandate_fees",
+      "breakpoints": true
     }
   ]
 }

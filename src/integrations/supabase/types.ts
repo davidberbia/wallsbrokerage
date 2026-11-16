@@ -373,6 +373,9 @@ export type Database = {
           city: string | null
           created_at: string
           description: string | null
+          fee_mode: string | null
+          fee_payer: string | null
+          fee_value: number | null
           hide_street_name: boolean
           hide_street_number: boolean
           id: string
@@ -411,6 +414,9 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          fee_mode?: string | null
+          fee_payer?: string | null
+          fee_value?: number | null
           hide_street_name?: boolean
           hide_street_number?: boolean
           id?: string
@@ -449,6 +455,9 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          fee_mode?: string | null
+          fee_payer?: string | null
+          fee_value?: number | null
           hide_street_name?: boolean
           hide_street_number?: boolean
           id?: string

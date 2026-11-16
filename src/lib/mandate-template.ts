@@ -35,3 +35,15 @@ export function templateToHtml(body: string, title: string): string {
     .join("\n");
   return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Georgia,serif;font-size:11pt;line-height:1.45;max-width:720px;margin:24px auto;padding:0 16px}h1{text-align:center;font-size:16pt}h2{font-size:12pt;margin-top:18px}</style></head><body>${html}</body></html>`;
 }
+
+export const FEE_PAYERS = ["Mandant", "Acquéreur", "Preneur"] as const;
+/** Honoraires lisibles pour les mandats : "5 % HT du prix" ou "25 000 € HT". */
+export function feeText(mode?: string | null, value?: number | null): string {
+  if (value == null || !mode) return "";
+  const n = value.toLocaleString("fr-FR");
+  return mode === "pct" ? `${n} % HT du prix` : `${n} € HT`;
+}
+export function feeChargeText(payer?: string | null): string {
+  if (!payer) return "";
+  return payer === "Acquéreur" ? "à la charge de l'acquéreur" : `à la charge du ${payer.toLowerCase()}`;
+}

@@ -7,7 +7,7 @@ import { lookupSiren } from "@/lib/siren.functions";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
-import { addOneYear } from "@/lib/mandate-template";
+import { addOneYear , feeText, feeChargeText } from "@/lib/mandate-template";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -164,6 +164,9 @@ function AssetsPage() {
         weighted_surface: draft.weighted_surface ?? null,
         mandate_exclusive: draft.mandate_exclusive ?? null,
         mandate_type: draft.mandate_type ?? null,
+        fee_mode: draft.fee_mode ?? null,
+        fee_value: draft.fee_value ?? null,
+        fee_payer: draft.fee_payer ?? null,
         mandate_start: draft.mandate_start || null,
         mandate_end: draft.mandate_end || null,
       };
@@ -854,7 +857,20 @@ function AssetForm({
               onChange={(v) => set({ mandate_type: v })}
             />
           </Field>
-          <div />
+          <Field label="Honoraires">
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                inputMode="decimal"
+                value={draft.fee_value ?? ""}
+                onChange={(e) => set({ fee_value: e.target.value === "" ? null : Number(e.target.value), fee_mode: draft.fee_mode ?? "pct" })}
+              />
+              <Choice options={["%", "€ HT"]} value={draft.fee_mode === "ht" ? "€ HT" : draft.fee_value != null || draft.fee_mode === "pct" ? "%" : ""} onChange={(v) => set({ fee_mode: v === "%" ? "pct" : "ht" })} />
+            </div>
+          </Field>
+          <Field label="Honoraires à la charge de">
+            <Choice options={["Mandant", "Acquéreur", "Preneur"]} value={draft.fee_payer ?? ""} onChange={(v) => set({ fee_payer: v })} />
+          </Field>
           <Field label="Début du mandat">
             <Input
               type="date"
@@ -1094,6 +1110,7 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Email propriétaire", asset.owner_email],
           ["Téléphone propriétaire", asset.owner_phone],
           ["Type de mandat", asset.mandate_type],
+          ["Honoraires", [feeText(asset.fee_mode, asset.fee_value), feeChargeText(asset.fee_payer)].filter(Boolean).join(", ")],
           [
             "Exclusivité",
             asset.mandate_exclusive == null

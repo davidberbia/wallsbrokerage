@@ -1,0 +1,1 @@
+ALTER TABLE public.assets ADD COLUMN fee_mode text, ADD COLUMN fee_value numeric, ADD COLUMN fee_payer text;

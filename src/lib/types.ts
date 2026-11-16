@@ -76,6 +76,9 @@ export type Asset = {
   weighted_surface?: number | null;
   mandate_exclusive?: boolean | null;
   mandate_type?: string | null;
+  fee_mode?: string | null;
+  fee_value?: number | null;
+  fee_payer?: string | null;
   mandate_start?: string | null;
   mandate_end?: string | null;
 };
