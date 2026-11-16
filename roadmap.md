@@ -106,3 +106,4 @@
 - [ ] 1re connexion : champs manquants obligatoires avant contrat
 - [ ] Quotes-parts fixes pré-remplies
 - [ ] Connexion boîte mail facultative par agent dans le parcours
+- [ ] Connexion boîtes grand public (Gmail, Hotmail, Yahoo…) avec mêmes accès
