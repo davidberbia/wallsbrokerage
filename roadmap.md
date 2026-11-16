@@ -115,3 +115,4 @@
 - [x] Manuel du CRM : présentation commentée (voix, captures encadrées), modules par onglet, FAQ, bouton « Besoin d'aide » sur chaque page, ajout automatique des réponses manquantes.
 
 - Formulaire actif : réorganisation, stratégies (?), 1 seul dépôt, parkings/surface ext., photos, diffusion, propriétaire physique/moral + SIREN (gérant modifiable), champs appartement
+- Surface pondérée pour immobilier d entreprise

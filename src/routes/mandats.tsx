@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Download, FileText, PenLine, RefreshCw } from "lucide-react";
 import { useMandateTemplates, downloadWord, printPdf } from "@/components/MandateTemplatesPanel";
 import { addOneYear, fillTemplate, templateFields } from "@/lib/mandate-template";
+import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
@@ -54,7 +55,7 @@ function MandatesPage() {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
+          "id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
@@ -92,6 +93,8 @@ function MandatesPage() {
       title: a?.title ?? m.asset_title ?? "—",
       city: a?.city ?? "",
       owner: a?.owner_name ?? "—",
+      mandant: a?.owner_name ? mandantText(a.owner_kind, a.owner_name, (a.owner_details ?? {}) as OwnerDetails) : "",
+      mandantAddress: String((a?.owner_details as OwnerDetails | null)?.address ?? ""),
       exclusive:
         a?.mandate_exclusive == null ? "—" : a.mandate_exclusive ? "Exclusif" : "Non exclusif",
       type: a?.mandate_type ?? a?.transaction_type ?? "—",
@@ -316,7 +319,7 @@ function GenerateDialog({
   agent,
   onClose,
 }: {
-  row: { number: number; street: string; town: string; owner: string; begin: string } | null;
+  row: { number: number; street: string; town: string; owner: string; begin: string; mandant?: string; mandantAddress?: string } | null;
   agent: string;
   onClose: () => void;
 }) {
@@ -329,7 +332,8 @@ function GenerateDialog({
   const auto: Record<string, string> = row
     ? {
         numero: String(row.number),
-        mandant: row.owner === "—" ? "" : row.owner,
+        mandant: row.mandant || (row.owner === "—" ? "" : row.owner),
+        mandant_adresse: row.mandantAddress ?? "",
         adresse_bien: [row.street, row.town].filter(Boolean).join(", "),
         agent: agent && agent !== "—" ? agent : "David BERBIA PEREZ, Président",
         date_debut: frDate(begin),

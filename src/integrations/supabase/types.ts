@@ -380,10 +380,14 @@ export type Database = {
           mandate_exclusive: boolean | null
           mandate_start: string | null
           mandate_type: string | null
+          outdoor_surface: number | null
+          owner_details: Json
           owner_email: string | null
           owner_id: string | null
+          owner_kind: string | null
           owner_name: string | null
           owner_phone: string | null
+          parking_count: number | null
           postal_code: string | null
           price: number | null
           publish_on_site: boolean
@@ -397,6 +401,7 @@ export type Database = {
           title: string
           transaction_type: string | null
           updated_at: string
+          weighted_surface: number | null
           yield_pct: number | null
         }
         Insert: {
@@ -413,10 +418,14 @@ export type Database = {
           mandate_exclusive?: boolean | null
           mandate_start?: string | null
           mandate_type?: string | null
+          outdoor_surface?: number | null
+          owner_details?: Json
           owner_email?: string | null
           owner_id?: string | null
+          owner_kind?: string | null
           owner_name?: string | null
           owner_phone?: string | null
+          parking_count?: number | null
           postal_code?: string | null
           price?: number | null
           publish_on_site?: boolean
@@ -430,6 +439,7 @@ export type Database = {
           title: string
           transaction_type?: string | null
           updated_at?: string
+          weighted_surface?: number | null
           yield_pct?: number | null
         }
         Update: {
@@ -446,10 +456,14 @@ export type Database = {
           mandate_exclusive?: boolean | null
           mandate_start?: string | null
           mandate_type?: string | null
+          outdoor_surface?: number | null
+          owner_details?: Json
           owner_email?: string | null
           owner_id?: string | null
+          owner_kind?: string | null
           owner_name?: string | null
           owner_phone?: string | null
+          parking_count?: number | null
           postal_code?: string | null
           price?: number | null
           publish_on_site?: boolean
@@ -463,6 +477,7 @@ export type Database = {
           title?: string
           transaction_type?: string | null
           updated_at?: string
+          weighted_surface?: number | null
           yield_pct?: number | null
         }
         Relationships: []

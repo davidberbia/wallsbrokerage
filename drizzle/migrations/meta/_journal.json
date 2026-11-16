@@ -162,6 +162,13 @@
       "when": 1794843221363,
       "tag": "0022_manual_sections",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794854833096,
+      "tag": "0023_asset_owner_and_extra_surfaces",
+      "breakpoints": true
     }
   ]
 }

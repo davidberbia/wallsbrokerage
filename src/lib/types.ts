@@ -69,6 +69,11 @@ export type Asset = {
   owner_name?: string | null;
   owner_email?: string | null;
   owner_phone?: string | null;
+  owner_kind?: string | null;
+  owner_details?: import("@/lib/siren").OwnerDetails;
+  parking_count?: number | null;
+  outdoor_surface?: number | null;
+  weighted_surface?: number | null;
   mandate_exclusive?: boolean | null;
   mandate_type?: string | null;
   mandate_start?: string | null;

@@ -239,7 +239,12 @@ function PresentationPage() {
         </div>
       )}
 
-      {assetId && asset && !cover.isLoading && (
+      {assetId && asset && !cover.isLoading && !cover.data && (
+        <p className="panel p-4 text-sm">
+          Ajoutez la <strong>photo principale</strong> dans la fiche de l'actif (étape Photos) pour créer la brochure.
+        </p>
+      )}
+      {assetId && asset && !cover.isLoading && cover.data && (
         <div data-brochure-editor className="min-w-0">
           <ClientOnly>
             <Suspense fallback={<Loader2 className="m-6 h-6 w-6 animate-spin" />}>

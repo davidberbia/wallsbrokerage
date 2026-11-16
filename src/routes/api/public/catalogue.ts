@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/public/catalogue")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin
           .from("assets")
-          .select("id,title,reference,asset_class,transaction_type,address,city,postal_code,price,surface,description,status,publish_on_site,hide_street_number,hide_street_name,residential_details,updated_at")
+          .select("id,title,reference,asset_class,transaction_type,address,city,postal_code,price,surface,description,status,publish_on_site,hide_street_number,hide_street_name,residential_details,parking_count,outdoor_surface,updated_at")
           .eq("publish_on_site", true)
           .neq("status", "retiré")
           .limit(500);
@@ -29,13 +29,14 @@ export const Route = createFileRoute("/api/public/catalogue")({
           list.push({ url: s.signedUrl, alt: "", sort_order: d.sort_order ?? 0 });
           photos.set(d.asset_id, list);
         }
-        const assets = (data ?? []).map((a) => ({
+        // Pas de photo = pas de diffusion.
+        const assets = (data ?? []).filter((a) => photos.has(a.id)).map((a) => ({
           id: a.id, title: a.title, reference: a.reference, asset_class: a.asset_class,
           transaction_type: a.transaction_type, city: a.city, postal_code: a.postal_code,
           address: publicAddress(a.address, a.hide_street_number, a.hide_street_name),
           price: a.price == null ? null : Number(a.price), surface: a.surface == null ? null : Number(a.surface),
           description: a.description, status: a.status ?? "disponible", publish_on_site: true,
-          residential_details: a.residential_details ?? {}, diagnostics: {}, photos: photos.get(a.id) ?? [], plans: [],
+          residential_details: a.residential_details ?? {}, parking_count: a.parking_count, outdoor_surface: a.outdoor_surface == null ? null : Number(a.outdoor_surface), diagnostics: {}, photos: photos.get(a.id) ?? [], plans: [],
           virtual_tour_url: null, updated_at: a.updated_at,
         }));
         return Response.json({ assets }, { headers: { ...CORS, "Cache-Control": "public, max-age=300" } });

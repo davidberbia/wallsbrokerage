@@ -1,6 +1,10 @@
 import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { ResidentialFields, RESIDENTIAL_LABELS } from "@/components/ResidentialFields";
 import { useAuth } from "@/hooks/useAuth";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { HelpCircle } from "lucide-react";
+import { lookupSiren } from "@/lib/siren.functions";
+import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
 import { addOneYear } from "@/lib/mandate-template";
@@ -152,6 +156,11 @@ function AssetsPage() {
         owner_name: draft.owner_name ?? null,
         owner_email: draft.owner_email ?? null,
         owner_phone: draft.owner_phone ?? null,
+        owner_kind: draft.owner_kind ?? null,
+        owner_details: draft.owner_details ?? {},
+        parking_count: draft.parking_count ?? null,
+        outdoor_surface: draft.outdoor_surface ?? null,
+        weighted_surface: draft.weighted_surface ?? null,
         mandate_exclusive: draft.mandate_exclusive ?? null,
         mandate_type: draft.mandate_type ?? null,
         mandate_start: draft.mandate_start || null,
@@ -233,6 +242,12 @@ function AssetsPage() {
         }
         const { error } = await supabase.from("asset_documents").insert(rows);
         if (error) throw error;
+      }
+
+      // Pas de photo = pas de diffusion sur le site.
+      if (payload.publish_on_site) {
+        const { count } = await supabase.from("asset_documents").select("id", { count: "exact", head: true }).eq("asset_id", assetId!).eq("category", "photo");
+        if (!count) await supabase.from("assets").update({ publish_on_site: false, hide_street_number: false, hide_street_name: false }).eq("id", assetId!);
       }
 
       // Compatibilité : le premier document reste la brochure principale de l'actif.
@@ -337,7 +352,7 @@ function AssetsPage() {
                 onNewFiles={setNewFiles}
                 removedDocs={removedDocs}
                 onRemovedDocs={setRemovedDocs}
-                onSubmit={() => save.mutate(editing)}
+                onSubmit={() => (!fullEdit && !editing.id && step < 3 ? setStep((x) => x + 1) : save.mutate(editing))}
                 saving={save.isPending}
               />
             )}
@@ -448,9 +463,7 @@ function AssetForm({
       return data ?? [];
     },
   });
-  const hasMainPhoto =
-    photos.some((p) => p.label === "Photo principale") ||
-    (savedPhotos ?? []).some((p) => p.name.startsWith("Photo principale"));
+  const hasPhoto = photos.length > 0 || (savedPhotos ?? []).length > 0;
   const set = (patch: Partial<Draft>) => onChange({ ...draft, ...patch });
   const [extracting, setExtracting] = useState(false);
   const { data: documents } = useQuery({
@@ -460,7 +473,7 @@ function AssetForm({
   });
   const keptDocuments = (documents ?? []).filter((d) => !removedDocs.includes(d.id));
 
-  const extractFromDocument = async (file: File) => {
+  const extractFromDocument = async (file: File, extra: File[] = []) => {
     setExtracting(true);
     try {
       const compressed = await compressFile(file);
@@ -505,7 +518,7 @@ function AssetForm({
       } else {
         toast.info("Aucune information exploitable trouvée dans ce document.");
       }
-      onNewFiles([...newFiles, compressed]);
+      onNewFiles([...newFiles, compressed, ...extra]);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Lecture du document impossible");
     } finally {
@@ -522,8 +535,8 @@ function AssetForm({
           toast.error("Choisissez le type de bien et la transaction.");
           return;
         }
-        if (!fullEdit && step === 2 && !hasMainPhoto) {
-          toast.error("La photo principale est obligatoire.");
+        if ((fullEdit || step === 3) && draft.owner_kind === "morale" && !/^\d{9}$/.test((draft.owner_details?.siren ?? "").replace(/\s/g, ""))) {
+          toast.error("Le SIREN (9 chiffres) est obligatoire pour une société.");
           return;
         }
         onSubmit();
@@ -572,115 +585,7 @@ function AssetForm({
       )}
       {(fullEdit || step === 1) && (
         <>
-          <Field label="Pré-remplir depuis un document (brochure, teaser, avis de valeur)">
-            <div className="flex items-center gap-3">
-              <Input
-                type="file"
-                accept=".pdf,image/*"
-                disabled={extracting}
-                aria-label="Importer un document pour pré-remplir"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  e.target.value = "";
-                  if (!file) return;
-                  if (file.size > 30 * 1024 * 1024) {
-                    toast.error(`${file.name} est trop lourd (30 Mo max. avant compression).`);
-                    return;
-                  }
-                  void extractFromDocument(file);
-                }}
-              />
-              {extracting && (
-                <span className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="size-4 animate-spin" /> Lecture du document…
-                </span>
-              )}
-            </div>
-            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-              <Sparkles className="size-3" /> Les caractéristiques détectées remplissent les champs
-              vides ci-dessous ; le document est joint à l'actif.
-            </p>
-          </Field>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Adresse">
-              <Input
-                value={draft.address ?? ""}
-                onChange={(e) => set({ address: e.target.value })}
-              />
-            </Field>
-            <Field label="Code postal">
-              <Input
-                inputMode="numeric"
-                value={draft.postal_code ?? ""}
-                onChange={(e) => set({ postal_code: e.target.value })}
-              />
-            </Field>
-            <Field label="Loyer annuel (€)">
-              <Input
-                inputMode="numeric"
-                value={formatThousands(draft.rent)}
-                onChange={(e) => set({ rent: parseThousands(e.target.value) })}
-              />
-            </Field>
-
-            <Field label="Stratégie">
-              <Choice
-                options={STRATEGIES}
-                value={draft.strategy ?? ""}
-                onChange={(v) => set({ strategy: v })}
-              />
-            </Field>
-            <Field label="Région">
-              <Choice
-                options={REGIONS}
-                value={draft.region ?? ""}
-                onChange={(v) => set({ region: v })}
-              />
-            </Field>
-            <Field label="Ville">
-              <Input value={draft.city ?? ""} onChange={(e) => set({ city: e.target.value })} />
-            </Field>
-            <Field label="Prix (€)">
-              <Input
-                inputMode="numeric"
-                value={formatThousands(draft.price)}
-                onChange={(e) => set({ price: parseThousands(e.target.value) })}
-              />
-            </Field>
-            <Field label="Rendement (%)">
-              <Input
-                type="number"
-                step="0.1"
-                value={draft.yield_pct ?? ""}
-                onChange={(e) => set({ yield_pct: e.target.value ? Number(e.target.value) : null })}
-              />
-            </Field>
-            <Field label="Surface (m²)">
-              <Input
-                type="number"
-                value={draft.surface ?? ""}
-                onChange={(e) => set({ surface: e.target.value ? Number(e.target.value) : null })}
-              />
-            </Field>
-            <Field label="Statut">
-              <Choice
-                options={ASSET_STATUS}
-                value={draft.status ?? "disponible"}
-                onChange={(v) => set({ status: v })}
-              />
-            </Field>
-          </div>
-          <div className="space-y-3 rounded-md border border-border p-3">
-            {([["publish_on_site","Publier sur le site Wallsbroker"],["hide_street_number","Masquer le n° de la rue"],["hide_street_name","Masquer le nom de la rue"]] as const).map(([key,label]) => (
-              <label key={key} className="flex min-h-11 items-center gap-3 text-sm">
-                <input type="checkbox" className="size-5 accent-primary" disabled={key === "hide_street_number" && !!draft.hide_street_name}
-                  checked={key === "hide_street_number" ? !!(draft.hide_street_number || draft.hide_street_name) : !!draft[key]}
-                  onChange={e => set(key === "hide_street_name" && e.target.checked ? {hide_street_name:true,hide_street_number:true} : {[key]: e.target.checked})} />
-                {label}
-              </label>))}
-          </div>
-          { /^(Appartement|Maison)$/.test(draft.asset_class ?? "") && <ResidentialFields value={draft.residential_details ?? {}} onChange={v => set({residential_details:v})} /> }
-          <Field label="Documents de l'actif (brochures, annexes — 9 Mo max. par fichier)">
+          <Field label="Documents de l'actif (brochure, teaser, avis de valeur, annexes — 9 Mo max.)">
             {(keptDocuments.length > 0 || newFiles.length > 0) && (
               <ul className="mb-2 space-y-1 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
                 {keptDocuments.map((doc) => (
@@ -721,31 +626,106 @@ function AssetForm({
                 ))}
               </ul>
             )}
-            <Input
-              type="file"
-              multiple
-              onChange={(e) => {
-                const picked = Array.from(e.target.files ?? []);
-                e.target.value = "";
-                if (picked.length === 0) return;
-                void (async () => {
-                  const compressed = await Promise.all(picked.map((f) => compressFile(f)));
-                  const tooBig = compressed.find((f) => f.size > MAX_DOCUMENT_BYTES);
-                  if (tooBig) {
-                    toast.error(`${tooBig.name} dépasse 9 Mo même après compression.`);
+            <div className="flex items-center gap-3">
+              <Input
+                type="file"
+                multiple
+                accept=".pdf,image/*,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                disabled={extracting}
+                aria-label="Ajouter des documents"
+                onChange={(e) => {
+                  const picked = Array.from(e.target.files ?? []);
+                  e.target.value = "";
+                  const [first, ...rest] = picked;
+                  if (!first) return;
+                  if (picked.some((f) => f.size > 30 * 1024 * 1024)) {
+                    toast.error("Fichier trop lourd (30 Mo max. avant compression).");
                     return;
                   }
-                  onNewFiles([...newFiles, ...compressed]);
-                })();
-              }}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              {keptDocuments.length + newFiles.length === 0
-                ? "Aucun document pour le moment."
-                : `${keptDocuments.length + newFiles.length} document(s) seront joints aux campagnes.`}
+                  void (async () => {
+                    const extra = await Promise.all(rest.map((f) => compressFile(f)));
+                    const tooBig = extra.find((f) => f.size > MAX_DOCUMENT_BYTES);
+                    if (tooBig) return void toast.error(`${tooBig.name} dépasse 9 Mo même après compression.`);
+                    await extractFromDocument(first, extra);
+                  })();
+                }}
+              />
+              {extracting && (
+                <span className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" /> Lecture…
+                </span>
+              )}
+            </div>
+            <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+              <Sparkles className="size-3" /> Le premier document pré-remplit les champs vides ; tous sont joints à l'actif.
             </p>
           </Field>
-
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Field label="Adresse">
+                <Input value={draft.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
+              </Field>
+            </div>
+            <Field label="Code postal">
+              <Input inputMode="numeric" value={draft.postal_code ?? ""} onChange={(e) => set({ postal_code: e.target.value })} />
+            </Field>
+            <Field label="Ville">
+              <Input value={draft.city ?? ""} onChange={(e) => set({ city: e.target.value })} />
+            </Field>
+            <Field label="Région">
+              <Choice options={REGIONS} value={draft.region ?? ""} onChange={(v) => set({ region: v })} />
+            </Field>
+            <Field label="Statut">
+              <Choice options={ASSET_STATUS} value={draft.status ?? "disponible"} onChange={(v) => set({ status: v })} />
+            </Field>
+            <Field label="Surface (m²)">
+              <Input type="number" value={draft.surface ?? ""} onChange={(e) => set({ surface: e.target.value ? Number(e.target.value) : null })} />
+            </Field>
+            {!residential && (
+              <Field label="Surface pondérée (m²)">
+                <Input type="number" value={draft.weighted_surface ?? ""} onChange={(e) => set({ weighted_surface: e.target.value ? Number(e.target.value) : null })} />
+              </Field>
+            )}
+            <Field label="Surface extérieure (m²)">
+              <Input type="number" min={0} value={draft.outdoor_surface ?? ""} onChange={(e) => set({ outdoor_surface: e.target.value ? Number(e.target.value) : null })} />
+            </Field>
+            <Field label="Nombre de parkings">
+              <Input type="number" min={0} value={draft.parking_count ?? ""} onChange={(e) => set({ parking_count: e.target.value ? Number(e.target.value) : null })} />
+            </Field>
+            <Field label="Prix (€)">
+              <Input inputMode="numeric" value={formatThousands(draft.price)} onChange={(e) => set({ price: parseThousands(e.target.value) })} />
+            </Field>
+            <Field label="Loyer annuel (€)">
+              <Input inputMode="numeric" value={formatThousands(draft.rent)} onChange={(e) => set({ rent: parseThousands(e.target.value) })} />
+            </Field>
+            <Field label="Rendement (%)">
+              <Input type="number" step="0.1" value={draft.yield_pct ?? ""} onChange={(e) => set({ yield_pct: e.target.value ? Number(e.target.value) : null })} />
+            </Field>
+            <div className="space-y-2">
+              <div className="flex items-center gap-1">
+                <Label>Stratégie (facultatif)</Label>
+                <StrategyHelp />
+              </div>
+              <Choice options={STRATEGIES} value={draft.strategy ?? ""} onChange={(v) => set({ strategy: v })} />
+            </div>
+          </div>
+          {residential && <ResidentialFields value={draft.residential_details ?? {}} onChange={v => set({residential_details:v})} />}
+          <div className="space-y-3 rounded-md border border-border p-3">
+            <label className="flex min-h-11 items-center gap-3 text-sm">
+              <input type="checkbox" className="size-5 accent-primary" disabled={!hasPhoto}
+                checked={hasPhoto && !!draft.publish_on_site}
+                onChange={e => set(e.target.checked ? { publish_on_site: true } : { publish_on_site: false, hide_street_number: false, hide_street_name: false })} />
+              Diffuser sur le site Wallsbroker
+            </label>
+            {!hasPhoto && <p className="text-xs text-muted-foreground">Ajoutez au moins une photo (étape Photos) pour diffuser sur le site.</p>}
+            {hasPhoto && draft.publish_on_site && ([["hide_street_number","Masquer le n° de la rue"],["hide_street_name","Masquer le nom de la rue"]] as const).map(([key,label]) => (
+              <label key={key} className="flex min-h-11 items-center gap-3 pl-6 text-sm">
+                <input type="checkbox" className="size-5 accent-primary" disabled={key === "hide_street_number" && !!draft.hide_street_name}
+                  checked={key === "hide_street_number" ? !!(draft.hide_street_number || draft.hide_street_name) : !!draft[key]}
+                  onChange={e => set(key === "hide_street_name" && e.target.checked ? {hide_street_name:true,hide_street_number:true} : {[key]: e.target.checked})} />
+                {label}
+              </label>))}
+          </div>
           <Field label="Description">
             <Textarea
               rows={3}
@@ -758,13 +738,13 @@ function AssetForm({
       {(fullEdit || step === 2) && (
         <div className="grid gap-3">
           <p className="text-sm text-muted-foreground">
-            Seule la photo principale est obligatoire.
+            Aucune photo n'est obligatoire ici. La photo principale sera demandée pour créer la brochure, et au moins une photo pour diffuser sur le site.
           </p>
           {slots.map((label) => {
             const pending = photos.find((p) => p.label === label);
             const saved = (savedPhotos ?? []).filter((p) => p.name.startsWith(label));
             return (
-              <Field key={label} label={label === "Photo principale" ? `${label} *` : label}>
+              <Field key={label} label={label}>
                 {saved.length > 0 && (
                   <p className="text-xs text-muted-foreground">
                     ✓ {saved.length} photo(s) enregistrée(s)
@@ -795,26 +775,9 @@ function AssetForm({
               <Input disabled value={draft.reference ?? ""} placeholder="Généré automatiquement à la création" />
             </Field>
           </div>
-          <Field label="Propriétaire">
-            <Input
-              value={draft.owner_name ?? ""}
-              onChange={(e) => set({ owner_name: e.target.value })}
-            />
-          </Field>
-          <Field label="Email du propriétaire">
-            <Input
-              type="email"
-              value={draft.owner_email ?? ""}
-              onChange={(e) => set({ owner_email: e.target.value })}
-            />
-          </Field>
-          <Field label="Téléphone du propriétaire">
-            <Input
-              type="tel"
-              value={draft.owner_phone ?? ""}
-              onChange={(e) => set({ owner_phone: e.target.value })}
-            />
-          </Field>
+          <div className="sm:col-span-2">
+            <OwnerFields draft={draft} set={set} />
+          </div>
           <Field label="Exclusivité">
             <Choice
               options={["Exclusif", "Non exclusif"]}
@@ -903,6 +866,106 @@ function Choice({
   );
 }
 
+const STRATEGY_HELP: [string, string][] = [
+  ["Core", "Actifs de première catégorie, bien localisés, loués à des locataires solides sur des baux longs. Rendement sécurisé, liquidité forte."],
+  ["Core+", "Fondamentaux du Core avec une marge de valorisation limitée : renégociation de baux, relocation ponctuelle, optimisation des charges."],
+  ["Value-added", "Vacance partielle ou obsolescence technique nécessitant des travaux. Plus risqué mais moins cher, avec une revalorisation significative à terme."],
+  ["Opportuniste", "Actifs à réhabiliter, restructurer lourdement ou reconstruire, voire promotion en blanc : risques élevés pour une forte profitabilité."],
+];
+
+function StrategyHelp() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button type="button" aria-label="Explication des stratégies" className="inline-flex size-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+          onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
+          <HelpCircle className="size-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 space-y-2 text-sm">
+        {STRATEGY_HELP.map(([t, d]) => (
+          <p key={t}><strong>{t}</strong> — {d}</p>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function OwnerFields({ draft, set }: { draft: Draft; set: (p: Partial<Draft>) => void }) {
+  const kind = draft.owner_kind ?? "physique";
+  const d = draft.owner_details ?? {};
+  const setD = (patch: OwnerDetails) => set({ owner_details: { ...d, ...patch } });
+  const [loading, setLoading] = useState(false);
+  const fetchSiren = async () => {
+    setLoading(true);
+    try {
+      const r = await lookupSiren({ data: { siren: d.siren ?? "" } });
+      set({ owner_name: r.company_name, owner_details: { ...d, ...r } });
+      toast.success("Informations de la société récupérées.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Recherche impossible");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const txt = (key: keyof OwnerDetails, label: string, extra: Partial<React.ComponentProps<typeof Input>> = {}) => (
+    <Field label={label}>
+      <Input value={d[key] ?? ""} onChange={(e) => setD({ [key]: e.target.value })} {...extra} />
+    </Field>
+  );
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-2 sm:col-span-2">
+        {([["physique", "Personne physique"], ["morale", "Société"]] as const).map(([k, l]) => (
+          <Button key={k} type="button" className="min-h-11" variant={kind === k ? "default" : "outline"} onClick={() => set({ owner_kind: k })}>{l}</Button>
+        ))}
+      </div>
+      {kind === "morale" ? (
+        <>
+          <Field label="SIREN *">
+            <div className="flex gap-2">
+              <Input required inputMode="numeric" pattern="[0-9 ]{9,11}" value={d.siren ?? ""} onChange={(e) => setD({ siren: e.target.value })} />
+              <Button type="button" variant="outline" className="min-h-11 shrink-0" disabled={loading} onClick={fetchSiren}>
+                {loading ? <Loader2 className="size-4 animate-spin" /> : "Rechercher"}
+              </Button>
+            </div>
+          </Field>
+          <Field label="Raison sociale">
+            <Input value={draft.owner_name ?? ""} onChange={(e) => set({ owner_name: e.target.value, owner_details: { ...d, company_name: e.target.value } })} />
+          </Field>
+          {txt("legal_form", "Forme juridique")}
+          {txt("rcs_city", "RCS (ville)")}
+          <div className="sm:col-span-2">{txt("address", "Siège social")}</div>
+          {txt("representative", "Représentant légal")}
+          {txt("representative_role", "Qualité (Président, Gérant…)")}
+          <label className="flex min-h-11 items-center gap-3 text-sm sm:col-span-2">
+            <input type="checkbox" className="size-5 accent-primary" checked={d.proxy === "1"} onChange={(e) => setD(e.target.checked ? { proxy: "1" } : { proxy: "", proxy_name: "" })} />
+            Signataire par procuration
+          </label>
+          {d.proxy === "1" && <div className="sm:col-span-2">{txt("proxy_name", "Nom du signataire mandaté")}</div>}
+        </>
+      ) : (
+        <>
+          <Field label="Civilité">
+            <Choice options={["M.", "Mme"]} value={d.civility ?? ""} onChange={(v) => setD({ civility: v })} />
+          </Field>
+          <Field label="Prénom et nom">
+            <Input value={draft.owner_name ?? ""} onChange={(e) => set({ owner_name: e.target.value })} />
+          </Field>
+          <div className="sm:col-span-2">{txt("address", "Adresse du propriétaire")}</div>
+        </>
+      )}
+      <Field label="Email">
+        <Input type="email" value={draft.owner_email ?? ""} onChange={(e) => set({ owner_email: e.target.value })} />
+      </Field>
+      <Field label="Téléphone">
+        <Input type="tel" value={draft.owner_phone ?? ""} onChange={(e) => set({ owner_phone: e.target.value })} />
+      </Field>
+    </div>
+  );
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
@@ -968,7 +1031,10 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Stratégie", asset.strategy],
           ["Description", asset.description],
           ...Object.entries(asset.residential_details ?? {}).map(([key,value]) => [RESIDENTIAL_LABELS[key] || key, value == null ? null : String(value)] as [string, string | null]),
-          ["Propriétaire", asset.owner_name],
+          ["Propriétaire", asset.owner_kind === "morale" ? mandantText("morale", asset.owner_name, asset.owner_details ?? {}) : asset.owner_name],
+          ["Surface pondérée (m²)", asset.weighted_surface == null ? null : String(asset.weighted_surface)],
+          ["Surface extérieure (m²)", asset.outdoor_surface == null ? null : String(asset.outdoor_surface)],
+          ["Parkings", asset.parking_count == null ? null : String(asset.parking_count)],
           ["Email propriétaire", asset.owner_email],
           ["Téléphone propriétaire", asset.owner_phone],
           ["Type de mandat", asset.mandate_type],
