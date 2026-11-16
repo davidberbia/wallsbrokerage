@@ -1,54 +1,42 @@
-# Mandats : registre clarifié et modèles de mandats
+# Contrat-cadre des agents commerciaux
 
-## 1. Registre des mandats
-- Chaque ligne n'affiche plus le nom de l'actif. Elle montre : N°, Adresse, Ville, Agent, Début mandat, Signature mandat, Fin, Statut.
-- **Début mandat** : la date de prise d'effet écrite dans le mandat. Pour les 54 mandats importés, je la lis dans le PDF. Si elle n'y figure pas, je reprends la date de signature.
-- **Signature mandat** : la date de signature sur DocuSign.
-- Sur téléphone, la ligne reste unique : adresse et ville, puis les dates en petit en dessous.
-- L'export Excel reprend ces colonnes.
+Non, je ne l'avais pas encore reçu. Le CRM attendait ce modèle. Je ne l'envoie à personne pour l'instant.
 
-## 2. Création d'un mandat
-- Le champ « Début du mandat » accepte n'importe quelle date.
-- La fin est calculée automatiquement à début + 1 an. Elle reste modifiable.
+## 1. Le contrat devient un modèle dans le CRM
+- Votre document Word est conservé tel quel, mise en page comprise.
+- Seules les zones « [À compléter] » et les pointillés sont remplacées par les informations de l'agent.
+- Champs remplis automatiquement :
+  - nom ou société, adresse ou siège, SIREN, RSAC ;
+  - assurance responsabilité civile : assureur, numéro de contrat, échéance ;
+  - quote-part Wallsbroker et quote-part agent, en % (la somme doit faire 100) ;
+  - date d'effet, lieu et date de signature ;
+  - nom et qualité de chaque signataire (vous : « David BERBIA PEREZ, Président »).
+- Le modèle est visible dans Paramètres, à côté des modèles de mandats. On peut le télécharger ou le remplacer.
 
-## 3. Les 10 modèles de mandats
-J'ai trouvé dans vos documents DocuSign : 35 ventes non exclusives, des locations non exclusives, des recherches simples et exclusives et 1 cession. Je bâtis ainsi les 10 modèles :
-- Vente non exclusif / exclusif
-- Recherche non exclusif / exclusif
-- Location non exclusif / exclusif
-- Cession de bail non exclusif / exclusif
-- Cession de fonds de commerce non exclusif / exclusif
+## 2. Un contrat préparé pour chaque agent (Ladislas, Alexis, Li Wei, Romain)
+- Dans la fiche de chaque agent : un bouton « Contrat » pour voir et télécharger le contrat rempli.
+- Une mention « À envoyer pour signature : David Berbia puis l'agent ».
+- **Rien n'est envoyé.**
+- Il manque aujourd'hui, pour tous : adresse, SIREN, assurance et quote-part. Mail et téléphone de Romain aussi. La fiche indiquera clairement ce qui manque.
 
-Quand un modèle n'existe pas dans vos mandats (vente exclusive, location exclusive, cessions), je le crée à partir de vos mandats existants. Je le complète avec les clauses usuelles trouvées sur internet.
+## 3. Création d'un nouvel agent : parcours en étapes
+1. Identité : prénom, nom, mail, téléphone.
+2. Statut et société : nom ou société, adresse, SIREN, RSAC.
+3. Assurance responsabilité civile : assureur, numéro, échéance.
+4. Rémunération : quote-parts.
+5. Date d'effet.
+6. Aperçu du contrat, puis « Envoyer pour signature DocuSign » à vous puis à l'agent, après confirmation.
 
-**Mise en conformité** (loi Hoguet, décret de 1972, Code de la consommation), ajoutée si elle manque :
-- numéro au registre ;
-- carte professionnelle et garantie financière ;
-- durée et période irrévocable de 3 mois pour l'exclusif ;
-- honoraires et qui les paie ;
-- délai de rétractation de 14 jours si le mandat est signé hors agence ;
-- médiateur de la consommation ;
-- données personnelles ;
-- clause pénale en caractères apparents.
+L'envoi est impossible tant qu'un champ obligatoire manque. Le contrat signé revient automatiquement dans la fiche de l'agent.
 
-Je vous liste chaque correction apportée.
+## Points relevés dans le contrat
+- L'adresse du siège indique **62** rue Pierre Charron, alors que vos mandats indiquent **61**. Laquelle est la bonne ?
+- Le reversement des honoraires indique « Généralement à J+ » : le chiffre manque.
+- Le numéro de carte professionnelle est noté « à vérifier avant signature ».
 
-## 4. Paramètres → « Modèles de mandats »
-Pour chaque modèle, vous pouvez :
-- le voir ;
-- l'exporter en Word ou en PDF ;
-- le modifier, avec des champs à remplir (mandant, adresse, prix, honoraires, dates…) ;
-- le supprimer ;
-- le remplacer par votre propre fichier Word.
-
-Lors de la création d'un mandat, vous choisissez le modèle. Le CRM pré-remplit le document, puis il peut partir en signature DocuSign.
-
-## Points à confirmer
-- Ces modèles sont des bases de travail : je ne remplace pas la relecture d'un juriste.
-- Les agents co utilisent les mêmes modèles ; seuls vous (administrateur) pouvez les modifier.
+Je laisse ces trois points tels quels tant que vous ne m'avez pas répondu.
 
 ## Détails techniques
-- Nouvelles colonnes de mandat : date de début, modèle utilisé.
-- Nouvelle table pour les modèles (titre, type, exclusivité, contenu, fichier), accessible aux équipes. Seul l'administrateur peut la modifier.
-- Le fichier Word est stocké dans un espace privé.
-- Le texte des PDF existants a été extrait sans IA payante.
+- Le Word est stocké dans l'espace privé des contrats. Il est rempli par remplacement de texte, sans IA.
+- L'envoi DocuSign réutilise la connexion réelle déjà en place, avec 2 signataires dans l'ordre : vous, puis l'agent.
+- Les informations de l'agent sont rangées dans sa fiche existante ; seul l'administrateur peut les voir ou les modifier.
