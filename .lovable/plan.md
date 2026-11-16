@@ -1,36 +1,29 @@
-# Manuel du CRM + Formation immo
+# Manuel du CRM, FAQ et « Besoin d'aide »
 
-## 1. Onglet « Manuel du CRM » (menu de gauche et menu téléphone)
-- **Présentation générale** : une suite de pages courtes (capture d'écran + texte) qui présente chaque onglet du CRM, avec une voix off en français sur chaque page (lecture / pause).
-- **Un module par onglet** (Suivi des affaires, À relancer, Actifs, Teasers, Matching, Envois, Contacts, Mandats, Comparables, Mon contrat, Paramètres pour vous seul) : fonctionnalités détaillées, pas à pas.
-- Voix : générée **une seule fois** puis stockée (pas de coût récurrent). Coût ponctuel estimé : quelques euros. Je vous demanderai confirmation avant de lancer cette génération.
-- Cette étape vient **après** la Formation immo (vous avez demandé d'écrire d'abord le contenu immobilier).
+## 1. Onglet « Manuel du CRM » (au-dessus de Formation immo)
+- **Présentation générale** : une page par onglet du CRM. Chaque page montre une capture de l'écran avec les boutons concernés encadrés et numérotés, un court texte d'appui et un lecteur audio.
+- **Voix** : voix française de qualité, générée une seule fois par page (coût ponctuel de quelques euros), sans coût à l'écoute.
+- **Un module détaillé par onglet** : Suivi des affaires, Actifs, Teasers, Mandats, Matching, Envois, À relancer, Contacts, Extractions, Comparables, Mon contrat, Formation immo, Paramètres (réservé à l'admin).
+- **Manuel écrit** : sommaire et paragraphes numérotés, chacun avec un lien direct.
 
-## 2. Onglet « Formation immo » (à faire maintenant)
-Contenu écrit **original**, inspiré des programmes de ces sites (je ne recopie pas leurs textes : droits d'auteur) et des sources officielles (Légifrance, loi Hoguet, décret 2016-173, ALUR).
+## 2. FAQ
+- Questions fréquentes déjà rédigées, renvoyant au bon paragraphe.
+- Champ libre : l'IA répond uniquement à partir du Manuel et donne le lien vers le paragraphe.
+- Si le Manuel ne contient pas la réponse, l'IA rédige un nouveau paragraphe, l'ajoute directement au Manuel (sans validation, comme demandé) et répond.
 
-Modules prévus (parcours des 42 h obligatoires pour le renouvellement de la carte T + fondamentaux) :
-1. Loi Hoguet et carte professionnelle (carte T, renouvellement, attestation collaborateur)
-2. Déontologie (code de déontologie, décret 2015-1090)
-3. Non-discrimination dans l'accès au logement (2 h obligatoires)
-4. Lutte anti-blanchiment LCB-FT (TRACFIN, vigilance client)
-5. Le mandat : formes, mentions obligatoires, exclusivité, rétractation
-6. Rémunération et honoraires (affichage, barème, acte en main / net vendeur)
-7. Diagnostics et information de l'acquéreur
-8. De l'offre à l'acte : offre, LOI, promesse, compromis, conditions suspensives
-9. Immobilier commercial : bail commercial, cession de bail, cession de fonds, droit de préemption
-10. Évaluation d'un bien et d'un actif commercial (comparables, rendement)
-11. Fiscalité de base (plus-values, droits de mutation, TVA)
-12. Prospection, RGPD et démarchage
+## 3. Bouton « Besoin d'aide » sur chaque page
+- Bouton discret toujours accessible, au pouce sur téléphone.
+- Fenêtre qui résume ce qu'on peut faire sur la page, avec un lien vers la partie du Manuel et un champ de question (même fonctionnement que la FAQ).
 
-## 3. Fonctionnement d'un module
-- Pages de texte aérées, une idée par page, bouton **Suivant** / **Précédent** et **barre de progression en %**.
-- Toutes les 3 ou 4 pages : **2 ou 3 questions à choix multiples** avec correction immédiate et explication.
-- **Questionnaire final de 10 à 20 questions** : module validé à **80 %** de bonnes réponses, sinon « Recommencer ».
-- Progression et modules validés enregistrés pour chaque utilisateur (reprise là où il s'est arrêté). Vous pourrez voir l'avancement de chaque agent.
-- Accessible à tous les comptes de l'équipe, pensé d'abord pour le téléphone.
+## 4. Coûts
+- Plafond IA de 5 € par mois pour les réponses. Une fois atteint, les questions libres sont mises en pause et la recherche simple dans le Manuel prend le relais. Le compteur est visible par vous dans Paramètres.
+- Aucun traitement automatique en continu : l'IA ne travaille que quand quelqu'un pose une question.
+
+## 5. Vérifications
+- Test au doigt sur téléphone : lecture d'une page avec voix, FAQ, fenêtre d'aide, question absente du Manuel qui l'enrichit.
 
 ## Détails techniques
-- Contenu des modules dans des fichiers du code (typés : pages, quiz intermédiaires, questionnaire final) ; règle 80 % et 10–20 questions couvertes par un test.
-- Table de progression par utilisateur (module, page, score, validé le) avec règles d'accès : chacun voit la sienne, l'administrateur voit tout.
-- Nouvelles pages /formation, /formation/$module, puis /manuel.
+- Paragraphes du Manuel en base (table manual_sections : slug, onglet, titre, texte, source auto/manuel) lisibles par le personnel, écriture serveur uniquement.
+- Captures prises automatiquement sur l'application (navigateur de test), cadres dessinés par-dessus, puis stockées dans le projet.
+- Voix : synthèse Lovable AI, fichiers audio stockés une fois.
+- Réponses : fonction serveur réservée au personnel, modèle par défaut, contexte = sections du Manuel, journal de coût mensuel avec blocage au plafond.
