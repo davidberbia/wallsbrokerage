@@ -128,7 +128,7 @@ function MandatesPage() {
   const setStatus = async (id: string, status: string) => {
     const { error } = await supabase
       .from("mandates")
-      .update({ status, signed_at: status === "signé" ? new Date().toISOString() : null })
+      .update({ status })
       .eq("id", id);
     if (error) {
       toast.error(error.message);
@@ -515,7 +515,6 @@ function MandateEditor({
       .update({
         address: f.address || null,
         start_date: f.begin || null,
-        signed_at: f.signed ? new Date(f.signed).toISOString() : null,
         expires_at: f.end || null,
       })
       .eq("id", row.id);
@@ -590,7 +589,7 @@ function MandateEditor({
       )}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="grid gap-1"><Label>Début mandat</Label><Input type="date" className="min-h-11" value={f.begin} onChange={(e) => set("begin", e.target.value)} /></div>
-        <div className="grid gap-1"><Label>Signature mandat</Label><Input type="date" className="min-h-11" value={f.signed} onChange={(e) => set("signed", e.target.value)} /></div>
+        <div className="grid gap-1"><Label>Signature mandat</Label><Input type="date" className="min-h-11" value={f.signed} disabled title="Date transmise par DocuSign quand toutes les parties ont signé" /></div>
         <div className="grid gap-1"><Label>Fin</Label><Input type="date" className="min-h-11" value={f.end} onChange={(e) => set("end", e.target.value)} /></div>
       </div>
       <Button className="min-h-11" disabled={busy} onClick={() => void save()}>Enregistrer</Button>

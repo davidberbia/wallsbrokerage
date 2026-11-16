@@ -74,10 +74,10 @@ export const refreshMandateSignatures = createServerFn({ method: "POST" })
     for (const row of rows) {
       const r = await fetch(`${ds.api}/envelopes/${row.envelope_id}`, { headers: { Authorization: `Bearer ${ds.token}` } });
       if (!r.ok) continue;
-      const e = (await r.json()) as { status: string };
+      const e = (await r.json()) as { status: string; completedDateTime?: string };
       if (e.status === row.signature_status) continue;
       const patch: { signature_status: string; status?: string; signed_at?: string } = { signature_status: e.status };
-      if (e.status === "completed") { patch.status = "signé"; patch.signed_at = new Date().toISOString(); }
+      if (e.status === "completed") { patch.status = "signé"; patch.signed_at = e.completedDateTime || new Date().toISOString(); }
       await context.supabase.from("mandates").update(patch).eq("id", row.id);
       updated++;
     }
