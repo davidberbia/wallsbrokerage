@@ -36,6 +36,9 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ValidationRouteImport } from './routes/validation'
 import { Route as FormationIndexRouteImport } from './routes/formation.index'
 import { Route as FormationSlugRouteImport } from './routes/formation.$slug'
+import { Route as ManuelIndexRouteImport } from './routes/manuel.index'
+import { Route as ManuelSlugRouteImport } from './routes/manuel.$slug'
+import { Route as ManuelFaqRouteImport } from './routes/manuel.faq'
 import { Route as PartageTokenRouteImport } from './routes/partage.$token'
 import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
@@ -188,6 +191,21 @@ const FormationSlugRoute = FormationSlugRouteImport.update({
   path: '/formation/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ManuelIndexRoute = ManuelIndexRouteImport.update({
+  id: '/manuel/',
+  path: '/manuel/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManuelSlugRoute = ManuelSlugRouteImport.update({
+  id: '/manuel/$slug',
+  path: '/manuel/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ManuelFaqRoute = ManuelFaqRouteImport.update({
+  id: '/manuel/faq',
+  path: '/manuel/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PartageTokenRoute = PartageTokenRouteImport.update({
   id: '/partage/$token',
   path: '/partage/$token',
@@ -302,9 +320,12 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
   '/formation/$slug': typeof FormationSlugRoute
+  '/manuel/$slug': typeof ManuelSlugRoute
+  '/manuel/faq': typeof ManuelFaqRoute
   '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/formation/': typeof FormationIndexRoute
+  '/manuel/': typeof ManuelIndexRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
@@ -347,9 +368,12 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
   '/formation/$slug': typeof FormationSlugRoute
+  '/manuel/$slug': typeof ManuelSlugRoute
+  '/manuel/faq': typeof ManuelFaqRoute
   '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/formation': typeof FormationIndexRoute
+  '/manuel': typeof ManuelIndexRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
@@ -393,9 +417,12 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/validation': typeof ValidationRoute
   '/formation/$slug': typeof FormationSlugRoute
+  '/manuel/$slug': typeof ManuelSlugRoute
+  '/manuel/faq': typeof ManuelFaqRoute
   '/partage/$token': typeof PartageTokenRoute
   '/synthese/$token': typeof SyntheseTokenRoute
   '/formation/': typeof FormationIndexRoute
+  '/manuel/': typeof ManuelIndexRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
@@ -440,9 +467,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/validation'
     | '/formation/$slug'
+    | '/manuel/$slug'
+    | '/manuel/faq'
     | '/partage/$token'
     | '/synthese/$token'
     | '/formation/'
+    | '/manuel/'
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
@@ -485,9 +515,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/validation'
     | '/formation/$slug'
+    | '/manuel/$slug'
+    | '/manuel/faq'
     | '/partage/$token'
     | '/synthese/$token'
     | '/formation'
+    | '/manuel'
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
@@ -530,9 +563,12 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/validation'
     | '/formation/$slug'
+    | '/manuel/$slug'
+    | '/manuel/faq'
     | '/partage/$token'
     | '/synthese/$token'
     | '/formation/'
+    | '/manuel/'
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
@@ -576,9 +612,12 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ValidationRoute: typeof ValidationRoute
   FormationSlugRoute: typeof FormationSlugRoute
+  ManuelSlugRoute: typeof ManuelSlugRoute
+  ManuelFaqRoute: typeof ManuelFaqRoute
   PartageTokenRoute: typeof PartageTokenRoute
   SyntheseTokenRoute: typeof SyntheseTokenRoute
   FormationIndexRoute: typeof FormationIndexRoute
+  ManuelIndexRoute: typeof ManuelIndexRoute
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCatalogueRoute: typeof ApiPublicCatalogueRoute
   ApiPublicCronAiscanTickRoute: typeof ApiPublicCronAiscanTickRoute
@@ -786,6 +825,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FormationSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/manuel/': {
+      id: '/manuel/'
+      path: '/manuel'
+      fullPath: '/manuel/'
+      preLoaderRoute: typeof ManuelIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manuel/$slug': {
+      id: '/manuel/$slug'
+      path: '/manuel/$slug'
+      fullPath: '/manuel/$slug'
+      preLoaderRoute: typeof ManuelSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/manuel/faq': {
+      id: '/manuel/faq'
+      path: '/manuel/faq'
+      fullPath: '/manuel/faq'
+      preLoaderRoute: typeof ManuelFaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/partage/$token': {
       id: '/partage/$token'
       path: '/partage/$token'
@@ -928,9 +988,12 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ValidationRoute: ValidationRoute,
   FormationSlugRoute: FormationSlugRoute,
+  ManuelSlugRoute: ManuelSlugRoute,
+  ManuelFaqRoute: ManuelFaqRoute,
   PartageTokenRoute: PartageTokenRoute,
   SyntheseTokenRoute: SyntheseTokenRoute,
   FormationIndexRoute: FormationIndexRoute,
+  ManuelIndexRoute: ManuelIndexRoute,
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCatalogueRoute: ApiPublicCatalogueRoute,
   ApiPublicCronAiscanTickRoute: ApiPublicCronAiscanTickRoute,

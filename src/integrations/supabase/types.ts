@@ -2142,6 +2142,33 @@ export type Database = {
           },
         ]
       }
+      manual_sections: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          question: string | null
+          tab: string
+          title: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          question?: string | null
+          tab: string
+          title: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          question?: string | null
+          tab?: string
+          title?: string
+        }
+        Relationships: []
+      }
       news_items: {
         Row: {
           company: string

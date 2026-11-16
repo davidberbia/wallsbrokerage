@@ -22,6 +22,7 @@ import {
   UserCircle,
   Users,
   GraduationCap,
+  LifeBuoy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNavCounts } from "@/hooks/useNavCounts";
 import { AssistantBar } from "@/components/AssistantBar";
+import { HelpButton } from "@/components/manuel/HelpButton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const CONTACT_ITEMS = [
@@ -52,6 +54,7 @@ const NAV_ITEMS = [
   { to: "/partager", label: "Extractions", icon: Link2, admin: false },
   { to: "/comparables", label: "Comparables", icon: Scale, admin: false },
   { to: "/mon-contrat", label: "Mon contrat", icon: FileSignature, admin: false },
+  { to: "/manuel", label: "Manuel du CRM", icon: LifeBuoy, admin: false },
   { to: "/formation", label: "Formation immo", icon: GraduationCap, admin: false },
   { to: "/agents-co", label: "Agents Co", icon: Users, admin: true },
   { to: "/parametres", label: "Paramètres", icon: Settings, admin: true },
@@ -77,7 +80,7 @@ export function AppLayout({
   const contactTabs = CONTACT_ITEMS.filter((item) => item.admin || isBroker);
   const isContactsPage = CONTACT_ITEMS.some((item) => item.to === pathname);
   const isActiveNav = (to: string) =>
-    to === "/investisseurs" && isStaff ? isContactsPage : pathname === to || (to === "/formation" && pathname.startsWith("/formation/"));
+    to === "/investisseurs" && isStaff ? isContactsPage : pathname === to || ((to === "/formation" || to === "/manuel") && pathname.startsWith(`${to}/`));
   const counts = useNavCounts(!!session && isStaff).data;
   const badge = (to: string) => {
     const n = counts?.[to];
@@ -222,6 +225,7 @@ export function AppLayout({
           </Link>
 
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            {isStaff && <HelpButton compact className="size-11 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />}
             <span className="hidden text-xs text-sidebar-foreground/60 lg:block">
               {session.user.email}
             </span>
@@ -241,6 +245,7 @@ export function AppLayout({
         </div>
       </header>
       {isStaff && <AssistantBar userId={session.user.id} />}
+      {isStaff && <HelpButton className="fixed right-4 top-3 z-40 hidden shadow-sm min-[500px]:inline-flex" />}
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-5 sm:py-10">
         {isStaff && isContactsPage && (
           <section className="mb-6 min-w-0" aria-label="Contacts">
