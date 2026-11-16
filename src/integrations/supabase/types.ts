@@ -2069,6 +2069,7 @@ export type Database = {
           expires_at: string | null
           id: string
           number: number
+          number_suffix: string
           signature_status: string | null
           signed_at: string | null
           signer_email: string | null
@@ -2088,6 +2089,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           number?: number
+          number_suffix?: string
           signature_status?: string | null
           signed_at?: string | null
           signer_email?: string | null
@@ -2107,6 +2109,7 @@ export type Database = {
           expires_at?: string | null
           id?: string
           number?: number
+          number_suffix?: string
           signature_status?: string | null
           signed_at?: string | null
           signer_email?: string | null

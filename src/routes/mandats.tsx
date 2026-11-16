@@ -54,7 +54,7 @@ function MandatesPage() {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, number, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
+          "id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, mandate_exclusive, mandate_type, transaction_type, mandate_start, mandate_end)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
@@ -88,6 +88,7 @@ function MandatesPage() {
     return {
       id: m.id,
       number: m.number,
+      label: `${m.number}${m.number_suffix ? ` ${m.number_suffix}` : ""}`,
       title: a?.title ?? m.asset_title ?? "—",
       city: a?.city ?? "",
       owner: a?.owner_name ?? "—",
@@ -140,7 +141,7 @@ function MandatesPage() {
     const XLSX = await import("xlsx");
     const ws = XLSX.utils.json_to_sheet(
       rows.map((r) => ({
-        "N°": r.number,
+        "N°": r.label,
         Adresse: r.street,
         Ville: r.town,
         Agent: agentName(r.agentId),
@@ -192,7 +193,7 @@ function MandatesPage() {
         {rows.map((r) => (
           <CompactRow
             key={r.id}
-            title={`N° ${r.number} · ${r.street}${r.town ? `, ${r.town}` : ""}`}
+            title={`N° ${r.label} · ${r.street}${r.town ? `, ${r.town}` : ""}`}
             subtitle={[
               `Début ${r.begin}`,
               `Signature ${r.start}`,
@@ -206,7 +207,7 @@ function MandatesPage() {
         ))}
       </div>
       <RecordDialog
-        title={detail ? `Mandat n° ${detail.number}` : "Mandat"}
+        title={detail ? `Mandat n° ${detail.label}` : "Mandat"}
         open={!!detail}
         onClose={() => setDetailId(null)}
       >

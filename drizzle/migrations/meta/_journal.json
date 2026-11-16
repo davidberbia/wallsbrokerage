@@ -120,6 +120,13 @@
       "when": 1794834456988,
       "tag": "0016_mandate_start_and_templates",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794835314556,
+      "tag": "0017_mandate_number_suffix",
+      "breakpoints": true
     }
   ]
 }
