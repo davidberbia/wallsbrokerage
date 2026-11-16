@@ -1,1 +1,409 @@
-{}
+{
+ "dossiers": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Import Excel",
+    "x": 973,
+    "y": 73,
+    "w": 145,
+    "h": 44
+   },
+   {
+    "n": 2,
+    "label": "Nouveau dossier",
+    "x": 973,
+    "y": 117,
+    "w": 171,
+    "h": 44
+   },
+   {
+    "n": 3,
+    "label": "Encaissé",
+    "x": 269,
+    "y": 238,
+    "w": 226,
+    "h": 24
+   },
+   {
+    "n": 4,
+    "label": "Global pondéré",
+    "x": 521,
+    "y": 312,
+    "w": 226,
+    "h": 24
+   },
+   {
+    "n": 5,
+    "label": "Réalisé / objectif",
+    "x": 773,
+    "y": 312,
+    "w": 226,
+    "h": 24
+   }
+  ]
+ },
+ "actifs": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Nouvel actif",
+    "x": 1126,
+    "y": 86,
+    "w": 138,
+    "h": 52
+   },
+   {
+    "n": 2,
+    "label": "Ville, rue, nom, référence ou code postal…",
+    "x": 256,
+    "y": 154,
+    "w": 1008,
+    "h": 44
+   }
+  ]
+ },
+ "teasers": {
+  "w": 1280,
+  "h": 800,
+  "boxes": []
+ },
+ "mandats": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Statuts DocuSign",
+    "x": 937,
+    "y": 86,
+    "w": 177,
+    "h": 52
+   },
+   {
+    "n": 2,
+    "label": "Export Excel",
+    "x": 1118,
+    "y": 86,
+    "w": 146,
+    "h": 52
+   }
+  ]
+ },
+ "matching": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Choisir un dossier",
+    "x": 294,
+    "y": 266,
+    "w": 119,
+    "h": 28
+   },
+   {
+    "n": 2,
+    "label": "Prix (€)",
+    "x": 281,
+    "y": 316,
+    "w": 54,
+    "h": 23
+   },
+   {
+    "n": 3,
+    "label": "Réinitialiser",
+    "x": 603,
+    "y": 410,
+    "w": 314,
+    "h": 44
+   },
+   {
+    "n": 4,
+    "label": "Envoyer la brochure",
+    "x": 1092,
+    "y": 644,
+    "w": 172,
+    "h": 40
+   }
+  ]
+ },
+ "envois": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Tous les actifs",
+    "x": 286,
+    "y": 258,
+    "w": 95,
+    "h": 28
+   },
+   {
+    "n": 2,
+    "label": "Générer Marketing Report",
+    "x": 1018,
+    "y": 242,
+    "w": 229,
+    "h": 52
+   },
+   {
+    "n": 3,
+    "label": "Envois",
+    "x": 44,
+    "y": 266,
+    "w": 135,
+    "h": 28
+   },
+   {
+    "n": 4,
+    "label": "Ouverts",
+    "x": 434,
+    "y": 376,
+    "w": 68,
+    "h": 24
+   }
+  ]
+ },
+ "cibles": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Import Excel",
+    "x": 1007,
+    "y": 73,
+    "w": 145,
+    "h": 44
+   },
+   {
+    "n": 2,
+    "label": "Nouveau dossier",
+    "x": 1007,
+    "y": 117,
+    "w": 171,
+    "h": 44
+   }
+  ]
+ },
+ "contacts": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Acquéreurs",
+    "x": 289,
+    "y": 130,
+    "w": 268,
+    "h": 26
+   },
+   {
+    "n": 2,
+    "label": "Prospects",
+    "x": 625,
+    "y": 130,
+    "w": 268,
+    "h": 26
+   },
+   {
+    "n": 3,
+    "label": "Rechercher…",
+    "x": 591,
+    "y": 250,
+    "w": 232,
+    "h": 44
+   },
+   {
+    "n": 4,
+    "label": "Nouvel investisseur",
+    "x": 1076,
+    "y": 250,
+    "w": 188,
+    "h": 52
+   }
+  ]
+ },
+ "extractions": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "https://…",
+    "x": 389,
+    "y": 190,
+    "w": 742,
+    "h": 44
+   },
+   {
+    "n": 2,
+    "label": "Remarque (facultatif)",
+    "x": 389,
+    "y": 238,
+    "w": 742,
+    "h": 68
+   },
+   {
+    "n": 3,
+    "label": "Analyser le lien",
+    "x": 389,
+    "y": 310,
+    "w": 159,
+    "h": 52
+   }
+  ]
+ },
+ "comparables": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Comparables locatifs",
+    "x": 256,
+    "y": 141,
+    "w": 147,
+    "h": 40
+   },
+   {
+    "n": 2,
+    "label": "Comparables de prix",
+    "x": 399,
+    "y": 141,
+    "w": 146,
+    "h": 40
+   },
+   {
+    "n": 3,
+    "label": "Département (2 chiffres), code postal ou ville…",
+    "x": 269,
+    "y": 202,
+    "w": 624,
+    "h": 44
+   },
+   {
+    "n": 4,
+    "label": "Ajouter",
+    "x": 1154,
+    "y": 89,
+    "w": 110,
+    "h": 44
+   }
+  ]
+ },
+ "mon-contrat": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Mon contrat",
+    "x": 4,
+    "y": 448,
+    "w": 231,
+    "h": 44
+   }
+  ]
+ },
+ "formation": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Formation immo",
+    "x": 4,
+    "y": 524,
+    "w": 231,
+    "h": 44
+   }
+  ]
+ },
+ "manuel": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "FAQ",
+    "x": 1038,
+    "y": 89,
+    "w": 94,
+    "h": 52
+   }
+  ]
+ },
+ "assistante": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Assistante IA",
+    "x": 256,
+    "y": -4,
+    "w": 1008,
+    "h": 44
+   }
+  ]
+ },
+ "agents-co": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Créer",
+    "x": 1165,
+    "y": 73,
+    "w": 99,
+    "h": 52
+   }
+  ]
+ },
+ "parametres": {
+  "w": 1280,
+  "h": 800,
+  "boxes": [
+   {
+    "n": 1,
+    "label": "Utilisateurs",
+    "x": 260,
+    "y": 158,
+    "w": 104,
+    "h": 36
+   },
+   {
+    "n": 2,
+    "label": "Boîte mail",
+    "x": 356,
+    "y": 158,
+    "w": 95,
+    "h": 36
+   },
+   {
+    "n": 3,
+    "label": "Listes de référence",
+    "x": 442,
+    "y": 158,
+    "w": 151,
+    "h": 36
+   },
+   {
+    "n": 4,
+    "label": "Modèles de mandats",
+    "x": 586,
+    "y": 158,
+    "w": 163,
+    "h": 36
+   }
+  ]
+ }
+}
