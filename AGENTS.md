@@ -21,3 +21,4 @@
 - Background extractions use a persistent global lease and due-time queue; the managed schedule remains paused before deployment and sleeps after drain. Why: prevents concurrent work and idle polling.
 - Commercial-agent administration uses server-validated admin membership and private contract storage. Why: prevents privilege escalation and contract disclosure.
 - Incoming opportunities write only the Cible stage; financial and active pipeline updates remain manual. Why: avoids email-driven changes to operational deals.
+- Deal visibility uses `public.can_see_deal(owner_id)`: admin sees all, agents flagged `commercial_agents.sees_team` see all non-admin deals, others only their own. Why: team manager oversight without exposing the super admin's deals.

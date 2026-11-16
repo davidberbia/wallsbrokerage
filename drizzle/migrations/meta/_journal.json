@@ -127,6 +127,13 @@
       "when": 1794835314556,
       "tag": "0017_mandate_number_suffix",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794836801716,
+      "tag": "0018_deals_team_visibility",
+      "breakpoints": true
     }
   ]
 }

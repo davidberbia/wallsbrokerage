@@ -868,6 +868,7 @@ export type Database = {
           id: string
           last_name: string
           phone: string | null
+          sees_team: boolean
           signature_status: string | null
           signed_contract_path: string | null
           siren: string | null
@@ -885,6 +886,7 @@ export type Database = {
           id?: string
           last_name: string
           phone?: string | null
+          sees_team?: boolean
           signature_status?: string | null
           signed_contract_path?: string | null
           siren?: string | null
@@ -902,6 +904,7 @@ export type Database = {
           id?: string
           last_name?: string
           phone?: string | null
+          sees_team?: boolean
           signature_status?: string | null
           signed_contract_path?: string | null
           siren?: string | null
@@ -2498,6 +2501,7 @@ export type Database = {
     Functions: {
       aiscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       aiscan_stop_internal: { Args: never; Returns: undefined }
+      can_see_deal: { Args: { _owner: string }; Returns: boolean }
       can_see_owner: { Args: { _owner: string }; Returns: boolean }
       cfnews_scrape_schedule: { Args: { _on: boolean }; Returns: undefined }
       claim_extraction_job: {
@@ -2541,6 +2545,13 @@ export type Database = {
         Returns: boolean
       }
       is_known_investor_email: { Args: { p_email: string }; Returns: boolean }
+      list_deal_agents: {
+        Args: never
+        Returns: {
+          name: string
+          user_id: string
+        }[]
+      }
       list_mandate_agents: {
         Args: never
         Returns: {
