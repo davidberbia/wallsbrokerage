@@ -111,7 +111,7 @@ function MandatesPage() {
       status: expired ? "expiré" : m.status,
       sig: m.signature_status,
       designation: [a?.asset_class ?? a?.title ?? "", a?.surface ? `d'environ ${Number(a.surface).toLocaleString("fr-FR")} m²` : ""].filter(Boolean).join(" "),
-      situation: a?.rent ? `loué, loyer annuel ${Number(a.rent).toLocaleString("fr-FR")} € HT HC` : String(((a?.residential_details ?? {}) as Record<string, unknown>).occupancy ?? "") || "libre de toute occupation",
+      situation: a?.rent ? `loué, loyer annuel ${Number(a.rent).toLocaleString("fr-FR")} € HT HC` : String(((a?.residential_details ?? {}) as Record<string, unknown>)["occupancy"] ?? "") || "libre de toute occupation",
       price: a?.price ? `${Number(a.price).toLocaleString("fr-FR")} €` : "",
       fees: feeText(a?.fee_mode, a?.fee_value),
       feeCharge: feeChargeText(a?.fee_payer),
