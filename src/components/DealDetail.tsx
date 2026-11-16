@@ -96,6 +96,11 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         expected_payment_at: current?.expected_payment_at ?? null,
         paid_at: current?.paid_at ?? null,
         notes: current?.notes ?? null,
+        nego1: current?.nego1 ?? null,
+        nego2: current?.nego2 ?? null,
+        seller: current?.seller ?? null,
+        buyer: current?.buyer ?? null,
+        operation_nature: current?.operation_nature ?? null,
         asset_id: current?.asset_id ?? null,
       } as never)
       .eq("id", id);
@@ -230,6 +235,18 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
             </SelectContent>
           </Select>
         </div>
+        {current.stage !== "Cible" && ([
+          ["nego1", "Négo 1"],
+          ["nego2", "Négo 2"],
+          ["seller", "Vendeur"],
+          ["buyer", "Acquéreur"],
+          ["operation_nature", "Nature de l'opération"],
+        ] as const).map(([k, label]) => (
+          <div key={k}>
+            <Label>{label}</Label>
+            <Input value={current[k] ?? ""} onChange={(e) => set({ [k]: e.target.value || null })} />
+          </div>
+        ))}
         <div>
           <Label>Société</Label>
           <Input value={current.company ?? ""} onChange={(e) => set({ company: e.target.value })} />

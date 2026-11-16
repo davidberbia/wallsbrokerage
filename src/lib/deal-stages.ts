@@ -32,9 +32,12 @@ export function weightedFee(d: FeeLike & { stage: string }): number {
 }
 
 /** Une ligne de l'année Y : créée en Y, ou d'une année antérieure et non soldée (report automatique). */
-export function inVintage(d: { vintage: number; stage: string }, year: number): boolean {
+export function inVintage(
+  d: { vintage: number; stage: string; carry_over?: boolean | null },
+  year: number,
+): boolean {
   if (d.vintage === year) return true;
-  return d.vintage < year && !CLOSED_STAGES.includes(d.stage);
+  return d.carry_over !== false && d.vintage < year && !CLOSED_STAGES.includes(d.stage);
 }
 
 /** Clé de dédoublonnage d'un nom de dossier. */
@@ -73,4 +76,25 @@ export function sameDeal(a: string, b: string): boolean {
   const [small, big] = ta.length <= tb.length ? [ta, new Set(tb)] : [tb, new Set(ta)];
   const common = small.filter((t) => big.has(t)).length;
   return common >= Math.max(1, Math.ceil((small.length * 2) / 3));
+}
+
+/** Colonne du tableau « Suivi des affaires » où tombent les honoraires d'une ligne. */
+export type SuiviColumn = "encaisse" | "facture" | "encours" | "annule";
+export function suiviColumn(d: { stage: string; paid_at?: string | null }): SuiviColumn {
+  if (d.stage === "Perdu") return "annule";
+  if (d.stage === "Acte") return d.paid_at ? "encaisse" : "facture";
+  return "encours";
+}
+
+type SuiviLike = FeeLike & { stage: string; paid_at?: string | null };
+/** Totaux : réel = tout sauf annulé ; pondéré = honoraires × pondération du statut. */
+export function suiviTotals(rows: SuiviLike[]) {
+  const t = { encaisse: 0, facture: 0, encours: 0, annule: 0, reel: 0, pondere: 0 };
+  for (const d of rows) {
+    const fee = dealFee(d);
+    t[suiviColumn(d)] += fee;
+    if (d.stage !== "Perdu") t.reel += fee;
+    t.pondere += weightedFee(d);
+  }
+  return t;
 }

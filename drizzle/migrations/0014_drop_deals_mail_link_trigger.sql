@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS deals_link ON public.deals;

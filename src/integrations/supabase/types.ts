@@ -1045,11 +1045,31 @@ export type Database = {
           },
         ]
       }
+      deal_year_goals: {
+        Row: {
+          goal: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          goal?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          goal?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       deals: {
         Row: {
           address: string | null
           amount: number | null
           asset_id: string | null
+          buyer: string | null
+          carry_over: boolean
           company: string | null
           contact_name: string | null
           created_at: string
@@ -1062,11 +1082,15 @@ export type Database = {
           last_activity_at: string | null
           name: string
           name_key: string | null
+          nego1: string | null
+          nego2: string | null
           notes: string | null
+          operation_nature: string | null
           owner_id: string | null
           paid_at: string | null
           probability: number | null
           rent: number | null
+          seller: string | null
           sort_order: number
           source: string | null
           stage: string
@@ -1079,6 +1103,8 @@ export type Database = {
           address?: string | null
           amount?: number | null
           asset_id?: string | null
+          buyer?: string | null
+          carry_over?: boolean
           company?: string | null
           contact_name?: string | null
           created_at?: string
@@ -1091,11 +1117,15 @@ export type Database = {
           last_activity_at?: string | null
           name: string
           name_key?: string | null
+          nego1?: string | null
+          nego2?: string | null
           notes?: string | null
+          operation_nature?: string | null
           owner_id?: string | null
           paid_at?: string | null
           probability?: number | null
           rent?: number | null
+          seller?: string | null
           sort_order?: number
           source?: string | null
           stage?: string
@@ -1108,6 +1138,8 @@ export type Database = {
           address?: string | null
           amount?: number | null
           asset_id?: string | null
+          buyer?: string | null
+          carry_over?: boolean
           company?: string | null
           contact_name?: string | null
           created_at?: string
@@ -1120,11 +1152,15 @@ export type Database = {
           last_activity_at?: string | null
           name?: string
           name_key?: string | null
+          nego1?: string | null
+          nego2?: string | null
           notes?: string | null
+          operation_nature?: string | null
           owner_id?: string | null
           paid_at?: string | null
           probability?: number | null
           rent?: number | null
+          seller?: string | null
           sort_order?: number
           source?: string | null
           stage?: string

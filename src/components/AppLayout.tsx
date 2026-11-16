@@ -40,7 +40,7 @@ const CONTACT_ITEMS = [
 ] as const;
 
 const NAV_ITEMS = [
-  { to: "/dossiers", label: "Affaires en cours", icon: FolderKanban, admin: false },
+  { to: "/dossiers", label: "Suivi des affaires", icon: FolderKanban, admin: false },
   { to: "/actifs", label: "Actifs", icon: Building2, admin: false },
   { to: "/presentation", label: "Teasers", icon: Presentation, admin: false },
   { to: "/mandats", label: "Mandats", icon: FileSignature, admin: false },

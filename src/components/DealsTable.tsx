@@ -34,6 +34,8 @@ import {
   nameKey,
   stageWeight,
   weightedFee,
+  suiviColumn,
+  suiviTotals,
 } from "@/lib/deal-stages";
 
 type Deal = Tables<"deals">;
@@ -124,6 +126,25 @@ export function DealsTable({ mode }: { mode: Mode }) {
   );
   const realised = rows.filter((d) => d.stage === "Acte").reduce((s, d) => s + dealFee(d), 0);
 
+  const suivi = suiviTotals(rows);
+  const goals = useQuery({
+    queryKey: ["deal-goals"],
+    enabled: mode === "pipeline",
+    queryFn: async () => {
+      const { data, error } = await supabase.from("deal_year_goals").select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+  const goal = Number(goals.data?.find((g) => g.year === year)?.goal ?? 0);
+  const saveGoal = async (v: string) => {
+    const n = parseNum(v) ?? 0;
+    const { error } = await supabase.from("deal_year_goals").upsert({ year, goal: n });
+    if (error) toast.error(error.message);
+    else void qc.invalidateQueries({ queryKey: ["deal-goals"] });
+  };
+  const pct = (n: number) => (goal > 0 ? `${Math.round((n / goal) * 100)} %` : "—");
+
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ["deals"] });
     void qc.invalidateQueries({ queryKey: ["nav-counts"] });
@@ -143,7 +164,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
       ),
     onSuccess: (_r, v) => {
       if (mode === "targets" && v.stage !== TARGET_STAGE)
-        toast.success(`Basculé dans « Affaires en cours » (${v.stage})`);
+        toast.success(`Basculé dans « Suivi des affaires » (${v.stage})`);
       if (mode === "pipeline" && v.stage === TARGET_STAGE)
         toast.success("Renvoyé dans « À relancer »");
     },
@@ -264,7 +285,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     }
   };
 
-  const title = mode === "targets" ? "À relancer" : "Affaires en cours";
+  const title = mode === "targets" ? "À relancer" : "Suivi des affaires";
 
   return (
     <div className="space-y-4">
@@ -273,8 +294,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <h1 className="font-display text-2xl font-semibold">{title}</h1>
           <p className="text-sm text-muted-foreground">
             {mode === "targets"
-              ? "Opportunités détectées automatiquement (emails, pièces jointes, liens) ou saisies. Changez le statut pour la faire basculer dans « Affaires en cours »."
-              : "CA pondéré sur les honoraires : Avis de valeur 10 % · Commercialisation 20 % · Offre 30 % · LOI acceptée 50 % · Promesse 75 % · Acte 100 % · Perdu 0 %."}
+              ? "Opportunités détectées automatiquement (emails, pièces jointes, liens) ou saisies. Changez le statut pour la faire basculer dans « Suivi des affaires »."
+              : "Pondération : Avis de valeur 10 % · Commercialisation 20 % · Offre 30 % · LOI acceptée 50 % · Promesse 75 % · Acte 100 %."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -319,33 +340,90 @@ export function DealsTable({ mode }: { mode: Mode }) {
         ))}
       </div>
 
-      {mode === "pipeline" && <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {[
-          ["Lignes", String(rows.length)],
-          ["Honoraires", eur(totals.fee)],
-          [
-            "CA pondéré",
-            eur(totals.weighted),
-          ],
-          [
-            "CA réalisé (Acte)",
-            eur(realised),
-          ],
-        ].map(([k, v]) => (
-          <div key={k} className="rounded-sm border border-border bg-card p-3">
-            <div className="text-xs text-muted-foreground">{k}</div>
-            <div className="font-mono text-base font-semibold">{v}</div>
-          </div>
-        ))}
-      </div>}
+      {mode === "pipeline" && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[
+            ["Encaissé", eur(suivi.encaisse)],
+            ["Facturé reste à encaisser", eur(suivi.facture)],
+            ["En cours (non pondéré)", eur(suivi.encours)],
+            ["Annulé", eur(suivi.annule)],
+            ["Global au réel", goal > 0 ? `${eur(suivi.reel)} · ${pct(suivi.reel)}` : eur(suivi.reel)],
+            ["Global pondéré", goal > 0 ? `${eur(suivi.pondere)} · ${pct(suivi.pondere)}` : eur(suivi.pondere)],
+            ["Réalisé / objectif", pct(suivi.encaisse + suivi.facture)],
+          ].map(([k, v]) => (
+            <div key={k} className="rounded-sm border border-border bg-card p-3">
+              <div className="text-xs text-muted-foreground">{k}</div>
+              <div className="font-mono text-base font-semibold">{v}</div>
+            </div>
+          ))}
+          <label className="rounded-sm border border-border bg-card p-3">
+            <span className="text-xs text-muted-foreground">Objectif {year} (€)</span>
+            <Input
+              key={`${year}-${goal}`}
+              inputMode="decimal"
+              defaultValue={goal || ""}
+              disabled={!canEdit}
+              onBlur={(e) => void saveGoal(e.target.value)}
+              className="mt-1 h-9 font-mono"
+            />
+          </label>
+        </div>
+      )}
 
-      <div className="overflow-hidden border-y border-border">
+      {mode === "pipeline" && !isMobile && rows.length > 0 && (
+        <div className="overflow-x-auto border-y border-border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted text-left text-xs text-muted-foreground">
+              <tr>
+                {["Site", "Négo 1", "Négo 2", "Vendeur", "Acquéreur", "Nature", "Surface", "Prix/Loyer", "Statut", "Encaissé", "Fact. reste à enc.", "En cours", "Pondéré", "Annulé"].map((h) => (
+                  <th key={h} className="whitespace-nowrap px-2 py-2 font-medium">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((d) => {
+                const col = suiviColumn(d);
+                const fee = dealFee(d);
+                const cell = (c: string) => (col === c ? eur(fee) : "");
+                return (
+                  <tr key={d.id} onClick={() => setOpenId(d.id)} className="cursor-pointer border-t border-border hover:bg-accent">
+                    <td className="px-2 py-2 font-medium">{d.name}</td>
+                    <td className="px-2 py-2">{d.nego1}</td>
+                    <td className="px-2 py-2">{d.nego2}</td>
+                    <td className="px-2 py-2">{d.seller}</td>
+                    <td className="px-2 py-2">{d.buyer}</td>
+                    <td className="px-2 py-2">{d.operation_nature}</td>
+                    <td className="whitespace-nowrap px-2 py-2 font-mono">{d.surface ? m2(d.surface) : ""}</td>
+                    <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(d.amount ?? d.rent) === "—" ? "" : eur(d.amount ?? d.rent)}</td>
+                    <td className="whitespace-nowrap px-2 py-2">{d.stage}</td>
+                    <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("encaisse")}</td>
+                    <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("facture")}</td>
+                    <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("encours")}</td>
+                    <td className="whitespace-nowrap px-2 py-2 font-mono">{col === "encours" ? eur(weightedFee(d)) : ""}</td>
+                    <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("annule")}</td>
+                  </tr>
+                );
+              })}
+              <tr className="border-t-2 border-border bg-muted font-semibold">
+                <td className="px-2 py-2" colSpan={9}>TOTAL</td>
+                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.encaisse)}</td>
+                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.facture)}</td>
+                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.encours)}</td>
+                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.pondere - suivi.encaisse - suivi.facture)}</td>
+                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.annule)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className={"overflow-hidden border-y border-border" + (mode === "pipeline" && !isMobile && rows.length ? " hidden" : "")}>
         {rows.map((d) => (
           <CompactRow
             key={d.id}
             title={d.name}
-            subtitle={`${d.stage} · ${m2(d.surface)} · Prix ${eur(d.amount)} · Loyer ${eur(d.rent)}`}
-            summary={mode === "targets" ? [d.company,d.address].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · CA pondéré ${eur(weightedFee(d))}`}
+            subtitle={mode === "pipeline" ? [d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ") : `${d.stage} · ${m2(d.surface)} · Prix ${eur(d.amount)} · Loyer ${eur(d.rent)}`}
+            summary={mode === "targets" ? [d.company,d.address].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
             onEdit={canEdit ? () => setOpenId(d.id) : undefined}
             onDelete={

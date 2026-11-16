@@ -92,6 +92,20 @@
       "when": 1794790922192,
       "tag": "0012_asset_site_publication",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794828369097,
+      "tag": "0013_deals_suivi_columns",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1794828464508,
+      "tag": "0014_drop_deals_mail_link_trigger",
+      "breakpoints": true
     }
   ]
 }
