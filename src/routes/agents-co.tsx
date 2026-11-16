@@ -50,7 +50,7 @@ const STATUS: Record<string, string> = {
 type Agent = {
   id: string; first_name: string; last_name: string; email: string; phone: string | null;
   user_id: string | null; contract_fields: unknown; contract_path: string | null;
-  signed_contract_path: string | null; signature_status: string | null; envelope_id: string | null;
+  signed_contract_path: string | null; signature_status: string | null; envelope_id: string | null; hidden_from_team?: boolean;
 };
 const STEPS: { title: string; fields: [keyof AgentContractFields, string, string?][] }[] = [
   { title: "Statut et société", fields: [["denomination", "Nom ou société"], ["adresse", "Adresse / siège social"], ["siren", "SIREN"], ["rsac", "RSAC (facultatif)"], ["qualite", "Qualité (ex. Agent commercial indépendant)"]] },
@@ -158,6 +158,11 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
   };
   return (
     <div className="space-y-4">
+      <label className="flex items-center gap-2 text-sm">
+        <input type="checkbox" defaultChecked={!!agent.hidden_from_team} disabled={busy}
+          onChange={(e) => { const v = e.target.checked; void run(async () => { const { error } = await supabase.from("commercial_agents").update({ hidden_from_team: v }).eq("id", agent.id); if (error) throw error; }, "Enregistré"); }} />
+        Masqué au responsable d'équipe
+      </label>
       <p className="text-sm"><FileSignature className="inline size-4" /> {agent.signature_status ? (STATUS[agent.signature_status] ?? agent.signature_status) : "Contrat non préparé"}</p>
       {step < STEPS.length && !locked && (
         <div className="space-y-3">

@@ -865,6 +865,7 @@ export type Database = {
           email: string
           envelope_id: string | null
           first_name: string
+          hidden_from_team: boolean
           id: string
           last_name: string
           phone: string | null
@@ -883,6 +884,7 @@ export type Database = {
           email: string
           envelope_id?: string | null
           first_name: string
+          hidden_from_team?: boolean
           id?: string
           last_name: string
           phone?: string | null
@@ -901,6 +903,7 @@ export type Database = {
           email?: string
           envelope_id?: string | null
           first_name?: string
+          hidden_from_team?: boolean
           id?: string
           last_name?: string
           phone?: string | null
@@ -2561,6 +2564,7 @@ export type Database = {
       }
       mailscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       mailscan_stop_internal: { Args: never; Returns: undefined }
+      owner_hidden_from_team: { Args: { _owner: string }; Returns: boolean }
       person_is_investor: {
         Args: { _email: string; _name: string }
         Returns: boolean

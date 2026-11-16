@@ -141,6 +141,13 @@
       "when": 1794839054950,
       "tag": "0019_agent_spaces_team",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794840089911,
+      "tag": "0020_visibility_hidden_agents",
+      "breakpoints": true
     }
   ]
 }
