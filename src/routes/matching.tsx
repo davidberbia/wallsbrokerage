@@ -1,3 +1,4 @@
+import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow } from "@/components/CompactRow";
 import { createFileRoute } from "@tanstack/react-router";
@@ -92,6 +93,7 @@ function MatchingPage() {
   const [prefilled, setPrefilled] = useState(false);
   const [savingBrochure, setSavingBrochure] = useState(false);
   const queryClient = useQueryClient();
+  const af = useAgentFilter();
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
   const [savingInvestor, setSavingInvestor] = useState(false);
   const saveInvestor = async (draft: InvestorDraft) => {
@@ -164,12 +166,12 @@ function MatchingPage() {
   }, [criteria.asset_class, criteriaQuery.data]);
 
   const results = useMemo(() => {
-    const investors = investorsQuery.data ?? [];
+    const investors = (investorsQuery.data ?? []).filter((i) => af.keep((i as { owner_id?: string | null }).owner_id));
     return investors
       .map((i) => matchInvestor(i, criteria))
       .filter((r) => (strict ? r.misses.length === 0 : true))
       .sort((a, b) => b.score - a.score || b.reasons.length - a.reasons.length);
-  }, [investorsQuery.data, criteria, strict]);
+  }, [investorsQuery.data, criteria, strict, af.agent]);
 
   // Sélection : par défaut tous les investisseurs trouvés sont cochés.
   const visibleIds = useMemo(() => results.map((r) => r.investor.id), [results]);
@@ -251,6 +253,7 @@ function MatchingPage() {
       <div>
         <p className="eyebrow">Moteur de rapprochement</p>
         <h1 className="mt-1 text-3xl">Quel actif souhaitez-vous placer&nbsp;?</h1>
+        <AgentSelect f={af} />
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Renseignez les caractéristiques de l'actif : l'outil interroge la base et affiche les
           investisseurs dont le profil correspond.
@@ -267,7 +270,7 @@ function MatchingPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ANY}>Choisir un dossier</SelectItem>
-                {(assetsQuery.data ?? []).map((a) => (
+                {(assetsQuery.data ?? []).filter((a) => af.keep((a as { owner_id?: string | null }).owner_id)).map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.title} {a.city ? `— ${a.city}` : ""}
                   </SelectItem>

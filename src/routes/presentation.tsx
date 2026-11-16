@@ -1,3 +1,4 @@
+import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow } from "@/components/CompactRow";
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
@@ -53,6 +54,7 @@ function PresentationPage() {
   const { asset: assetId } = Route.useSearch();
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
+  const af = useAgentFilter();
 
   const assets = useQuery({
     queryKey: ["presentation-assets"],
@@ -60,7 +62,7 @@ function PresentationPage() {
       const { data, error } = await supabase
         .from("assets")
         .select(
-          "id, title, city, surface, price, asset_class, description, address, postal_code, rent, transaction_type",
+          "id, owner_id, title, city, surface, price, asset_class, description, address, postal_code, rent, transaction_type",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -161,13 +163,14 @@ function PresentationPage() {
     <div className="space-y-4">
       <div>
         <h1 className="text-2xl font-semibold">Teasers</h1>
+        <AgentSelect f={af} />
         <p className="text-sm text-muted-foreground">
           Choisissez un actif puis générez sa brochure étape par étape.
         </p>
       </div>
       {!assetId && (
         <div className="overflow-hidden border-y border-border">
-          {(assets.data ?? []).map((a) => (
+          {(assets.data ?? []).filter((a) => af.keep(a.owner_id)).map((a) => (
             <CompactRow
               key={a.id}
               title={[a.city, a.title].filter(Boolean).join(" · ")}
@@ -184,7 +187,7 @@ function PresentationPage() {
             <SelectValue placeholder="Choisir un actif" />
           </SelectTrigger>
           <SelectContent>
-            {(assets.data ?? []).map((a) => (
+            {(assets.data ?? []).filter((a) => af.keep(a.owner_id)).map((a) => (
               <SelectItem key={a.id} value={a.id}>
                 {a.title}
                 {a.city ? ` — ${a.city}` : ""}

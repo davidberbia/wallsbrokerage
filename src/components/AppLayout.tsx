@@ -61,10 +61,12 @@ export function AppLayout({
   children,
   requireBroker = false,
   requireAdmin = false,
+  requireSuperAdmin = false,
 }: {
   children: ReactNode;
   requireBroker?: boolean;
   requireAdmin?: boolean;
+  requireSuperAdmin?: boolean;
 }) {
   const { session, loading, isBroker, isStaff, isSuperAdmin } = useAuth();
   const navigate = useNavigate();
@@ -84,7 +86,7 @@ export function AppLayout({
     );
   };
   const NAV = isStaff
-    ? NAV_ITEMS.filter((item) => (item.admin || isBroker) && (item.to !== "/agents-co" || isSuperAdmin)).map((item) =>
+    ? NAV_ITEMS.filter((item) => (item.admin || isBroker) && ((item.to !== "/agents-co" && item.to !== "/parametres") || isSuperAdmin)).map((item) =>
         item.label === "Contacts" ? { ...item, to: contactTabs[0]?.to ?? "/investisseurs" } : item,
       )
     : [...INVESTOR_NAV];
@@ -92,9 +94,9 @@ export function AppLayout({
   useEffect(() => {
     if (loading) return;
     if (!session) navigate({ to: "/auth" });
-    else if (requireAdmin && !isBroker) navigate({ to: "/" });
+    else if ((requireAdmin && !isBroker) || (requireSuperAdmin && !isSuperAdmin)) navigate({ to: "/" });
     else if (requireBroker && !isStaff) navigate({ to: "/mon-profil" });
-  }, [loading, session, isBroker, isStaff, requireBroker, requireAdmin, navigate]);
+  }, [loading, session, isBroker, isStaff, requireBroker, requireAdmin, requireSuperAdmin, isSuperAdmin, navigate]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -108,7 +110,7 @@ export function AppLayout({
     });
   }, [pathname, isContactsPage, loading]);
 
-  if (loading || !session || (requireBroker && !isStaff) || (requireAdmin && !isBroker)) {
+  if (loading || !session || (requireBroker && !isStaff) || (requireAdmin && !isBroker) || (requireSuperAdmin && !isSuperAdmin)) {
     return (
       <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
         Chargement…

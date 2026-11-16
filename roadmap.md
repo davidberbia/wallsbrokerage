@@ -100,11 +100,12 @@
 
 ## Agents (16/11)
 - [ ] Ladislas : import contacts, comparables, prospects à relancer
-- [ ] Comparables visibles par tout le staff ; Paramètres réservés au super admin
-- [ ] Menu déroulant par agent : À relancer, Actifs, Teasers, Matching, Envois, Contacts, Mon contrat
-- [ ] E-mail d'invitation agent (signature contrat + mandats via CRM)
-- [ ] 1re connexion : champs manquants obligatoires avant contrat
-- [ ] Quotes-parts fixes pré-remplies
+- [x] Comparables visibles par tout le staff ; Paramètres réservés au super admin
+- [x] Menu déroulant par agent : À relancer, Actifs, Teasers, Matching, Envois, Contacts, Mon contrat
+- [x] E-mail d'invitation agent (signature contrat + mandats via CRM)
+- [x] 1re connexion : champs manquants obligatoires avant contrat
+- [x] Quotes-parts fixes pré-remplies
 - [ ] Connexion boîte mail facultative par agent dans le parcours
 - [ ] Connexion boîtes grand public (Gmail, Hotmail, Yahoo…) avec mêmes accès
-- [ ] Textes invitation + étape boîte mail : ton vendeur, bénéfices agent
+- [x] Textes invitation + étape boîte mail : ton vendeur, bénéfices agent
+- [x] Avantage ajouté : accès aux comparables de toute l'entreprise

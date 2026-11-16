@@ -1,3 +1,4 @@
+import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { ResidentialFields, RESIDENTIAL_LABELS } from "@/components/ResidentialFields";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
@@ -85,6 +86,7 @@ const emptyDraft: Draft = { title: "", status: "disponible" };
 function AssetsPage() {
   const { canEdit } = useAuth();
   const qc = useQueryClient();
+  const af = useAgentFilter();
   const [search, setSearch] = useState("");
   const [detail, setDetail] = useState<Asset | null>(null);
   const [editing, setEditing] = useState<Draft | null>(null);
@@ -244,7 +246,7 @@ function AssetsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["assets"] }),
   });
 
-  const filtered = (data ?? []).filter((asset) => matchesAssetSearch(asset, search));
+  const filtered = (data ?? []).filter((asset) => af.keep((asset as { owner_id?: string | null }).owner_id) && matchesAssetSearch(asset, search));
 
   return (
     <div className="space-y-6">
@@ -252,6 +254,7 @@ function AssetsPage() {
         <div>
           <p className="eyebrow">Portefeuille</p>
           <h1 className="mt-1 text-3xl">Actifs à placer</h1>
+        <AgentSelect f={af} />
         </div>
         <Dialog
           open={editing !== null}

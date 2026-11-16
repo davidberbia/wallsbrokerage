@@ -1,3 +1,4 @@
+import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow, RecordDialog } from "@/components/CompactRow";
 import { Pencil } from "lucide-react";
@@ -172,6 +173,7 @@ function ProspectsPage() {
   const [assetId, setAssetId] = useState<string>("");
   const [importing, setImporting] = useState(false);
   const qc = useQueryClient();
+  const af = useAgentFilter();
   const [address, setAddress] = useState("");
   const [profile, setProfile] = useState("");
   const [strategyOpen, setStrategyOpen] = useState(false);
@@ -223,7 +225,7 @@ function ProspectsPage() {
       let q = supabase
         .from("prospect_companies")
         .select(
-          "id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, investor_profile, converted_investor_id",
+          "id, owner_id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, investor_profile, converted_investor_id",
         )
         .is("converted_investor_id", null)
         .limit(1000);
@@ -622,6 +624,7 @@ function ProspectsPage() {
       <div>
         <p className="eyebrow">Prospection</p>
         <h1 className="mt-1 text-3xl">Prospects</h1>
+        <AgentSelect f={af} />
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Recherchez une société ou un collaborateur, cochez les destinataires, puis envoyez-leur un
           actif avec le même process que pour les investisseurs.
@@ -776,7 +779,7 @@ function ProspectsPage() {
             Aucune société. Importez un fichier CSV pour alimenter la base.
           </p>
         )}
-        {(companies.data ?? []).map((company) => {
+        {(companies.data ?? []).filter((c) => af.keep((c as { owner_id?: string | null }).owner_id)).map((company) => {
           const isOpen = open === company.id;
           return (
             <div key={company.id}>

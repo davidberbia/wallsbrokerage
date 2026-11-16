@@ -1,3 +1,4 @@
+import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -91,6 +92,7 @@ const statusPill = (status: string) => STATUS_PILL[status] ?? "status-pill statu
 
 function InvestorsPage() {
   const qc = useQueryClient();
+  const af = useAgentFilter();
   const { canEdit } = useAuth();
   const [detail, setDetail] = useState<Investor | null>(null);
   const [search, setSearch] = useState("");
@@ -203,10 +205,10 @@ function InvestorsPage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     const list = q
-      ? (data ?? []).filter((i) =>
+      ? (data ?? []).filter((i) => af.keep((i as { owner_id?: string | null }).owner_id)).filter((i) =>
           [i.full_name, i.company, i.email, i.city].some((v) => v?.toLowerCase().includes(q)),
         )
-      : (data ?? []);
+      : (data ?? []).filter((i) => af.keep((i as { owner_id?: string | null }).owner_id));
     // Tri alphabétique sur le libellé affiché (société, sinon nom du contact).
     return [...list].sort((a, b) =>
       (a.company || displayName(a)).localeCompare(b.company || displayName(b), "fr", {
@@ -234,6 +236,7 @@ function InvestorsPage() {
         <div>
           <p className="eyebrow">Base acquéreurs</p>
           <h1 className="mt-1 text-3xl">Acquéreurs</h1>
+        <AgentSelect f={af} />
         </div>
         <div className="grid w-full grid-cols-1 gap-3 sm:ml-auto sm:flex sm:w-auto">
           <Input

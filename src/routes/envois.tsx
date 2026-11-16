@@ -1,3 +1,4 @@
+import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -136,6 +137,7 @@ function SendsPage() {
   const [assetId, setAssetId] = useState<string>(ALL);
   const [resending, setResending] = useState<string | null>(null);
 
+  const af = useAgentFilter();
   const assets = useQuery({
     queryKey: ["assets"],
     queryFn: async () => {
@@ -154,7 +156,7 @@ function SendsPage() {
       const { data, error } = await supabase
         .from("brochure_sends")
         .select(
-          "id, asset_id, campaign_id, tracking_id, sent_at, opened_at, delivered_at, bounced_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), prospect_contacts(full_name, first_name, email, prospect_companies(name)), campaigns(subject, body_html, brochure_path, brochure_name, documents)",
+          "id, owner_id, asset_id, campaign_id, tracking_id, sent_at, opened_at, delivered_at, bounced_at, resent_at, email_to, subject, status, channel, assets(title, reference), investors(company, first_name, full_name, email), prospect_contacts(full_name, first_name, email, prospect_companies(name)), campaigns(subject, body_html, brochure_path, brochure_name, documents)",
         )
         .order("sent_at", { ascending: false })
         .limit(2000);
@@ -164,7 +166,7 @@ function SendsPage() {
   });
 
   const rows = mergeRows(
-    (sends.data ?? []).filter((r) => assetId === ALL || r.asset_id === assetId),
+    (sends.data ?? []).filter((r) => af.keep((r as { owner_id?: string | null }).owner_id) && (assetId === ALL || r.asset_id === assetId)),
   );
   const opened = rows.filter((r) => r.opened_at).length;
   const asset = (assets.data ?? []).find((a) => a.id === assetId) ?? null;
@@ -284,6 +286,7 @@ function SendsPage() {
       <div>
         <p className="eyebrow">Traçabilité</p>
         <h1 className="mt-1 text-3xl">Historique des envois</h1>
+        <AgentSelect f={af} />
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Chaque brochure envoyée est horodatée : vous pouvez prouver à quel client vous avez
           transmis quel actif, à quelle date et à quelle heure.

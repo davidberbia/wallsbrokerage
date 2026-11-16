@@ -46,7 +46,7 @@ export const Route = createFileRoute("/parametres")({
     ],
   }),
   component: () => (
-    <AppLayout requireBroker requireAdmin>
+    <AppLayout requireBroker requireAdmin requireSuperAdmin>
       <SettingsPage />
     </AppLayout>
   ),
