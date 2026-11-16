@@ -59,6 +59,7 @@ export const askManual = createServerFn({ method: "POST" })
     };
     if ((await manualSpent()) >= MANUAL_BUDGET_EUR) return fallback(`Plafond IA du Manuel (${MANUAL_BUDGET_EUR} €) atteint ce mois-ci. `);
 
+    const { CRM_REFERENCE } = await import("@/lib/manuel/reference.server");
     const text = tabs
       .filter((t) => !t.admin)
       .concat(tabs.filter((t) => t.admin))
@@ -67,11 +68,14 @@ export const askManual = createServerFn({ method: "POST" })
     const system = `Tu es l'aide du CRM Wallsbrokerage. Tu réponds en français, en 2 à 5 phrases simples, UNIQUEMENT à partir du Manuel ci-dessous. N'invente jamais de bouton ni de fonction.
 Réponds en JSON : {"answer": string, "ref": "onglet#section" ou null, "new_section": null ou {"tab": slug d'onglet existant, "title": string court, "body": [2 à 4 phrases]}}.
 - Si un paragraphe répond : "ref" = son identifiant entre accolades, "new_section" = null.
-- Si la réponse n'y figure pas mais se déduit clairement du Manuel : rédige "new_section" (ce paragraphe sera ajouté au Manuel) et réponds.
-- Si la fonction n'existe pas dans le CRM : dis-le simplement, "ref" et "new_section" à null.
+- Si la réponse n'est pas dans le Manuel mais figure dans l'INVENTAIRE DU CRM : rédige "new_section" (ce paragraphe sera ajouté au Manuel, ton simple, libellés de boutons entre « ») et réponds.
+- Sinon : ne dis jamais que la fonction n'existe pas ; dis que ce point n'est pas encore documenté et qu'il a été transmis pour compléter le Manuel, "ref" et "new_section" à null.
 
 MANUEL :
-${text}`;
+${text}
+
+INVENTAIRE DU CRM (référence interne, à ne pas citer tel quel) :
+${CRM_REFERENCE}`;
     const { callGeminiJson } = await import("@/lib/gemini.server");
     type Out = { answer?: string; ref?: string | null; new_section?: { tab: string; title: string; body: string[] } | null };
     let out: Out | null = null;
@@ -98,5 +102,7 @@ ${text}`;
         .single();
       if (ins) return { answer: out.answer, ref: { tab: ns.tab, section: `q-${ins.id.slice(0, 8)}`, title: ns.title }, added: true, mode: "ia" };
     }
-    return { answer: out.answer, ref: find(out.ref), added: false, mode: "ia" };
+    const ref = find(out.ref);
+    if (!ref) await context.supabase.from("ai_suggestions").insert({ page: `manuel:${data.tab ?? ""}`, suggestion: `Manuel à compléter : ${data.question}` });
+    return { answer: out.answer, ref, added: false, mode: "ia" };
   });

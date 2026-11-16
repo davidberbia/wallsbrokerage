@@ -44,7 +44,7 @@ export const MANUAL_TABS: ManualTab[] = [
     intro: "Le générateur de brochures : à partir d'un actif, créez un teaser PowerPoint complet.",
     narration:
       "Teasers est le générateur de brochures. Choisissez d'abord un actif : ses informations remplissent l'éditeur. Importer permet de reprendre un PDF, un PowerPoint ou un Word existant. Complétez ensuite les sections : le bien, les points clés, la localisation, la zone de chalandise, l'environnement commercial, l'état locatif et les photos. Générer PPTX produit le teaser prêt à envoyer. Effacer remet l'éditeur à zéro.",
-    marks: ["Choisir un actif", "Générateur", "Importer", "Effacer", "Générer PPTX"],
+    marks: ["Générateur", "Importer", "Effacer", "Générer PPTX"],
     sections: [
       { id: "principe", title: "À quoi sert cet onglet", body: ["Teasers crée la brochure commerciale d'un actif au format PowerPoint, avec la charte Wallsbrokerage."] },
       { id: "choisir", title: "Choisir un actif", body: ["Commencez par « Choisir un actif ». Les documents déjà créés pour cet actif apparaissent et peuvent être téléchargés."] },
@@ -66,6 +66,7 @@ export const MANUAL_TABS: ManualTab[] = [
       { id: "principe", title: "À quoi sert cet onglet", body: ["Le registre des mandats est obligatoire. Les numéros se suivent et ne sont jamais réutilisés, même si l'actif est supprimé."] },
       { id: "numero", title: "Obtenir un numéro de mandat", body: ["Il n'y a pas de bouton « Nouveau mandat » : le numéro est attribué automatiquement à l'étape « Mandat » quand vous créez un actif (onglet Actifs)."] },
       { id: "dates", title: "Dates du mandat", body: ["Vous choisissez librement la date de début ; la fin est toujours fixée à un an plus tard. La date de signature se met à jour avec DocuSign."] },
+      { id: "agent", title: "Changer l'agent d'un mandat", body: ["Ouvrez le mandat dans le registre, puis choisissez l'agent dans le menu « Agent concerné ». Le changement est enregistré immédiatement."] },
       { id: "modele", title: "Rédiger depuis un modèle", body: ["Dans la fiche, « Rédiger depuis un modèle » propose les modèles (vente, recherche, location, cession de bail, cession de fonds, exclusif ou non). Complétez les champs puis « Export Word » ou « Export PDF »."] },
       { id: "signature", title: "Envoyer en signature", body: ["« Envoyer en signature » demande le nom et l'email du propriétaire et le fichier du mandat, puis « Envoyer au propriétaire et à moi ». « Statuts DocuSign » actualise l'état des signatures."] },
       { id: "export", title: "Exporter le registre", body: ["« Export Excel » télécharge le registre complet de vos mandats."] },

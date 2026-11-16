@@ -7,7 +7,7 @@ import { askManual, type ManualAnswer } from "@/lib/manuel.functions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-export function AskBox({ tab, onNavigate }: { tab?: string; onNavigate?: () => void }) {
+export function AskBox({ tab, onNavigate }: { tab?: string | undefined; onNavigate?: () => void }) {
   const ask = useServerFn(askManual);
   const qc = useQueryClient();
   const [q, setQ] = useState("");

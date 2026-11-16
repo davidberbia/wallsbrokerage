@@ -23,3 +23,4 @@
 - Incoming opportunities write only the Cible stage; financial and active pipeline updates remain manual. Why: avoids email-driven changes to operational deals.
 - Deal visibility uses `public.can_see_deal(owner_id)`: admin sees all, agents flagged `commercial_agents.sees_team` see all non-admin deals, others only their own. Why: team manager oversight without exposing the super admin's deals.
 - Per-agent list filters use `AgentFilter` (list_deal_agents) over RLS-scoped rows; rows without owner belong to the super admin. Why: one dropdown pattern, data scoping stays in the database.
+- CRM manual: written content in src/lib/manuel/content.ts, AI-added paragraphs in manual_sections (server-only writes), answers via Gemini with a dedicated monthly cap and keyword-search fallback; screenshots are captured with personal data blurred. Why: manual must stay free to read, self-extending, and never expose the admin's data to agents.
