@@ -73,7 +73,7 @@ function Player({ mod }: { mod: FormationModule }) {
       </div>
 
       <div className="flex-1">
-        {isFinal ? (
+        {isFinal || !current ? (
           <FinalQuiz mod={mod} best={mine?.best_score ?? null} passed={!!mine?.passed_at} onRestart={() => go(0)} />
         ) : current.kind === "page" ? (
           <article className="space-y-4">
@@ -158,7 +158,7 @@ function MiniQuiz({ questions }: { questions: Question[] }) {
     <div className="space-y-3">
       <h1 className="font-display text-xl font-semibold">Petit point mémoire</h1>
       {questions.map((q, i) => (
-        <QuestionCard key={i} q={q} index={i} value={answers[i]} reveal={answers[i] !== null} onPick={(n) => setAnswers((a) => a.map((x, j) => (j === i ? n : x)))} />
+        <QuestionCard key={i} q={q} index={i} value={answers[i] ?? null} reveal={answers[i] != null} onPick={(n) => setAnswers((a) => a.map((x, j) => (j === i ? n : x)))} />
       ))}
     </div>
   );
@@ -204,7 +204,7 @@ function FinalQuiz({ mod, best, passed, onRestart }: { mod: FormationModule; bes
         <p className="text-sm text-muted-foreground">{mod.final.length} questions · validation à {PASS_RATE * 100} %{passed ? " · déjà validé" : ""}</p>
       )}
       {mod.final.map((q, i) => (
-        <QuestionCard key={i} q={q} index={i} value={answers[i]} reveal={!!result} onPick={(n) => setAnswers((a) => a.map((x, j) => (j === i ? n : x)))} />
+        <QuestionCard key={i} q={q} index={i} value={answers[i] ?? null} reveal={!!result} onPick={(n) => setAnswers((a) => a.map((x, j) => (j === i ? n : x)))} />
       ))}
       {!result && (
         <Button className="sticky bottom-3 h-12 w-full" disabled={missing > 0} onClick={submit}>
