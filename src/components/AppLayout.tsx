@@ -116,8 +116,8 @@ export function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background md:pl-60">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+    <div className="min-h-screen bg-background min-[500px]:pl-60">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground min-[500px]:flex">
         <Link to={isStaff ? "/" : "/mon-profil"} className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-4">
           <img src="/icon-192.png" alt="" className="mr-2 size-7 rounded-md" />
           <span className="truncate font-display text-base font-semibold tracking-tight text-accent">WALLSBROKERAGE</span>
@@ -157,7 +157,7 @@ export function AppLayout({
           </Button>
         </div>
       </aside>
-      <header className="sticky top-0 z-30 border-b border-border bg-sidebar text-sidebar-foreground md:hidden">
+      <header className="sticky top-0 z-30 border-b border-border bg-sidebar text-sidebar-foreground min-[500px]:hidden">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:gap-8 sm:px-5">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
