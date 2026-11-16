@@ -1,25 +1,35 @@
-# Compte de Ladislas et vue par agent
+# Compte de Ladislas, vue par agent et accueil des agents
 
-## 1. Accès à la boîte mail de Ladislas
-- La connexion Outlook actuelle lit seulement votre boîte. Être administrateur Outlook ne suffit pas.
-- Vous devez vous donner l'accès complet à la boîte de Ladislas (Centre d'administration Exchange > Boîtes aux lettres > Ladislas > Délégation > « Accès total »). Ensuite, je reconnecte Outlook avec la permission de lire les boîtes partagées.
-- Je lance alors l'analyse de sa boîte, avec les mêmes règles que pour la vôtre : extraction sans IA payante, aucun doublon, priorité investisseurs > prospects > à qualifier, pas de contact supprimé recréé.
-  - Ses contacts et prospects sont rattachés à son espace.
-  - Ses comparables vont dans la base commune.
-  - Ses mails sans réponse alimentent son menu « À relancer ».
+## Réponse : boîte mail de Ladislas
+Oui. Si Ladislas connecte lui-même sa boîte au CRM, vous n'avez pas besoin de l'« accès total » Outlook. Chaque agent pourra connecter sa propre boîte Microsoft depuis son compte. Cette connexion reste facultative.
 
-## 2. Comparables visibles par tous
-- Tous les comptes de l'équipe voient la base complète des comparables. Les investisseurs n'y ont pas accès.
+## 1. Connexion de la boîte mail par chaque agent
+- Une étape facultative s'ajoute à son parcours. Elle explique que le CRM retrouve ses contacts et ses comparables, et lui rappelle les mails à relancer.
+- L'analyse ne fait pas appel à l'IA payante. Elle évite les doublons et respecte la priorité investisseurs > prospects > à qualifier. Elle ne recrée jamais un contact supprimé.
+- Les contacts et les mails à relancer restent dans l'espace de l'agent. Les comparables vont dans la base commune.
+- Tout alimente aussi votre base générale.
 
-## 3. Paramètres réservés à vous
-- Le menu Paramètres est masqué pour tous les autres comptes, Ladislas compris.
-- L'accès est aussi bloqué côté serveur.
+## 2. E-mail d'invitation de chaque agent
+- Il est envoyé quand vous créez le compte d'un agent, jamais sans votre clic. Il lui demande de se connecter pour signer en ligne son contrat d'agent commercial, conformément à la réglementation.
+- Il précise que les numéros de mandat se demandent désormais dans le CRM : il crée un actif, puis le mandat est généré et envoyé en signature électronique aux parties.
+- Vous validerez le texte avant le premier envoi.
 
-## 4. Menu déroulant « Tous les agents / par agent »
-- Même système que Suivi des affaires, sur : À relancer, Actifs, Teasers, Matching, Envois, Contacts, Mon contrat.
-- Vous voyez tout. Ladislas voit tous les agents sauf vous. Les autres agents voient seulement leurs propres données, sans menu.
-- Dans « Mon contrat », vous pourrez consulter le contrat de chaque agent.
+## 3. Première connexion d'un agent
+- L'agent doit d'abord remplir les champs manquants : adresse, SIREN, RSAC, assurance. Il peut ensuite générer son contrat.
+- La quote-part est fixe, pré-remplie et non modifiable par l'agent :
+  - Ladislas et Alexis : 95/5
+  - Li Wei : 90/10
+  - Romain : 80/20
 
-## Points à confirmer
-- Ladislas doit-il aussi voir « À relancer » et les contacts des autres agents (sauf les vôtres), comme pour les affaires ?
-- Quelle période de mails importer : tout l'historique, ou seulement les 12 derniers mois ?
+## 4. Comparables et Paramètres
+- Toute l'équipe voit la base complète des comparables.
+- Paramètres est réservé à votre compte, dans l'écran et côté serveur.
+
+## 5. Menu déroulant « Tous les agents / par agent »
+- Il s'ajoute à : À relancer, Actifs, Teasers, Matching, Envois, Contacts et Mon contrat.
+- Vous voyez tout.
+- Ladislas voit tous les agents sauf vous, y compris le « À relancer » de ceux qui ont connecté leur boîte.
+- Les autres agents ne voient que leurs propres données.
+
+## À confirmer
+- Que signifie « 95/5 pour Wallsbroker » : 95 % pour l'agent et 5 % pour Wallsbroker, ou l'inverse ? Même question pour 90/10 et 80/20.

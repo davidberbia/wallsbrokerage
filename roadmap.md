@@ -97,3 +97,12 @@
 - [x] Parcours de création d'agent avec tous les champs + envoi DocuSign final
 - [x] L'agent voit et télécharge son contrat dans son CRM, sans le modifier
 - [x] Modèles de mandats : siège 61 → 62 rue Pierre Charron
+
+## Agents (16/11)
+- [ ] Ladislas : import contacts, comparables, prospects à relancer
+- [ ] Comparables visibles par tout le staff ; Paramètres réservés au super admin
+- [ ] Menu déroulant par agent : À relancer, Actifs, Teasers, Matching, Envois, Contacts, Mon contrat
+- [ ] E-mail d'invitation agent (signature contrat + mandats via CRM)
+- [ ] 1re connexion : champs manquants obligatoires avant contrat
+- [ ] Quotes-parts fixes pré-remplies
+- [ ] Connexion boîte mail facultative par agent dans le parcours
