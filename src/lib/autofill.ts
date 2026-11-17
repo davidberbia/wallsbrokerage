@@ -21,11 +21,24 @@ export function planCategory(kind: string | null | undefined, label: string | nu
 }
 
 /** Ne complète que les champs vides ; WALB, WALT, taxe, charges et état locatif vont dans la description. */
-export function mergeAutofill(asset: AssetRow, r: AutofillFields, source: string): Record<string, unknown> {
-  const patch: Record<string, unknown> = {};
+export type ClassSource = "subject" | "body" | "attachment";
+const RANK: Record<string, number> = { subject: 1, body: 2, attachment: 3 };
+
+/** Classe d'actif : remplie si vide ; une source plus fiable (objet < corps < pièce jointe) corrige une supposition ; une saisie manuelle n'est jamais écrasée. */
+export function classPatch(asset: AssetRow, cls: string | null | undefined, src: ClassSource): Record<string, unknown> {
+  if (!cls || !(ASSET_CLASSES as readonly string[]).includes(cls)) return {};
+  const cur = asset["asset_class"];
+  const curSrc = asset["asset_class_source"] as string | null | undefined;
+  if (empty(cur) || (curSrc && curSrc in RANK && RANK[src] > RANK[curSrc] && cur !== cls))
+    return { asset_class: cls, asset_class_source: src };
+  return {};
+}
+
+export function mergeAutofill(asset: AssetRow, r: AutofillFields, source: string, classSource: ClassSource = "attachment"): Record<string, unknown> {
+  const patch: Record<string, unknown> = { ...classPatch(asset, r.asset_class, classSource) };
   for (const k of DIRECT) {
+    if (k === "asset_class") continue;
     const v = r[k];
-    if (k === "asset_class" && !(ASSET_CLASSES as readonly string[]).includes(String(v))) continue;
     if (!empty(v) && empty(asset[k])) patch[k] = v;
   }
   const desc = asset.description ?? "";

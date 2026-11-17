@@ -173,3 +173,27 @@ export function shortClassLabel(cls?: string | null, sub?: string | null): strin
   const SHORT: Record<string, string> = { "Murs de commerces de pied d'immeuble": "Commerce", "Locaux commerciaux de périphérie": "Commerce périphérie", "Ensemble commercial de périphérie": "Ensemble commercial", "Résidence étudiants": "Résid. étudiants", "Immeubles à restructurer": "À restructurer", "Terrains à bâtir": "Terrain" };
   return SHORT[cls] ?? cls;
 }
+
+/** Classe supposée d'après un intitulé (objet du mail ou nom du dossier). Null si aucun indice clair. */
+export function guessClassFromName(name?: string | null): string | null {
+  const n = (name ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const rules: [RegExp, string][] = [
+    [/\bhotel|resort/, "City Hôtel (sans fonds)"],
+    [/bureau/, "Bureaux"],
+    [/logistiq|entrepot/, "Logistique"],
+    [/\bactivite/, "Activité"],
+    [/retail park/, "Retail Park complet"],
+    [/centre commercial/, "Centres commerciaux"],
+    [/galerie commerciale/, "Galeries commerciales"],
+    [/restaurant/, "Murs de restaurants"],
+    [/\bcommerce|boutique|local commercial|locaux commerciaux/, "Murs de commerces de pied d'immeuble"],
+    [/ehpad/, "EHPAD"],
+    [/salle de sport|fitness/, "Salle de sport"],
+    [/etudiant/, "Résidence étudiants"],
+    [/appartement/, "Appartement"],
+    [/\bmaison|\bvilla\b/, "Maison"],
+    [/terrain/, "Terrains à bâtir"],
+    [/logements|residentiel|immeuble mixte/, "Immeubles de logements ou mixtes"],
+  ];
+  return rules.find(([r]) => r.test(n))?.[1] ?? null;
+}

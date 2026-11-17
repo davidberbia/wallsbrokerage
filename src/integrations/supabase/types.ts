@@ -375,6 +375,7 @@ export type Database = {
         Row: {
           address: string | null
           asset_class: string | null
+          asset_class_source: string | null
           asset_subclass: string | null
           autofill_sources: Json
           brochure_url: string | null
@@ -422,6 +423,7 @@ export type Database = {
         Insert: {
           address?: string | null
           asset_class?: string | null
+          asset_class_source?: string | null
           asset_subclass?: string | null
           autofill_sources?: Json
           brochure_url?: string | null
@@ -469,6 +471,7 @@ export type Database = {
         Update: {
           address?: string | null
           asset_class?: string | null
+          asset_class_source?: string | null
           asset_subclass?: string | null
           autofill_sources?: Json
           brochure_url?: string | null

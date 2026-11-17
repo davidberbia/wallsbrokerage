@@ -253,6 +253,13 @@
       "when": 1794930656754,
       "tag": "0035_exclude_crm_reports",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794932512135,
+      "tag": "0036_asset_class_source",
+      "breakpoints": true
     }
   ]
 }
