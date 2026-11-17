@@ -40,6 +40,7 @@ import {
   weightedFee,
   suiviColumn,
   suiviTotals,
+  ASSET_STAGES,
 } from "@/lib/deal-stages";
 
 type Deal = Tables<"deals">;
@@ -133,9 +134,9 @@ export function DealsTable({ mode }: { mode: Mode }) {
 
   const rows = all.filter(
     (d) =>
-      (mode === "targets" ? d.stage === TARGET_STAGE : d.stage !== TARGET_STAGE) &&
+      (mode === "targets" ? d.stage === TARGET_STAGE : d.stage !== TARGET_STAGE && !ASSET_STAGES.includes(d.stage)) &&
       inVintage(d, year),
-  );
+  ).sort((a, b) => Number(a.stage === "Perdu") - Number(b.stage === "Perdu"));
   const totals = rows.reduce(
     (t, d) => ({
       fee: t.fee + dealFee(d),
@@ -168,6 +169,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ["deals"] });
     void qc.invalidateQueries({ queryKey: ["nav-counts"] });
+    void qc.invalidateQueries({ queryKey: ["assets"] });
   };
 
   const move = useMutation({
@@ -183,7 +185,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
         old?.map((d) => (d.id === id ? { ...d, stage } : d)),
       ),
     onSuccess: (_r, v) => {
-      if (mode === "targets" && v.stage !== TARGET_STAGE)
+      if (ASSET_STAGES.includes(v.stage)) toast.success("Déplacé dans « Actifs »");
+      else if (mode === "targets" && v.stage !== TARGET_STAGE)
         toast.success(`Basculé dans « Suivi des affaires » (${v.stage})`);
       if (mode === "pipeline" && v.stage === TARGET_STAGE)
         toast.success("Renvoyé dans « À relancer »");

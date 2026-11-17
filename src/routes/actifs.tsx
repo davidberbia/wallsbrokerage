@@ -2,7 +2,7 @@ import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { ResidentialFields, RESIDENTIAL_LABELS } from "@/components/ResidentialFields";
 import { useAuth } from "@/hooks/useAuth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, FileSignature } from "lucide-react";
 import { lookupSiren } from "@/lib/siren.functions";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
@@ -187,31 +187,6 @@ function AssetsPage() {
           .single();
         if (error) throw error;
         assetId = created.id;
-        // Numéro de mandat attribué uniquement quand l'actif est réellement créé.
-        let { data: m } = await supabase
-          .from("mandates")
-          .select("number, number_suffix")
-          .eq("asset_id", assetId!)
-          .maybeSingle();
-        if (!m) {
-          const { data: me } = await supabase.auth.getUser();
-          const { data: agent } = await supabase
-            .from("commercial_agents")
-            .select("id")
-            .eq("user_id", me.user?.id ?? "")
-            .maybeSingle();
-          const { data: inserted, error: mErr } = await supabase
-            .from("mandates")
-            .insert({ asset_id: assetId!, asset_title: draft.title, agent_id: agent?.id ?? null })
-            .select("number, number_suffix")
-            .single();
-          if (mErr) throw mErr;
-          m = inserted;
-        }
-        if (m) {
-          const ref = `${m.number}${m.number_suffix ? ` ${m.number_suffix}` : ""}`;
-          await supabase.from("assets").update({ reference: ref }).eq("id", assetId!);
-        }
       }
 
       if (removedDocs.length > 0) {
@@ -1137,6 +1112,27 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
+  const qc = useQueryClient();
+  const createMandate = useMutation({
+    mutationFn: async () => {
+      let { data: m } = await supabase.from("mandates").select("number, number_suffix").eq("asset_id", asset.id).maybeSingle();
+      if (!m) {
+        const { data: me } = await supabase.auth.getUser();
+        const { data: agent } = await supabase.from("commercial_agents").select("id").eq("user_id", me.user?.id ?? "").maybeSingle();
+        const { data: inserted, error } = await supabase.from("mandates")
+          .insert({ asset_id: asset.id, asset_title: asset.title, agent_id: agent?.id ?? null })
+          .select("number, number_suffix").single();
+        if (error) throw error;
+        m = inserted;
+      }
+      const ref = `${m.number}${m.number_suffix ? ` ${m.number_suffix}` : ""}`;
+      const { error } = await supabase.from("assets").update({ reference: ref }).eq("id", asset.id);
+      if (error) throw error;
+      return ref;
+    },
+    onSuccess: (ref) => { toast.success(`Mandat N° ${ref} créé`); void qc.invalidateQueries({ queryKey: ["assets"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
   const docs = useQuery({
     queryKey: ["asset-documents", asset.id],
     queryFn: () => fetchAssetDocuments(asset.id),
@@ -1176,6 +1172,11 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           </Link>
         </Button>
         <ShareDialog assetId={asset.id} />
+        {!asset.reference && (
+          <Button variant="outline" disabled={createMandate.isPending} onClick={() => createMandate.mutate()}>
+            <FileSignature className="size-4" /> Créer le mandat
+          </Button>
+        )}
       </div>
       <RecordFacts
         facts={[

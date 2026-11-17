@@ -12,6 +12,8 @@ export const PIPELINE_STAGES = [
 ] as const;
 
 export const STAGE_NAMES = PIPELINE_STAGES.map((s) => s.stage) as string[];
+/** Étapes dont l'affaire vit dans l'onglet Actifs (fiche créée automatiquement, sans mandat). */
+export const ASSET_STAGES = ["Avis de valeur", "Commercialisation"];
 export const CLOSED_STAGES = ["Acte", "Perdu"];
 
 export function stageWeight(stage: string): number {

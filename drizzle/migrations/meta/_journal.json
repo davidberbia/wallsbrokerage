@@ -197,6 +197,13 @@
       "when": 1794872730537,
       "tag": "0027_bureaux_subclasses_portfolio",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794878240912,
+      "tag": "0028_deals_to_assets_optional_mandate",
+      "breakpoints": true
     }
   ]
 }
