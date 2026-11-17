@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow } from "@/components/CompactRow";
-import { useMemo, useRef, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { FileSpreadsheet, Merge, Plus, Sparkles } from "lucide-react";
@@ -138,6 +138,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
       (mode === "targets" ? d.stage === TARGET_STAGE : d.stage !== TARGET_STAGE && !ASSET_STAGES.includes(d.stage)) &&
       inVintage(d, year),
   ).sort((a, b) => Number(a.stage === "Perdu") - Number(b.stage === "Perdu"));
+  const lostRows = rows.filter((d) => d.stage === "Perdu");
+  const firstLost = rows.findIndex((d) => d.stage === "Perdu");
   const totals = rows.reduce(
     (t, d) => ({
       fee: t.fee + dealFee(d),
@@ -504,12 +506,20 @@ export function DealsTable({ mode }: { mode: Mode }) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((d) => {
+              {rows.map((d, i) => {
                 const col = suiviColumn(d);
                 const fee = dealFee(d);
                 const cell = (c: string) => (col === c ? eur(fee) : "");
                 return (
-                  <tr key={d.id} onClick={() => setOpenId(d.id)} className="cursor-pointer border-t border-border hover:bg-accent">
+                  <Fragment key={d.id}>
+                  {i === firstLost && (
+                    <tr className="border-t-4 border-border bg-muted">
+                      <td colSpan={15} className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Dossiers perdus ({lostRows.length}) — conservés dans le suivi
+                      </td>
+                    </tr>
+                  )}
+                  <tr onClick={() => setOpenId(d.id)} className="cursor-pointer border-t border-border hover:bg-accent">
                     <td className="px-2 py-2 font-medium">{d.name}</td>
                     <td className="px-2 py-2">{d.nego1}</td>
                     <td className="px-2 py-2">{d.nego2}</td>
@@ -530,6 +540,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
                       </Button>
                     )}</td>
                   </tr>
+                  </Fragment>
                 );
               })}
               <tr className="border-t-2 border-border bg-muted font-semibold">
@@ -547,9 +558,14 @@ export function DealsTable({ mode }: { mode: Mode }) {
       )}
 
       <div className={"overflow-hidden border-y border-border" + (mode === "pipeline" && !isMobile && rows.length ? " hidden" : "")}>
-        {rows.map((d) => (
+        {rows.map((d, i) => (
+          <Fragment key={d.id}>
+          {i === firstLost && (
+            <div className="border-t-4 border-border bg-muted px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Dossiers perdus ({lostRows.length}) — conservés dans le suivi
+            </div>
+          )}
           <CompactRow
-            key={d.id}
             title={d.name}
             subtitle={mode === "pipeline" ? [d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ") : `${d.stage} · ${m2(d.surface)} · Prix ${eur(d.amount)} · Loyer ${eur(d.rent)}`}
             summary={mode === "targets" ? [d.company,d.address,mailsOf(d.id).slice(0,2).map((e)=>`✉ ${e}`).join(" ")].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
@@ -590,6 +606,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
                 : undefined
             }
           />
+          </Fragment>
         ))}
         {!rows.length && (
           <p className="p-6 text-center text-sm text-muted-foreground">
