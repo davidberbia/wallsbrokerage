@@ -140,8 +140,15 @@ async function processJob(admin: Awaited<ReturnType<typeof getAdmin>>, job: { id
 }
 
 /** Passage borné : liste puis traite quelques pièces jointes. */
-export async function runAttachments(): Promise<Record<string, number | string>> {
+const NET_ERR = "%connection%";
+export async function runAttachments(mode: "tick" | "retry" = "tick"): Promise<Record<string, number | string>> {
   const admin = await getAdmin();
+  const oneMinAgo = new Date(Date.now() - 60_000).toISOString();
+  if (mode === "retry") {
+    // Reprise 1 minute après une coupure : rien à faire → sortie immédiate, aucun appel externe.
+    const { count } = await admin.from("mail_attachment_jobs").select("id", { count: "exact", head: true }).eq("status", "pending").gt("attempts", 0).lt("updated_at", oneMinAgo);
+    if (!count) return { pj: "rien à reprendre" };
+  }
   const { data: ctl } = await admin.from("attachment_control").select("*").eq("id", true).maybeSingle();
   if (ctl?.paused_reason) return { pj_pause: ctl.paused_reason.slice(0, 120) };
   if (ctl?.lease_until && new Date(ctl.lease_until).getTime() > Date.now()) return { pj: "occupé" };
@@ -149,8 +156,13 @@ export async function runAttachments(): Promise<Record<string, number | string>>
   let done = 0;
   let queued = 0;
   try {
-    queued = await enqueue(admin);
-    const { data: jobs } = await admin.from("mail_attachment_jobs").select("*").eq("status", "pending").order("created_at").limit(DOCS_PER_RUN);
+    let q = admin.from("mail_attachment_jobs").select("*").eq("status", "pending");
+    if (mode === "tick") {
+      // Rattrapage immédiat des pièces ratées à cause d'une coupure.
+      await admin.from("mail_attachment_jobs").update({ status: "pending", attempts: 0, updated_at: new Date(0).toISOString() }).eq("status", "failed").ilike("error", NET_ERR);
+      queued = await enqueue(admin);
+    } else q = q.gt("attempts", 0).lt("updated_at", oneMinAgo);
+    const { data: jobs } = await q.order("attempts", { ascending: false }).order("created_at").limit(DOCS_PER_RUN);
     for (const job of jobs ?? []) {
       try {
         const r = await processJob(admin, job);
@@ -164,7 +176,7 @@ export async function runAttachments(): Promise<Record<string, number | string>>
           if (!/\[429\]/.test(msg)) await admin.from("attachment_control").update({ paused_reason: msg }).eq("id", true);
           break;
         }
-        await admin.from("mail_attachment_jobs").update({ status: job.attempts >= 2 ? "failed" : "pending", attempts: job.attempts + 1, error: msg }).eq("id", job.id);
+        await admin.from("mail_attachment_jobs").update({ status: job.attempts >= 3 ? "failed" : "pending", attempts: job.attempts + 1, error: msg, updated_at: new Date().toISOString() }).eq("id", job.id);
       }
     }
   } finally {

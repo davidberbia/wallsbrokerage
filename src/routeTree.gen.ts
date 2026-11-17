@@ -44,6 +44,7 @@ import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
 import { Route as ApiPublicCatalogueRouteImport } from './routes/api/public/catalogue'
 import { Route as ApiPublicCronAiscanTickRouteImport } from './routes/api/public/cron/aiscan-tick'
+import { Route as ApiPublicCronAttachmentsRetryRouteImport } from './routes/api/public/cron/attachments-retry'
 import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
 import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron/daily'
 import { Route as ApiPublicCronDailyDigestRouteImport } from './routes/api/public/cron/daily-digest'
@@ -230,6 +231,12 @@ const ApiPublicCronAiscanTickRoute = ApiPublicCronAiscanTickRouteImport.update({
   path: '/api/public/cron/aiscan-tick',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronAttachmentsRetryRoute =
+  ApiPublicCronAttachmentsRetryRouteImport.update({
+    id: '/api/public/cron/attachments-retry',
+    path: '/api/public/cron/attachments-retry',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCronCfnewsTickRoute = ApiPublicCronCfnewsTickRouteImport.update({
   id: '/api/public/cron/cfnews-tick',
   path: '/api/public/cron/cfnews-tick',
@@ -323,6 +330,7 @@ export interface FileRoutesByFullPath {
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
+  '/api/public/cron/attachments-retry': typeof ApiPublicCronAttachmentsRetryRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
@@ -370,6 +378,7 @@ export interface FileRoutesByTo {
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
+  '/api/public/cron/attachments-retry': typeof ApiPublicCronAttachmentsRetryRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
@@ -418,6 +427,7 @@ export interface FileRoutesById {
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
+  '/api/public/cron/attachments-retry': typeof ApiPublicCronAttachmentsRetryRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
   '/api/public/cron/daily': typeof ApiPublicCronDailyRoute
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
@@ -467,6 +477,7 @@ export interface FileRouteTypes {
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
+    | '/api/public/cron/attachments-retry'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
@@ -514,6 +525,7 @@ export interface FileRouteTypes {
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
+    | '/api/public/cron/attachments-retry'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
@@ -561,6 +573,7 @@ export interface FileRouteTypes {
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/cron/aiscan-tick'
+    | '/api/public/cron/attachments-retry'
     | '/api/public/cron/cfnews-tick'
     | '/api/public/cron/daily'
     | '/api/public/cron/daily-digest'
@@ -609,6 +622,7 @@ export interface RootRouteChildren {
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCatalogueRoute: typeof ApiPublicCatalogueRoute
   ApiPublicCronAiscanTickRoute: typeof ApiPublicCronAiscanTickRoute
+  ApiPublicCronAttachmentsRetryRoute: typeof ApiPublicCronAttachmentsRetryRoute
   ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
   ApiPublicCronDailyRoute: typeof ApiPublicCronDailyRoute
   ApiPublicCronDailyDigestRoute: typeof ApiPublicCronDailyDigestRoute
@@ -868,6 +882,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronAiscanTickRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/attachments-retry': {
+      id: '/api/public/cron/attachments-retry'
+      path: '/api/public/cron/attachments-retry'
+      fullPath: '/api/public/cron/attachments-retry'
+      preLoaderRoute: typeof ApiPublicCronAttachmentsRetryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/cfnews-tick': {
       id: '/api/public/cron/cfnews-tick'
       path: '/api/public/cron/cfnews-tick'
@@ -977,6 +998,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCatalogueRoute: ApiPublicCatalogueRoute,
   ApiPublicCronAiscanTickRoute: ApiPublicCronAiscanTickRoute,
+  ApiPublicCronAttachmentsRetryRoute: ApiPublicCronAttachmentsRetryRoute,
   ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,
   ApiPublicCronDailyRoute: ApiPublicCronDailyRoute,
   ApiPublicCronDailyDigestRoute: ApiPublicCronDailyDigestRoute,

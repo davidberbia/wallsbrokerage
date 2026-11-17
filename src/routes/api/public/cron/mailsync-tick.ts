@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
 import { authorizeCron, getAdmin } from "@/lib/automation.server";
 import { graphGet, type GraphAddress } from "@/lib/mailscan.server";
 import { extractFromText } from "@/lib/mail-extract";
@@ -38,12 +39,13 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const denied = await authorizeCron(request);
+        // Ancien jeton (planning de jour) ou planning géré (passage de minuit).
+        const denied = request.headers.get("x-cron-token") ? await authorizeCron(request) : await authenticateCronRequest(request);
         if (denied) return denied;
-        // Toutes les 2 heures entre 8h et 20h (heure de Paris), été comme hiver.
+        // Toutes les 2 heures de 8h à 20h + une fois à minuit (heure de Paris), été comme hiver.
         if (new URL(request.url).searchParams.get("force") !== "1") {
-          const h = Number(new Date().toLocaleString("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Paris" }));
-          if (h < 8 || h > 20 || h % 2 !== 0) return Response.json({ ok: true, skipped: "hors créneau" });
+          const h = Number(new Date().toLocaleString("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Paris" })) % 24;
+          if (!(h === 0 || (h >= 8 && h <= 20 && h % 2 === 0))) return Response.json({ ok: true, skipped: "hors créneau" });
         }
         const admin = await getAdmin();
 
