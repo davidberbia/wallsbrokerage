@@ -189,6 +189,28 @@ function MatchingPage() {
     setSelected(allSelected ? new Set(visibleIds.map((id) => `-${id}`)) : new Set());
   };
 
+  const toggleGroup = (ids: string[], on: boolean) => {
+    const next = new Set(selected);
+    for (const id of ids) {
+      if (on) next.delete(`-${id}`);
+      else next.add(`-${id}`);
+    }
+    setSelected(next);
+  };
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  // Une société = un bloc ; ses collaborateurs sont cochables un par un.
+  const groups = useMemo(() => {
+    const map = new Map<string, { key: string; name: string; items: typeof results }>();
+    for (const r of results) {
+      const name = (r.investor.company ?? "").trim();
+      const key = name ? `c:${name.toLocaleLowerCase("fr")}` : `i:${r.investor.id}`;
+      const g = map.get(key) ?? { key, name: name || displayInvestorName(r.investor), items: [] };
+      g.items.push(r);
+      map.set(key, g);
+    }
+    return [...map.values()];
+  }, [results]);
+
   const chosen = results.filter((r) => isSelected(r.investor.id));
   const emails = chosen.map((r) => r.investor.email).filter((e): e is string => Boolean(e));
   const asset = (assetsQuery.data ?? []).find((a) => a.id === assetId) ?? null;
@@ -443,24 +465,57 @@ function MatchingPage() {
             Aucun investisseur ne correspond à ces critères.
           </div>
         )}
-        {results.map(({ investor, score }) => (
-          <CompactRow
-            key={investor.id}
-            title={displayInvestorName(investor)}
-            subtitle={[investor.company, investor.city, investor.email].filter(Boolean).join(" · ")}
-            summary={`${score}%`}
-            leading={
-              <Checkbox
-                checked={isSelected(investor.id)}
-                onCheckedChange={() => toggle(investor.id)}
-                aria-label={`Sélectionner ${displayInvestorName(investor)}`}
-              />
-            }
-            onOpen={() => setEditing({ ...investor })}
-            onEdit={canEdit ? () => setEditing({ ...investor }) : undefined}
-            onDelete={canEdit ? () => void deleteInvestor(investor) : undefined}
-          />
-        ))}
+        {groups.map((g) => {
+          const row = ({ investor, score }: (typeof results)[number], nested = false) => (
+            <CompactRow
+              key={investor.id}
+              title={displayInvestorName(investor)}
+              subtitle={[nested ? investor.job_title : investor.company, investor.city, investor.email].filter(Boolean).join(" · ")}
+              summary={`${score}%`}
+              leading={
+                <Checkbox
+                  checked={isSelected(investor.id)}
+                  onCheckedChange={() => toggle(investor.id)}
+                  aria-label={`Sélectionner ${displayInvestorName(investor)}`}
+                />
+              }
+              onOpen={() => setEditing({ ...investor })}
+              onEdit={canEdit ? () => setEditing({ ...investor }) : undefined}
+              onDelete={canEdit ? () => void deleteInvestor(investor) : undefined}
+            />
+          );
+          if (g.items.length === 1) return row(g.items[0]!);
+          const ids = g.items.map((r) => r.investor.id);
+          const count = ids.filter(isSelected).length;
+          const open = openGroups.has(g.key);
+          return (
+            <div key={g.key} className="panel p-2">
+              <div className="flex min-h-11 items-center gap-3 px-1">
+                <Checkbox
+                  checked={count === ids.length ? true : count === 0 ? false : "indeterminate"}
+                  onCheckedChange={() => toggleGroup(ids, count !== ids.length)}
+                  aria-label={`Sélectionner toute la société ${g.name}`}
+                />
+                <button
+                  type="button"
+                  className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"
+                  onClick={() => {
+                    const next = new Set(openGroups);
+                    if (open) next.delete(g.key);
+                    else next.add(g.key);
+                    setOpenGroups(next);
+                  }}
+                >
+                  <span className="truncate font-semibold">{g.name}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {count}/{ids.length} collaborateur{ids.length > 1 ? "s" : ""} {open ? "▲" : "▼"}
+                  </span>
+                </button>
+              </div>
+              {open && <div className="mt-2 grid gap-2 pl-3">{g.items.map((r) => row(r, true))}</div>}
+            </div>
+          );
+        })}
       </div>
       <Dialog open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="flex max-h-[96dvh] max-w-xl flex-col overflow-hidden sm:max-h-[90vh] sm:w-[calc(100%-2rem)]">

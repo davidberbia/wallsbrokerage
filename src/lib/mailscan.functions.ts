@@ -265,11 +265,17 @@ export const integrateMailscanCandidates = createServerFn({ method: "POST" })
     if (dupIds.length) await setStatus(admin, dupIds, "ignoré");
     ignored += dupIds.length;
 
-    // 2. Option investisseurs (non utilisée par l'écran actuel, conservée).
-    if (!data.toProspects) {
+    // 2. Société déjà investisseur (même domaine e-mail ou même nom) → collaborateur ajouté à l'investisseur.
+    {
       const rest: CandidateRow[] = [];
       for (const row of todo) {
-        const { data: sibling } = await admin.from("investors").select("*").ilike("email", `%@${row.domain}`).limit(1).maybeSingle();
+        const GENERIC = /^(gmail|hotmail|outlook|yahoo|orange|free|wanadoo|sfr|icloud|live|laposte|msn|me)\./i;
+        let { data: sibling } = GENERIC.test(row.domain)
+          ? { data: null }
+          : await admin.from("investors").select("*").ilike("email", `%@${row.domain}`).limit(1).maybeSingle();
+        if (!sibling && row.company_name?.trim()) {
+          ({ data: sibling } = await admin.from("investors").select("*").ilike("company", row.company_name.trim()).limit(1).maybeSingle());
+        }
         if (!sibling) { rest.push(row); continue; }
         const { data: created, error: insertError } = await admin.from("investors").insert({
           full_name: row.full_name || row.email.split("@")[0]!, first_name: row.first_name, job_title: row.job_title,
@@ -278,7 +284,7 @@ export const integrateMailscanCandidates = createServerFn({ method: "POST" })
           postal_code: sibling.postal_code, city: sibling.city, country: sibling.country,
           budget_min: sibling.budget_min, budget_max: sibling.budget_max, asset_classes: sibling.asset_classes,
           strategies: sibling.strategies, regions: sibling.regions, min_yield: sibling.min_yield,
-          holding_horizon: sibling.holding_horizon, financing: sibling.financing, status: "à qualifier",
+          holding_horizon: sibling.holding_horizon, financing: sibling.financing, status: sibling.status ?? "actif", owner_id: sibling.owner_id,
           notes: `Créé depuis la boîte mail — stratégie reprise de ${sibling.full_name}.`,
         }).select("id").single();
         if (insertError) throw new Error(insertError.message);
