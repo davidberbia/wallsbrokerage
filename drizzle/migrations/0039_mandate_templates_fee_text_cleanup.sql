@@ -1,0 +1,1 @@
+update public.mandate_templates set body = replace(replace(body,'{{honoraires}} TTC','{{honoraires}}'),'à la charge de {{charge_honoraires}}','{{charge_honoraires}}');
