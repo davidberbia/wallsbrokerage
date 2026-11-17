@@ -10,6 +10,7 @@ import { MailScanPanel } from "@/components/MailScanPanel";
 import { AiScanPanel } from "@/components/AiScanPanel";
 import { DocusignPanel } from "@/components/DocusignPanel";
 import { MandateTemplatesPanel } from "@/components/MandateTemplatesPanel";
+import { BrochureModelsPanel } from "@/components/BrochureModelsPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +69,7 @@ function SettingsPage() {
           <TabsTrigger value="mailscan">Boîte mail</TabsTrigger>
           <TabsTrigger value="lists">Listes de référence</TabsTrigger>
           <TabsTrigger value="mandates">Modèles de mandats</TabsTrigger>
+          <TabsTrigger value="brochures">Brochures modèles</TabsTrigger>
         </TabsList>
         <TabsContent value="users" className="mt-6 space-y-6">
           <DocusignPanel />
@@ -79,6 +81,9 @@ function SettingsPage() {
         </TabsContent>
         <TabsContent value="mandates" className="mt-6">
           <MandateTemplatesPanel />
+        </TabsContent>
+        <TabsContent value="brochures" className="mt-6">
+          <BrochureModelsPanel />
         </TabsContent>
         <TabsContent value="lists" className="mt-6 space-y-6">
           {KINDS.map((kind) => (
