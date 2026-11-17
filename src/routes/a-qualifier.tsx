@@ -126,7 +126,7 @@ function DetectedContactsPage() {
   });
 
   const classifyMutation = useMutation({
-    mutationFn: (v: { ids: string[]; kind: "contact" | "broker" | "notary" | "buyer" }) =>
+    mutationFn: (v: { ids: string[]; kind: "contact" | "broker" | "notary" | "buyer" | "utile" }) =>
       classify({ data: v }),
     onMutate: (v) => hide(v.ids),
     onSuccess: (r, v) => {
@@ -138,7 +138,9 @@ function DetectedContactsPage() {
               ? "Notaires"
               : v.kind === "buyer"
                 ? "Acheteurs"
-                : "Contacts"
+                : v.kind === "utile"
+                  ? "Utile"
+                  : "Contacts"
         }`,
       );
       done();
@@ -233,10 +235,10 @@ function DetectedContactsPage() {
               Notaire ({selected.length})
             </Button>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <Button
               variant="success"
-              className="min-h-11 sm:min-h-9"
+              className="min-h-11 px-2 text-[13px] sm:min-h-9 sm:px-4 sm:text-sm"
               disabled={selected.length === 0 || integrateMutation.isPending}
               onClick={() => integrateMutation.mutate(selected)}
             >
@@ -245,8 +247,16 @@ function DetectedContactsPage() {
                 : `Prospect (${selected.length})`}
             </Button>
             <Button
+              variant="outline"
+              className="min-h-11 px-2 text-[13px] sm:min-h-9 sm:px-4 sm:text-sm"
+              disabled={selected.length === 0 || classifyMutation.isPending}
+              onClick={() => classifyMutation.mutate({ ids: selected, kind: "utile" })}
+            >
+              Utile ({selected.length})
+            </Button>
+            <Button
               variant="destructive"
-              className="min-h-11 sm:min-h-9"
+              className="min-h-11 px-2 text-[13px] sm:min-h-9 sm:px-4 sm:text-sm"
               disabled={selected.length === 0 || deleteMutation.isPending}
               onClick={() => {
                 if (

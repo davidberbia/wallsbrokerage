@@ -388,8 +388,8 @@ export const integrateMailscanCandidates = createServerFn({ method: "POST" })
 /** Classe des contacts « À qualifier » en Acheteur habitation, Broker ou Notaire (par lots). */
 export const classifyMailscanCandidates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { ids: string[]; kind: "contact" | "broker" | "notary" | "buyer" }) => {
-    if (!Array.isArray(input?.ids) || !["contact", "broker", "notary", "buyer"].includes(input.kind)) throw new Error("Données invalides");
+  .inputValidator((input: { ids: string[]; kind: "contact" | "broker" | "notary" | "buyer" | "utile" }) => {
+    if (!Array.isArray(input?.ids) || !["contact", "broker", "notary", "buyer", "utile"].includes(input.kind)) throw new Error("Données invalides");
     return { ids: input.ids.slice(0, 1000).map(String), kind: input.kind };
   })
   .handler(async ({ data, context }) => {
