@@ -67,6 +67,22 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
     },
   });
 
+  const dossier = useQuery({
+    queryKey: ["deal-dossier", deal.data?.asset_id],
+    enabled: !!deal.data?.asset_id,
+    queryFn: async () => {
+      const aid = deal.data!.asset_id!;
+      const [a, docs] = await Promise.all([
+        supabase.from("assets").select("city,address,postal_code,surface,price,rent,yield_pct,keys_count,revenue,asset_class,autofill_sources").eq("id", aid).single(),
+        supabase.from("asset_documents").select("id,name,path").eq("asset_id", aid).order("sort_order"),
+      ]);
+      return { asset: a.data, docs: docs.data ?? [] };
+    },
+  });
+  const openDoc = async (path: string) => {
+    const { data } = await supabase.storage.from("brochures").createSignedUrl(path, 600);
+    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+  };
   const research=useServerFn(queueTargetResearch);
   const [researchBusy,setResearchBusy]=useState(false);
   const [form, setForm] = useState<(Partial<Deal> & { address?: string | null }) | null>(null);
@@ -201,15 +217,51 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         <SheetTitle>{current.name}</SheetTitle>
       </SheetHeader>
       {(() => {
-        const groups = byDomain(correspondents((mails.data ?? []).flatMap((m) => [m.from_email, m.to_display]), selfEmails));
+        // Interlocuteur principal : l'expéditeur du premier mail reçu (celui qui a envoyé le dossier).
+        const ordered = [...(mails.data ?? [])].sort((x, y) => (x.received_at ?? "").localeCompare(y.received_at ?? ""));
+        const sender = correspondents(ordered.map((m) => m.from_email), selfEmails)[0];
+        const firstMail = sender ? ordered.find((m) => m.from_email?.toLowerCase() === sender) : null;
+        const all = correspondents([...(sender ? [sender] : []), ...ordered.flatMap((m) => [m.from_email, m.to_display])], selfEmails);
+        const groups = byDomain(all);
+        if (sender) {
+          const i = groups.findIndex(([, l]) => l.includes(sender));
+          if (i > 0) groups.unshift(...groups.splice(i, 1));
+        }
         if (!groups.length) return null;
         return (
           <section className="space-y-1 rounded-sm border border-border bg-muted/40 p-3">
             <h3 className="text-xs font-semibold uppercase text-muted-foreground">Interlocuteur</h3>
+            {sender && (
+              <div className="text-sm font-semibold">
+                {firstMail?.from_name && firstMail.from_name.toLowerCase() !== sender ? `${firstMail.from_name} · ` : ""}Expéditeur du dossier
+              </div>
+            )}
             {groups.map(([d, list], gi) => (
               <div key={d} className={gi ? "text-xs text-muted-foreground" : "text-sm font-medium"}>
                 {list.map((e) => <div key={e} className="flex items-center gap-1 break-all"><a href={`mailto:${e}`} className="underline-offset-2 hover:underline">{e}</a><CopyEmail email={e} /></div>)}
               </div>
+            ))}
+          </section>
+        );
+      })()}
+
+      {dossier.data && (() => {
+        const a = dossier.data.asset;
+        const n = (v: number | null | undefined, u: string) => (v == null ? null : `${new Intl.NumberFormat("fr-FR").format(v)} ${u}`);
+        const facts = a ? [
+          [a.address, a.postal_code, a.city].filter(Boolean).join(" ") || null,
+          a.asset_class, n(a.surface, "m²"), n(a.price, "€"), a.rent != null ? `Loyer ${n(a.rent, "€")}` : null,
+          a.yield_pct != null ? `${a.yield_pct} %` : null, n(a.keys_count, "clés"), a.revenue != null ? `CA ${n(a.revenue, "€")}` : null,
+        ].filter(Boolean) : [];
+        if (!facts.length && !dossier.data.docs.length) return null;
+        return (
+          <section className="space-y-2 rounded-sm border border-border p-3">
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground">Dossier ({dossier.data.docs.length})</h3>
+            {facts.length > 0 && <p className="text-sm">{facts.join(" · ")}</p>}
+            {dossier.data.docs.map((d) => (
+              <button key={d.id} type="button" onClick={() => openDoc(d.path)} className="flex w-full items-center gap-2 py-1 text-left text-sm underline-offset-2 hover:underline">
+                <ExternalLink className="h-4 w-4 shrink-0" /> <span className="break-all">{d.name}</span>
+              </button>
             ))}
           </section>
         );

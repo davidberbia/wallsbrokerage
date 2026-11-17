@@ -388,6 +388,7 @@ export type Database = {
           hide_street_number: boolean
           id: string
           is_portfolio: boolean
+          keys_count: number | null
           mandate_end: string | null
           mandate_exclusive: boolean | null
           mandate_start: string | null
@@ -408,6 +409,7 @@ export type Database = {
           region: string | null
           rent: number | null
           residential_details: Json
+          revenue: number | null
           status: string
           strategy: string | null
           surface: number | null
@@ -433,6 +435,7 @@ export type Database = {
           hide_street_number?: boolean
           id?: string
           is_portfolio?: boolean
+          keys_count?: number | null
           mandate_end?: string | null
           mandate_exclusive?: boolean | null
           mandate_start?: string | null
@@ -453,6 +456,7 @@ export type Database = {
           region?: string | null
           rent?: number | null
           residential_details?: Json
+          revenue?: number | null
           status?: string
           strategy?: string | null
           surface?: number | null
@@ -478,6 +482,7 @@ export type Database = {
           hide_street_number?: boolean
           id?: string
           is_portfolio?: boolean
+          keys_count?: number | null
           mandate_end?: string | null
           mandate_exclusive?: boolean | null
           mandate_start?: string | null
@@ -498,6 +503,7 @@ export type Database = {
           region?: string | null
           rent?: number | null
           residential_details?: Json
+          revenue?: number | null
           status?: string
           strategy?: string | null
           surface?: number | null
@@ -2746,6 +2752,10 @@ export type Database = {
           id: string
           name: string
         }[]
+      }
+      mail_is_digest: {
+        Args: { _from: string; _subject: string }
+        Returns: boolean
       }
       mailscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       mailscan_stop_internal: { Args: never; Returns: undefined }

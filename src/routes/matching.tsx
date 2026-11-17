@@ -137,6 +137,7 @@ function MatchingPage() {
       const { data, error } = await supabase
         .from("assets")
         .select("*")
+        .neq("status", "prospection")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as unknown as Asset[];

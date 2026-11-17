@@ -20,7 +20,7 @@ export function useNavCounts(enabled: boolean) {
       const [inv, pro, act, dos, comp, env, cont, cib, brk, dir, not] = await Promise.all([
         count("investors"),
         count("prospect_companies"),
-        count("assets"),
+        count("assets", (q) => q.neq("status", "prospection")),
         // Mêmes lignes que le tableau « Suivi des affaires » : hors Prospection et hors
         // étapes Actifs, année en cours (reports automatiques inclus).
         (async () => {

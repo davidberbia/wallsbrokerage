@@ -144,6 +144,7 @@ function SendsPage() {
       const { data, error } = await supabase
         .from("assets")
         .select("id, title, reference, city, surface, price, yield_pct, asset_class")
+        .neq("status", "prospection")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;

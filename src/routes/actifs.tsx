@@ -125,6 +125,7 @@ function AssetsPage() {
       const { data, error } = await supabase
         .from("assets")
         .select("*")
+        .neq("status", "prospection")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as unknown as Asset[];
@@ -170,6 +171,8 @@ function AssetsPage() {
         owner_kind: draft.owner_kind ?? null,
         owner_details: draft.owner_details ?? {},
         parking_count: draft.parking_count ?? null,
+        keys_count: draft.keys_count ?? null,
+        revenue: draft.revenue ?? null,
         outdoor_surface: draft.outdoor_surface ?? null,
         weighted_surface: draft.weighted_surface ?? null,
         mandate_exclusive: draft.mandate_exclusive ?? null,
@@ -786,6 +789,16 @@ function AssetForm({
             <Field label="Nombre de parkings">
               <Input type="number" min={0} value={draft.parking_count ?? ""} onChange={(e) => set({ parking_count: e.target.value ? Number(e.target.value) : null })} />
             </Field>
+            {/h[oô]tel/i.test(draft.asset_class ?? "") && (
+              <>
+                <Field label="Nombre de clés">
+                  <Input type="number" min={0} value={draft.keys_count ?? ""} onChange={(e) => set({ keys_count: e.target.value ? Number(e.target.value) : null })} />
+                </Field>
+                <Field label="Chiffre d'affaires annuel (€)">
+                  <Input inputMode="numeric" value={formatThousands(draft.revenue ?? null)} onChange={(e) => set({ revenue: parseThousands(e.target.value) })} />
+                </Field>
+              </>
+            )}
             <Field label="Prix (€)">
               <Input inputMode="numeric" value={formatThousands(draft.price)} onChange={(e) => set({ price: parseThousands(e.target.value) })} />
             </Field>
@@ -1284,6 +1297,9 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Surface pondérée (m²)", asset.weighted_surface == null ? null : String(asset.weighted_surface)],
           ["Surface extérieure (m²)", asset.outdoor_surface == null ? null : String(asset.outdoor_surface)],
           ["Parkings", asset.parking_count == null ? null : String(asset.parking_count)],
+          ["Nombre de clés", asset.keys_count == null ? null : String(asset.keys_count)],
+          ["Prix à la clé", asset.keys_count && asset.price ? formatEUR(Math.round(asset.price / asset.keys_count)) : null],
+          ["Chiffre d'affaires", asset.revenue == null ? null : formatEUR(asset.revenue)],
           ["Email propriétaire", asset.owner_email],
           ["Téléphone propriétaire", asset.owner_phone],
           ["Type de mandat", asset.mandate_type],
