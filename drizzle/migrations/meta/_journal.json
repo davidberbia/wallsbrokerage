@@ -218,6 +218,13 @@
       "when": 1794918290389,
       "tag": "0030_asset_status_to_deal",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794918980046,
+      "tag": "0031_preserve_lost_deal_fees",
+      "breakpoints": true
     }
   ]
 }

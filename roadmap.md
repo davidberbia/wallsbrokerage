@@ -1,5 +1,8 @@
 # Roadmap
 
+## Honoraires perdus — 17 novembre, validation reçue
+- [x] Retirer la remise à zéro au passage en Perdu : 7 tests réussis ; dossier temporaire de 12 500 € passé en Perdu au toucher, enregistré puis relu avec montant conservé et total perdu à 12 500 € ; dossier de test supprimé, sans publication.
+
 ## Demandes du 16 novembre — plan approuvé, sans publication
 - [ ] Teasers : interface CRM harmonisée et ouverture au toucher vérifiée ; validation visuelle des exports contre références encore à réaliser.
 - [x] Acquéreurs : société prioritaire et nouvel acheteur habitation avec critères usuels.
