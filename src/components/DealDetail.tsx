@@ -83,7 +83,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
       .from("deals")
       .update({
         name: current?.name ?? "",
-        stage: current?.stage ?? "Cible",
+        stage: current?.stage ?? "Prospection",
         company: current?.company ?? null,
         contact_name: current?.contact_name ?? null,
         amount: current?.amount ?? null,
@@ -203,7 +203,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         </div>
         <div>
           <Label>Étape</Label>
-          <Select value={current.stage ?? "Cible"} onValueChange={(v) => set({ stage: v })}>
+          <Select value={current.stage ?? "Prospection"} onValueChange={(v) => set({ stage: v })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -235,7 +235,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
             </SelectContent>
           </Select>
         </div>
-        {current.stage !== "Cible" && ([
+        {current.stage !== "Prospection" && ([
           ["nego1", "Négo 1"],
           ["nego2", "Négo 2"],
           ["seller", "Vendeur"],
@@ -311,7 +311,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
             onChange={(e) => set({ vintage: e.target.value === "" ? new Date().getFullYear() : Number(e.target.value) })}
           />
         </div>
-        {current.stage !== "Cible" && <div>
+        {current.stage !== "Prospection" && <div>
           <Label>Encaissement prévu le</Label>
           <Input
             type="date"
@@ -319,7 +319,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
             onChange={(e) => set({ expected_payment_at: e.target.value || null })}
           />
         </div>}
-        {current.stage !== "Cible" && <div>
+        {current.stage !== "Prospection" && <div>
           <Label>Encaissé le</Label>
           <Input
             type="date"
@@ -332,7 +332,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           <Textarea rows={3} value={current.notes ?? ""} onChange={(e) => set({ notes: e.target.value })} />
         </div>
       </div>
-      {current.stage === "Cible" && <Button variant="outline" disabled={researchBusy} onClick={async()=>{setResearchBusy(true);try{await research({data:{id:id}});toast.success("Recherche en attente");}catch(e){toast.error(e instanceof Error ? e.message : "Échec de la recherche");}finally{setResearchBusy(false);}}}>Rechercher les informations publiques</Button>}
+      {current.stage === "Prospection" && <Button variant="outline" disabled={researchBusy} onClick={async()=>{setResearchBusy(true);try{await research({data:{id:id}});toast.success("Recherche en attente");}catch(e){toast.error(e instanceof Error ? e.message : "Échec de la recherche");}finally{setResearchBusy(false);}}}>Rechercher les informations publiques</Button>}
       {(current.suggestion || current.enrichment) && (
         <section className="space-y-1 rounded-sm border border-border bg-muted/40 p-3 text-sm">
           {current.suggestion && (

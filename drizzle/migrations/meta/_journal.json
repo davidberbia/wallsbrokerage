@@ -204,6 +204,13 @@
       "when": 1794878240912,
       "tag": "0028_deals_to_assets_optional_mandate",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794882719812,
+      "tag": "0029_rename_stage_disponible_trigger",
+      "breakpoints": true
     }
   ]
 }

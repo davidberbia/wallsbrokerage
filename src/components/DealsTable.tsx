@@ -68,15 +68,15 @@ function parseNum(v: unknown): number | null {
 }
 function normalizeStage(v: unknown): string {
   const s = String(v ?? "").toLowerCase();
-  if (/acte|sign|vendu|factur|encaiss/.test(s)) return "Acte";
+  if (/acte|sign|vendu|factur|encaiss/.test(s)) return "Vendu";
   if (/promesse|compromis/.test(s)) return "Promesse";
   if (/loi|lettre/.test(s)) return "LOI acceptée";
   if (/offre/.test(s)) return "Offre";
-  if (/commerciali|mandat/.test(s)) return "Commercialisation";
+  if (/commerciali|mandat/.test(s)) return "Disponible";
   if (/avis|valeur|estimation/.test(s)) return "Avis de valeur";
   if (/perdu|abandon|annul/.test(s)) return "Perdu";
-  if (/cible/.test(s)) return "Cible";
-  return "Acte"; // historique des ventes : par défaut, affaire réalisée
+  if (/cible|prospection/.test(s)) return "Prospection";
+  return "Vendu"; // historique des ventes : par défaut, affaire réalisée
 }
 
 export function DealsTable({ mode }: { mode: Mode }) {
@@ -145,7 +145,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     }),
     { fee: 0, weighted: 0, price: 0 },
   );
-  const realised = rows.filter((d) => d.stage === "Acte").reduce((s, d) => s + dealFee(d), 0);
+  const realised = rows.filter((d) => d.stage === "Vendu").reduce((s, d) => s + dealFee(d), 0);
 
   const suivi = suiviTotals(rows);
   const goals = useQuery({
@@ -368,7 +368,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
             fee_amount: parseNum(pick(/honorair|fee|commission/)),
             vintage,
             source: "import Excel",
-            paid_at: stage === "Acte" ? `${vintage}-12-31` : null,
+            paid_at: stage === "Vendu" ? `${vintage}-12-31` : null,
           });
         }
       }
@@ -399,7 +399,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <p className="text-sm text-muted-foreground">
             {mode === "targets"
               ? "Opportunités détectées automatiquement (emails, pièces jointes, liens) ou saisies. Changez le statut pour la faire basculer dans « Suivi des affaires »."
-              : "Pondération : Avis de valeur 10 % · Commercialisation 20 % · Offre 30 % · LOI acceptée 50 % · Promesse 75 % · Acte 100 %."}
+              : "Pondération : Avis de valeur 10 % · Disponible 20 % · Offre 30 % · LOI acceptée 50 % · Promesse 75 % · Vendu 100 %."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -590,7 +590,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
         )}
       </div>
       <p className="text-xs text-muted-foreground">
-        Les lignes non soldées (hors « Acte » et « Perdu ») des années précédentes sont reportées
+        Les lignes non soldées (hors « Vendu » et « Perdu ») des années précédentes sont reportées
         automatiquement sur l'année suivante.
       </p>
 

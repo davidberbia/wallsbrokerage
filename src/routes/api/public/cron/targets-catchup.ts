@@ -1,4 +1,4 @@
-// Cibles & honoraires : parcourt les emails 2026 déjà synchronisés (rattrapage puis nouveaux mails),
+// Prospection & honoraires : parcourt les emails 2026 déjà synchronisés (rattrapage puis nouveaux mails),
 // sans rescraper la boîte. Pré-filtre par mots-clés pour limiter le coût IA.
 import { createFileRoute } from "@tanstack/react-router";
 import { authorizeCron, getAdmin } from "@/lib/automation.server";

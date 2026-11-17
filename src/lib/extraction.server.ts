@@ -21,10 +21,10 @@ export async function processExtraction() {
     let result: {summary?:string;suggestion?:string;facts?:unknown[]}|null;
     if(job.kind==="research") {
       const {data:target}=await admin.from("deals").select("name,address,company,notes,stage,owner_id").eq("id",job.target_id || "").maybeSingle();
-      if(!target || target.stage!=="Cible" || target.owner_id && target.owner_id!==job.owner_id)throw new Error("Actif à relancer inaccessible");
+      if(!target || target.stage!=="Prospection" || target.owner_id && target.owner_id!==job.owner_id)throw new Error("Actif à relancer inaccessible");
       result=await callGeminiSearch({task:"enrichissement",system:RESEARCH,prompt:JSON.stringify(target)});
       if(!result?.summary)throw new Error("La recherche n'a pas fourni de résultat exploitable.");
-      const {error:writeError}=await admin.from("deals").update({enrichment:result.summary,suggestion:result.suggestion || null,enriched_at:new Date().toISOString()}).eq("id",job.target_id || "").eq("stage","Cible");if(writeError)throw writeError;
+      const {error:writeError}=await admin.from("deals").update({enrichment:result.summary,suggestion:result.suggestion || null,enriched_at:new Date().toISOString()}).eq("id",job.target_id || "").eq("stage","Prospection");if(writeError)throw writeError;
     }else{
       if(!(job.result as {robots_checked?:boolean}|null)?.robots_checked){
         const url=publicSiteUrl(job.url || "");const u=new URL(url);

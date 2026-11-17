@@ -1,20 +1,20 @@
 // Statuts des affaires et pondération du CA sur les honoraires.
-export const TARGET_STAGE = "Cible";
+export const TARGET_STAGE = "Prospection";
 
 export const PIPELINE_STAGES = [
   { stage: "Avis de valeur", weight: 0.1 },
-  { stage: "Commercialisation", weight: 0.2 },
+  { stage: "Disponible", weight: 0.2 },
   { stage: "Offre", weight: 0.3 },
   { stage: "LOI acceptée", weight: 0.5 },
   { stage: "Promesse", weight: 0.75 },
-  { stage: "Acte", weight: 1 },
+  { stage: "Vendu", weight: 1 },
   { stage: "Perdu", weight: 0 },
 ] as const;
 
 export const STAGE_NAMES = PIPELINE_STAGES.map((s) => s.stage) as string[];
 /** Étapes dont l'affaire vit dans l'onglet Actifs (fiche créée automatiquement, sans mandat). */
-export const ASSET_STAGES = ["Avis de valeur", "Commercialisation"];
-export const CLOSED_STAGES = ["Acte", "Perdu"];
+export const ASSET_STAGES = ["Avis de valeur", "Disponible"];
+export const CLOSED_STAGES = ["Vendu", "Perdu"];
 
 export function stageWeight(stage: string): number {
   return PIPELINE_STAGES.find((s) => s.stage === stage)?.weight ?? 0;
@@ -84,7 +84,7 @@ export function sameDeal(a: string, b: string): boolean {
 export type SuiviColumn = "encaisse" | "facture" | "encours" | "annule";
 export function suiviColumn(d: { stage: string; paid_at?: string | null }): SuiviColumn {
   if (d.stage === "Perdu") return "annule";
-  if (d.stage === "Acte") return d.paid_at ? "encaisse" : "facture";
+  if (d.stage === "Vendu") return d.paid_at ? "encaisse" : "facture";
   return "encours";
 }
 

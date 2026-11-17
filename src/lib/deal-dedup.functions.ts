@@ -17,7 +17,7 @@ export const suggestDealMerges = createServerFn({ method: "POST" })
     const { data: deals, error } = await context.supabase
       .from("deals")
       .select("id,name,address,company,surface,amount,rent")
-      .eq("stage", "Cible")
+      .eq("stage", "Prospection")
       .limit(600);
     if (error) throw new Error(error.message);
     if (!deals || deals.length < 2) return [];

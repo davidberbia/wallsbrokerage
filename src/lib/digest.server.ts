@@ -35,7 +35,7 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
     .from("deals")
     .select("id, name, stage, company, amount, fee_amount, fee_pct, probability, expected_payment_at, paid_at, last_activity_at, updated_at");
   const allDeals = deals ?? [];
-  const open = allDeals.filter((d) => !CLOSED.includes(d.stage) && d.stage !== "Cible");
+  const open = allDeals.filter((d) => !CLOSED.includes(d.stage) && d.stage !== "Prospection");
   const openIds = new Set(open.map((d) => d.id));
   const dealName = new Map(allDeals.map((d) => [d.id, d.name]));
 
@@ -193,7 +193,7 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
     weighted += fee(d) * stageWeight(d.stage);
   }
   const upcoming = allDeals
-    .filter((d) => d.stage !== "Cible")
+    .filter((d) => d.stage !== "Prospection")
     .filter((d) => d.expected_payment_at && !d.paid_at && d.stage !== "Perdu")
     .sort((a, b) => a.expected_payment_at!.localeCompare(b.expected_payment_at!));
   const inDays = (d: string, n: number) => new Date(d).getTime() <= now + n * DAY;
@@ -207,7 +207,7 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
     .filter((d) => now - new Date(d.last_activity_at ?? d.updated_at).getTime() < 10 * DAY)
     .slice(0, 8);
   const imminent = allDeals
-    .filter((d) => ["Promesse", "Acte"].includes(d.stage) && !d.paid_at && d.expected_payment_at && inDays(d.expected_payment_at, 30))
+    .filter((d) => ["Promesse", "Vendu"].includes(d.stage) && !d.paid_at && d.expected_payment_at && inDays(d.expected_payment_at, 30))
     .slice(0, 8);
   const { data: recentIn } = await admin
     .from("mail_messages")
@@ -224,7 +224,7 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
   const { data: newTargets } = await admin
     .from("deals")
     .select("id, name, source, amount, surface, rent, fee_amount, fee_pct, suggestion, enrichment")
-    .eq("stage", "Cible")
+    .eq("stage", "Prospection")
     .gte("created_at", iso(now - DAY))
     .order("created_at", { ascending: false })
     .limit(10);
@@ -271,7 +271,7 @@ ${table(["De", "Objet"], positives.map((m) => [e(m.from_name || m.from_email), m
 <p style="font-size:13px;margin:12px 0 6px;"><b>Signatures imminentes</b></p>
 ${table(["Affaire", "Statut", "Échéance", "Honoraires"], imminent.map((d) => [e(d.name), e(d.stage), dshort(d.expected_payment_at), eur(fee(d))]), "Aucune signature prévue sous 30 jours.")}
 <p style="font-size:13px;margin:12px 0 6px;"><b>Nouvelles cibles détectées</b></p>
-${table(["Cible", "Origine", "Prix", "Action suggérée"], (newTargets ?? []).map((t) => [e(t.name), e(t.source ?? ""), t.amount ? eur(Number(t.amount)) : "—", e(t.suggestion ?? "Qualifier la cible et proposer un avis de valeur.")]), "Aucune nouvelle cible depuis hier.")}`)}
+${table(["Prospection", "Origine", "Prix", "Action suggérée"], (newTargets ?? []).map((t) => [e(t.name), e(t.source ?? ""), t.amount ? eur(Number(t.amount)) : "—", e(t.suggestion ?? "Qualifier la cible et proposer un avis de valeur.")]), "Aucune nouvelle cible depuis hier.")}`)}
 ${section(2, "Mails importants sans réponse", table(
   ["Dossier", "De", "Objet", "Attente"],
   unanswered.map(({ m, days, tier }) => [

@@ -74,9 +74,9 @@ export async function saveTargets(
   for(const t of targets.slice(0,15)) {
     const name=String(t.name ?? "").trim().slice(0,200);const key=nameKey(name);
     if(key.length<3 || BAD_NAME.test(name))continue;
-    const {data:existing}=await admin.from("deals").select("id").eq("name_key",key).eq("stage","Cible").eq("owner_id",ownerId).maybeSingle();
+    const {data:existing}=await admin.from("deals").select("id").eq("name_key",key).eq("stage","Prospection").eq("owner_id",ownerId).maybeSingle();
     if(existing){ids.push(existing.id);continue;}
-    const {data,error}=await admin.from("deals").insert({name,name_key:key,stage:"Cible",owner_id:ownerId,source,notes:[t.origin,t.asset_class,t.excerpt].filter(Boolean).join("\n").slice(0,2000),vintage:yearOf(date),surface:num(t.surface),rent:num(t.rent),amount:num(t.price),address:[t.address,t.city].filter(Boolean).join(", ").slice(0,300) || null}).select("id").single();
+    const {data,error}=await admin.from("deals").insert({name,name_key:key,stage:"Prospection",owner_id:ownerId,source,notes:[t.origin,t.asset_class,t.excerpt].filter(Boolean).join("\n").slice(0,2000),vintage:yearOf(date),surface:num(t.surface),rent:num(t.rent),amount:num(t.price),address:[t.address,t.city].filter(Boolean).join(", ").slice(0,300) || null}).select("id").single();
     if(error)throw error;if(data){created++;ids.push(data.id);}
   }
   return {targets:created,fees:0,ids};
@@ -84,6 +84,6 @@ export async function saveTargets(
 /** Queue once; background processor owns grounded research and budgets. */
 export async function enrichTarget(dealId:string):Promise<void> {
   const admin=await getAdmin();const {data:t}=await admin.from("deals").select("stage,owner_id").eq("id",dealId).maybeSingle();
-  if(!t || t.stage!=="Cible" || !t.owner_id)return;
+  if(!t || t.stage!=="Prospection" || !t.owner_id)return;
   const {error}=await admin.from("extraction_jobs").upsert({owner_id:t.owner_id,kind:"research",target_id:dealId},{onConflict:"owner_id,kind,target_id",ignoreDuplicates:true});if(error)throw error;
 }

@@ -3,13 +3,13 @@ import { inVintage, suiviColumn, suiviTotals } from "./deal-stages";
 
 describe("Suivi des affaires", () => {
   it("acte payé = encaissé, acte non payé = facturé reste à encaisser", () => {
-    expect(suiviColumn({ stage: "Acte", paid_at: "2023-12-31" })).toBe("encaisse");
-    expect(suiviColumn({ stage: "Acte", paid_at: null })).toBe("facture");
+    expect(suiviColumn({ stage: "Vendu", paid_at: "2023-12-31" })).toBe("encaisse");
+    expect(suiviColumn({ stage: "Vendu", paid_at: null })).toBe("facture");
     expect(suiviColumn({ stage: "Perdu" })).toBe("annule");
   });
   it("pondéré : promesse 75 %, LOI 50 %, annulé exclu du réel", () => {
     const t = suiviTotals([
-      { stage: "Acte", paid_at: "2023-01-01", fee_amount: 30000 },
+      { stage: "Vendu", paid_at: "2023-01-01", fee_amount: 30000 },
       { stage: "Promesse", fee_amount: 40000 },
       { stage: "LOI acceptée", fee_amount: 50000 },
       { stage: "Perdu", fee_amount: 100000 },
