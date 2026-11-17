@@ -140,6 +140,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
   ).sort((a, b) => Number(a.stage === "Perdu") - Number(b.stage === "Perdu"));
   const lostRows = rows.filter((d) => d.stage === "Perdu");
   const firstLost = rows.findIndex((d) => d.stage === "Perdu");
+  const lostFee = lostRows.reduce((s, d) => s + dealFee(d), 0);
   const totals = rows.reduce(
     (t, d) => ({
       fee: t.fee + dealFee(d),
@@ -514,8 +515,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
                   <Fragment key={d.id}>
                   {i === firstLost && (
                     <tr className="border-t-4 border-border bg-muted">
-                      <td colSpan={15} className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                        Dossiers perdus ({lostRows.length}) — conservés dans le suivi
+                      <td colSpan={15} className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                        Dossiers perdus ({lostRows.length})
                       </td>
                     </tr>
                   )}
@@ -552,6 +553,11 @@ export function DealsTable({ mode }: { mode: Mode }) {
                 <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.annule)}</td>
                 <td />
               </tr>
+              <tr className="border-t border-border bg-muted font-semibold">
+                <td className="px-2 py-2" colSpan={13}>Total des honoraires perdus</td>
+                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(lostFee)}</td>
+                <td />
+              </tr>
             </tbody>
           </table>
         </div>
@@ -561,8 +567,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
         {rows.map((d, i) => (
           <Fragment key={d.id}>
           {i === firstLost && (
-            <div className="border-t-4 border-border bg-muted px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Dossiers perdus ({lostRows.length}) — conservés dans le suivi
+            <div className="border-t-4 border-border bg-muted px-3 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
+              Dossiers perdus ({lostRows.length})
             </div>
           )}
           <CompactRow
@@ -612,6 +618,12 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <p className="p-6 text-center text-sm text-muted-foreground">
             {deals.isLoading ? "Chargement…" : `Aucune ligne pour ${year}.`}
           </p>
+        )}
+        {mode === "pipeline" && lostRows.length > 0 && (
+          <div className="flex items-center justify-between border-t border-border bg-muted px-3 py-2 text-sm font-semibold">
+            <span>Total des honoraires perdus</span>
+            <span className="font-mono">{eur(lostFee)}</span>
+          </div>
         )}
       </div>
       <p className="text-xs text-muted-foreground">
