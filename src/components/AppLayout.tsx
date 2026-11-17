@@ -35,7 +35,7 @@ import { HelpButton } from "@/components/manuel/HelpButton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const CONTACT_ITEMS = [
-  { to: "/investisseurs", label: "Acquéreurs", icon: Users, admin: false },
+  { to: "/investisseurs", label: "Investisseurs", icon: Users, admin: false },
   { to: "/prospects", label: "Prospects", icon: Contact, admin: false },
   { to: "/brokers", label: "Brokers", icon: Handshake, admin: true },
   { to: "/notaires", label: "Notaires", icon: Landmark, admin: true },

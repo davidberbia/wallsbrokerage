@@ -22,22 +22,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { formatEUR } from "@/lib/taxonomy";
+import { AMOUNT_BANDS, INVESTOR_PROFILES, REGIONS, STRATEGIES, formatEUR } from "@/lib/taxonomy";
 import type { Investor, InvestorCriteria } from "@/lib/types";
 
 export const Route = createFileRoute("/investisseurs")({
   head: () => ({
     meta: [
-      { title: "Base acquéreurs — Walls Brokerage CRM" },
+      { title: "Investisseurs — Walls Brokerage CRM" },
       {
         name: "description",
         content:
           "Gérez les profils investisseurs : tranche d'investissement, classes d'actifs, stratégies et régions.",
       },
-      { property: "og:title", content: "Base acquéreurs — Walls Brokerage CRM" },
+      { property: "og:title", content: "Investisseurs — Walls Brokerage CRM" },
       {
         property: "og:description",
-        content: "Tous les profils acquéreurs et leurs critères d'investissement.",
+        content: "Tous les profils investisseurs et leurs critères d'investissement.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -96,6 +96,10 @@ function InvestorsPage() {
   const { canEdit } = useAuth();
   const [detail, setDetail] = useState<Investor | null>(null);
   const [search, setSearch] = useState("");
+  const [fProfile, setFProfile] = useState("");
+  const [fStrategy, setFStrategy] = useState("");
+  const [fBand, setFBand] = useState("");
+  const [fRegion, setFRegion] = useState("");
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
   const [bands, setBands] = useState<BandsByAsset>({});
   const [assetStrategies, setAssetStrategies] = useState<StrategiesByAsset>({});
@@ -209,13 +213,22 @@ function InvestorsPage() {
           [i.full_name, i.company, i.email, i.city].some((v) => v?.toLowerCase().includes(q)),
         )
       : (data ?? []).filter((i) => af.keep((i as { owner_id?: string | null }).owner_id));
+    const crit = (id: string) => (allCriteria ?? []).filter((c) => c.investor_id === id);
+    const filteredList = list.filter((i) => {
+      const cs = crit(i.id);
+      if (fProfile && i.investor_profile !== fProfile && !cs.some((c) => c.investor_profile === fProfile)) return false;
+      if (fStrategy && !(i.strategies ?? []).includes(fStrategy) && !cs.some((c) => (c.strategies ?? []).includes(fStrategy))) return false;
+      if (fBand && !cs.some((c) => (c.amount_bands ?? []).includes(fBand))) return false;
+      if (fRegion && !(i.regions ?? []).includes(fRegion) && !cs.some((c) => (c.regions ?? []).includes(fRegion))) return false;
+      return true;
+    });
     // Tri alphabétique sur le libellé affiché (société, sinon nom du contact).
-    return [...list].sort((a, b) =>
+    return [...filteredList].sort((a, b) =>
       (a.company || displayName(a)).localeCompare(b.company || displayName(b), "fr", {
         sensitivity: "base",
       }),
     );
-  }, [data, search]);
+  }, [data, search, allCriteria, fProfile, fStrategy, fBand, fRegion, af]);
 
   const bandOf = (investor: Investor) => {
     const detailedBands = [
@@ -234,8 +247,8 @@ function InvestorsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
         <div>
-          <p className="eyebrow">Base acquéreurs</p>
-          <h1 className="mt-1 text-3xl">Acquéreurs</h1>
+          <p className="eyebrow">Base investisseurs</p>
+          <h1 className="mt-1 text-3xl">Investisseurs</h1>
         <AgentSelect f={af} />
         </div>
         <div className="grid w-full grid-cols-1 gap-3 sm:ml-auto sm:flex sm:w-auto">
@@ -245,7 +258,6 @@ function InvestorsPage() {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full sm:w-56"
           />
-          {canEdit && <Button className="min-h-11" variant="outline" onClick={() => {setBands({});setAssetStrategies({});setEditing({...emptyDraft,investor_profile:"Acheteur habitation",asset_classes:["Appartement"],residential_criteria:{}});}}><Plus className="size-4" /> Nouvel acheteur (habitation)</Button>}
           {canEdit && (
             <Dialog
               open={editing !== null}
@@ -259,7 +271,7 @@ function InvestorsPage() {
               <DialogContent className="flex max-h-[96dvh] max-w-xl flex-col overflow-hidden sm:max-h-[90vh] sm:w-[calc(100%-2rem)]">
                 <DialogHeader>
                   <DialogTitle>
-                    {editing?.id ? "Modifier le profil" : editing?.investor_profile === "Acheteur habitation" ? "Nouvel acheteur habitation" : "Nouvel acquéreur"}
+                    {editing?.id ? "Modifier le profil" : "Nouvel investisseur"}
                   </DialogTitle>
                 </DialogHeader>
                 {editing && (
@@ -300,6 +312,26 @@ function InvestorsPage() {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {([
+          ["Profil", fProfile, setFProfile, INVESTOR_PROFILES],
+          ["Stratégie", fStrategy, setFStrategy, STRATEGIES],
+          ["Montant", fBand, setFBand, AMOUNT_BANDS],
+          ["Région", fRegion, setFRegion, REGIONS],
+        ] as const).map(([label, value, set, opts]) => (
+          <select
+            key={label}
+            aria-label={label}
+            value={value}
+            onChange={(e) => set(e.target.value)}
+            className="min-h-11 w-full rounded-md border border-input bg-background px-2 text-sm"
+          >
+            <option value="">{label} : tous</option>
+            {opts.map((o) => <option key={o} value={o}>{o}</option>)}
+          </select>
+        ))}
+      </div>
+
       {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
       {!isLoading && filtered.length === 0 && (
         <div className="panel p-10 text-center text-sm text-muted-foreground">
@@ -321,7 +353,7 @@ function InvestorsPage() {
         ))}
       </div>
       <RecordDialog
-        title={detail ? displayName(detail) : "Acquéreur"}
+        title={detail ? displayName(detail) : "Investisseur"}
         open={!!detail}
         onClose={() => setDetail(null)}
       >
