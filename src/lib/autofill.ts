@@ -1,3 +1,4 @@
+import { ASSET_CLASSES } from "@/lib/taxonomy";
 // Règles pures du pré-remplissage automatique (testées).
 export type AutofillFields = {
   title?: string | null; city?: string | null; address?: string | null; postal_code?: string | null;
@@ -24,6 +25,7 @@ export function mergeAutofill(asset: AssetRow, r: AutofillFields, source: string
   const patch: Record<string, unknown> = {};
   for (const k of DIRECT) {
     const v = r[k];
+    if (k === "asset_class" && !(ASSET_CLASSES as readonly string[]).includes(String(v))) continue;
     if (!empty(v) && empty(asset[k])) patch[k] = v;
   }
   const desc = asset.description ?? "";

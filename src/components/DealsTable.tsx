@@ -10,7 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { suggestDealMerges } from "@/lib/deal-dedup.functions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MergePicker } from "@/components/MergePicker";
-import { assetKindLabel, guessClassFromName, shortClassLabel, locationLabel } from "@/lib/taxonomy";
+import { assetKindLabel, shortClassLabel, locationLabel } from "@/lib/taxonomy";
 import { cityKey, mergeDealFields, type MergeGroup } from "@/lib/deal-merge";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -131,7 +131,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     },
   });
   const assetOf = (d: { asset_id: string | null }) => (d.asset_id ? dealAssets.data?.get(d.asset_id) : undefined);
-  const classOf = (d: { asset_id: string | null; name: string }) => assetOf(d)?.asset_class || guessClassFromName(d.name);
+  const classOf = (d: { asset_id: string | null; name: string }) => assetOf(d)?.asset_class || null;
 
   const agents = useQuery({
     queryKey: ["deal-agents"],
@@ -597,7 +597,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <CompactRow
             title={d.name}
             subtitle={mode === "pipeline" ? [d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ") : [assetKindLabel(assetOf(d)?.asset_class, assetOf(d)?.asset_subclass) || "Classe à préciser", d.surface ? m2(d.surface) : "", d.amount ? `Prix ${eur(d.amount)}` : ""].filter(Boolean).join(" · ")}
-            summary={mode === "targets" ? [shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "Classe ?", locationLabel(classOf(d), assetOf(d)?.city, assetOf(d)?.address || d.address), mailsOf(d.id)[0] && `✉ ${mailsOf(d.id)[0]}`].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
+            summary={mode === "targets" ? [shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || null, locationLabel(classOf(d), assetOf(d)?.city, assetOf(d)?.address || d.address), mailsOf(d.id)[0] && `✉ ${mailsOf(d.id)[0]}`].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
             trailing={
               mode === "targets" && canEdit ? (

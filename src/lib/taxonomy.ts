@@ -164,28 +164,6 @@ export function locationLabel(cls: string | null | undefined, city: string | nul
   return parts.filter(Boolean).join(" · ");
 }
 
-/** Classe déduite du nom du dossier quand elle n'est pas encore renseignée. */
-export function guessClassFromName(name?: string | null): string | null {
-  const n = (name ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  const rules: [RegExp, string][] = [
-    [/\bhotel|resort/, "City Hôtel (sans fonds)"],
-    [/bureau/, "Bureaux"],
-    [/logistiq|entrepot/, "Logistique"],
-    [/activite/, "Activité"],
-    [/retail park/, "Retail Park complet"],
-    [/centre commercial/, "Centres commerciaux"],
-    [/commerce|boutique|local commercial|locaux commerciaux/, "Murs de commerces de pied d'immeuble"],
-    [/restaurant/, "Murs de restaurants"],
-    [/ehpad/, "EHPAD"],
-    [/etudiant/, "Résidence étudiants"],
-    [/appartement/, "Appartement"],
-    [/maison|villa/, "Maison"],
-    [/terrain/, "Terrains à bâtir"],
-    [/logement|residentiel|mixte/, "Immeubles de logements ou mixtes"],
-  ];
-  return rules.find(([r]) => r.test(n))?.[1] ?? null;
-}
-
 /** Libellé court pour les listes (place limitée sur téléphone). */
 export function shortClassLabel(cls?: string | null, sub?: string | null): string {
   if (!cls) return "";
