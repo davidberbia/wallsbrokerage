@@ -14,6 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Tables } from "@/integrations/supabase/types";
 import type { MailExtraction } from "@/lib/mail-extract";
 import { STAGE_NAMES, TARGET_STAGE } from "@/lib/deal-stages";
+import { correspondents, byDomain } from "@/lib/correspondents";
+import { useSelfEmails } from "@/hooks/useSelfEmails";
+import { CopyEmail } from "@/components/CopyEmail";
 
 const STAGES = [TARGET_STAGE, ...STAGE_NAMES];
 type Deal = Tables<"deals">;
@@ -28,6 +31,7 @@ const fmtAmount = (v: number | null) =>
 
 export function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const qc = useQueryClient();
+  const selfEmails = useSelfEmails();
   const deal = useQuery({
     queryKey: ["deal", id],
     queryFn: async () => {
@@ -111,6 +115,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
     setForm(null);
     toast.success("Dossier enregistré");
     refresh();
+    onClose();
   };
 
   const addContact = async () => {
@@ -195,6 +200,20 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
       <SheetHeader>
         <SheetTitle>{current.name}</SheetTitle>
       </SheetHeader>
+      {(() => {
+        const groups = byDomain(correspondents((mails.data ?? []).flatMap((m) => [m.from_email, m.to_display]), selfEmails));
+        if (!groups.length) return null;
+        return (
+          <section className="space-y-1 rounded-sm border border-border bg-muted/40 p-3">
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground">Interlocuteur</h3>
+            {groups.map(([d, list], gi) => (
+              <div key={d} className={gi ? "text-xs text-muted-foreground" : "text-sm font-medium"}>
+                {list.map((e) => <div key={e} className="flex items-center gap-1 break-all"><a href={`mailto:${e}`} className="underline-offset-2 hover:underline">{e}</a><CopyEmail email={e} /></div>)}
+              </div>
+            ))}
+          </section>
+        );
+      })()}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="sm:col-span-2">
@@ -478,14 +497,6 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
 
       <section className="space-y-2 border-t border-border pt-4">
         <h3 className="text-sm font-semibold">Emails liés ({mails.data?.length ?? 0})</h3>
-        {(() => {
-          const set = new Set<string>();
-          for (const m of mails.data ?? []) {
-            const raw = m.folder === "sentitems" ? m.to_display ?? "" : m.from_email ?? "";
-            for (const e of raw.match(/[^\s<>,;"']+@[^\s<>,;"']+/g) ?? []) if (!/wallsbroker|newsletter|no-?reply|postmaster|mailer-daemon|notification/i.test(e)) set.add(e.toLowerCase());
-          }
-          return set.size ? <p className="break-all text-xs text-muted-foreground">Correspondants : {[...set].join(", ")}</p> : null;
-        })()}
         {(mails.data ?? []).map((m) => (
           <div key={m.id} className="rounded-sm border border-border p-3 text-sm">
             <div className="flex items-start justify-between gap-2">

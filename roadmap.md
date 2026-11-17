@@ -120,3 +120,11 @@
 - Formulaire actif : réorganisation, stratégies (?), 1 seul dépôt, parkings/surface ext., photos, diffusion, propriétaire physique/moral + SIREN (gérant modifiable), champs appartement
 - Surface pondérée pour immobilier d entreprise
 - [x] Plan mandats/classes/portefeuille
+
+## Lot du 17 novembre — validé
+- [x] Fermeture des fiches à chaque « Enregistrer » (dossier, mandat, prospect, à qualifier ; les autres le faisaient déjà).
+- [x] Seule l'adresse de l'utilisateur connecté est masquée ; interlocuteur et collègues en haut de la fiche.
+- [x] Documents d'actif en dossiers Images (défilement), Plans, Baux ; présentations à la racine.
+- [x] Partager : ouverture de la messagerie avec le lien 15 jours, téléchargement des pièces pour les joindre.
+- [ ] Pré-remplissage automatique de la fiche depuis les pièces jointes des mails (adresse, loyers, WALB/WALT…) : à faire au prochain lot.
+- [ ] Photo principale choisie automatiquement (meilleure résolution, paysage) : à faire au prochain lot.

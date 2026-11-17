@@ -241,7 +241,7 @@ function MandatesPage() {
       >
         {detail && (
           <>
-            <MandateEditor key={detail.id} row={detail} onSaved={() => void qc.invalidateQueries({ queryKey: ["mandates"] })} />
+            <MandateEditor key={detail.id} row={detail} onSaved={() => { void qc.invalidateQueries({ queryKey: ["mandates"] }); setDetailId(null); }} />
             {detail.sig && <p className="text-sm text-muted-foreground">Signature : {SIG[detail.sig] ?? detail.sig}</p>}
             <Label>Agent concerné</Label>
             <Select

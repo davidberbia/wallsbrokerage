@@ -409,6 +409,7 @@ function ProspectsPage() {
         setOpen(null);
         toast.success("Prospect basculé dans l'onglet Investisseurs");
       } else {
+        setOpen(null);
         toast.success("Fiche enregistrée");
       }
     },

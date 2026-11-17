@@ -170,6 +170,7 @@ function DetectedContactsPage() {
       return;
     }
     setEditing(false);
+    setDetailId(null);
     void qc.invalidateQueries({ queryKey: ["mailscan-candidates"] });
     toast.success("Fiche enregistrée");
   };

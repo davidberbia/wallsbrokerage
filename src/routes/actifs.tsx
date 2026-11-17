@@ -1,3 +1,4 @@
+import { docFolder } from "@/lib/doc-folders";
 import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { ResidentialFields, RESIDENTIAL_LABELS } from "@/components/ResidentialFields";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +8,7 @@ import { lookupSiren } from "@/lib/siren.functions";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { MergePicker } from "@/components/MergePicker";
 import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
-import { Merge } from "lucide-react";
+import { Merge, Folder } from "lucide-react";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
 import { addOneYear , feeText, feeChargeText } from "@/lib/mandate-template";
@@ -1198,6 +1199,13 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
       );
     },
   });
+  const plansList = useQuery({
+    queryKey: ["asset-detail-plans", asset.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("asset_documents").select("id, path, name").eq("asset_id", asset.id).eq("category", "plan").order("sort_order");
+      return data ?? [];
+    },
+  });
   return (
     <>
       <div className="flex flex-wrap gap-2">
@@ -1257,30 +1265,45 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Fin", asset.mandate_end],
         ]}
       />
-      <div className="grid grid-cols-2 gap-2">
-        {photos.data
-          ?.filter((p) => p.url)
-          .map((p) => (
-            <img
-              key={p.id}
-              src={p.url}
-              alt={p.name}
-              className="aspect-video w-full rounded-sm object-cover"
-            />
-          ))}
-      </div>
-      <h3>Documents</h3>
-      {docs.data?.map((d) => (
-        <Button
-          key={d.id}
-          variant="outline"
-          className="w-full min-w-0 justify-start"
-          onClick={() => void openDocument(d.path).catch(() => toast.error("Document introuvable"))}
-        >
-          <ExternalLink className="size-4 shrink-0" />
-          <span className="truncate">{d.name}</span>
-        </Button>
-      ))}
+      {(() => {
+        const all = docs.data ?? [];
+        const open = (path: string) => void openDocument(path).catch(() => toast.error("Document introuvable"));
+        const btn = (d: { id: string; path: string; name: string }) => (
+          <Button key={d.id} variant="outline" className="w-full min-w-0 justify-start" onClick={() => open(d.path)}>
+            <ExternalLink className="size-4 shrink-0" />
+            <span className="truncate">{d.name}</span>
+          </Button>
+        );
+        const imgs = (photos.data ?? []).filter((p) => p.url);
+        const baux = all.filter((d) => docFolder(d.name) === "Baux");
+        const plansDocs = all.filter((d) => docFolder(d.name) === "Plans");
+        const root = all.filter((d) => docFolder(d.name) === "racine");
+        const folder = (title: string, count: number, body: import("react").ReactNode) => (
+          <details className="rounded-sm border border-border">
+            <summary className="flex min-h-11 cursor-pointer items-center gap-2 px-3 text-sm font-medium">
+              <Folder className="size-4 shrink-0" /> {title} <span className="text-muted-foreground">({count})</span>
+            </summary>
+            <div className="space-y-2 p-3 pt-0">{body}</div>
+          </details>
+        );
+        return (
+          <section className="space-y-2">
+            <h3>Documents</h3>
+            {folder("Images", imgs.length, (
+              <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1">
+                {imgs.map((p) => (
+                  <button key={p.id} type="button" className="w-4/5 shrink-0 snap-center sm:w-1/2" onClick={() => open(p.path)}>
+                    <img src={p.url} alt={p.name} className="aspect-video w-full rounded-sm object-cover" />
+                  </button>
+                ))}
+              </div>
+            ))}
+            {folder("Plans", plansDocs.length + (plansList.data?.length ?? 0), <>{(plansList.data ?? []).map(btn)}{plansDocs.map(btn)}</>)}
+            {folder("Baux", baux.length, baux.map(btn))}
+            {root.map(btn)}
+          </section>
+        );
+      })()}
     </>
   );
 }

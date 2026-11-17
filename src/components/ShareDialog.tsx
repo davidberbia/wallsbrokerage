@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Share2 } from "lucide-react";
+import { Copy, Download, Mail, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ export function ShareDialog({ assetId }: { assetId: string }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("asset_documents")
-        .select("id, name, category")
+        .select("id, name, category, path")
         .eq("asset_id", assetId)
         .order("created_at");
       if (error) throw error;
@@ -49,8 +49,9 @@ export function ShareDialog({ assetId }: { assetId: string }) {
     toast.success("Lien copié (valable 15 jours)");
   };
 
-  const create = async () => {
+  const create = async (viaMail = false) => {
     if (picked.size === 0) { toast.error("Choisissez au moins un document"); return; }
+    const to = recipient.trim();
     const { data, error } = await supabase
       .from("document_shares")
       .insert({ asset_id: assetId, document_ids: [...picked], recipient: recipient.trim() || null })
@@ -60,7 +61,21 @@ export function ShareDialog({ assetId }: { assetId: string }) {
     setPicked(new Set());
     setRecipient("");
     await qc.invalidateQueries({ queryKey: ["shares", assetId] });
-    await copy(data.token);
+    if (viaMail) {
+      const subject = encodeURIComponent("Documents");
+      const body = encodeURIComponent(`Bonjour,\n\nVous trouverez les documents via ce lien sécurisé (valable 15 jours) :\n${linkOf(data.token)}\n\nBien cordialement`);
+      window.location.href = `mailto:${/@/.test(to) ? to : ""}?subject=${subject}&body=${body}`;
+    } else await copy(data.token);
+  };
+
+  /** Télécharge les pièces choisies pour les joindre à la main dans Outlook. */
+  const download = async () => {
+    const list = (docs.data ?? []).filter((d) => picked.has(d.id));
+    if (!list.length) { toast.error("Choisissez au moins un document"); return; }
+    for (const d of list) {
+      const { data } = await supabase.storage.from("brochures").createSignedUrl(d.path, 600, { download: d.name });
+      if (data) { const a = document.createElement("a"); a.href = data.signedUrl; a.click(); }
+    }
   };
 
   const revoke = async (id: string) => {
@@ -97,10 +112,18 @@ export function ShareDialog({ assetId }: { assetId: string }) {
             </label>
           ))}
           {docs.data?.length === 0 && <p className="text-sm text-muted-foreground">Aucun document sur cet actif.</p>}
-          <Input placeholder="Destinataire (facultatif)" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
-          <Button className="min-h-11 w-full" onClick={() => void create()}>
-            Créer le lien et le copier
+          <Input placeholder="E-mail du destinataire" type="email" value={recipient} onChange={(e) => setRecipient(e.target.value)} />
+          <Button className="min-h-11 w-full" onClick={() => void create(true)}>
+            <Mail className="size-4" /> Envoyer depuis ma messagerie
           </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button variant="outline" className="min-h-11" onClick={() => void create()}>
+              <Copy className="size-4" /> Copier le lien
+            </Button>
+            <Button variant="outline" className="min-h-11" onClick={() => void download()}>
+              <Download className="size-4" /> Télécharger
+            </Button>
+          </div>
         </div>
         {(shares.data ?? []).length > 0 && (
           <div className="space-y-2 pt-2">

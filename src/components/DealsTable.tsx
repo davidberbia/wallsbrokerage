@@ -1,3 +1,5 @@
+import { correspondents as thirdParties } from "@/lib/correspondents";
+import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow } from "@/components/CompactRow";
 import { Fragment, useMemo, useRef, useState } from "react";
@@ -83,6 +85,7 @@ function normalizeStage(v: unknown): string {
 export function DealsTable({ mode }: { mode: Mode }) {
   const { canEdit, user } = useAuth();
   const qc = useQueryClient();
+  const selfEmails = useSelfEmails();
   const isMobile = useIsMobile();
   const thisYear = new Date().getFullYear();
   const [year, setYear] = useState(thisYear);
@@ -227,7 +230,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     onSettled: refresh,
   });
   const correspondents = useQuery({
-    queryKey: ["deal-correspondents"],
+    queryKey: ["deal-correspondents", selfEmails.join(",")],
     enabled: mode === "targets",
     queryFn: async () => {
       const { data, error } = await supabase
@@ -240,7 +243,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
       for (const m of data ?? []) {
         const set = map.get(m.deal_id!) ?? new Set<string>();
         const raw = m.folder === "sentitems" ? m.to_display ?? "" : m.from_email ?? "";
-        for (const e of raw.match(/[^\s<>,;"']+@[^\s<>,;"']+/g) ?? []) if (!/wallsbroker|newsletter|no-?reply|postmaster|mailer-daemon|notification/i.test(e)) set.add(e.toLowerCase());
+        for (const e of thirdParties([raw], selfEmails)) set.add(e);
         map.set(m.deal_id!, set);
       }
       return map;
