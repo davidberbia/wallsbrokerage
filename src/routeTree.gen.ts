@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AQualifierRouteImport } from './routes/a-qualifier'
+import { Route as AcheteursRouteImport } from './routes/acheteurs'
 import { Route as ActifsRouteImport } from './routes/actifs'
 import { Route as AgentsCoRouteImport } from './routes/agents-co'
 import { Route as ArbitrageRouteImport } from './routes/arbitrage'
@@ -64,6 +65,11 @@ const IndexRoute = IndexRouteImport.update({
 const AQualifierRoute = AQualifierRouteImport.update({
   id: '/a-qualifier',
   path: '/a-qualifier',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcheteursRoute = AcheteursRouteImport.update({
+  id: '/acheteurs',
+  path: '/acheteurs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActifsRoute = ActifsRouteImport.update({
@@ -297,6 +303,7 @@ const ApiPublicTIdRoute = ApiPublicTIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/a-qualifier': typeof AQualifierRoute
+  '/acheteurs': typeof AcheteursRoute
   '/actifs': typeof ActifsRoute
   '/agents-co': typeof AgentsCoRoute
   '/arbitrage': typeof ArbitrageRoute
@@ -345,6 +352,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/a-qualifier': typeof AQualifierRoute
+  '/acheteurs': typeof AcheteursRoute
   '/actifs': typeof ActifsRoute
   '/agents-co': typeof AgentsCoRoute
   '/arbitrage': typeof ArbitrageRoute
@@ -394,6 +402,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/a-qualifier': typeof AQualifierRoute
+  '/acheteurs': typeof AcheteursRoute
   '/actifs': typeof ActifsRoute
   '/agents-co': typeof AgentsCoRoute
   '/arbitrage': typeof ArbitrageRoute
@@ -444,6 +453,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/a-qualifier'
+    | '/acheteurs'
     | '/actifs'
     | '/agents-co'
     | '/arbitrage'
@@ -492,6 +502,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/a-qualifier'
+    | '/acheteurs'
     | '/actifs'
     | '/agents-co'
     | '/arbitrage'
@@ -540,6 +551,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/a-qualifier'
+    | '/acheteurs'
     | '/actifs'
     | '/agents-co'
     | '/arbitrage'
@@ -589,6 +601,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AQualifierRoute: typeof AQualifierRoute
+  AcheteursRoute: typeof AcheteursRoute
   ActifsRoute: typeof ActifsRoute
   AgentsCoRoute: typeof AgentsCoRoute
   ArbitrageRoute: typeof ArbitrageRoute
@@ -649,6 +662,13 @@ declare module '@tanstack/react-router' {
       path: '/a-qualifier'
       fullPath: '/a-qualifier'
       preLoaderRoute: typeof AQualifierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acheteurs': {
+      id: '/acheteurs'
+      path: '/acheteurs'
+      fullPath: '/acheteurs'
+      preLoaderRoute: typeof AcheteursRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/actifs': {
@@ -965,6 +985,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AQualifierRoute: AQualifierRoute,
+  AcheteursRoute: AcheteursRoute,
   ActifsRoute: ActifsRoute,
   AgentsCoRoute: AgentsCoRoute,
   ArbitrageRoute: ArbitrageRoute,

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import {
   BookUser,
+  Home,
   Crosshair,
   Handshake,
   Building2,
@@ -36,10 +37,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 
 const CONTACT_ITEMS = [
   { to: "/investisseurs", label: "Investisseurs", icon: Users, admin: false },
-  { to: "/prospects", label: "Prospects", icon: Contact, admin: false },
+  { to: "/acheteurs", label: "Acheteurs", icon: Home, admin: false },
   { to: "/brokers", label: "Brokers", icon: Handshake, admin: true },
   { to: "/notaires", label: "Notaires", icon: Landmark, admin: true },
-  { to: "/contacts", label: "Divers", icon: BookUser, admin: true },
+  { to: "/prospects", label: "Prospects", icon: Contact, admin: false },
   { to: "/a-qualifier", label: "À qualifier", icon: Mail, admin: true },
 ] as const;
 
