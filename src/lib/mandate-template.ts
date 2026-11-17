@@ -16,7 +16,7 @@ export function fillTemplate(body: string, values: Record<string, string | null 
   return body.replace(/\{\{(\w+)\}\}/g, (all, k: string) => {
     const v = values[k];
     if (!v || !v.trim()) return all;
-    return k === "mandant" ? `**${v.trim()}**` : v;
+    return ["mandant", "honoraires", "charge_honoraires"].includes(k) ? `**${v.trim()}**` : v;
   });
 }
 
@@ -52,18 +52,16 @@ export function withSignatures(body: string): string {
 }
 
 const anchorSpan = (a: string) => `<span style="color:#ffffff;font-size:6pt">${esc(a)}</span>`;
-const BOX = "border:1px solid #9a9a9a;border-radius:4px";
 
 function signaturesHtml(): string {
-  const cell = (who: string, mention: string, anchor: string) =>
-    `<td style="width:50%;vertical-align:top;padding:8px"><strong>${who}</strong><div style="margin:6px 0;min-height:44px">Mention :<br><em>« ${mention} »</em></div><div style="${BOX};height:90px;padding:6px;font-size:9pt;color:#777">Signature<br><br>${anchorSpan(anchor)}</div><div style="margin-top:6px;font-size:10pt">Date : ____________</div></td>`;
-  return `<table style="width:100%;margin-top:16px;border-collapse:collapse;page-break-inside:avoid"><tr>${cell("LE MANDANT", MENTION_MANDANT, ANCHOR_MANDANT)}${cell("LE MANDATAIRE — WALLSBROKER", MENTION_MANDATAIRE, ANCHOR_MANDATAIRE)}</tr></table>`;
+  const cell = (l2: string, who: string, anchor: string) =>
+    `<td style="width:50%;vertical-align:top;padding:4px 8px;${BASE}">« Lu et approuvé »<br>« ${l2} »<br><br><strong>${who}</strong><div style="height:80px;padding-top:8px">${anchorSpan(anchor)}</div></td>`;
+  return `<div style="page-break-inside:avoid"><table style="width:100%;border-collapse:collapse"><tr>${cell("Bon pour Mandat", "LE MANDANT", ANCHOR_MANDANT)}${cell("Mandat accepté", "LE MANDATAIRE", ANCHOR_MANDATAIRE)}</tr></table><p style="${BASE};margin:8px 0 0">Mots rayés nuls :</p></div>`;
 }
 
 function initialsHtml(): string {
-  const cell = (who: string, anchor: string) =>
-    `<td style="width:50%;padding:4px 8px"><div style="${BOX};height:44px;padding:4px;font-size:8pt;color:#777">Paraphe ${who}<br>${anchorSpan(anchor)}</div></td>`;
-  return `<table style="width:100%;margin-top:12px;border-collapse:collapse"><tr>${cell("Mandant", ANCHOR_INIT_MANDANT)}${cell("Mandataire", ANCHOR_INIT_MANDATAIRE)}</tr></table>`;
+  const box = (anchor: string) => `<td style="width:52px;height:34px;border:1px solid #000000;padding:2px">${anchorSpan(anchor)}</td>`;
+  return `<table style="margin:14px 0 0 auto;border-collapse:separate;border-spacing:6px 0"><tr>${box(ANCHOR_INIT_MANDANT)}${box(ANCHOR_INIT_MANDATAIRE)}</tr></table>`;
 }
 
 function tableHtml(block: string): string {
@@ -85,21 +83,31 @@ export function templateKind(type?: string | null): string {
 
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-const CHARS_PER_LINE = 80;
-const LINES_PER_PAGE = 46;
+const CHARS_PER_LINE = 95;
+const LINES_PER_PAGE = 50;
 
-const BASE = "font-family:Georgia,serif;font-size:12pt;line-height:1.45;color:#000000";
+const BASE = "font-family:'Times New Roman',Times,serif;font-size:12pt;line-height:1.35;color:#000000";
 const P = `${BASE};text-align:justify;margin:0 0 10px`;
 
+const fmt = (x: string) =>
+  esc(x).replace(/\*\*([\s\S]+?)\*\*/g, "<strong>$1</strong>").replace(/\{\{(\w+)\}\}/g, '<span style="background:#fff3a8">[$1]</span>');
+const RIGHT = `${BASE};text-align:right;margin:0 0 4px`;
+
 function paragraphHtml(b: string): string {
-  const fmt = (x: string) =>
-    esc(x).replace(/\*\*([\s\S]+?)\*\*/g, "<strong>$1</strong>").replace(/\{\{(\w+)\}\}/g, '<span style="background:#fff3a8">[$1]</span>');
   const out: string[] = [];
   let buf: string[] = [];
   const flush = () => { if (buf.length) out.push(`<p style="${P}">${buf.map(fmt).join("<br>")}</p>`); buf = []; };
-  for (const line of b.split("\n")) {
-    if (/^ci-après dénommée?/i.test(line.trim())) { flush(); out.push(`<p style="${BASE};text-align:right;margin:-6px 0 10px">${fmt(line.trim())}</p>`); }
-    else buf.push(line);
+  for (const raw of b.split("\n")) {
+    const line = raw.trim();
+    if (/^ci-après dénommée?/i.test(line)) {
+      flush();
+      const m = line.match(/^(.*?),?\s*(d'une part|d'autre part)[.,]?$/i);
+      if (m) out.push(`<p style="${RIGHT};margin-top:10px">${fmt(m[1] ?? "")},</p><p style="${RIGHT};margin-bottom:14px">${fmt((m[2] ?? "").replace(/^d/, "D"))},</p>`);
+      else out.push(`<p style="${RIGHT};margin:10px 0 14px">${fmt(line)}</p>`);
+    } else if (/^[a-z]\)\s/.test(line)) {
+      flush();
+      out.push(`<p style="${P};margin:0 0 4px 18px;padding-left:18px;text-indent:-18px">${fmt(line)}</p>`);
+    } else buf.push(raw);
   }
   flush();
   return out.join("");
@@ -117,22 +125,27 @@ export function templateToHtml(body: string, title: string): string {
     if (b === "---") { if (used > 0) pageBreak(); return; }
     let html: string;
     let lines: number;
-    if (b === SIGNATURES) { html = signaturesHtml(); lines = 9; }
-    else if (b.startsWith("# ")) { html = `<h1 style="${BASE};text-align:center;font-size:17pt;font-weight:bold;margin:12px 0">${esc(b.slice(2))}</h1>`; lines = 3; }
-    else if (b.startsWith("## ")) { html = `<h2 style="${BASE};font-size:13pt;font-weight:bold;margin:18px 0 8px">${esc(b.slice(3))}</h2>`; lines = 3; }
+    if (b === SIGNATURES) { html = signaturesHtml(); lines = 12; }
+    else if (b.startsWith("# ")) { html = `<h1 style="${BASE};text-align:center;font-size:18pt;font-weight:bold;text-transform:uppercase;margin:18px 0 6px">${esc(b.slice(2))}</h1>`; lines = 3; }
+    else if (/^Mandat établi/i.test(b)) { html = `<p style="${BASE};text-align:center;font-style:italic;font-size:11pt;margin:0 0 4px">${fmt(b)}</p><p style="${BASE};text-align:center;margin:0 0 24px">________________</p>`; lines = 4; }
+    else if (/^##\s*ENTRE LES SOUSSIGN/i.test(b)) { html = `<p style="${BASE};font-weight:bold;margin:12px 0">${esc(b.slice(3).replace(/\s*:?$/, ""))} :</p>`; lines = 2; }
+    else if (b.startsWith("## ")) { html = `<p style="${BASE};font-weight:bold;margin:16px 0 6px">${esc(b.slice(3))}</p>`; lines = 2; }
+    else if (/^ET$/.test(b)) { html = `<p style="${BASE};font-weight:bold;margin:6px 0 12px">ET</p>`; lines = 2; }
+    else if (/^IL A [EÉ]T[EÉ] CONVENU/i.test(b)) { html = `<p style="${BASE};text-align:center;font-weight:bold;text-decoration:underline;margin:22px 0 14px">${esc(b)}</p>`; lines = 3; }
+    else if (/^Fait à/.test(b)) { html = `<p style="${BASE};text-align:center;margin:18px 0 22px">${fmt(b)}</p>`; lines = 3; }
     else if (b.startsWith("|")) { html = tableHtml(b); lines = b.split("\n").length * 2 + 1; }
-    else if (i === 0) { html = `<p style="${BASE};text-align:center;margin:0 0 10px"><strong>${esc(b)}</strong></p>`; lines = 2; }
+    else if (i === 0) { html = `<p style="${BASE};text-align:center;font-size:10pt;margin:0 0 14px">${fmt(b)}</p>`; lines = 2; }
     else { html = paragraphHtml(b); lines = blockLines(b); }
     // Un titre ne reste jamais seul en bas de page.
     const next = blocks[i + 1] ?? "";
-    const glue = b.startsWith("#") || next === SIGNATURES ? Math.min(next === SIGNATURES ? 9 : blockLines(next), 8) : 0;
+    const glue = b.startsWith("#") || next === SIGNATURES ? Math.min(next === SIGNATURES ? 12 : blockLines(next), 8) : 0;
     const need = lines + glue;
     if (used > 0 && used + need > LINES_PER_PAGE) pageBreak();
     parts.push(html);
     used += lines;
   });
   parts.push(initialsHtml());
-  return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Georgia,serif;font-size:12pt;line-height:1.45;max-width:720px;margin:24px auto;padding:0 16px}p{text-align:justify;margin:0 0 10px}h1{text-align:center;font-size:18pt}h2{font-size:14pt;margin-top:18px}</style></head><body style="${BASE};max-width:720px;margin:24px auto;padding:0 16px">${parts.join("\n")}</body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:"Times New Roman",Times,serif;font-size:12pt;max-width:680px;margin:24px auto;padding:0 24px}</style></head><body style="${BASE};max-width:680px;margin:24px auto;padding:0 24px">${parts.join("\n")}</body></html>`;
 }
 
 export const FEE_PAYERS = ["Mandant", "Acquéreur", "Preneur"] as const;
