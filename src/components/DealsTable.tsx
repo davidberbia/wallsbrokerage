@@ -443,7 +443,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
         </select>
       )}
 
-      <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Millésimes">
+      <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Années">
         {years.map((y) => (
           <button
             key={y}

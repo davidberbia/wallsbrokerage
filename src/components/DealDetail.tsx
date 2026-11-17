@@ -304,7 +304,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           />
         </div>
         <div>
-          <Label>Millésime (année)</Label>
+          <Label>Année</Label>
           <Input
             type="number"
             value={current.vintage ?? ""}

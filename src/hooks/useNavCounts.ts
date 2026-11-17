@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ASSET_STAGES, TARGET_STAGE, inVintage } from "@/lib/deal-stages";
 
 type Counts = Record<string, number>;
 
@@ -20,7 +21,18 @@ export function useNavCounts(enabled: boolean) {
         count("investors"),
         count("prospect_companies"),
         count("assets"),
-        count("deals", (q) => q.neq("stage", "Prospection")),
+        // Mêmes lignes que le tableau « Suivi des affaires » : hors Prospection et hors
+        // étapes Actifs, année en cours (reports automatiques inclus).
+        (async () => {
+          const year = new Date().getFullYear();
+          const { data } = await (supabase as any)
+            .from("deals")
+            .select("id, vintage, stage, carry_over")
+            .not("stage", "in", `("${[TARGET_STAGE, ...ASSET_STAGES].join('","')}")`);
+          return ((data ?? []) as { vintage: number; stage: string; carry_over?: boolean | null }[]).filter((d) =>
+            inVintage(d, year),
+          ).length;
+        })(),
         count("comparables"),
         count("brochure_sends"),
         count("mailscan_candidates", (q) => q.eq("status", "à valider")),
