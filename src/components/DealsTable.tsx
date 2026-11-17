@@ -492,17 +492,18 @@ export function DealsTable({ mode }: { mode: Mode }) {
       {mode === "pipeline" && (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            ["Encaissé", eur(suivi.encaisse)],
-            ["Facturé reste à encaisser", eur(suivi.facture)],
-            ["En cours (non pondéré)", eur(suivi.encours)],
-            ["Annulé", eur(suivi.annule)],
-            ["Global au réel", goal > 0 ? `${eur(suivi.reel)} · ${pct(suivi.reel)}` : eur(suivi.reel)],
-            ["Global pondéré", goal > 0 ? `${eur(suivi.pondere)} · ${pct(suivi.pondere)}` : eur(suivi.pondere)],
-            ["Réalisé / objectif", pct(suivi.encaisse + suivi.facture)],
-          ].map(([k, v]) => (
+            ["Encaissé", eur(suivi.encaisse), ""],
+            ["Facturé reste à encaisser", eur(suivi.facture), ""],
+            ["En cours (non pondéré)", eur(suivi.encours), ""],
+            ["Annulé", eur(suivi.annule), ""],
+            ["Global au réel", eur(suivi.reel), goal > 0 ? pct(suivi.reel) : ""],
+            ["Global pondéré", eur(suivi.pondere), goal > 0 ? pct(suivi.pondere) : ""],
+            ["Réalisé / objectif", pct(suivi.encaisse + suivi.facture), ""],
+          ].map(([k, v, p]) => (
             <div key={k} className="rounded-sm border border-border bg-card p-3">
               <div className="text-xs text-muted-foreground">{k}</div>
               <div className="font-mono text-base font-semibold">{v}</div>
+              {p && <div className="font-mono text-sm font-semibold">{p}</div>}
             </div>
           ))}
           <label className="rounded-sm border border-border bg-card p-3">
