@@ -85,9 +85,8 @@ export const refreshMandateSignatures = createServerFn({ method: "POST" })
   });
 
 const anchorTab = (anchor: string, initials: string) => ({
-  initialHereTabs: [{ anchorString: initials, anchorUnits: "pixels", anchorYOffset: "-4", anchorXOffset: "0" }],
-  signHereTabs: [{ anchorString: anchor, anchorUnits: "pixels", anchorYOffset: "-40", anchorXOffset: "0" }],
-  dateSignedTabs: [{ anchorString: anchor, anchorUnits: "pixels", anchorYOffset: "8", anchorXOffset: "0" }],
+  initialHereTabs: [{ anchorString: initials, anchorUnits: "pixels", anchorYOffset: "0", anchorXOffset: "2" }],
+  signHereTabs: [{ anchorString: anchor, anchorUnits: "pixels", anchorYOffset: "4", anchorXOffset: "6" }],
 });
 
 /** Prépare l'enveloppe (non envoyée) depuis le mandat généré et renvoie le PDF à vérifier. */
