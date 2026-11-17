@@ -60,7 +60,7 @@ const HAND = "font-family:'Segoe Script','Bradley Hand','Brush Script MT','Lucid
 
 function signaturesHtml(): string {
   const cell = (who: string, mention: string, anchor: string, align: string) =>
-    `<td style="width:50%;vertical-align:top;padding:4px 8px;text-align:${align};${BASE}"><strong>${who}</strong><div style="height:80px;padding-top:8px">${anchorSpan(anchor)}</div><div style="${HAND};text-align:${align}">${mention}</div></td>`;
+    `<td style="width:50%;vertical-align:top;padding:4px 8px;text-align:${align};${BASE}"><strong>${who}</strong><div style="height:80px;width:220px;max-width:100%;margin:8px 0;${align === "right" ? "margin-left:auto;" : ""}border:1px solid #000000;padding:4px;box-sizing:border-box">${anchorSpan(anchor)}</div><div style="${HAND};text-align:${align}">${mention}</div></td>`;
   return `<div style="page-break-inside:avoid"><table style="width:100%;border-collapse:collapse"><tr>${cell("LE MANDANT", "Bon pour mandat", ANCHOR_MANDANT, "left")}${cell("LE MANDATAIRE", "Mandat accepté", ANCHOR_MANDATAIRE, "right")}</tr></table><p style="${BASE};margin:8px 0 0">Mots rayés nuls :</p></div>`;
 }
 
