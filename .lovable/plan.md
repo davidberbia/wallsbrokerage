@@ -2,7 +2,8 @@
 
 ## 1. Supprimer les appels téléphoniques
 - Supprimer les 27 affaires à relancer créées depuis des appels.
-- Arrêter l'analyse automatique des enregistrements d'appels et retirer son écran et son passage dans le Manuel. Les contacts, comparables et actualités déjà trouvés par cette fonction restent en place.
+- Supprimer aussi tout le reste créé par les appels : les 8 actualités, les contacts « À qualifier » ajoutés pendant l'analyse des appels et les 266 enregistrements analysés.
+- Supprimer la fonction elle-même : analyse automatique, écran et passage dans le Manuel.
 
 ## 2. Fusionner les doublons d'un même actif
 - Sur chaque ligne, un bouton « Fusionner » ouvre la liste des autres affaires à relancer de la même ville (Dammarie-les-Lys : 6 lignes aujourd'hui). Je coche celles qui parlent du même actif.
