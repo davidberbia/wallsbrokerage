@@ -38,7 +38,7 @@ export function useNavCounts(enabled: boolean) {
         count("mailscan_candidates", (q) => q.eq("status", "à valider")),
         count("deals", (q) => q.eq("stage", "Prospection")),
         count("directory_contacts", (q) => q.eq("kind", "broker")),
-        count("directory_contacts", (q) => q.eq("kind", "contact")),
+        count("directory_contacts", (q) => q.eq("kind", "utile")),
         count("directory_contacts", (q) => q.eq("kind", "notary")),
       ]);
       return {
@@ -51,7 +51,7 @@ export function useNavCounts(enabled: boolean) {
         "/a-qualifier": cont,
         "/cibles": cib,
         "/brokers": brk,
-        "/contacts": dir,
+        "/utile": dir,
         "/notaires": not,
       };
     },

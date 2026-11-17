@@ -16,14 +16,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-type Kind = "contact" | "broker" | "notary";
+type Kind = "broker" | "notary" | "utile";
 const LABELS: Record<Kind, { plural: string; one: string; desc: string }> = {
   broker: {
     plural: "Brokers",
     one: "broker",
     desc: "Vos confrères, pour partager dossiers et honoraires.",
   },
-  contact: { plural: "Divers", one: "contact", desc: "Vos contacts professionnels qualifiés." },
+  utile: { plural: "Utile", one: "contact utile", desc: "Diagnostiqueurs et autres contacts utiles." },
   notary: { plural: "Notaires", one: "notaire", desc: "Vos notaires partenaires." },
 };
 const EMPTY = { full_name: "", company: "", email: "", phone: "", job_title: "", notes: "" };

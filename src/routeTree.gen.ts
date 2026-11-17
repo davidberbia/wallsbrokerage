@@ -34,6 +34,7 @@ import { Route as PresentationRouteImport } from './routes/presentation'
 import { Route as ProspectsRouteImport } from './routes/prospects'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as UtileRouteImport } from './routes/utile'
 import { Route as ValidationRouteImport } from './routes/validation'
 import { Route as FormationIndexRouteImport } from './routes/formation.index'
 import { Route as FormationSlugRouteImport } from './routes/formation.$slug'
@@ -182,6 +183,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UtileRoute = UtileRouteImport.update({
+  id: '/utile',
+  path: '/utile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ValidationRoute = ValidationRouteImport.update({
   id: '/validation',
   path: '/validation',
@@ -326,6 +332,7 @@ export interface FileRoutesByFullPath {
   '/prospects': typeof ProspectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/utile': typeof UtileRoute
   '/validation': typeof ValidationRoute
   '/formation/$slug': typeof FormationSlugRoute
   '/manuel/$slug': typeof ManuelSlugRoute
@@ -375,6 +382,7 @@ export interface FileRoutesByTo {
   '/prospects': typeof ProspectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/utile': typeof UtileRoute
   '/validation': typeof ValidationRoute
   '/formation/$slug': typeof FormationSlugRoute
   '/manuel/$slug': typeof ManuelSlugRoute
@@ -425,6 +433,7 @@ export interface FileRoutesById {
   '/prospects': typeof ProspectsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/utile': typeof UtileRoute
   '/validation': typeof ValidationRoute
   '/formation/$slug': typeof FormationSlugRoute
   '/manuel/$slug': typeof ManuelSlugRoute
@@ -476,6 +485,7 @@ export interface FileRouteTypes {
     | '/prospects'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/utile'
     | '/validation'
     | '/formation/$slug'
     | '/manuel/$slug'
@@ -525,6 +535,7 @@ export interface FileRouteTypes {
     | '/prospects'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/utile'
     | '/validation'
     | '/formation/$slug'
     | '/manuel/$slug'
@@ -574,6 +585,7 @@ export interface FileRouteTypes {
     | '/prospects'
     | '/reset-password'
     | '/sitemap.xml'
+    | '/utile'
     | '/validation'
     | '/formation/$slug'
     | '/manuel/$slug'
@@ -624,6 +636,7 @@ export interface RootRouteChildren {
   ProspectsRoute: typeof ProspectsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  UtileRoute: typeof UtileRoute
   ValidationRoute: typeof ValidationRoute
   FormationSlugRoute: typeof FormationSlugRoute
   ManuelSlugRoute: typeof ManuelSlugRoute
@@ -825,6 +838,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/utile': {
+      id: '/utile'
+      path: '/utile'
+      fullPath: '/utile'
+      preLoaderRoute: typeof UtileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/validation': {
       id: '/validation'
       path: '/validation'
@@ -1008,6 +1028,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProspectsRoute: ProspectsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  UtileRoute: UtileRoute,
   ValidationRoute: ValidationRoute,
   FormationSlugRoute: FormationSlugRoute,
   ManuelSlugRoute: ManuelSlugRoute,

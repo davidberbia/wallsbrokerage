@@ -15,7 +15,7 @@ export const Route = createFileRoute("/contacts")({
   }),
   component: () => (
     <AppLayout requireBroker requireAdmin>
-      <DirectoryPage kind="contact" />
+      <DirectoryPage kind="utile" />
     </AppLayout>
   ),
 });

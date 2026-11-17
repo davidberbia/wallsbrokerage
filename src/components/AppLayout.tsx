@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { useNavCounts } from "@/hooks/useNavCounts";
 import { AssistantBar } from "@/components/AssistantBar";
 import { HelpButton } from "@/components/manuel/HelpButton";
+import { Wrench } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const CONTACT_ITEMS = [
@@ -41,6 +42,7 @@ const CONTACT_ITEMS = [
   { to: "/brokers", label: "Brokers", icon: Handshake, admin: true },
   { to: "/notaires", label: "Notaires", icon: Landmark, admin: true },
   { to: "/prospects", label: "Prospects", icon: Contact, admin: false },
+  { to: "/utile", label: "Utile", icon: Wrench, admin: true },
   { to: "/a-qualifier", label: "À qualifier", icon: Mail, admin: true },
 ] as const;
 
@@ -253,8 +255,8 @@ export function AppLayout({
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-5 sm:py-10">
         {isStaff && isContactsPage && (
           <section className="mb-6 min-w-0" aria-label="Contacts">
-            <h1 className="mb-3 font-display text-2xl font-semibold">Contacts</h1>
-            <nav aria-label="Annuaires de contacts" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            <nav aria-label="Annuaires de contacts" className="grid grid-cols-2 gap-2">
+              <h1 className="flex min-h-11 items-center font-display text-2xl font-semibold">Contacts</h1>
               {contactTabs.map((item) => (
                 <Link
                   key={item.to}
