@@ -1335,9 +1335,11 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Surface pondérée (m²)", asset.weighted_surface == null ? null : String(asset.weighted_surface)],
           ["Surface extérieure (m²)", asset.outdoor_surface == null ? null : String(asset.outdoor_surface)],
           ["Parkings", asset.parking_count == null ? null : String(asset.parking_count)],
-          ["Nombre de clés", asset.keys_count == null ? null : String(asset.keys_count)],
-          ["Prix à la clé", asset.keys_count && asset.price ? formatEUR(Math.round(asset.price / asset.keys_count)) : null],
-          ["Catégorie", asset.hotel_category ?? null],
+          ...(/h[oô]tel/i.test(asset.asset_class ?? "") ? [
+            ["Nombre de clés", asset.keys_count == null ? null : String(asset.keys_count)],
+            ["Prix à la clé", asset.keys_count && asset.price ? formatEUR(Math.round(asset.price / asset.keys_count)) : null],
+            ["Catégorie", asset.hotel_category ?? null],
+          ] as [string, string | null][] : []),
           ...(([
             ["Chiffre d'affaires", [["N", asset.revenue], ["N-1", asset.revenue_n1], ["N-2", asset.revenue_n2]]],
             ["EBE", [["N", asset.ebe], ["N-1", asset.ebe_n1], ["N-2", asset.ebe_n2]]],
