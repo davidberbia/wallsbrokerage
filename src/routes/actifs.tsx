@@ -795,23 +795,32 @@ function AssetForm({
             <Field label="Nombre de parkings">
               <Input type="number" min={0} value={draft.parking_count ?? ""} onChange={(e) => set({ parking_count: e.target.value ? Number(e.target.value) : null })} />
             </Field>
-            {/h[oô]tel/i.test(draft.asset_class ?? "") && (
+            {(() => {
+              const cls = draft.asset_class ?? "";
+              const isHotel = /h[oô]tel/i.test(cls);
+              const showRevenue = isHotel || /restaurant|buffet/i.test(cls);
+              if (!showRevenue) return null;
+              return (
               <>
-                <Field label="Nombre de clés / chambres">
-                  <Input type="number" min={0} value={draft.keys_count ?? ""} onChange={(e) => set({ keys_count: e.target.value ? Number(e.target.value) : null })} />
-                </Field>
-                <Field label="Catégorie">
-                  <Select value={draft.hotel_category || "none"} onValueChange={(v) => set({ hotel_category: v === "none" ? null : v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Non renseignée</SelectItem>
-                      {["1 étoile", "2 étoiles", "3 étoiles", "4 étoiles", "5 étoiles", "Palace"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </Field>
+                {isHotel && (
+                  <>
+                    <Field label="Nombre de clés / chambres">
+                      <Input type="number" min={0} value={draft.keys_count ?? ""} onChange={(e) => set({ keys_count: e.target.value ? Number(e.target.value) : null })} />
+                    </Field>
+                    <Field label="Catégorie">
+                      <Select value={draft.hotel_category || "none"} onValueChange={(v) => set({ hotel_category: v === "none" ? null : v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Non renseignée</SelectItem>
+                          {["1 étoile", "2 étoiles", "3 étoiles", "4 étoiles", "5 étoiles", "Palace"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  </>
+                )}
                 {([
                   ["Chiffre d'affaires (€)", [["revenue", "N"], ["revenue_n1", "N-1"], ["revenue_n2", "N-2"]]],
-                  ["EBE (€)", [["ebe", "N"], ["ebe_n1", "N-1"], ["ebe_n2", "N-2"]]],
+                  ...(isHotel ? [["EBE (€)", [["ebe", "N"], ["ebe_n1", "N-1"], ["ebe_n2", "N-2"]]]] as const : []),
                 ] as const).map(([title, cols]) => (
                   <div key={title} className="sm:col-span-2">
                     <Label>{title}</Label>
@@ -826,7 +835,8 @@ function AssetForm({
                   </div>
                 ))}
               </>
-            )}
+              );
+            })()}
             <Field label="Prix (€)">
               <Input inputMode="numeric" value={formatThousands(draft.price)} onChange={(e) => set({ price: parseThousands(e.target.value) })} />
             </Field>
@@ -1328,12 +1338,12 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Nombre de clés", asset.keys_count == null ? null : String(asset.keys_count)],
           ["Prix à la clé", asset.keys_count && asset.price ? formatEUR(Math.round(asset.price / asset.keys_count)) : null],
           ["Catégorie", asset.hotel_category ?? null],
-          ["CA N", asset.revenue == null ? null : formatEUR(asset.revenue)],
-          ["CA N-1", asset.revenue_n1 == null ? null : formatEUR(asset.revenue_n1)],
-          ["CA N-2", asset.revenue_n2 == null ? null : formatEUR(asset.revenue_n2)],
-          ["EBE N", asset.ebe == null ? null : formatEUR(asset.ebe)],
-          ["EBE N-1", asset.ebe_n1 == null ? null : formatEUR(asset.ebe_n1)],
-          ["EBE N-2", asset.ebe_n2 == null ? null : formatEUR(asset.ebe_n2)],
+          ...(([
+            ["Chiffre d'affaires", [["N", asset.revenue], ["N-1", asset.revenue_n1], ["N-2", asset.revenue_n2]]],
+            ["EBE", [["N", asset.ebe], ["N-1", asset.ebe_n1], ["N-2", asset.ebe_n2]]],
+          ] as [string, [string, number | null][]][])
+            .map(([label, trio]) => [label, trio.filter(([, v]) => v != null).map(([l, v]) => `${l} : ${formatEUR(v)}`).join(" · ")] as [string, string])
+            .filter(([, text]) => text !== "")),
           ["Email propriétaire", asset.owner_email],
           ["Téléphone propriétaire", asset.owner_phone],
           ["Type de mandat", asset.mandate_type],
@@ -1368,7 +1378,7 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
             <summary className="flex min-h-11 cursor-pointer items-center gap-2 px-3 text-sm font-medium">
               <Folder className="size-4 shrink-0" /> {title} <span className="text-muted-foreground">({count})</span>
             </summary>
-            <div className="space-y-2 p-3 pt-0">{body}</div>
+            <div className="max-h-44 space-y-2 overflow-y-auto p-3 pt-0">{body}</div>
           </details>
         );
         return (
@@ -1396,7 +1406,7 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
               </>;
             })()}
             {folder("Baux", baux.length, baux.map(btn))}
-            {root.map(btn)}
+            {root.length > 0 && <div className="max-h-44 space-y-2 overflow-y-auto">{root.map(btn)}</div>}
           </section>
         );
       })()}
