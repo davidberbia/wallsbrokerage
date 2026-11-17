@@ -53,15 +53,17 @@ export function withSignatures(body: string): string {
 
 const anchorSpan = (a: string) => `<span style="color:#ffffff;font-size:6pt">${esc(a)}</span>`;
 
+const HAND = "font-family:'Segoe Script','Bradley Hand','Brush Script MT','Lucida Handwriting',cursive;font-size:15pt;color:#1a2a6c";
+
 function signaturesHtml(): string {
-  const cell = (l2: string, who: string, anchor: string) =>
-    `<td style="width:50%;vertical-align:top;padding:4px 8px;${BASE}">« Lu et approuvé »<br>« ${l2} »<br><br><strong>${who}</strong><div style="height:80px;padding-top:8px">${anchorSpan(anchor)}</div></td>`;
-  return `<div style="page-break-inside:avoid"><table style="width:100%;border-collapse:collapse"><tr>${cell("Bon pour Mandat", "LE MANDANT", ANCHOR_MANDANT)}${cell("Mandat accepté", "LE MANDATAIRE", ANCHOR_MANDATAIRE)}</tr></table><p style="${BASE};margin:8px 0 0">Mots rayés nuls :</p></div>`;
+  const cell = (who: string, mention: string, anchor: string, align: string) =>
+    `<td style="width:50%;vertical-align:top;padding:4px 8px;text-align:${align};${BASE}"><strong>${who}</strong><div style="height:80px;padding-top:8px">${anchorSpan(anchor)}</div><div style="${HAND};text-align:${align}">${mention}</div></td>`;
+  return `<div style="page-break-inside:avoid"><table style="width:100%;border-collapse:collapse"><tr>${cell("LE MANDANT", "Bon pour mandat", ANCHOR_MANDANT, "left")}${cell("LE MANDATAIRE", "Mandat accepté", ANCHOR_MANDATAIRE, "right")}</tr></table><p style="${BASE};margin:8px 0 0">Mots rayés nuls :</p></div>`;
 }
 
 function initialsHtml(): string {
   const box = (anchor: string) => `<td style="width:52px;height:34px;border:1px solid #000000;padding:2px">${anchorSpan(anchor)}</td>`;
-  return `<table style="margin:14px 0 0 auto;border-collapse:separate;border-spacing:6px 0"><tr>${box(ANCHOR_INIT_MANDANT)}${box(ANCHOR_INIT_MANDATAIRE)}</tr></table>`;
+  return `<table style="width:100%;margin:14px 0 0;border-collapse:collapse"><tr>${box(ANCHOR_INIT_MANDANT)}<td></td>${box(ANCHOR_INIT_MANDATAIRE)}</tr></table>`;
 }
 
 function tableHtml(block: string): string {
@@ -120,7 +122,8 @@ export function templateToHtml(body: string, title: string): string {
   const blocks = body.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
   const parts: string[] = [];
   let used = 0;
-  const pageBreak = () => { parts.push(initialsHtml(), '<div style="page-break-after:always"></div>'); used = 0; };
+  let sigPage = false; // pas de paraphes sur la page des signatures
+  const pageBreak = () => { if (!sigPage) parts.push(initialsHtml()); parts.push('<div style="page-break-after:always"></div>'); used = 0; sigPage = false; };
   blocks.forEach((b, i) => {
     if (b === "---") { if (used > 0) pageBreak(); return; }
     let html: string;
@@ -143,8 +146,9 @@ export function templateToHtml(body: string, title: string): string {
     if (used > 0 && used + need > LINES_PER_PAGE) pageBreak();
     parts.push(html);
     used += lines;
+    if (b === SIGNATURES) sigPage = true;
   });
-  parts.push(initialsHtml());
+  if (!sigPage) parts.push(initialsHtml());
   return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:"Times New Roman",Times,serif;font-size:12pt;max-width:680px;margin:24px auto;padding:0 24px}</style></head><body style="${BASE};max-width:680px;margin:24px auto;padding:0 24px">${parts.join("\n")}</body></html>`;
 }
 

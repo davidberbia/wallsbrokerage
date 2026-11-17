@@ -397,6 +397,7 @@ function SignDialog({
   const [vals, setVals] = useState<Record<string, string>>({});
   const [showAll, setShowAll] = useState(false);
   const [pdf, setPdf] = useState<string | null>(null);
+  const [pages, setPages] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [lastId, setLastId] = useState<string | null>(null);
   if (target && lastId !== target.id) {
@@ -435,6 +436,8 @@ function SignDialog({
       const bytes = Uint8Array.from(atob(r.pdfBase64), (c) => c.charCodeAt(0));
       if (pdf) URL.revokeObjectURL(pdf);
       setPdf(URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })));
+      const { pdfToImages } = await import("@/lib/pdf-to-images");
+      setPages(await pdfToImages(bytes.buffer, 1.5));
       onSent();
     } catch (e) {
       toast.error((e as Error).message);
@@ -466,7 +469,7 @@ function SignDialog({
   );
   return (
     <Dialog open={!!target} onOpenChange={(o) => !o && close()}>
-      <DialogContent className="max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className={pdf ? "flex h-[100dvh] max-h-[100dvh] w-screen max-w-none flex-col gap-2 rounded-none p-2 sm:p-4" : "max-h-[90vh] max-w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-2xl"}>
         <DialogHeader>
           <DialogTitle>Mandat n° {target?.number} — signature</DialogTitle>
         </DialogHeader>
@@ -527,13 +530,13 @@ function SignDialog({
             )}
           </div>
         ) : (
-          <div className="space-y-3">
-            <iframe src={pdf} title="Mandat" className="h-[60vh] w-full rounded border" />
-            <a href={pdf} target="_blank" rel="noreferrer" className="block text-center text-sm underline">
-              Ouvrir le PDF en plein écran
-            </a>
+          <div className="flex min-h-0 flex-1 flex-col gap-2">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto rounded border bg-muted p-1">
+              {pages.length ? pages.map((src, i) => <img key={i} src={src} alt={`Page ${i + 1}`} className="w-full bg-background shadow" />)
+                : <iframe src={pdf} title="Mandat" className="h-full w-full" />}
+            </div>
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="min-h-11" disabled={busy} onClick={() => setPdf(null)}>
+              <Button variant="outline" className="min-h-11" disabled={busy} onClick={() => { setPdf(null); setPages([]); }}>
                 Corriger
               </Button>
               <Button className="min-h-11" disabled={busy} onClick={() => void submit()}>

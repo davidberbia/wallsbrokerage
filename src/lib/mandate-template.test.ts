@@ -19,9 +19,13 @@ describe("remplissage", () => {
 describe("signatures", () => {
   it("remplace les anciennes mentions par celles du Mandant et du Mandataire", () => {
     const html = templateToHtml(withSignatures("Texte\n\n« Lu et approuvé, bon pour mandat » — LE MANDANT\n« Lu et approuvé, mandat accepté » — LE MANDATAIRE"), "t");
-    expect(html).toContain("« Bon pour Mandat »");
-    expect(html).toContain("« Mandat accepté »");
-    expect(html.match(/Lu et approuvé/g)?.length).toBe(2);
+    expect(html).toContain(">Bon pour mandat<");
+    expect(html).toContain(">Mandat accepté<");
+    expect(html).not.toContain("Lu et approuvé");
+  });
+  it("ne met pas de paraphes sur la page des signatures", () => {
+    const html = templateToHtml(withSignatures("Texte\n\n---\n\nFin"), "t");
+    expect(html.match(/inimandant/g)?.length).toBe(1);
   });
   it("choisit le modèle location", () => {
     expect(templateKind("Mandat de location")).toBe("location");
