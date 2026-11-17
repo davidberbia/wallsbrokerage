@@ -332,7 +332,9 @@ export type Database = {
           id: string
           name: string
           path: string
+          render_pages: Json | null
           sort_order: number
+          source_hash: string | null
           updated_at: string
         }
         Insert: {
@@ -342,7 +344,9 @@ export type Database = {
           id?: string
           name: string
           path: string
+          render_pages?: Json | null
           sort_order?: number
+          source_hash?: string | null
           updated_at?: string
         }
         Update: {
@@ -352,7 +356,9 @@ export type Database = {
           id?: string
           name?: string
           path?: string
+          render_pages?: Json | null
           sort_order?: number
+          source_hash?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -370,6 +376,7 @@ export type Database = {
           address: string | null
           asset_class: string | null
           asset_subclass: string | null
+          autofill_sources: Json
           brochure_url: string | null
           city: string | null
           created_at: string
@@ -414,6 +421,7 @@ export type Database = {
           address?: string | null
           asset_class?: string | null
           asset_subclass?: string | null
+          autofill_sources?: Json
           brochure_url?: string | null
           city?: string | null
           created_at?: string
@@ -458,6 +466,7 @@ export type Database = {
           address?: string | null
           asset_class?: string | null
           asset_subclass?: string | null
+          autofill_sources?: Json
           brochure_url?: string | null
           city?: string | null
           created_at?: string
@@ -497,6 +506,27 @@ export type Database = {
           updated_at?: string
           weighted_surface?: number | null
           yield_pct?: number | null
+        }
+        Relationships: []
+      }
+      attachment_control: {
+        Row: {
+          id: boolean
+          lease_until: string | null
+          paused_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          lease_until?: string | null
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          lease_until?: string | null
+          paused_reason?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1738,6 +1768,65 @@ export type Database = {
         }
         Relationships: []
       }
+      mail_attachment_jobs: {
+        Row: {
+          asset_id: string
+          attachment_id: string
+          attempts: number
+          content_type: string | null
+          created_at: string
+          doc_type: string | null
+          document_id: string | null
+          error: string | null
+          graph_message_id: string
+          id: string
+          name: string | null
+          size: number | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          asset_id: string
+          attachment_id: string
+          attempts?: number
+          content_type?: string | null
+          created_at?: string
+          doc_type?: string | null
+          document_id?: string | null
+          error?: string | null
+          graph_message_id: string
+          id?: string
+          name?: string | null
+          size?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          asset_id?: string
+          attachment_id?: string
+          attempts?: number
+          content_type?: string | null
+          created_at?: string
+          doc_type?: string | null
+          document_id?: string | null
+          error?: string | null
+          graph_message_id?: string
+          id?: string
+          name?: string | null
+          size?: number | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mail_attachment_jobs_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mail_attachments_seen: {
         Row: {
           content_type: string | null
@@ -1783,6 +1872,7 @@ export type Database = {
       mail_messages: {
         Row: {
           ai_checked_at: string | null
+          attachments_listed_at: string | null
           created_at: string
           deal_id: string | null
           extracted: Json
@@ -1804,6 +1894,7 @@ export type Database = {
         }
         Insert: {
           ai_checked_at?: string | null
+          attachments_listed_at?: string | null
           created_at?: string
           deal_id?: string | null
           extracted?: Json
@@ -1825,6 +1916,7 @@ export type Database = {
         }
         Update: {
           ai_checked_at?: string | null
+          attachments_listed_at?: string | null
           created_at?: string
           deal_id?: string | null
           extracted?: Json

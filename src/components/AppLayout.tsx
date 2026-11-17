@@ -1,3 +1,4 @@
+import { useAutoRender } from "@/hooks/useAutoRender";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
@@ -82,6 +83,7 @@ export function AppLayout({
   const isActiveNav = (to: string) =>
     to === "/investisseurs" && isStaff ? isContactsPage : pathname === to || ((to === "/formation" || to === "/manuel") && pathname.startsWith(`${to}/`));
   const counts = useNavCounts(!!session && isStaff).data;
+  useAutoRender(!!session && isStaff);
   const badge = (to: string) => {
     const n = counts?.[to];
     return n == null ? null : (

@@ -1324,6 +1324,9 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
         return (
           <section className="space-y-2">
             <h3>Documents</h3>
+            {Array.isArray(asset.autofill_sources) && asset.autofill_sources.length > 0 && (
+              <p className="text-xs text-muted-foreground">Rempli automatiquement depuis : {(asset.autofill_sources as string[]).join(", ")}</p>
+            )}
             {folder("Images", imgs.length, (
               <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1">
                 {imgs.map((p) => (
@@ -1333,7 +1336,15 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
                 ))}
               </div>
             ))}
-            {folder("Plans", plansDocs.length + (plansList.data?.length ?? 0), <>{(plansList.data ?? []).map(btn)}{plansDocs.map(btn)}</>)}
+            {(() => {
+              const allPlans = [...(plansList.data ?? []), ...plansDocs];
+              const masse = allPlans.filter((d) => /plan de masse/i.test(d.name));
+              const levels = allPlans.filter((d) => !/plan de masse/i.test(d.name));
+              return <>
+                {folder("Plans", levels.length, levels.map(btn))}
+                {masse.length > 0 && folder("Plans de masse", masse.length, masse.map(btn))}
+              </>;
+            })()}
             {folder("Baux", baux.length, baux.map(btn))}
             {root.map(btn)}
           </section>

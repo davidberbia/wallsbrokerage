@@ -1,11 +1,12 @@
 // Convertit chaque page d'un PDF en image JPEG (navigateur uniquement).
-export async function pdfToImages(data: ArrayBuffer, scale = 2): Promise<string[]> {
+export async function pdfToImages(data: ArrayBuffer, scale = 2, only?: number[]): Promise<string[]> {
   const pdfjs = await import("pdfjs-dist");
   const workerUrl = (await import("pdfjs-dist/build/pdf.worker.min.mjs?url")).default;
   (pdfjs as { GlobalWorkerOptions: { workerSrc: string } }).GlobalWorkerOptions.workerSrc = workerUrl;
   const doc = await pdfjs.getDocument({ data } as Parameters<typeof pdfjs.getDocument>[0]).promise;
   const out: string[] = [];
   for (let p = 1; p <= doc.numPages; p++) {
+    if (only && !only.includes(p)) continue;
     const page = await doc.getPage(p);
     const viewport = page.getViewport({ scale });
     const canvas = document.createElement("canvas");

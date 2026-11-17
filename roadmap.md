@@ -128,3 +128,7 @@
 - [x] Partager : ouverture de la messagerie avec le lien 15 jours, téléchargement des pièces pour les joindre.
 - [ ] Pré-remplissage automatique de la fiche depuis les pièces jointes des mails (adresse, loyers, WALB/WALT…) : à faire au prochain lot.
 - [ ] Photo principale choisie automatiquement (meilleure résolution, paysage) : à faire au prochain lot.
+
+## Pré-remplissage automatique depuis la boîte mail (validé 17/11)
+- [x] Pièces jointes des mails rattachés → actif, lecture auto, fiche remplie (champs vides seulement)
+- [x] Images/plans PDF → images ; plans nommés par niveau (Plan rez-de-chaussée, Plan 1er étage…), plans de masse séparés

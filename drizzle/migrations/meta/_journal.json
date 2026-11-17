@@ -225,6 +225,13 @@
       "when": 1794918980046,
       "tag": "0031_preserve_lost_deal_fees",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794924734322,
+      "tag": "0032_migration",
+      "breakpoints": true
     }
   ]
 }
