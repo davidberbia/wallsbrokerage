@@ -362,6 +362,19 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
               <Input type="number" value={String(val(k))} onChange={(e) => setHotel({ ...hotel, [k]: e.target.value === "" ? null : Number(e.target.value) })} />
             </div>
           );
+          const trio = (title: string, cols: readonly (readonly [string, string])[]) => (
+            <div className="sm:col-span-2">
+              <Label>{title}</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {cols.map(([k, l]) => (
+                  <div key={k} className="space-y-1">
+                    <span className="block text-xs text-muted-foreground">{l}</span>
+                    <Input type="number" value={String(val(k))} onChange={(e) => setHotel({ ...hotel, [k]: e.target.value === "" ? null : Number(e.target.value) })} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
           return (
             <>
               {num("keys_count", "Nombre de clés / chambres")}
@@ -375,8 +388,8 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
                   </SelectContent>
                 </Select>
               </div>
-              {num("revenue", "CA N (€)")}{num("revenue_n1", "CA N-1 (€)")}{num("revenue_n2", "CA N-2 (€)")}
-              {num("ebe", "EBE N (€)")}{num("ebe_n1", "EBE N-1 (€)")}{num("ebe_n2", "EBE N-2 (€)")}
+              {trio("Chiffre d'affaires (€)", [["revenue", "N"], ["revenue_n1", "N-1"], ["revenue_n2", "N-2"]])}
+              {trio("EBE (€)", [["ebe", "N"], ["ebe_n1", "N-1"], ["ebe_n2", "N-2"]])}
             </>
           );
         })()}

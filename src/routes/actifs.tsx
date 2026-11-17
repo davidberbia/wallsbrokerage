@@ -611,7 +611,7 @@ function AssetForm({
 
   return (
     <form
-      className="space-y-4"
+      className="min-w-0 space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         if (!fullEdit && step === 0 && (!draft.asset_class || !draft.transaction_type)) {
@@ -809,10 +809,21 @@ function AssetForm({
                     </SelectContent>
                   </Select>
                 </Field>
-                {([["revenue", "CA N (€)"], ["revenue_n1", "CA N-1 (€)"], ["revenue_n2", "CA N-2 (€)"], ["ebe", "EBE N (€)"], ["ebe_n1", "EBE N-1 (€)"], ["ebe_n2", "EBE N-2 (€)"]] as const).map(([k, label]) => (
-                  <Field key={k} label={label}>
-                    <Input inputMode="numeric" value={formatThousands(draft[k] ?? null)} onChange={(e) => set({ [k]: parseThousands(e.target.value) })} />
-                  </Field>
+                {([
+                  ["Chiffre d'affaires (€)", [["revenue", "N"], ["revenue_n1", "N-1"], ["revenue_n2", "N-2"]]],
+                  ["EBE (€)", [["ebe", "N"], ["ebe_n1", "N-1"], ["ebe_n2", "N-2"]]],
+                ] as const).map(([title, cols]) => (
+                  <div key={title} className="sm:col-span-2">
+                    <Label>{title}</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {cols.map(([k, l]) => (
+                        <div key={k} className="space-y-1">
+                          <span className="block text-xs text-muted-foreground">{l}</span>
+                          <Input inputMode="numeric" value={formatThousands(draft[k] ?? null)} onChange={(e) => set({ [k]: parseThousands(e.target.value) })} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </>
             )}
