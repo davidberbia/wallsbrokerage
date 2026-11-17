@@ -29,7 +29,7 @@ export function classPatch(asset: AssetRow, cls: string | null | undefined, src:
   if (!cls || !(ASSET_CLASSES as readonly string[]).includes(cls)) return {};
   const cur = asset["asset_class"];
   const curSrc = asset["asset_class_source"] as string | null | undefined;
-  if (empty(cur) || (curSrc && curSrc in RANK && RANK[src] > RANK[curSrc] && cur !== cls))
+  if (empty(cur) || (curSrc && curSrc in RANK && (RANK[src] ?? 0) > (RANK[curSrc] ?? 0) && cur !== cls))
     return { asset_class: cls, asset_class_source: src };
   return {};
 }
