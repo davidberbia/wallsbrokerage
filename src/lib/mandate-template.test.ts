@@ -38,7 +38,7 @@ describe("mise en page", () => {
     expect(html).toContain("<strong>SCI TEST</strong>");
   });
   it("aligne à droite les lignes ci-après dénommé", () => {
-    expect(html).toContain('text-align:right;margin-top:-6px">ci-après');
+    expect(html).toContain('text-align:right;margin:-6px 0 10px">ci-après');
   });
   it("place les paraphes des deux parties", () => {
     expect(html).toContain("\\inimandant\\");

@@ -88,14 +88,17 @@ const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 const CHARS_PER_LINE = 80;
 const LINES_PER_PAGE = 46;
 
+const BASE = "font-family:Georgia,serif;font-size:12pt;line-height:1.45;color:#000000";
+const P = `${BASE};text-align:justify;margin:0 0 10px`;
+
 function paragraphHtml(b: string): string {
   const fmt = (x: string) =>
     esc(x).replace(/\*\*([\s\S]+?)\*\*/g, "<strong>$1</strong>").replace(/\{\{(\w+)\}\}/g, '<span style="background:#fff3a8">[$1]</span>');
   const out: string[] = [];
   let buf: string[] = [];
-  const flush = () => { if (buf.length) out.push(`<p>${buf.map(fmt).join("<br>")}</p>`); buf = []; };
+  const flush = () => { if (buf.length) out.push(`<p style="${P}">${buf.map(fmt).join("<br>")}</p>`); buf = []; };
   for (const line of b.split("\n")) {
-    if (/^ci-après dénommée?/i.test(line.trim())) { flush(); out.push(`<p style="text-align:right;margin-top:-6px">${fmt(line.trim())}</p>`); }
+    if (/^ci-après dénommée?/i.test(line.trim())) { flush(); out.push(`<p style="${BASE};text-align:right;margin:-6px 0 10px">${fmt(line.trim())}</p>`); }
     else buf.push(line);
   }
   flush();
@@ -115,10 +118,10 @@ export function templateToHtml(body: string, title: string): string {
     let html: string;
     let lines: number;
     if (b === SIGNATURES) { html = signaturesHtml(); lines = 9; }
-    else if (b.startsWith("# ")) { html = `<h1>${esc(b.slice(2))}</h1>`; lines = 3; }
-    else if (b.startsWith("## ")) { html = `<h2>${esc(b.slice(3))}</h2>`; lines = 3; }
+    else if (b.startsWith("# ")) { html = `<h1 style="${BASE};text-align:center;font-size:17pt;font-weight:bold;margin:12px 0">${esc(b.slice(2))}</h1>`; lines = 3; }
+    else if (b.startsWith("## ")) { html = `<h2 style="${BASE};font-size:13pt;font-weight:bold;margin:18px 0 8px">${esc(b.slice(3))}</h2>`; lines = 3; }
     else if (b.startsWith("|")) { html = tableHtml(b); lines = b.split("\n").length * 2 + 1; }
-    else if (i === 0) { html = `<p style="text-align:center"><strong>${esc(b)}</strong></p>`; lines = 2; }
+    else if (i === 0) { html = `<p style="${BASE};text-align:center;margin:0 0 10px"><strong>${esc(b)}</strong></p>`; lines = 2; }
     else { html = paragraphHtml(b); lines = blockLines(b); }
     // Un titre ne reste jamais seul en bas de page.
     const next = blocks[i + 1] ?? "";
@@ -129,7 +132,7 @@ export function templateToHtml(body: string, title: string): string {
     used += lines;
   });
   parts.push(initialsHtml());
-  return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Georgia,serif;font-size:13pt;line-height:1.45;max-width:720px;margin:24px auto;padding:0 16px}p{text-align:justify;margin:0 0 10px}h1{text-align:center;font-size:18pt}h2{font-size:14pt;margin-top:18px}</style></head><body>${parts.join("\n")}</body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>body{font-family:Georgia,serif;font-size:12pt;line-height:1.45;max-width:720px;margin:24px auto;padding:0 16px}p{text-align:justify;margin:0 0 10px}h1{text-align:center;font-size:18pt}h2{font-size:14pt;margin-top:18px}</style></head><body style="${BASE};max-width:720px;margin:24px auto;padding:0 16px">${parts.join("\n")}</body></html>`;
 }
 
 export const FEE_PAYERS = ["Mandant", "Acquéreur", "Preneur"] as const;
