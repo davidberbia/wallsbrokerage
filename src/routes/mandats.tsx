@@ -451,7 +451,7 @@ function SignDialog({
     setBusy(true);
     try {
       await send({ data: { mandateId: target.id } });
-      toast.success("Mandat envoyé au Mandant et au Mandataire");
+      toast.success("Mandat envoyé aux parties");
       onSent();
       close();
     } catch (e) {
@@ -546,7 +546,7 @@ function SignDialog({
                 Corriger
               </Button>
               <Button className="min-h-11" disabled={busy} onClick={() => void submit()}>
-                {busy ? "Envoi…" : "Envoyer au Mandant et au Mandataire"}
+                {busy ? "Envoi…" : "Envoi aux parties"}
               </Button>
             </div>
           </div>
