@@ -478,6 +478,14 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
 
       <section className="space-y-2 border-t border-border pt-4">
         <h3 className="text-sm font-semibold">Emails liés ({mails.data?.length ?? 0})</h3>
+        {(() => {
+          const set = new Set<string>();
+          for (const m of mails.data ?? []) {
+            const raw = m.folder === "sentitems" ? m.to_display ?? "" : m.from_email ?? "";
+            for (const e of raw.match(/[^\s<>,;"']+@[^\s<>,;"']+/g) ?? []) if (!/wallsbroker|newsletter|no-?reply|postmaster|mailer-daemon|notification/i.test(e)) set.add(e.toLowerCase());
+          }
+          return set.size ? <p className="break-all text-xs text-muted-foreground">Correspondants : {[...set].join(", ")}</p> : null;
+        })()}
         {(mails.data ?? []).map((m) => (
           <div key={m.id} className="rounded-sm border border-border p-3 text-sm">
             <div className="flex items-start justify-between gap-2">

@@ -3,9 +3,11 @@ import { CompactRow } from "@/components/CompactRow";
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { FileSpreadsheet, Merge, Plus } from "lucide-react";
+import { FileSpreadsheet, Merge, Plus, Sparkles } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { suggestDealMerges } from "@/lib/deal-dedup.functions";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cityKey, mergeDealFields } from "@/lib/deal-merge";
+import { cityKey, mergeDealFields, type MergeGroup } from "@/lib/deal-merge";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -86,6 +88,11 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [mergeFor, setMergeFor] = useState<Deal | null>(null);
   const [mergePick, setMergePick] = useState<string[]>([]);
+  const suggest = useServerFn(suggestDealMerges);
+  const [aiGroups, setAiGroups] = useState<MergeGroup[] | null>(null);
+  const [aiIndex, setAiIndex] = useState(0);
+  const [aiPick, setAiPick] = useState<string[]>([]);
+  const [aiBusy, setAiBusy] = useState(false);
   const [draft, setDraft] = useState({
     name: "",
     stage: mode === "targets" ? TARGET_STAGE : "Avis de valeur",
@@ -212,6 +219,56 @@ export function DealsTable({ mode }: { mode: Mode }) {
     onError: (e: Error) => toast.error(e.message),
     onSettled: refresh,
   });
+  const correspondents = useQuery({
+    queryKey: ["deal-correspondents"],
+    enabled: mode === "targets",
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("mail_messages")
+        .select("deal_id,from_email,to_display,folder")
+        .not("deal_id", "is", null)
+        .limit(5000);
+      if (error) throw error;
+      const map = new Map<string, Set<string>>();
+      for (const m of data ?? []) {
+        const set = map.get(m.deal_id!) ?? new Set<string>();
+        const raw = m.folder === "sentitems" ? m.to_display ?? "" : m.from_email ?? "";
+        for (const e of raw.match(/[^\s<>,;"']+@[^\s<>,;"']+/g) ?? []) if (!/wallsbroker|newsletter|no-?reply|postmaster|mailer-daemon|notification/i.test(e)) set.add(e.toLowerCase());
+        map.set(m.deal_id!, set);
+      }
+      return map;
+    },
+  });
+  const mailsOf = (id: string) => [...(correspondents.data?.get(id) ?? [])];
+  const byId = new Map(all.map((d) => [d.id, d]));
+  const aiGroup = aiGroups?.[aiIndex];
+  const aiRows = (aiGroup?.ids ?? []).map((id) => byId.get(id)).filter((d): d is Deal => !!d && d.stage === TARGET_STAGE);
+  const openAiGroup = (groups: MergeGroup[], i: number) => {
+    setAiIndex(i);
+    setAiPick(groups[i]?.ids ?? []);
+    if (i >= groups.length) {
+      setAiGroups(null);
+      toast.success(groups.length ? "Toutes les propositions ont été passées en revue" : "Aucun doublon trouvé par l'IA");
+    }
+  };
+  const runAi = async () => {
+    setAiBusy(true);
+    try {
+      const groups = await suggest();
+      setAiGroups(groups);
+      openAiGroup(groups, 0);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Analyse impossible");
+    } finally {
+      setAiBusy(false);
+    }
+  };
+  const aiMerge = async () => {
+    const picked = aiRows.filter((d) => aiPick.includes(d.id));
+    if (picked.length < 2) { toast.error("Cochez au moins deux lignes."); return; }
+    await merge.mutateAsync({ keep: picked[0]!, others: picked.slice(1) });
+    openAiGroup(aiGroups!, aiIndex + 1);
+  };
   const mergeCandidates = mergeFor
     ? rows.filter((d) => d.id !== mergeFor.id && cityKey(d.address) && cityKey(d.address) === cityKey(mergeFor.address))
     : [];
@@ -350,6 +407,11 @@ export function DealsTable({ mode }: { mode: Mode }) {
             className="hidden"
             onChange={(e) => e.target.files?.[0] && importExcel(e.target.files[0])}
           />
+          {mode === "targets" && (
+            <Button type="button" variant="outline" className="min-h-11 sm:min-h-9" disabled={aiBusy} onClick={() => void runAi()}>
+              <Sparkles className="size-4" /> {aiBusy ? "Analyse…" : "Fusion IA"}
+            </Button>
+          )}
           <Button
             type="button"
             variant="outline"
@@ -483,7 +545,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
             key={d.id}
             title={d.name}
             subtitle={mode === "pipeline" ? [d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ") : `${d.stage} · ${m2(d.surface)} · Prix ${eur(d.amount)} · Loyer ${eur(d.rent)}`}
-            summary={mode === "targets" ? [d.company,d.address].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
+            summary={mode === "targets" ? [d.company,d.address,mailsOf(d.id).slice(0,2).map((e)=>`✉ ${e}`).join(" ")].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
             trailing={
               mode === "targets" && canEdit ? (
@@ -608,6 +670,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
                   <span className="min-w-0">
                     <span className="block font-medium">{c.name}</span>
                     <span className="block text-xs text-muted-foreground">{c.address}</span>
+                    {mailsOf(c.id).length > 0 && <span className="block break-all text-xs text-muted-foreground">✉ {mailsOf(c.id).slice(0, 6).join(", ")}{mailsOf(c.id).length > 6 ? ` +${mailsOf(c.id).length - 6}` : ""}</span>}
                   </span>
                 </label>
               ))}
@@ -621,6 +684,38 @@ export function DealsTable({ mode }: { mode: Mode }) {
               disabled={!mergePick.length || merge.isPending}
               onClick={() => mergeFor && merge.mutate({ keep: mergeFor, others: mergeCandidates.filter((c) => mergePick.includes(c.id)) })}
             >
+              {merge.isPending ? "Fusion…" : "Fusionner"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!aiGroups && !!aiGroup} onOpenChange={(o) => !o && setAiGroups(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Fusion IA · {aiIndex + 1} / {aiGroups?.length ?? 0}</DialogTitle>
+          </DialogHeader>
+          {aiGroup?.reason && <p className="text-sm text-muted-foreground">{aiGroup.reason}</p>}
+          <div className="space-y-1">
+            {aiRows.map((c, i) => (
+              <label key={c.id} className="flex min-h-11 items-center gap-3 border-b border-border py-2 text-sm">
+                <Checkbox
+                  checked={aiPick.includes(c.id)}
+                  onCheckedChange={(v) => setAiPick((p) => (v ? [...p, c.id] : p.filter((x) => x !== c.id)))}
+                />
+                <span className="min-w-0">
+                  <span className="block font-medium">{c.name}{i === 0 ? " (gardée)" : ""}</span>
+                  <span className="block text-xs text-muted-foreground">{[c.address, c.surface ? m2(c.surface) : "", c.amount ? eur(c.amount) : ""].filter(Boolean).join(" · ")}</span>
+                  {mailsOf(c.id).length > 0 && <span className="block break-all text-xs text-muted-foreground">✉ {mailsOf(c.id).slice(0, 6).join(", ")}{mailsOf(c.id).length > 6 ? ` +${mailsOf(c.id).length - 6}` : ""}</span>}
+                </span>
+              </label>
+            ))}
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" className="min-h-11 w-full sm:w-auto" disabled={merge.isPending} onClick={() => openAiGroup(aiGroups!, aiIndex + 1)}>
+              Passer
+            </Button>
+            <Button className="min-h-11 w-full sm:w-auto" disabled={merge.isPending || aiPick.length < 2} onClick={() => void aiMerge()}>
               {merge.isPending ? "Fusion…" : "Fusionner"}
             </Button>
           </DialogFooter>

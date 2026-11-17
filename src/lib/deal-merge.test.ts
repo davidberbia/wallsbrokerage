@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cityKey, mergeDealFields } from "./deal-merge";
+import { cityKey, cleanGroups, mergeDealFields } from "./deal-merge";
 
 describe("Fusion des affaires à relancer", () => {
   it("même ville malgré accents et tirets", () => {
@@ -14,5 +14,17 @@ describe("Fusion des affaires à relancer", () => {
     expect(r["amount"]).toBe(2000000);
     expect(r["address"]).toBe("Route de Bourgogne, Dammarie-les-Lys");
     expect(r["notes"]).toBe("A\n\nB");
+  });
+});
+
+describe("Propositions de fusion IA", () => {
+  it("écarte les ids inconnus, les groupes d'un seul dossier et les doublons entre groupes", () => {
+    const known = new Set(["a", "b", "c", "d"]);
+    const r = cleanGroups([
+      { ids: ["a", "b", "zz"], reason: "x" },
+      { ids: ["b", "c"], reason: "y" },
+      { ids: ["c", "d"], reason: "z" },
+    ], known);
+    expect(r).toEqual([{ ids: ["a", "b"], reason: "x" }, { ids: ["c", "d"], reason: "z" }]);
   });
 });

@@ -32,3 +32,18 @@ export function cityKey(address: unknown): string {
   const last = String(address ?? "").split(",").pop() ?? "";
   return last.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\d{5}/g, "").replace(/[^a-z]+/g, " ").trim();
 }
+
+export type MergeGroup = { ids: string[]; reason: string };
+
+/** Garde les groupes valides : ids connus, au moins 2, chaque dossier dans un seul groupe. */
+export function cleanGroups(groups: MergeGroup[], known: Set<string>): MergeGroup[] {
+  const used = new Set<string>();
+  const out: MergeGroup[] = [];
+  for (const g of groups) {
+    const ids = [...new Set((g?.ids ?? []).map(String))].filter((id) => known.has(id) && !used.has(id));
+    if (ids.length < 2) continue;
+    ids.forEach((id) => used.add(id));
+    out.push({ ids, reason: String(g.reason ?? "").slice(0, 300) });
+  }
+  return out;
+}
