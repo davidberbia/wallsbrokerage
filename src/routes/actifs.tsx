@@ -5,6 +5,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { HelpCircle, FileSignature } from "lucide-react";
 import { lookupSiren } from "@/lib/siren.functions";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
+import { MergePicker } from "@/components/MergePicker";
+import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
+import { Merge } from "lucide-react";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
 import { addOneYear , feeText, feeChargeText } from "@/lib/mandate-template";
@@ -283,6 +286,32 @@ function AssetsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["assets"] }),
   });
 
+  const [mergeFor, setMergeFor] = useState<Asset | null>(null);
+  const mergeAssets = useMutation({
+    mutationFn: async ({ keep, ids }: { keep: Asset; ids: string[] }) => {
+      const others = (data ?? []).filter((a) => ids.includes(a.id));
+      const patch = mergeAssetFields(keep as never, others as never);
+      // Libère les références uniques des doublons avant de les reporter.
+      if (patch["reference"]) {
+        const { error } = await supabase.from("assets").update({ reference: null } as never).in("id", ids);
+        if (error) throw error;
+      }
+      if (Object.keys(patch).length) {
+        const { error } = await supabase.from("assets").update(patch as never).eq("id", keep.id);
+        if (error) throw error;
+      }
+      for (const t of ASSET_CHILD_TABLES) {
+        const { error } = await supabase.from(t).update({ asset_id: keep.id } as never).in("asset_id", ids);
+        if (error) throw error;
+      }
+      const { error } = await supabase.from("assets").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => { toast.success("Actifs fusionnés"); setMergeFor(null); },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => { void qc.invalidateQueries({ queryKey: ["assets"] }); void qc.invalidateQueries({ queryKey: ["deals"] }); },
+  });
+
   const filtered = (data ?? []).filter((asset) => af.keep((asset as { owner_id?: string | null }).owner_id) && matchesAssetSearch(asset, search));
 
   return (
@@ -382,9 +411,23 @@ function AssetsPage() {
             onOpen={() => setDetail(asset)}
             onEdit={canEdit ? () => openEditor(asset) : undefined}
             onDelete={canEdit ? () => remove.mutate(asset.id) : undefined}
+            trailing={canEdit ? (
+              <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${asset.title}`} onClick={() => setMergeFor(asset)}>
+                <Merge className="size-4" />
+              </Button>
+            ) : undefined}
           />
         ))}
       </div>
+      <MergePicker
+        open={!!mergeFor}
+        title={mergeFor?.title ?? ""}
+        initialSearch={mergeFor?.city ?? ""}
+        items={filtered.filter((a) => a.id !== mergeFor?.id).map((a) => ({ id: a.id, title: [a.city, a.title].filter(Boolean).join(" · "), subtitle: [a.reference && `N° ${a.reference}`, a.address, a.asset_class].filter(Boolean).join(" · ") }))}
+        busy={mergeAssets.isPending}
+        onClose={() => setMergeFor(null)}
+        onMerge={(ids) => mergeFor && mergeAssets.mutate({ keep: mergeFor, ids })}
+      />
       <RecordDialog
         title={detail?.title ?? "Actif"}
         open={!!detail}

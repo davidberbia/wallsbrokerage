@@ -7,6 +7,7 @@ import { FileSpreadsheet, Merge, Plus, Sparkles } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { suggestDealMerges } from "@/lib/deal-dedup.functions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { MergePicker } from "@/components/MergePicker";
 import { cityKey, mergeDealFields, type MergeGroup } from "@/lib/deal-merge";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -272,9 +273,6 @@ export function DealsTable({ mode }: { mode: Mode }) {
     await merge.mutateAsync({ keep: picked[0]!, others: picked.slice(1) });
     openAiGroup(aiGroups!, aiIndex + 1);
   };
-  const mergeCandidates = mergeFor
-    ? rows.filter((d) => d.id !== mergeFor.id && cityKey(d.address) && cityKey(d.address) === cityKey(mergeFor.address))
-    : [];
 
   const create = useMutation({
     mutationFn: async () => {
@@ -500,7 +498,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <table className="w-full text-sm">
             <thead className="bg-muted text-left text-xs text-muted-foreground">
               <tr>
-                {["Site", "Négo 1", "Négo 2", "Vendeur", "Acquéreur", "Nature", "Surface", "Prix/Loyer", "Statut", "Encaissé", "Fact. reste à enc.", "En cours", "Pondéré", "Annulé"].map((h) => (
+                {["Site", "Négo 1", "Négo 2", "Vendeur", "Acquéreur", "Nature", "Surface", "Prix/Loyer", "Statut", "Encaissé", "Fact. reste à enc.", "En cours", "Pondéré", "Annulé", ""].map((h) => (
                   <th key={h} className="whitespace-nowrap px-2 py-2 font-medium">{h}</th>
                 ))}
               </tr>
@@ -526,6 +524,11 @@ export function DealsTable({ mode }: { mode: Mode }) {
                     <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("encours")}</td>
                     <td className="whitespace-nowrap px-2 py-2 font-mono">{col === "encours" ? eur(weightedFee(d)) : ""}</td>
                     <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("annule")}</td>
+                    <td className="px-1 py-1">{canEdit && (
+                      <Button variant="ghost" size="icon" className="size-9" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={(e) => { e.stopPropagation(); setMergeFor(d); }}>
+                        <Merge className="size-4" />
+                      </Button>
+                    )}</td>
                   </tr>
                 );
               })}
@@ -536,6 +539,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
                 <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.encours)}</td>
                 <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.pondere - suivi.encaisse - suivi.facture)}</td>
                 <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.annule)}</td>
+                <td />
               </tr>
             </tbody>
           </table>
@@ -567,6 +571,10 @@ export function DealsTable({ mode }: { mode: Mode }) {
                     </SelectContent>
                   </Select>
                 </>
+              ) : canEdit ? (
+                <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={() => { setMergeFor(d); setMergePick([]); }}>
+                  <Merge className="size-4" />
+                </Button>
               ) : undefined
             }
             onEdit={canEdit ? () => setOpenId(d.id) : undefined}
@@ -656,42 +664,15 @@ export function DealsTable({ mode }: { mode: Mode }) {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!mergeFor} onOpenChange={(o) => !o && setMergeFor(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Fusionner dans « {mergeFor?.name} »</DialogTitle>
-          </DialogHeader>
-          {mergeCandidates.length ? (
-            <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">Cochez les lignes qui parlent du même actif.</p>
-              {mergeCandidates.map((c) => (
-                <label key={c.id} className="flex min-h-11 items-center gap-3 border-b border-border py-2 text-sm">
-                  <Checkbox
-                    checked={mergePick.includes(c.id)}
-                    onCheckedChange={(v) => setMergePick((p) => (v ? [...p, c.id] : p.filter((x) => x !== c.id)))}
-                  />
-                  <span className="min-w-0">
-                    <span className="block font-medium">{c.name}</span>
-                    <span className="block text-xs text-muted-foreground">{c.address}</span>
-                    {mailsOf(c.id).length > 0 && <span className="block break-all text-xs text-muted-foreground">✉ {mailsOf(c.id).slice(0, 6).join(", ")}{mailsOf(c.id).length > 6 ? ` +${mailsOf(c.id).length - 6}` : ""}</span>}
-                  </span>
-                </label>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Aucune autre ligne dans cette ville.</p>
-          )}
-          <DialogFooter>
-            <Button
-              className="min-h-11 w-full sm:w-auto"
-              disabled={!mergePick.length || merge.isPending}
-              onClick={() => mergeFor && merge.mutate({ keep: mergeFor, others: mergeCandidates.filter((c) => mergePick.includes(c.id)) })}
-            >
-              {merge.isPending ? "Fusion…" : "Fusionner"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <MergePicker
+        open={!!mergeFor}
+        title={mergeFor?.name ?? ""}
+        initialSearch={mergeFor ? cityKey(mergeFor.address) || mergeFor.name.split(/[\s-]+/).filter((w) => w.length > 3).slice(-1)[0] || "" : ""}
+        items={rows.filter((d) => d.id !== mergeFor?.id).map((c) => ({ id: c.id, title: c.name, subtitle: [c.stage, c.address].filter(Boolean).join(" · "), extra: mailsOf(c.id).length ? `✉ ${mailsOf(c.id).slice(0, 6).join(", ")}` : undefined }))}
+        busy={merge.isPending}
+        onClose={() => setMergeFor(null)}
+        onMerge={(ids) => mergeFor && merge.mutate({ keep: mergeFor, others: rows.filter((c) => ids.includes(c.id)) })}
+      />
 
       <Dialog open={!!aiGroups && !!aiGroup} onOpenChange={(o) => !o && setAiGroups(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
