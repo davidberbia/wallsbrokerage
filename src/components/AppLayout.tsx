@@ -187,6 +187,7 @@ export function AppLayout({
                     <Link
                       key={item.to}
                       to={item.to}
+                      onClick={() => setIsMobileMenuOpen(false)}
                       className={cn(
                         "flex min-h-12 items-center gap-3 rounded-md px-3 py-3 text-sm transition-colors",
                         active
