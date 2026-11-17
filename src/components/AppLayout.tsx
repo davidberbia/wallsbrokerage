@@ -44,13 +44,13 @@ const CONTACT_ITEMS = [
 ] as const;
 
 const NAV_ITEMS = [
-  { to: "/dossiers", label: "Suivi des affaires", icon: FolderKanban, admin: false },
+  { to: "/cibles", label: "À relancer", icon: Crosshair, admin: false },
   { to: "/actifs", label: "Actifs", icon: Building2, admin: false },
-  { to: "/presentation", label: "Teasers", icon: Presentation, admin: false },
   { to: "/mandats", label: "Mandats", icon: FileSignature, admin: false },
+  { to: "/presentation", label: "Teasers", icon: Presentation, admin: false },
   { to: "/matching", label: "Matching", icon: Target, admin: false },
   { to: "/envois", label: "Envois", icon: Send, admin: false },
-  { to: "/cibles", label: "À relancer", icon: Crosshair, admin: false },
+  { to: "/dossiers", label: "Suivi des affaires", icon: FolderKanban, admin: false },
   { to: "/investisseurs", label: "Contacts", icon: BookUser, admin: false },
   { to: "/partager", label: "Extractions", icon: Link2, admin: false },
   { to: "/comparables", label: "Comparables", icon: Scale, admin: false },
