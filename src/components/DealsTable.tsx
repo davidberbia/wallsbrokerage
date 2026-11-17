@@ -3,7 +3,9 @@ import { CompactRow } from "@/components/CompactRow";
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { FileSpreadsheet, Plus } from "lucide-react";
+import { FileSpreadsheet, Merge, Plus } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cityKey, mergeDealFields } from "@/lib/deal-merge";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
@@ -82,6 +84,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const [year, setYear] = useState(thisYear);
   const [openId, setOpenId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [mergeFor, setMergeFor] = useState<Deal | null>(null);
+  const [mergePick, setMergePick] = useState<string[]>([]);
   const [draft, setDraft] = useState({
     name: "",
     stage: mode === "targets" ? TARGET_STAGE : "Avis de valeur",
@@ -180,6 +184,37 @@ export function DealsTable({ mode }: { mode: Mode }) {
     onError: (e: Error) => toast.error(e.message),
     onSettled: refresh,
   });
+
+  const merge = useMutation({
+    mutationFn: async ({ keep, others }: { keep: Deal; others: Deal[] }) => {
+      if (!others.length) throw new Error("Cochez au moins une ligne.");
+      const ids = others.map((o) => o.id);
+      const patch = mergeDealFields(keep as never, others as never);
+      const { error } = await supabase.from("deals").update({ ...patch, last_activity_at: new Date().toISOString() } as never).eq("id", keep.id);
+      if (error) throw error;
+      const { error: e2 } = await supabase.from("mail_messages").update({ deal_id: keep.id }).in("deal_id", ids);
+      if (e2) throw e2;
+      const { data: mine } = await supabase.from("deal_contacts").select("email").eq("deal_id", keep.id);
+      const known = new Set((mine ?? []).map((c) => c.email.toLowerCase()));
+      const { data: theirs } = await supabase.from("deal_contacts").select("id,email").in("deal_id", ids);
+      const move = (theirs ?? []).filter((c) => !known.has(c.email.toLowerCase()) && (known.add(c.email.toLowerCase()), true));
+      if (move.length) {
+        const { error: e3 } = await supabase.from("deal_contacts").update({ deal_id: keep.id }).in("id", move.map((c) => c.id));
+        if (e3) throw e3;
+      }
+      const { error: e4 } = await supabase.from("deals").delete().in("id", ids);
+      if (e4) throw e4;
+    },
+    onSuccess: () => {
+      toast.success("Lignes fusionnées");
+      setMergeFor(null);
+    },
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: refresh,
+  });
+  const mergeCandidates = mergeFor
+    ? rows.filter((d) => d.id !== mergeFor.id && cityKey(d.address) && cityKey(d.address) === cityKey(mergeFor.address))
+    : [];
 
   const create = useMutation({
     mutationFn: async () => {
@@ -450,6 +485,25 @@ export function DealsTable({ mode }: { mode: Mode }) {
             subtitle={mode === "pipeline" ? [d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ") : `${d.stage} · ${m2(d.surface)} · Prix ${eur(d.amount)} · Loyer ${eur(d.rent)}`}
             summary={mode === "targets" ? [d.company,d.address].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
+            trailing={
+              mode === "targets" && canEdit ? (
+                <>
+                  <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={() => { setMergeFor(d); setMergePick([]); }}>
+                    <Merge className="size-4" />
+                  </Button>
+                  <Select value="" onValueChange={(v) => move.mutate({ id: d.id, stage: v })}>
+                    <SelectTrigger className="h-11 w-auto gap-1 px-2 text-xs" aria-label={`Passer ${d.name} au suivi`}>
+                      <span>Suivi</span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STAGE_NAMES.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              ) : undefined
+            }
             onEdit={canEdit ? () => setOpenId(d.id) : undefined}
             onDelete={
               canEdit
@@ -532,6 +586,42 @@ export function DealsTable({ mode }: { mode: Mode }) {
               onClick={() => create.mutate()}
             >
               {create.isPending ? "Création…" : "Créer"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!mergeFor} onOpenChange={(o) => !o && setMergeFor(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Fusionner dans « {mergeFor?.name} »</DialogTitle>
+          </DialogHeader>
+          {mergeCandidates.length ? (
+            <div className="space-y-1">
+              <p className="text-sm text-muted-foreground">Cochez les lignes qui parlent du même actif.</p>
+              {mergeCandidates.map((c) => (
+                <label key={c.id} className="flex min-h-11 items-center gap-3 border-b border-border py-2 text-sm">
+                  <Checkbox
+                    checked={mergePick.includes(c.id)}
+                    onCheckedChange={(v) => setMergePick((p) => (v ? [...p, c.id] : p.filter((x) => x !== c.id)))}
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-medium">{c.name}</span>
+                    <span className="block text-xs text-muted-foreground">{c.address}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Aucune autre ligne dans cette ville.</p>
+          )}
+          <DialogFooter>
+            <Button
+              className="min-h-11 w-full sm:w-auto"
+              disabled={!mergePick.length || merge.isPending}
+              onClick={() => mergeFor && merge.mutate({ keep: mergeFor, others: mergeCandidates.filter((c) => mergePick.includes(c.id)) })}
+            >
+              {merge.isPending ? "Fusion…" : "Fusionner"}
             </Button>
           </DialogFooter>
         </DialogContent>
