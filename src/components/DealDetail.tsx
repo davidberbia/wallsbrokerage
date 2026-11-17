@@ -619,7 +619,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
               <div className="min-w-0">
                 <div className="truncate font-medium">{m.subject || "(sans objet)"}</div>
                 <div className="truncate text-xs text-muted-foreground">
-                  {m.folder === "sentitems" ? `Envoyé à ${m.to_display}` : `De ${m.from_name || m.from_email}`} ·{" "}
+                  {`De ${m.from_name || m.from_email}`} ·{" "}
                   {fmtDate(m.received_at)}
                 </div>
               </div>

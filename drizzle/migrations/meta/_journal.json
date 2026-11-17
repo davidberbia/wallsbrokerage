@@ -288,6 +288,13 @@
       "when": 1794942246347,
       "tag": "0040_mandate_templates_contact_email",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794956041300,
+      "tag": "0041_migration",
+      "breakpoints": true
     }
   ]
 }

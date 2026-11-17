@@ -73,6 +73,7 @@ async function enqueue(admin: Admin) {
     .from("mail_messages")
     .select("id,graph_id,deal_id,subject,from_email")
     .is("attachments_listed_at", null)
+    .eq("folder", "inbox")
     .not("deal_id", "is", null)
     .order("received_at", { ascending: false })
     .limit(LIST_PER_RUN);
@@ -194,7 +195,7 @@ export async function runAttachments(mode: "tick" | "retry" = "tick"): Promise<R
     // Reprise 1 minute après une coupure : rien à faire → sortie immédiate, aucun appel externe.
     const { count } = await admin.from("mail_attachment_jobs").select("id", { count: "exact", head: true }).eq("status", "pending").gt("attempts", 0).lt("updated_at", oneMinAgo);
     // Rattrapage : tant que des mails de dossiers restent à lire, on avance chaque minute.
-    const { count: backlog } = await admin.from("mail_messages").select("id", { count: "exact", head: true }).is("attachments_listed_at", null).not("deal_id", "is", null);
+    const { count: backlog } = await admin.from("mail_messages").select("id", { count: "exact", head: true }).is("attachments_listed_at", null).eq("folder", "inbox").not("deal_id", "is", null);
     const { count: pending } = await admin.from("mail_attachment_jobs").select("id", { count: "exact", head: true }).eq("status", "pending").eq("attempts", 0);
     if (!count && !backlog && !pending) return { pj: "rien à reprendre" };
     if (backlog || pending) mode = "tick";

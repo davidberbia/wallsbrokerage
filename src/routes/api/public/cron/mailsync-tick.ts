@@ -13,6 +13,8 @@ import { runAttachments } from "@/lib/attachments.server";
 const SINCE = "2026-01-01T00:00:00Z";
 const PAGES_PER_FOLDER = 8;
 const LEASE_MS = 4 * 60 * 1000;
+// Envois synchronisés uniquement pour savoir si un mail a reçu une réponse (récap) :
+// jamais rattachés à un dossier, jamais lus ni aspirés (pièces jointes).
 const FOLDERS = ["inbox", "sentitems"] as const;
 
 type DeltaMessage = {
@@ -31,7 +33,7 @@ type DeltaPage = { value: DeltaMessage[]; "@odata.nextLink"?: string; "@odata.de
 const initialUrl = (folder: string) =>
   `/v1.0/me/mailFolders/${folder}/messages/delta?$filter=${encodeURIComponent(
     `receivedDateTime ge ${SINCE}`,
-  )}&$select=id,receivedDateTime,subject,bodyPreview,webLink,from,toRecipients,ccRecipients`;
+  )}&$select=id,receivedDateTime,subject,bodyPreview,webLink,from`;
 
 const lower = (a?: string | null) => (a ?? "").trim().toLowerCase();
 
@@ -102,15 +104,16 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
               const rows = page.value
                 .filter((m) => !m["@removed"])
                 .map((m) => {
-                  const recips = [...(m.toRecipients ?? []), ...(m.ccRecipients ?? [])]
-                    .map((r) => r.emailAddress)
-                    .filter(Boolean) as GraphAddress[];
+                  // Rattachement aux dossiers : messages reçus seulement, par l'expéditeur et l'objet.
+                  // Les destinataires ne servent qu'à repérer les réponses envoyées.
                   const from = lower(m.from?.emailAddress?.address);
-                  const participants = Array.from(
-                    new Set([from, ...recips.map((r) => lower(r.address))].filter(Boolean)),
-                  );
+                  const recips = folder === "sentitems"
+                    ? [...(m.toRecipients ?? []), ...(m.ccRecipients ?? [])].map((r) => lower(r.emailAddress?.address)).filter(Boolean)
+                    : [];
+                  const participants = Array.from(new Set([from, ...recips].filter(Boolean)));
+                  const linkKeys = folder === "inbox" && from ? [from] : [];
                   let deal: string | null = null;
-                  for (const p of participants) {
+                  for (const p of linkKeys) {
                     const d = byEmail.get(p);
                     if (d) {
                       deal = d;
@@ -118,7 +121,7 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
                     }
                   }
                   if (!deal) {
-                    for (const p of participants) {
+                    for (const p of linkKeys) {
                       const dom = p.split("@")[1];
                       const d = dom ? byDomain.get(dom) : undefined;
                       if (d && d !== "AMBIGU") {
@@ -128,7 +131,7 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
                     }
                   }
                   const subj = (m.subject ?? "").toLowerCase();
-                  if (!deal && subj) deal = named.find((n) => subj.includes(n.key))?.id ?? null;
+                  if (!deal && subj && folder === "inbox") deal = named.find((n) => subj.includes(n.key))?.id ?? null;
                   if (deal) touched.add(deal);
                   const extracted = extractFromText(m.subject ?? null, m.bodyPreview ?? null);
                   return {
@@ -139,11 +142,7 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
                     from_email: from || null,
                     from_name: m.from?.emailAddress?.name ?? null,
                     participants,
-                    to_display: recips
-                      .map((r) => r.name || r.address)
-                      .filter(Boolean)
-                      .join(", ")
-                      .slice(0, 500),
+                    to_display: null,
                     preview: (m.bodyPreview ?? "").slice(0, 400),
                     web_link: m.webLink ?? null,
                     deal_id: deal,
@@ -158,7 +157,7 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
                   .select("graph_id,deal_id")
                   .in("graph_id", ids);
                 const keep = new Map((existing ?? []).map((e) => [e.graph_id, e.deal_id]));
-                for (const r of rows) if (keep.get(r.graph_id)) r.deal_id = keep.get(r.graph_id)!;
+                for (const r of rows) if (folder === "inbox" && keep.get(r.graph_id)) r.deal_id = keep.get(r.graph_id)!;
                 const { error: upErr } = await admin
                   .from("mail_messages")
                   .upsert(rows, { onConflict: "graph_id" });
