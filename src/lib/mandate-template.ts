@@ -26,6 +26,7 @@ export function cleanTemplate(body: string): string {
   return body
     // La comparution du mandant (adresse ou siège) est rédigée dans {{mandant}}.
     // Honoraires : seule la mention saisie dans le CRM (HT) et une seule fois « à la charge de ».
+    .replace(/contact@wallsbroker\.com/g, "d.berbia@wallsbroker.com")
     .replace(/\{\{honoraires\}\}\s*TTC/g, "{{honoraires}}")
     .replace(/à la charge de \{\{charge_honoraires\}\}/g, "{{charge_honoraires}}")
     .replace(/\{\{mandant\}\},\s*demeurant \/ dont le siège est \{\{mandant_adresse\}\},?/g, "{{mandant}},")

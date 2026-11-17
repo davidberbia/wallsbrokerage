@@ -1,0 +1,1 @@
+update public.mandate_templates set body = replace(body,'contact@wallsbroker.com','d.berbia@wallsbroker.com');

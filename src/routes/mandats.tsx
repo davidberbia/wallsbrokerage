@@ -346,7 +346,7 @@ function etatLocatif(lots: PortfolioLot[]): string {
 }
 
 type AutoRow = { etat?: string; number: number; street: string; town: string; owner: string; mandant?: string; mandantAddress?: string; fees?: string; feeCharge?: string; designation?: string; situation?: string; price?: string };
-function autoValues(row: AutoRow, agent: string, begin: string): Record<string, string> {
+function autoValues(row: AutoRow, agent: string, begin: string, signDate?: string): Record<string, string> {
   return {
     numero: String(row.number),
     mandant: row.mandant || (row.owner === "—" ? "" : row.owner),
@@ -357,7 +357,7 @@ function autoValues(row: AutoRow, agent: string, begin: string): Record<string, 
     date_debut: frDate(begin),
     date_fin: frDate(addOneYear(begin)),
     lieu: "Paris",
-    date_signature: frDate(new Date().toISOString()),
+    date_signature: frDate(signDate || begin),
     delai_suite: "12",
     honoraires: row.fees ?? "",
     charge_honoraires: row.feeCharge ?? "",
@@ -394,6 +394,7 @@ function SignDialog({
   const [email, setEmail] = useState("");
   const [tplId, setTplId] = useState("");
   const [start, setStart] = useState("");
+  const [signDate, setSignDate] = useState("");
   const [vals, setVals] = useState<Record<string, string>>({});
   const [showAll, setShowAll] = useState(false);
   const [pdf, setPdf] = useState<string | null>(null);
@@ -406,6 +407,7 @@ function SignDialog({
     setEmail(target.ownerEmail);
     setVals({});
     setStart("");
+    setSignDate("");
     setShowAll(false);
     setPdf(null);
     setTplId("");
@@ -415,7 +417,7 @@ function SignDialog({
     templates?.find((t) => t.id === tplId) ??
     templates?.find((t) => t.kind === kind && t.exclusive === !!target?.tplExclusive);
   const begin = start || (target ? toIso(target.begin) : "") || new Date().toISOString().slice(0, 10);
-  const auto: Record<string, string> = target ? autoValues(target, agent, begin) : {};
+  const auto: Record<string, string> = target ? autoValues(target, agent, begin, signDate || begin) : {};
   const all: Record<string, string> = { ...auto, ...vals, mandant: vals["mandant"] ?? (auto["mandant"] || name || "") };
   const fields = tpl
     ? templateFields(tpl.body).filter((f) => !["date_debut", "date_fin", "mandant", "date_signature", "mediateur"].includes(f))
@@ -493,6 +495,10 @@ function SignDialog({
               <Input type="date" className="min-h-11" value={begin} onChange={(e) => setStart(e.target.value)} />
             </div>
             <div className="space-y-1">
+              <Label>Date de signature</Label>
+              <Input type="date" className="min-h-11" value={signDate || begin} onChange={(e) => setSignDate(e.target.value)} />
+            </div>
+            <div className="space-y-1">
               <Label>Mandant (vendeur ou bailleur)</Label>
               <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
@@ -567,6 +573,7 @@ function MandateEditor({
       .update({
         address: f.address || null,
         start_date: f.begin || null,
+        signed_at: f.signed || null,
         expires_at: f.end || null,
       })
       .eq("id", row.id);
@@ -641,7 +648,7 @@ function MandateEditor({
       )}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="grid gap-1"><Label>Début mandat</Label><Input type="date" className="min-h-11" value={f.begin} onChange={(e) => set("begin", e.target.value)} /></div>
-        <div className="grid gap-1"><Label>Signature mandat</Label><Input type="date" className="min-h-11" value={f.signed} disabled title="Date transmise par DocuSign quand toutes les parties ont signé" /></div>
+        <div className="grid gap-1"><Label>Signature mandat</Label><Input type="date" className="min-h-11" value={f.signed} onChange={(e) => set("signed", e.target.value)} /></div>
         <div className="grid gap-1"><Label>Fin</Label><Input type="date" className="min-h-11" value={f.end} onChange={(e) => set("end", e.target.value)} /></div>
       </div>
       <Button className="min-h-11" disabled={busy} onClick={() => void save()}>Enregistrer</Button>

@@ -281,6 +281,13 @@
       "when": 1794941903291,
       "tag": "0039_mandate_templates_fee_text_cleanup",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1794942246347,
+      "tag": "0040_mandate_templates_contact_email",
+      "breakpoints": true
     }
   ]
 }
