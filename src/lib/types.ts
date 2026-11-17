@@ -74,6 +74,7 @@ export type Asset = {
   owner_details?: import("@/lib/siren").OwnerDetails;
   parking_count?: number | null;
   keys_count?: number | null;
+  revenue_n1?: number | null; revenue_n2?: number | null; ebe?: number | null; ebe_n1?: number | null; ebe_n2?: number | null; hotel_category?: string | null;
   revenue?: number | null;
   outdoor_surface?: number | null;
   weighted_surface?: number | null;

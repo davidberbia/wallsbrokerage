@@ -6,10 +6,12 @@ export type AutofillFields = {
   parking_count?: number | null; keys_count?: number | null; revenue?: number | null; property_tax?: number | null; charges?: number | null;
   walb?: number | null; walt?: number | null; leases?: string | null; owner_name?: string | null;
   asset_class?: string | null; strategy?: string | null; region?: string | null;
+  hotel_category?: string | null; revenue_n1?: number | null; revenue_n2?: number | null; ebe?: number | null; ebe_n1?: number | null; ebe_n2?: number | null;
+  presentation?: string | null;
 };
 type AssetRow = Record<string, unknown> & { description?: string | null; autofill_sources?: unknown };
 
-const DIRECT = ["city", "address", "postal_code", "price", "yield_pct", "surface", "rent", "parking_count", "keys_count", "revenue", "owner_name", "asset_class", "strategy", "region"] as const;
+const DIRECT = ["city", "address", "postal_code", "price", "yield_pct", "surface", "rent", "parking_count", "keys_count", "revenue", "owner_name", "asset_class", "strategy", "region", "hotel_category", "revenue_n1", "revenue_n2", "ebe", "ebe_n1", "ebe_n2"] as const;
 const empty = (v: unknown) => v == null || v === "";
 
 /** Intitulé d'un plan : « Plan de masse » ou le niveau (« Plan rez-de-chaussée », « Plan 1er étage »…). */
@@ -66,4 +68,13 @@ export function dealPatchFromAsset(deal: Record<string, unknown>, a: Record<stri
   if (empty(deal["rent"]) && !empty(a["rent"])) p["rent"] = a["rent"];
   if (empty(deal["amount"]) && !empty(a["price"])) p["amount"] = a["price"];
   return p;
+}
+
+const AUTO_NOTE = /^(origine\s*:|(avis de valeur|teaser|présentation|portefeuille|mandat|autre|prospection|disponible)\s*(\n|$))/i;
+/** Description de la piste : écrite si vide ou si elle ne contient que la note technique créée automatiquement. */
+export function descriptionPatch(notes: string | null | undefined, presentation: string | null | undefined): string | null {
+  const p = (presentation ?? "").trim();
+  if (p.length < 40) return null;
+  const n = (notes ?? "").trim();
+  return !n || AUTO_NOTE.test(n) ? p : null;
 }

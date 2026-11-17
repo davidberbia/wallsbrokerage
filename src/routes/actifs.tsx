@@ -173,6 +173,12 @@ function AssetsPage() {
         parking_count: draft.parking_count ?? null,
         keys_count: draft.keys_count ?? null,
         revenue: draft.revenue ?? null,
+        revenue_n1: draft.revenue_n1 ?? null,
+        revenue_n2: draft.revenue_n2 ?? null,
+        ebe: draft.ebe ?? null,
+        ebe_n1: draft.ebe_n1 ?? null,
+        ebe_n2: draft.ebe_n2 ?? null,
+        hotel_category: draft.hotel_category ?? null,
         outdoor_surface: draft.outdoor_surface ?? null,
         weighted_surface: draft.weighted_surface ?? null,
         mandate_exclusive: draft.mandate_exclusive ?? null,
@@ -791,12 +797,23 @@ function AssetForm({
             </Field>
             {/h[oô]tel/i.test(draft.asset_class ?? "") && (
               <>
-                <Field label="Nombre de clés">
+                <Field label="Nombre de clés / chambres">
                   <Input type="number" min={0} value={draft.keys_count ?? ""} onChange={(e) => set({ keys_count: e.target.value ? Number(e.target.value) : null })} />
                 </Field>
-                <Field label="Chiffre d'affaires annuel (€)">
-                  <Input inputMode="numeric" value={formatThousands(draft.revenue ?? null)} onChange={(e) => set({ revenue: parseThousands(e.target.value) })} />
+                <Field label="Catégorie">
+                  <Select value={draft.hotel_category || "none"} onValueChange={(v) => set({ hotel_category: v === "none" ? null : v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Non renseignée</SelectItem>
+                      {["1 étoile", "2 étoiles", "3 étoiles", "4 étoiles", "5 étoiles", "Palace"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </Field>
+                {([["revenue", "CA N (€)"], ["revenue_n1", "CA N-1 (€)"], ["revenue_n2", "CA N-2 (€)"], ["ebe", "EBE N (€)"], ["ebe_n1", "EBE N-1 (€)"], ["ebe_n2", "EBE N-2 (€)"]] as const).map(([k, label]) => (
+                  <Field key={k} label={label}>
+                    <Input inputMode="numeric" value={formatThousands(draft[k] ?? null)} onChange={(e) => set({ [k]: parseThousands(e.target.value) })} />
+                  </Field>
+                ))}
               </>
             )}
             <Field label="Prix (€)">
@@ -1299,7 +1316,13 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Parkings", asset.parking_count == null ? null : String(asset.parking_count)],
           ["Nombre de clés", asset.keys_count == null ? null : String(asset.keys_count)],
           ["Prix à la clé", asset.keys_count && asset.price ? formatEUR(Math.round(asset.price / asset.keys_count)) : null],
-          ["Chiffre d'affaires", asset.revenue == null ? null : formatEUR(asset.revenue)],
+          ["Catégorie", asset.hotel_category ?? null],
+          ["CA N", asset.revenue == null ? null : formatEUR(asset.revenue)],
+          ["CA N-1", asset.revenue_n1 == null ? null : formatEUR(asset.revenue_n1)],
+          ["CA N-2", asset.revenue_n2 == null ? null : formatEUR(asset.revenue_n2)],
+          ["EBE N", asset.ebe == null ? null : formatEUR(asset.ebe)],
+          ["EBE N-1", asset.ebe_n1 == null ? null : formatEUR(asset.ebe_n1)],
+          ["EBE N-2", asset.ebe_n2 == null ? null : formatEUR(asset.ebe_n2)],
           ["Email propriétaire", asset.owner_email],
           ["Téléphone propriétaire", asset.owner_phone],
           ["Type de mandat", asset.mandate_type],

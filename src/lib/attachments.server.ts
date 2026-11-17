@@ -3,7 +3,7 @@
 import { getAdmin } from "./automation.server";
 import { graphGet } from "./mailscan.server";
 import { ASSET_CLASSES, REGIONS, STRATEGIES } from "./taxonomy";
-import { planCategory, mergeAutofill, dealPatchFromAsset, classPatch, type AutofillFields, type ClassSource } from "./autofill";
+import { planCategory, mergeAutofill, dealPatchFromAsset, classPatch, descriptionPatch, type AutofillFields, type ClassSource } from "./autofill";
 import { guessClassFromName } from "./taxonomy";
 
 const LIST_PER_RUN = 8;
@@ -24,7 +24,7 @@ const PROMPT = `Document joint à un mail concernant un actif immobilier profess
 - plan_label : si c'est un plan, son intitulé exact par niveau (« Plan de masse », « Plan rez-de-chaussée », « Plan 1er étage », « Plan 2e étage », « Plan sous-sol »…), sinon null
 - landscape_photo : true si c'est une photo de l'immeuble en format paysage exploitable comme photo principale
 - pages : pour un PDF, liste des pages contenant une photo de l'actif ou un plan : {page (1 = première), kind "photo" | "plan" | "plan_masse", label (intitulé du plan par niveau, ou null)}. Liste vide sinon.
-- title, city, address (numéro et rue), postal_code, price (€), yield_pct (%), surface (m²), rent (loyer annuel HT HC €), parking_count, keys_count (hôtel : nombre de clés/chambres), revenue (chiffre d'affaires annuel €), property_tax (taxe foncière annuelle €), charges (charges annuelles €), walb (années), walt (années), leases (une ligne par lot « locataire – surface m² – loyer € – début – échéance »), owner_name, asset_class [${ASSET_CLASSES.join(" | ")}], strategy [${STRATEGIES.join(" | ")}], region [${REGIONS.join(" | ")}]
+- title, city, address (numéro et rue), postal_code, price (€), yield_pct (%), surface (m²), rent (loyer annuel HT HC €), parking_count, keys_count (hôtel : nombre de clés/chambres), revenue (chiffre d'affaires annuel €), property_tax (taxe foncière annuelle €), charges (charges annuelles €), walb (années), walt (années), leases (une ligne par lot « locataire – surface m² – loyer € – début – échéance »), owner_name, hotel_category (hôtel : "1 étoile" | "2 étoiles" | "3 étoiles" | "4 étoiles" | "5 étoiles" | "Palace"), revenue = chiffre d'affaires de la dernière année N (€), revenue_n1 (CA N-1 €), revenue_n2 (CA N-2 €), ebe (EBE N €), ebe_n1 (EBE N-1 €), ebe_n2 (EBE N-2 €), presentation (3 à 5 phrases de présentation commerciale du bien en français : nature, standing, emplacement, points forts ; ne répète pas prix ni surface ; uniquement ce qui est écrit dans le document), asset_class [${ASSET_CLASSES.join(" | ")}], strategy [${STRATEGIES.join(" | ")}], region [${REGIONS.join(" | ")}]
 Mets null pour toute information absente. N'invente rien.`;
 
 async function sha256(bytes: Uint8Array<ArrayBuffer>) {
@@ -43,9 +43,11 @@ async function applyReading(admin: Admin, assetId: string, reading: Reading, sou
   const patch = mergeAutofill(asset as never, reading, source, classSource);
   if (Object.keys(patch).length) await admin.from("assets").update(patch as never).eq("id", assetId);
   const merged = { ...asset, ...patch } as Record<string, unknown>;
-  const { data: deals } = await admin.from("deals").select("id,address,surface,rent,amount").eq("asset_id", assetId);
+  const { data: deals } = await admin.from("deals").select("id,address,surface,rent,amount,notes").eq("asset_id", assetId);
   for (const d of deals ?? []) {
     const dp = dealPatchFromAsset(d, merged);
+    const desc = descriptionPatch(d.notes, reading.presentation);
+    if (desc) dp["notes"] = desc;
     if (Object.keys(dp).length) await admin.from("deals").update(dp as never).eq("id", d.id);
   }
 }

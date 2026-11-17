@@ -74,7 +74,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
     queryFn: async () => {
       const aid = deal.data!.asset_id!;
       const [a, docs] = await Promise.all([
-        supabase.from("assets").select("city,address,postal_code,surface,price,rent,yield_pct,keys_count,revenue,asset_class,autofill_sources").eq("id", aid).single(),
+        supabase.from("assets").select("city,address,postal_code,surface,price,rent,yield_pct,keys_count,revenue,revenue_n1,revenue_n2,ebe,ebe_n1,ebe_n2,hotel_category,asset_class,autofill_sources").eq("id", aid).single(),
         supabase.from("asset_documents").select("id,name,path").eq("asset_id", aid).order("sort_order"),
       ]);
       return { asset: a.data, docs: docs.data ?? [] };
@@ -89,6 +89,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
   const [form, setForm] = useState<(Partial<Deal> & { address?: string | null }) | null>(null);
   const current = form ?? deal.data ?? null;
   const [assetClass, setAssetClass] = useState<string | null>(null);
+  const [hotel, setHotel] = useState<Record<string, string | number | null>>({});
   const [email, setEmail] = useState("");
   const [search, setSearch] = useState("");
 
@@ -100,15 +101,17 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
   };
 
   const save = async () => {
-    if (!form && assetClass === null) return;
+    const dirtyAsset = assetClass !== null || Object.keys(hotel).length > 0;
+    if (!form && !dirtyAsset) return;
     let assetId = current?.asset_id ?? null;
-    if (assetClass !== null) {
+    const assetPatch: Record<string, unknown> = { ...hotel, ...(assetClass !== null ? { asset_class: assetClass || null } : {}) };
+    if (dirtyAsset) {
       if (assetId) {
-        const { error: e1 } = await supabase.from("assets").update({ asset_class: assetClass || null }).eq("id", assetId);
+        const { error: e1 } = await supabase.from("assets").update(assetPatch as never).eq("id", assetId);
         if (e1) { toast.error(e1.message); return; }
-      } else if (assetClass) {
+      } else {
         const { data: na, error: e2 } = await supabase.from("assets")
-          .insert({ title: current?.name ?? "", asset_class: assetClass, address: current?.address ?? null, surface: current?.surface ?? null, price: current?.amount ?? null, rent: current?.rent ?? null, owner_id: deal.data?.owner_id ?? null, status: "prospection" } as never)
+          .insert({ ...assetPatch, title: current?.name ?? "", address: current?.address ?? null, surface: current?.surface ?? null, price: current?.amount ?? null, rent: current?.rent ?? null, owner_id: deal.data?.owner_id ?? null, status: "prospection" } as never)
           .select("id").single();
         if (e2) { toast.error(e2.message); return; }
         assetId = na.id;
@@ -123,6 +126,9 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         contact_name: current?.contact_name ?? null,
         amount: current?.amount ?? null,
         address: current?.address ?? null,
+        contact_email: current?.contact_email ?? null,
+        contact_phone: current?.contact_phone ?? null,
+        owner_siren: current?.owner_siren ?? null,
         fee_amount: current?.fee_amount ?? null,
         fee_pct: current?.fee_pct ?? null,
         surface: current?.surface ?? null,
@@ -145,6 +151,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
     }
     setForm(null);
     setAssetClass(null);
+    setHotel({});
     qc.invalidateQueries({ queryKey: ["deal-assets"] });
     qc.invalidateQueries({ queryKey: ["deal-dossier"] });
     toast.success("Dossier enregistré");
@@ -327,16 +334,52 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           </div>
         ))}
         <div>
-          <Label>Société</Label>
+          <Label>Société / propriétaire</Label>
           <Input value={current.company ?? ""} onChange={(e) => set({ company: e.target.value })} />
         </div>
         <div>
-          <Label>Contact</Label>
-          <Input
-            value={current.contact_name ?? ""}
-            onChange={(e) => set({ contact_name: e.target.value })}
-          />
+          <Label>SIREN du propriétaire</Label>
+          <Input inputMode="numeric" value={current.owner_siren ?? ""} onChange={(e) => set({ owner_siren: e.target.value || null })} />
         </div>
+        <div>
+          <Label>Contact</Label>
+          <Input value={current.contact_name ?? ""} onChange={(e) => set({ contact_name: e.target.value })} />
+        </div>
+        <div>
+          <Label>E-mail du contact</Label>
+          <Input type="email" value={current.contact_email ?? ""} onChange={(e) => set({ contact_email: e.target.value || null })} />
+        </div>
+        <div>
+          <Label>Téléphone du contact</Label>
+          <Input type="tel" value={current.contact_phone ?? ""} onChange={(e) => set({ contact_phone: e.target.value || null })} />
+        </div>
+        {/Hôtel/.test((assetClass ?? dossier.data?.asset?.asset_class) || "") && (() => {
+          const a = (dossier.data?.asset ?? {}) as Record<string, unknown>;
+          const val = (k: string) => (k in hotel ? hotel[k] : a[k]) ?? "";
+          const num = (k: string, label: string) => (
+            <div key={k}>
+              <Label>{label}</Label>
+              <Input type="number" value={String(val(k))} onChange={(e) => setHotel({ ...hotel, [k]: e.target.value === "" ? null : Number(e.target.value) })} />
+            </div>
+          );
+          return (
+            <>
+              {num("keys_count", "Nombre de clés / chambres")}
+              <div>
+                <Label>Catégorie</Label>
+                <Select value={String(val("hotel_category")) || "none"} onValueChange={(v) => setHotel({ ...hotel, hotel_category: v === "none" ? null : v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Non renseignée</SelectItem>
+                    {["1 étoile", "2 étoiles", "3 étoiles", "4 étoiles", "5 étoiles", "Palace"].map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              {num("revenue", "CA N (€)")}{num("revenue_n1", "CA N-1 (€)")}{num("revenue_n2", "CA N-2 (€)")}
+              {num("ebe", "EBE N (€)")}{num("ebe_n1", "EBE N-1 (€)")}{num("ebe_n2", "EBE N-2 (€)")}
+            </>
+          );
+        })()}
         <div>
           <Label>Prix (€)</Label>
           <Input
@@ -407,11 +450,11 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           />
         </div>}
         <div className="sm:col-span-2">
-          <Label>Notes</Label>
-          <Textarea rows={3} value={current.notes ?? ""} onChange={(e) => set({ notes: e.target.value })} />
+          <Label>Description</Label>
+          <Textarea rows={6} value={current.notes ?? ""} onChange={(e) => set({ notes: e.target.value })} />
         </div>
       </div>
-      {current.stage === "Prospection" && <Button variant="outline" disabled={researchBusy} onClick={async()=>{setResearchBusy(true);try{await research({data:{id:id}});toast.success("Recherche en attente");}catch(e){toast.error(e instanceof Error ? e.message : "Échec de la recherche");}finally{setResearchBusy(false);}}}>Rechercher les informations publiques</Button>}
+      {current.stage === "Prospection" && <Button variant="outline" disabled={researchBusy} onClick={async()=>{setResearchBusy(true);try{await research({data:{id:id}});toast.success("Recherche lancée : la fiche se complète d\u2019ici quelques minutes");}catch(e){toast.error(e instanceof Error ? e.message : "Échec de la recherche");}finally{setResearchBusy(false);}}}>Compléter les informations via IA</Button>}
       {(current.suggestion || current.enrichment) && (
         <section className="space-y-1 rounded-sm border border-border bg-muted/40 p-3 text-sm">
           {current.suggestion && (
@@ -426,7 +469,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         <Button variant="outline" onClick={remove}>
           <Trash2 className="h-4 w-4" /> Supprimer
         </Button>
-        <Button onClick={save} disabled={!form && assetClass === null}>
+        <Button onClick={save} disabled={!form && assetClass === null && !Object.keys(hotel).length}>
           Enregistrer
         </Button>
       </div>

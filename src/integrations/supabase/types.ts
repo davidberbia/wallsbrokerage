@@ -382,11 +382,15 @@ export type Database = {
           city: string | null
           created_at: string
           description: string | null
+          ebe: number | null
+          ebe_n1: number | null
+          ebe_n2: number | null
           fee_mode: string | null
           fee_payer: string | null
           fee_value: number | null
           hide_street_name: boolean
           hide_street_number: boolean
+          hotel_category: string | null
           id: string
           is_portfolio: boolean
           keys_count: number | null
@@ -411,6 +415,8 @@ export type Database = {
           rent: number | null
           residential_details: Json
           revenue: number | null
+          revenue_n1: number | null
+          revenue_n2: number | null
           status: string
           strategy: string | null
           surface: number | null
@@ -430,11 +436,15 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          ebe?: number | null
+          ebe_n1?: number | null
+          ebe_n2?: number | null
           fee_mode?: string | null
           fee_payer?: string | null
           fee_value?: number | null
           hide_street_name?: boolean
           hide_street_number?: boolean
+          hotel_category?: string | null
           id?: string
           is_portfolio?: boolean
           keys_count?: number | null
@@ -459,6 +469,8 @@ export type Database = {
           rent?: number | null
           residential_details?: Json
           revenue?: number | null
+          revenue_n1?: number | null
+          revenue_n2?: number | null
           status?: string
           strategy?: string | null
           surface?: number | null
@@ -478,11 +490,15 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          ebe?: number | null
+          ebe_n1?: number | null
+          ebe_n2?: number | null
           fee_mode?: string | null
           fee_payer?: string | null
           fee_value?: number | null
           hide_street_name?: boolean
           hide_street_number?: boolean
+          hotel_category?: string | null
           id?: string
           is_portfolio?: boolean
           keys_count?: number | null
@@ -507,6 +523,8 @@ export type Database = {
           rent?: number | null
           residential_details?: Json
           revenue?: number | null
+          revenue_n1?: number | null
+          revenue_n2?: number | null
           status?: string
           strategy?: string | null
           surface?: number | null
@@ -1149,7 +1167,9 @@ export type Database = {
           buyer: string | null
           carry_over: boolean
           company: string | null
+          contact_email: string | null
           contact_name: string | null
+          contact_phone: string | null
           created_at: string
           enriched_at: string | null
           enrichment: string | null
@@ -1165,6 +1185,7 @@ export type Database = {
           notes: string | null
           operation_nature: string | null
           owner_id: string | null
+          owner_siren: string | null
           paid_at: string | null
           probability: number | null
           rent: number | null
@@ -1184,7 +1205,9 @@ export type Database = {
           buyer?: string | null
           carry_over?: boolean
           company?: string | null
+          contact_email?: string | null
           contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           enriched_at?: string | null
           enrichment?: string | null
@@ -1200,6 +1223,7 @@ export type Database = {
           notes?: string | null
           operation_nature?: string | null
           owner_id?: string | null
+          owner_siren?: string | null
           paid_at?: string | null
           probability?: number | null
           rent?: number | null
@@ -1219,7 +1243,9 @@ export type Database = {
           buyer?: string | null
           carry_over?: boolean
           company?: string | null
+          contact_email?: string | null
           contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           enriched_at?: string | null
           enrichment?: string | null
@@ -1235,6 +1261,7 @@ export type Database = {
           notes?: string | null
           operation_nature?: string | null
           owner_id?: string | null
+          owner_siren?: string | null
           paid_at?: string | null
           probability?: number | null
           rent?: number | null
