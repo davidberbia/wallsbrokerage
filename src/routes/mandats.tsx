@@ -416,7 +416,7 @@ function SignDialog({
     templates?.find((t) => t.kind === kind && t.exclusive === !!target?.tplExclusive);
   const begin = start || (target ? toIso(target.begin) : "") || new Date().toISOString().slice(0, 10);
   const auto: Record<string, string> = target ? autoValues(target, agent, begin) : {};
-  const all: Record<string, string> = { ...auto, ...vals, mandant: vals["mandant"] ?? (name || auto["mandant"] || "") };
+  const all: Record<string, string> = { ...auto, ...vals, mandant: vals["mandant"] ?? (auto["mandant"] || name || "") };
   const fields = tpl
     ? templateFields(tpl.body).filter((f) => !["date_debut", "date_fin", "mandant", "date_signature", "mediateur"].includes(f))
     : [];

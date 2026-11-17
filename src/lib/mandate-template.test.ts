@@ -53,3 +53,16 @@ describe("mise en page", () => {
     expect(html).toContain("1 rue A");
   });
 });
+
+import { mandantText } from "./siren";
+describe("comparution du mandant", () => {
+  const tpl = "{{mandant}}, demeurant / dont le siège est {{mandant_adresse}},\nci-après";
+  it("société : siège, RCS, SIREN et représentant", () => {
+    const m = mandantText("morale", "SCI X", { company_name: "SCI X", legal_form: "SCI", address: "1 rue A", rcs_city: "Paris", siren: "830162582", representative: "Jean Dupont", representative_role: "Gérant" });
+    expect(fillTemplate(tpl, { mandant: m, mandant_adresse: "1 rue A" })).toBe("**SCI X**, SCI, dont le siège social est situé 1 rue A, immatriculée au RCS de Paris sous le n° SIREN 830 162 582, représentée par Jean Dupont, en qualité de gérant,\nci-après");
+  });
+  it("particulier : demeurant", () => {
+    const m = mandantText("physique", "Jean Dupont", { civility: "M.", address: "2 rue B" });
+    expect(fillTemplate(tpl, { mandant: m })).toBe("**M. Jean Dupont**, demeurant 2 rue B,\nci-après");
+  });
+});

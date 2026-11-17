@@ -21,14 +21,16 @@ export type OwnerDetails = Partial<Record<"siren" | "company_name" | "legal_form
 
 // Texte « mandant » injecté dans les modèles de mandat.
 export function mandantText(kind: string | null | undefined, name: string | null | undefined, d: OwnerDetails): string {
+  const sirenFmt = (x: string) => x.replace(/\s/g, "").replace(/(\d{3})(?=\d)/g, "$1 ").trim();
   if (kind === "morale") {
-    const head = [d.company_name || name, d.legal_form].filter(Boolean).join(", ");
-    const parts = [head];
-    if (d.siren) parts.push(`immatriculée au RCS${d.rcs_city ? ` de ${d.rcs_city}` : ""} sous le n° ${d.siren}`);
-    if (d.address) parts.push(`dont le siège est situé ${d.address}`);
-    const signer = d.proxy_name ? `${d.proxy_name}, agissant par procuration` : [d.representative, d.representative_role].filter(Boolean).join(", en qualité de ");
+    const parts = [`**${(d.company_name || name || "").trim()}**`];
+    if (d.legal_form) parts.push(d.legal_form);
+    if (d.address) parts.push(`dont le siège social est situé ${d.address}`);
+    if (d.siren) parts.push(`immatriculée au RCS${d.rcs_city ? ` de ${d.rcs_city}` : ""} sous le n° SIREN ${sirenFmt(d.siren)}`);
+    const signer = d.proxy_name ? `${d.proxy_name}, agissant par procuration` : [d.representative, d.representative_role?.toLowerCase()].filter(Boolean).join(", en qualité de ");
     if (signer) parts.push(`représentée par ${signer}`);
-    return parts.filter(Boolean).join(", ");
+    return parts.join(", ");
   }
-  return [d.civility, name].filter(Boolean).join(" ");
+  const who = `**${[d.civility, name].filter(Boolean).join(" ")}**`;
+  return d.address ? `${who}, demeurant ${d.address}` : who;
 }

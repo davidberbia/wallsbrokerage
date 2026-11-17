@@ -1321,7 +1321,7 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           ["Stratégie", asset.strategy],
           ["Description", asset.description],
           ...Object.entries(asset.residential_details ?? {}).map(([key,value]) => [RESIDENTIAL_LABELS[key] || key, value == null ? null : String(value)] as [string, string | null]),
-          ["Propriétaire", asset.owner_kind === "morale" ? mandantText("morale", asset.owner_name, asset.owner_details ?? {}) : asset.owner_name],
+          ["Propriétaire", asset.owner_kind === "morale" ? mandantText("morale", asset.owner_name, asset.owner_details ?? {}).replace(/\*\*/g, "") : asset.owner_name],
           ["Surface pondérée (m²)", asset.weighted_surface == null ? null : String(asset.weighted_surface)],
           ["Surface extérieure (m²)", asset.outdoor_surface == null ? null : String(asset.outdoor_surface)],
           ["Parkings", asset.parking_count == null ? null : String(asset.parking_count)],
