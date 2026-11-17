@@ -385,11 +385,11 @@ export const integrateMailscanCandidates = createServerFn({ method: "POST" })
     return { ok: true, investorsCreated, prospectsCreated, ignored };
   });
 
-/** Classe des contacts « À qualifier » dans l'annuaire Contacts ou Brokers (par lots). */
+/** Classe des contacts « À qualifier » en Acheteur habitation, Broker ou Notaire (par lots). */
 export const classifyMailscanCandidates = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { ids: string[]; kind: "contact" | "broker" | "notary" }) => {
-    if (!Array.isArray(input?.ids) || !["contact", "broker", "notary"].includes(input.kind)) throw new Error("Données invalides");
+  .inputValidator((input: { ids: string[]; kind: "contact" | "broker" | "notary" | "buyer" }) => {
+    if (!Array.isArray(input?.ids) || !["contact", "broker", "notary", "buyer"].includes(input.kind)) throw new Error("Données invalides");
     return { ids: input.ids.slice(0, 1000).map(String), kind: input.kind };
   })
   .handler(async ({ data, context }) => {
@@ -398,6 +398,38 @@ export const classifyMailscanCandidates = createServerFn({ method: "POST" })
     const admin = supabaseAdmin as any;
     const list = await loadCandidates(admin, data.ids);
     if (list.length === 0) return { count: 0 };
+
+    // Acheteur habitation : la fiche va dans la base des acheteurs (pas dans l'annuaire).
+    if (data.kind === "buyer") {
+      const already = await existingEmails(admin, "investors", list.map((r) => r.email));
+      const seen = new Set<string>();
+      const fresh = list.filter((r) => {
+        const e = r.email.toLowerCase();
+        if (already.has(e) || seen.has(e)) return false;
+        seen.add(e);
+        return true;
+      });
+      for (const part of chunks(fresh, 200)) {
+        const { error } = await admin.from("investors").insert(
+          part.map((r) => ({
+            full_name: r.full_name || r.email.split("@")[0]!,
+            first_name: r.first_name ?? null,
+            job_title: r.job_title ?? null,
+            email: r.email,
+            phone: r.phone ?? null,
+            company: r.company_name ?? null,
+            address: r.address ?? null,
+            investor_profile: "Acheteur habitation",
+            status: "à qualifier",
+            owner_id: context.userId ?? null,
+            notes: "Créé depuis la boîte mail — fiche acheteur à compléter.",
+          })),
+        );
+        if (error) throw new Error(`Enregistrement des acheteurs : ${error.message}`);
+      }
+      await setStatus(admin, list.map((r) => r.id), "buyer");
+      return { count: list.length };
+    }
 
     // Déjà dans l'annuaire → on change simplement sa rubrique (Contacts ↔ Brokers).
     const already = await existingEmails(admin, "directory_contacts", list.map((r) => r.email));

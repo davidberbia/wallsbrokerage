@@ -126,12 +126,20 @@ function DetectedContactsPage() {
   });
 
   const classifyMutation = useMutation({
-    mutationFn: (v: { ids: string[]; kind: "contact" | "broker" | "notary" }) =>
+    mutationFn: (v: { ids: string[]; kind: "contact" | "broker" | "notary" | "buyer" }) =>
       classify({ data: v }),
     onMutate: (v) => hide(v.ids),
     onSuccess: (r, v) => {
       toast.success(
-        `${r.count} contact(s) classé(s) dans ${v.kind === "broker" ? "Brokers" : v.kind === "notary" ? "Notaires" : "Contacts"}`,
+        `${r.count} contact(s) classé(s) dans ${
+          v.kind === "broker"
+            ? "Brokers"
+            : v.kind === "notary"
+              ? "Notaires"
+              : v.kind === "buyer"
+                ? "Acheteurs"
+                : "Contacts"
+        }`,
       );
       done();
     },
@@ -183,7 +191,7 @@ function DetectedContactsPage() {
         <h1 className="mt-1 text-3xl">À qualifier</h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Tous les contacts trouvés automatiquement (emails, newsletters, pièces jointes). Classez
-          chaque fiche en un clic : Contacts, Brokers (confrères) ou Prospects.
+          chaque fiche en un clic : Acheteur, Broker (confrère), Notaire ou Prospect.
         </p>
       </div>
 
@@ -198,55 +206,64 @@ function DetectedContactsPage() {
           <Checkbox checked={onlyImmo} onCheckedChange={(v) => setOnlyImmo(v === true)} />
           Sociétés immobilières uniquement
         </label>
-        <div className="flex flex-wrap gap-2 sm:ml-auto">
-          <Button
-            variant="outline"
-            className="min-h-11 sm:min-h-9"
-            disabled={selected.length === 0 || classifyMutation.isPending}
-            onClick={() => classifyMutation.mutate({ ids: selected, kind: "contact" })}
-          >
-            Contacts ({selected.length})
-          </Button>
-          <Button
-            variant="outline"
-            className="min-h-11 sm:min-h-9"
-            disabled={selected.length === 0 || classifyMutation.isPending}
-            onClick={() => classifyMutation.mutate({ ids: selected, kind: "broker" })}
-          >
-            Brokers ({selected.length})
-          </Button>
-          <Button
-            variant="outline"
-            className="min-h-11 sm:min-h-9"
-            disabled={selected.length === 0 || classifyMutation.isPending}
-            onClick={() => classifyMutation.mutate({ ids: selected, kind: "notary" })}
-          >
-            Notaires ({selected.length})
-          </Button>
-          <Button
-            variant="destructive"
-            className="min-h-11 sm:min-h-9"
-            disabled={selected.length === 0 || deleteMutation.isPending}
-            onClick={() => {
-              if (
-                confirm(
-                  `Supprimer définitivement ${selected.length} contact(s) ? Ils ne seront plus jamais réimportés.`,
+        <div className="flex flex-col gap-2 sm:ml-auto">
+          <div className="grid grid-cols-3 gap-2">
+            <Button
+              variant="outline"
+              className="min-h-11 px-2 text-[13px] sm:min-h-9 sm:px-4 sm:text-sm"
+              disabled={selected.length === 0 || classifyMutation.isPending}
+              onClick={() => classifyMutation.mutate({ ids: selected, kind: "buyer" })}
+            >
+              Acheteur ({selected.length})
+            </Button>
+            <Button
+              variant="outline"
+              className="min-h-11 px-2 text-[13px] sm:min-h-9 sm:px-4 sm:text-sm"
+              disabled={selected.length === 0 || classifyMutation.isPending}
+              onClick={() => classifyMutation.mutate({ ids: selected, kind: "broker" })}
+            >
+              Broker ({selected.length})
+            </Button>
+            <Button
+              variant="outline"
+              className="min-h-11 px-2 text-[13px] sm:min-h-9 sm:px-4 sm:text-sm"
+              disabled={selected.length === 0 || classifyMutation.isPending}
+              onClick={() => classifyMutation.mutate({ ids: selected, kind: "notary" })}
+            >
+              Notaire ({selected.length})
+            </Button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant="success"
+              className="min-h-11 sm:min-h-9"
+              disabled={selected.length === 0 || integrateMutation.isPending}
+              onClick={() => integrateMutation.mutate(selected)}
+            >
+              {integrateMutation.isPending
+                ? "Prospect…"
+                : `Prospect (${selected.length})`}
+            </Button>
+            <Button
+              variant="destructive"
+              className="min-h-11 sm:min-h-9"
+              disabled={selected.length === 0 || deleteMutation.isPending}
+              onClick={() => {
+                if (
+                  confirm(
+                    `Supprimer définitivement ${selected.length} contact(s) ? Ils ne seront plus jamais réimportés.`,
+                  )
                 )
-              )
-                deleteMutation.mutate(selected);
-            }}
-          >
-            Supprimer ({selected.length})
-          </Button>
-          <Button
-            className="min-h-11 sm:min-h-9"
-            disabled={selected.length === 0 || integrateMutation.isPending}
-            onClick={() => integrateMutation.mutate(selected)}
-          >
-            {integrateMutation.isPending
-              ? "Déplacement…"
-              : `Déplacer vers Prospects (${selected.length})`}
-          </Button>
+                  deleteMutation.mutate(selected);
+              }}
+            >
+              Supprimer ({selected.length})
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            On ne peut pas déplacer les contacts à qualifier directement dans Investisseurs sans
+            passer par Prospect, car il faut remplir la fiche stratégique.
+          </p>
         </div>
       </div>
 
