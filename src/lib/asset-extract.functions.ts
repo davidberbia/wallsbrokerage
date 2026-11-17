@@ -14,6 +14,13 @@ export type ExtractedAssetFields = {
   yield_pct?: number | null;
   surface?: number | null;
   description?: string | null;
+  address?: string | null;
+  postal_code?: string | null;
+  rent?: number | null;
+  parking_count?: number | null;
+  walb?: number | null;
+  walt?: number | null;
+  leases?: string | null;
 };
 
 const pick = (value: string | null | undefined, allowed: readonly string[]) =>
@@ -47,6 +54,13 @@ export const extractAssetFields = createServerFn({ method: "POST" })
 - price : prix en euros, nombre sans espaces ni symbole
 - yield_pct : rendement en %, nombre
 - surface : surface en m², nombre
+- address : numéro et rue
+- postal_code : code postal
+- rent : loyer annuel total HT HC en euros, nombre
+- parking_count : nombre de parkings, nombre
+- walb : durée moyenne ferme restante des baux en années, nombre
+- walt : durée moyenne restante jusqu'au terme des baux en années, nombre
+- leases : état locatif, une ligne par lot « locataire – surface m² – loyer € – début – échéance »
 - description : résumé en 2 phrases maximum
 Si une information est absente du document, mets null.`,
       file: { mimeType: data.mimeType, base64: data.base64 },

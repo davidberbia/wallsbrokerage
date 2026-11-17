@@ -1,3 +1,4 @@
+import { pickMainPhoto, imageSize } from "@/lib/main-photo";
 import { docFolder } from "@/lib/doc-folders";
 import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { ResidentialFields, RESIDENTIAL_LABELS } from "@/components/ResidentialFields";
@@ -567,11 +568,23 @@ function AssetForm({
         "yield_pct",
         "surface",
         "description",
+        "address",
+        "postal_code",
+        "rent",
+        "parking_count",
       ] as const) {
         const value = fields?.[key];
         if (value != null && value !== "" && (draft[key] == null || draft[key] === "")) {
           Object.assign(patch, { [key]: value });
         }
+      }
+      const extraInfo = [
+        fields?.walb != null && `WALB : ${fields.walb} ans`,
+        fields?.walt != null && `WALT : ${fields.walt} ans`,
+        fields?.leases && `État locatif :\n${fields.leases}`,
+      ].filter(Boolean).join("\n");
+      if (extraInfo && !(draft.description ?? "").includes("WALB") && !(draft.description ?? "").includes("État locatif")) {
+        patch.description = [patch.description ?? draft.description, extraInfo].filter(Boolean).join("\n\n");
       }
       if (Object.keys(patch).length > 0) {
         onChange({ ...draft, ...patch });
@@ -821,6 +834,28 @@ function AssetForm({
           <p className="text-sm text-muted-foreground">
             Aucune photo n'est obligatoire ici. La photo principale sera demandée pour créer la brochure, et au moins une photo pour diffuser sur le site.
           </p>
+          <Field label="Ajouter plusieurs photos d'un coup">
+            <Input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                const fs = Array.from(e.target.files ?? []);
+                e.target.value = "";
+                if (!fs.length) return;
+                void (async () => {
+                  const files = await Promise.all(fs.map((f) => compressFile(f)));
+                  const dims = await Promise.all(fs.map((f) => imageSize(f)));
+                  const hasMain = photos.some((p) => p.label === "Photo principale") || (savedPhotos ?? []).some((p) => p.name.startsWith("Photo principale"));
+                  const main = hasMain ? -1 : pickMainPhoto(dims);
+                  const added = files.map((file, i) => ({ label: i === main ? "Photo principale" : "Autre", file }));
+                  onPhotos([...photos.filter((p) => !(main >= 0 && p.label === "Photo principale")), ...added]);
+                  if (main >= 0) toast.success(`Photo principale choisie : ${files[main]?.name ?? ""}`);
+                })();
+              }}
+            />
+            {photos.filter((p) => p.label === "Autre").length > 0 && <p className="text-xs">{photos.filter((p) => p.label === "Autre").length} autre(s) photo(s) à ajouter</p>}
+          </Field>
           {slots.map((label) => {
             const pending = photos.find((p) => p.label === label);
             const saved = (savedPhotos ?? []).filter((p) => p.name.startsWith(label));
