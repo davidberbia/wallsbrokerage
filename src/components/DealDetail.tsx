@@ -17,6 +17,7 @@ import { STAGE_NAMES, TARGET_STAGE } from "@/lib/deal-stages";
 import { correspondents, byDomain } from "@/lib/correspondents";
 import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { CopyEmail } from "@/components/CopyEmail";
+import { ASSET_CLASS_GROUPS } from "@/lib/taxonomy";
 
 const STAGES = [TARGET_STAGE, ...STAGE_NAMES];
 type Deal = Tables<"deals">;
@@ -87,6 +88,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
   const [researchBusy,setResearchBusy]=useState(false);
   const [form, setForm] = useState<(Partial<Deal> & { address?: string | null }) | null>(null);
   const current = form ?? deal.data ?? null;
+  const [assetClass, setAssetClass] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [search, setSearch] = useState("");
 
@@ -98,7 +100,20 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
   };
 
   const save = async () => {
-    if (!form) return;
+    if (!form && assetClass === null) return;
+    let assetId = current?.asset_id ?? null;
+    if (assetClass !== null) {
+      if (assetId) {
+        const { error: e1 } = await supabase.from("assets").update({ asset_class: assetClass || null }).eq("id", assetId);
+        if (e1) { toast.error(e1.message); return; }
+      } else if (assetClass) {
+        const { data: na, error: e2 } = await supabase.from("assets")
+          .insert({ title: current?.name ?? "", asset_class: assetClass, address: current?.address ?? null, surface: current?.surface ?? null, price: current?.amount ?? null, rent: current?.rent ?? null, owner_id: deal.data?.owner_id ?? null, status: "prospection" } as never)
+          .select("id").single();
+        if (e2) { toast.error(e2.message); return; }
+        assetId = na.id;
+      }
+    }
     const { error } = await supabase
       .from("deals")
       .update({
@@ -121,7 +136,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         seller: current?.seller ?? null,
         buyer: current?.buyer ?? null,
         operation_nature: current?.operation_nature ?? null,
-        asset_id: current?.asset_id ?? null,
+        asset_id: assetId,
       } as never)
       .eq("id", id);
     if (error) {
@@ -129,6 +144,9 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
       return;
     }
     setForm(null);
+    setAssetClass(null);
+    qc.invalidateQueries({ queryKey: ["deal-assets"] });
+    qc.invalidateQueries({ queryKey: ["deal-dossier"] });
     toast.success("Dossier enregistré");
     refresh();
     onClose();
@@ -219,7 +237,8 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
       {(() => {
         // Interlocuteur principal : l'expéditeur du premier mail reçu (celui qui a envoyé le dossier).
         const ordered = [...(mails.data ?? [])].sort((x, y) => (x.received_at ?? "").localeCompare(y.received_at ?? ""));
-        const sender = correspondents(ordered.map((m) => m.from_email), selfEmails)[0];
+        const fromSender = correspondents(ordered.map((m) => m.from_email), selfEmails)[0];
+        const sender = fromSender ?? correspondents(ordered.map((m) => m.to_display), selfEmails)[0];
         const firstMail = sender ? ordered.find((m) => m.from_email?.toLowerCase() === sender) : null;
         const all = correspondents([...(sender ? [sender] : []), ...ordered.flatMap((m) => [m.from_email, m.to_display])], selfEmails);
         const groups = byDomain(all);
@@ -233,7 +252,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
             <h3 className="text-xs font-semibold uppercase text-muted-foreground">Interlocuteur</h3>
             {sender && (
               <div className="text-sm font-semibold">
-                {firstMail?.from_name && firstMail.from_name.toLowerCase() !== sender ? `${firstMail.from_name} · ` : ""}Expéditeur du dossier
+                {firstMail?.from_name && firstMail.from_name.toLowerCase() !== sender ? `${firstMail.from_name} · ` : ""}{fromSender ? "Expéditeur du dossier" : "Destinataire"}
               </div>
             )}
             {groups.map(([d, list], gi) => (
@@ -245,32 +264,21 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         );
       })()}
 
-      {dossier.data && (() => {
-        const a = dossier.data.asset;
-        const n = (v: number | null | undefined, u: string) => (v == null ? null : `${new Intl.NumberFormat("fr-FR").format(v)} ${u}`);
-        const facts = a ? [
-          [a.address, a.postal_code, a.city].filter(Boolean).join(" ") || null,
-          a.asset_class, n(a.surface, "m²"), n(a.price, "€"), a.rent != null ? `Loyer ${n(a.rent, "€")}` : null,
-          a.yield_pct != null ? `${a.yield_pct} %` : null, n(a.keys_count, "clés"), a.revenue != null ? `CA ${n(a.revenue, "€")}` : null,
-        ].filter(Boolean) : [];
-        if (!facts.length && !dossier.data.docs.length) return null;
-        return (
-          <section className="space-y-2 rounded-sm border border-border p-3">
-            <h3 className="text-xs font-semibold uppercase text-muted-foreground">Dossier ({dossier.data.docs.length})</h3>
-            {facts.length > 0 && <p className="text-sm">{facts.join(" · ")}</p>}
-            {dossier.data.docs.map((d) => (
-              <button key={d.id} type="button" onClick={() => openDoc(d.path)} className="flex w-full items-center gap-2 py-1 text-left text-sm underline-offset-2 hover:underline">
-                <ExternalLink className="h-4 w-4 shrink-0" /> <span className="break-all">{d.name}</span>
-              </button>
-            ))}
-          </section>
-        );
-      })()}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label>Nom</Label>
           <Input value={current.name ?? ""} onChange={(e) => set({ name: e.target.value })} />
+        </div>
+        <div className="sm:col-span-2">
+          <Label>Classe d'actif</Label>
+          <Select value={(assetClass ?? dossier.data?.asset?.asset_class) || "none"} onValueChange={(v) => setAssetClass(v === "none" ? "" : v)}>
+            <SelectTrigger><SelectValue placeholder="À préciser" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">À préciser</SelectItem>
+              {ASSET_CLASS_GROUPS.map(([g, list]) => list.map((c) => <SelectItem key={c} value={c}>{g === c ? c : `${g} — ${c}`}</SelectItem>))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label>Étape</Label>
@@ -418,7 +426,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         <Button variant="outline" onClick={remove}>
           <Trash2 className="h-4 w-4" /> Supprimer
         </Button>
-        <Button onClick={save} disabled={!form}>
+        <Button onClick={save} disabled={!form && assetClass === null}>
           Enregistrer
         </Button>
       </div>
@@ -577,6 +585,27 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           </div>
         ))}
       </section>
+      {dossier.data && (() => {
+        const a = dossier.data.asset;
+        const n = (v: number | null | undefined, u: string) => (v == null ? null : `${new Intl.NumberFormat("fr-FR").format(v)} ${u}`);
+        const facts = a ? [
+          [a.address, a.postal_code, a.city].filter(Boolean).join(" ") || null,
+          a.asset_class, n(a.surface, "m²"), n(a.price, "€"), a.rent != null ? `Loyer ${n(a.rent, "€")}` : null,
+          a.yield_pct != null ? `${a.yield_pct} %` : null, n(a.keys_count, "clés"), a.revenue != null ? `CA ${n(a.revenue, "€")}` : null,
+        ].filter(Boolean) : [];
+        if (!facts.length && !dossier.data.docs.length) return null;
+        return (
+          <section className="space-y-2 rounded-sm border border-border p-3">
+            <h3 className="text-xs font-semibold uppercase text-muted-foreground">Dossier ({dossier.data.docs.length})</h3>
+            {facts.length > 0 && <p className="text-sm">{facts.join(" · ")}</p>}
+            {dossier.data.docs.map((d) => (
+              <button key={d.id} type="button" onClick={() => openDoc(d.path)} className="flex w-full items-center gap-2 py-1 text-left text-sm underline-offset-2 hover:underline">
+                <ExternalLink className="h-4 w-4 shrink-0" /> <span className="break-all">{d.name}</span>
+              </button>
+            ))}
+          </section>
+        );
+      })()}
     </div>
   );
 }

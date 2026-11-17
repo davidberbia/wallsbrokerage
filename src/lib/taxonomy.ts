@@ -150,3 +150,48 @@ export const formatEUR = (value: number | null | undefined) =>
         currency: "EUR",
         maximumFractionDigits: 0,
       }).format(value);
+
+/** Classes résidentielles : l'adresse s'affiche avant la ville. */
+const RESIDENTIAL = new Set(["Appartement", "Maison", "Immeubles de logements ou mixtes", "Résidence étudiants"]);
+export const isResidentialClass = (cls?: string | null) => !!cls && RESIDENTIAL.has(cls);
+
+/** Commercial : « Ville · Adresse » ; résidentiel : « Adresse · Ville ». */
+export function locationLabel(cls: string | null | undefined, city: string | null | undefined, address: string | null | undefined): string {
+  const c = (city ?? "").trim();
+  let a = (address ?? "").trim();
+  if (c && a.toLowerCase().endsWith(c.toLowerCase())) a = a.slice(0, -c.length).replace(/[\s,·-]+$/, "").replace(/\s*\d{5}$/, "").trim();
+  const parts = isResidentialClass(cls) ? [a, c] : [c, a];
+  return parts.filter(Boolean).join(" · ");
+}
+
+/** Classe déduite du nom du dossier quand elle n'est pas encore renseignée. */
+export function guessClassFromName(name?: string | null): string | null {
+  const n = (name ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const rules: [RegExp, string][] = [
+    [/\bhotel|resort/, "City Hôtel (sans fonds)"],
+    [/bureau/, "Bureaux"],
+    [/logistiq|entrepot/, "Logistique"],
+    [/activite/, "Activité"],
+    [/retail park/, "Retail Park complet"],
+    [/centre commercial/, "Centres commerciaux"],
+    [/commerce|boutique|local commercial|locaux commerciaux/, "Murs de commerces de pied d'immeuble"],
+    [/restaurant/, "Murs de restaurants"],
+    [/ehpad/, "EHPAD"],
+    [/etudiant/, "Résidence étudiants"],
+    [/appartement/, "Appartement"],
+    [/maison|villa/, "Maison"],
+    [/terrain/, "Terrains à bâtir"],
+    [/logement|residentiel|mixte/, "Immeubles de logements ou mixtes"],
+  ];
+  return rules.find(([r]) => r.test(n))?.[1] ?? null;
+}
+
+/** Libellé court pour les listes (place limitée sur téléphone). */
+export function shortClassLabel(cls?: string | null, sub?: string | null): string {
+  if (!cls) return "";
+  if (cls === "Bureaux") return assetKindLabel(cls, sub).replace(/^./, (c) => c.toUpperCase());
+  if (/Hôtel/.test(cls)) return "Hôtel";
+  if (cls === "Immeubles de logements ou mixtes") return "Logements";
+  const SHORT: Record<string, string> = { "Murs de commerces de pied d'immeuble": "Commerce", "Locaux commerciaux de périphérie": "Commerce périphérie", "Ensemble commercial de périphérie": "Ensemble commercial", "Résidence étudiants": "Résid. étudiants", "Immeubles à restructurer": "À restructurer", "Terrains à bâtir": "Terrain" };
+  return SHORT[cls] ?? cls;
+}

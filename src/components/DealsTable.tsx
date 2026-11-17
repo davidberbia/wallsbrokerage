@@ -10,6 +10,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { suggestDealMerges } from "@/lib/deal-dedup.functions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MergePicker } from "@/components/MergePicker";
+import { assetKindLabel, guessClassFromName, shortClassLabel, locationLabel } from "@/lib/taxonomy";
 import { cityKey, mergeDealFields, type MergeGroup } from "@/lib/deal-merge";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -120,6 +121,17 @@ export function DealsTable({ mode }: { mode: Mode }) {
       return data;
     },
   });
+
+  const dealAssets = useQuery({
+    queryKey: ["deal-assets"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("assets").select("id,asset_class,asset_subclass,city,address").limit(5000);
+      if (error) throw error;
+      return new Map((data ?? []).map((a) => [a.id, a]));
+    },
+  });
+  const assetOf = (d: { asset_id: string | null }) => (d.asset_id ? dealAssets.data?.get(d.asset_id) : undefined);
+  const classOf = (d: { asset_id: string | null; name: string }) => assetOf(d)?.asset_class || guessClassFromName(d.name);
 
   const agents = useQuery({
     queryKey: ["deal-agents"],
@@ -235,17 +247,25 @@ export function DealsTable({ mode }: { mode: Mode }) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mail_messages")
-        .select("deal_id,from_email,to_display,folder")
+        .select("deal_id,from_email,to_display,received_at")
         .not("deal_id", "is", null)
+        .order("received_at", { ascending: true })
         .limit(5000);
       if (error) throw error;
-      const map = new Map<string, Set<string>>();
+      // Personne principale : l'expéditeur tiers du premier mail ; à défaut, le destinataire.
+      const senders = new Map<string, Set<string>>();
+      const others = new Map<string, Set<string>>();
+      const add = (m: Map<string, Set<string>>, k: string, list: string[]) => {
+        const set = m.get(k) ?? new Set<string>();
+        for (const e of list) set.add(e);
+        m.set(k, set);
+      };
       for (const m of data ?? []) {
-        const set = map.get(m.deal_id!) ?? new Set<string>();
-        const raw = m.folder === "sentitems" ? m.to_display ?? "" : m.from_email ?? "";
-        for (const e of thirdParties([raw], selfEmails)) set.add(e);
-        map.set(m.deal_id!, set);
+        add(senders, m.deal_id!, thirdParties([m.from_email ?? ""], selfEmails));
+        add(others, m.deal_id!, thirdParties([m.to_display ?? ""], selfEmails));
       }
+      const map = new Map<string, Set<string>>();
+      for (const k of new Set([...senders.keys(), ...others.keys()])) map.set(k, new Set([...(senders.get(k) ?? []), ...(others.get(k) ?? [])]));
       return map;
     },
   });
@@ -576,8 +596,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
           )}
           <CompactRow
             title={d.name}
-            subtitle={mode === "pipeline" ? [d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ") : `${d.stage} · ${m2(d.surface)} · Prix ${eur(d.amount)} · Loyer ${eur(d.rent)}`}
-            summary={mode === "targets" ? [d.company,d.address,mailsOf(d.id).slice(0,2).map((e)=>`✉ ${e}`).join(" ")].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
+            subtitle={mode === "pipeline" ? [d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ") : [assetKindLabel(assetOf(d)?.asset_class, assetOf(d)?.asset_subclass) || "Classe à préciser", d.surface ? m2(d.surface) : "", d.amount ? `Prix ${eur(d.amount)}` : ""].filter(Boolean).join(" · ")}
+            summary={mode === "targets" ? [shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "Classe ?", locationLabel(classOf(d), assetOf(d)?.city, assetOf(d)?.address || d.address), mailsOf(d.id)[0] && `✉ ${mailsOf(d.id)[0]}`].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
             trailing={
               mode === "targets" && canEdit ? (
@@ -585,16 +605,6 @@ export function DealsTable({ mode }: { mode: Mode }) {
                   <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={() => { setMergeFor(d); setMergePick([]); }}>
                     <Merge className="size-4" />
                   </Button>
-                  <Select value="" onValueChange={(v) => move.mutate({ id: d.id, stage: v })}>
-                    <SelectTrigger className="h-11 w-auto gap-1 px-2 text-xs" aria-label={`Passer ${d.name} au suivi`}>
-                      <span>Suivi</span>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STAGE_NAMES.map((s) => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </>
               ) : canEdit ? (
                 <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={() => { setMergeFor(d); setMergePick([]); }}>
