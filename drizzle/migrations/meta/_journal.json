@@ -267,6 +267,13 @@
       "when": 1794933343066,
       "tag": "0037_hotel_financials_owner_contact",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794936949042,
+      "tag": "0038_directory_contacts_kind_utile",
+      "breakpoints": true
     }
   ]
 }

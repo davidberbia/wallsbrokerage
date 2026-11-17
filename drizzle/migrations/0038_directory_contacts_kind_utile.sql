@@ -1,0 +1,2 @@
+ALTER TABLE public.directory_contacts DROP CONSTRAINT IF EXISTS directory_contacts_kind_check;
+ALTER TABLE public.directory_contacts ADD CONSTRAINT directory_contacts_kind_check CHECK (kind IN ('contact','broker','notary','utile'));
