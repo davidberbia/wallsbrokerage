@@ -1011,12 +1011,15 @@ export type Database = {
           address: string | null
           asset_class: string | null
           city: string | null
+          citycode: string | null
           created_at: string
           deal_date: string | null
           enseigne: string | null
           excerpt: string
           id: string
           kind: string
+          lat: number | null
+          lon: number | null
           mail_graph_id: string | null
           notes: string | null
           postal_code: string | null
@@ -1026,6 +1029,7 @@ export type Database = {
           rent_m2: number | null
           rent_m2_weighted: number | null
           source: string | null
+          street: string | null
           surface: number | null
           updated_at: string
           weighted_surface: number | null
@@ -1036,12 +1040,15 @@ export type Database = {
           address?: string | null
           asset_class?: string | null
           city?: string | null
+          citycode?: string | null
           created_at?: string
           deal_date?: string | null
           enseigne?: string | null
           excerpt?: string
           id?: string
           kind?: string
+          lat?: number | null
+          lon?: number | null
           mail_graph_id?: string | null
           notes?: string | null
           postal_code?: string | null
@@ -1051,6 +1058,7 @@ export type Database = {
           rent_m2?: number | null
           rent_m2_weighted?: number | null
           source?: string | null
+          street?: string | null
           surface?: number | null
           updated_at?: string
           weighted_surface?: number | null
@@ -1061,12 +1069,15 @@ export type Database = {
           address?: string | null
           asset_class?: string | null
           city?: string | null
+          citycode?: string | null
           created_at?: string
           deal_date?: string | null
           enseigne?: string | null
           excerpt?: string
           id?: string
           kind?: string
+          lat?: number | null
+          lon?: number | null
           mail_graph_id?: string | null
           notes?: string | null
           postal_code?: string | null
@@ -1076,10 +1087,38 @@ export type Database = {
           rent_m2?: number | null
           rent_m2_weighted?: number | null
           source?: string | null
+          street?: string | null
           surface?: number | null
           updated_at?: string
           weighted_surface?: number | null
           yield_pct?: number | null
+        }
+        Relationships: []
+      }
+      comparables_geo_stage: {
+        Row: {
+          citycode: string | null
+          id: string
+          lat: number | null
+          lon: number | null
+          score: number | null
+          street: string | null
+        }
+        Insert: {
+          citycode?: string | null
+          id: string
+          lat?: number | null
+          lon?: number | null
+          score?: number | null
+          street?: string | null
+        }
+        Update: {
+          citycode?: string | null
+          id?: string
+          lat?: number | null
+          lon?: number | null
+          score?: number | null
+          street?: string | null
         }
         Relationships: []
       }
@@ -2755,12 +2794,68 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      comparable_facets: {
+        Args: never
+        Returns: {
+          asset_class: string
+          city: string
+          n: number
+          street: string
+        }[]
+      }
       deal_touch_activity: { Args: { _deal: string }; Returns: undefined }
       directory_to_prospect: {
         Args: { _company: string; _id: string }
         Returns: string
       }
       email_pump_tick: { Args: never; Returns: undefined }
+      find_comparables: {
+        Args: {
+          _big_city: boolean
+          _citycode: string
+          _class: string
+          _lat: number
+          _limit?: number
+          _lon: number
+          _postal: string
+          _street: string
+        }
+        Returns: {
+          acquisition_details: Json
+          address: string | null
+          asset_class: string | null
+          city: string | null
+          citycode: string | null
+          created_at: string
+          deal_date: string | null
+          enseigne: string | null
+          excerpt: string
+          id: string
+          kind: string
+          lat: number | null
+          lon: number | null
+          mail_graph_id: string | null
+          notes: string | null
+          postal_code: string | null
+          price: number | null
+          price_m2: number | null
+          rent: number | null
+          rent_m2: number | null
+          rent_m2_weighted: number | null
+          source: string | null
+          street: string | null
+          surface: number | null
+          updated_at: string
+          weighted_surface: number | null
+          yield_pct: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "comparables"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
