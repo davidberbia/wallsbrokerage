@@ -19,7 +19,7 @@ type Reading = AutofillFields & {
   pages?: { page: number; kind: "plan" | "plan_masse" | "photo"; label?: string | null }[] | null;
 };
 
-const PROMPT = `Document joint à un mail concernant un actif immobilier professionnel. Réponds en JSON :
+export const PROMPT = `Document joint à un mail concernant un actif immobilier professionnel. Réponds en JSON :
 - doc_type : "bail" | "etat_locatif" | "taxe_fonciere" | "charges" | "mandat" | "presentation" | "plan" | "plan_masse" | "photo" | "kbis" | "autre"
 - plan_label : si c'est un plan, son intitulé exact par niveau (« Plan de masse », « Plan rez-de-chaussée », « Plan 1er étage », « Plan 2e étage », « Plan sous-sol »…), sinon null
 - landscape_photo : true si c'est une photo de l'immeuble en format paysage exploitable comme photo principale
@@ -37,7 +37,7 @@ const safe = (n: string) => n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").r
 type Admin = Awaited<ReturnType<typeof getAdmin>>;
 
 /** Applique une lecture à la fiche d'actif puis reporte sur la ligne du dossier. */
-async function applyReading(admin: Admin, assetId: string, reading: Reading, source: string, classSource: ClassSource) {
+export async function applyReading(admin: Admin, assetId: string, reading: Reading, source: string, classSource: ClassSource) {
   const { data: asset } = await admin.from("assets").select("*").eq("id", assetId).single();
   if (!asset) return;
   const patch = mergeAutofill(asset as never, reading, source, classSource);
