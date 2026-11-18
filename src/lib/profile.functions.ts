@@ -24,7 +24,7 @@ export const sendProfileConfirmation = createServerFn({ method: "POST" })
       html: `<p>Bonjour ${escapeHtml(name)},</p><p>Bienvenue dans la communauté d’investisseurs de Wallsbroker !</p><p>Vos critères ont été correctement enregistrés.</p><p>Si vous souhaitez les modifier, connectez-vous à votre compte sur <a href="https://www.wallsbrokerage.com">www.wallsbrokerage.com</a>.</p><p>L’équipe Wallsbroker<br><a href="https://www.wallsbroker.com">www.wallsbroker.com</a></p>`,
     });
     if (data.isNew) {
-      const p = profile as Record<string, unknown>;
+      const p = profile;
       const list = (v: unknown) => (Array.isArray(v) ? v.join(", ") : "—");
       try {
         await sendBrevoMail({

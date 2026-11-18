@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PigeButton } from "./Pige";
 
 export function LeadActions({ id, name, email, phone, owner, archived, onPromote, full = false, onArchived, onMerge }: {
-  id: string; name: string; email?: string | null | undefined; phone?: string | null | undefined; owner?: string | null | undefined; archived?: boolean; onPromote: () => void; full?: boolean; onArchived?: () => void; onMerge?: () => void;
+  id: string; name: string; email?: string | null | undefined; phone?: string | null | undefined; owner?: string | null | undefined; archived?: boolean; onPromote: () => void; full?: boolean; onArchived?: () => void; onMerge?: (() => void) | undefined;
 }) {
   const qc = useQueryClient();
   const getRecipients = useServerFn(leadRecipients);
