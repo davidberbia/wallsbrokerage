@@ -3,7 +3,7 @@
 // Ne remplit que les champs vides ; jamais d'information inventée.
 import { callGeminiSearch } from "./gemini.server";
 import { mergeAutofill, descriptionPatch, dealPatchFromAsset, type AutofillFields } from "./autofill";
-import { confirmedLeadFacts, leadResearchSchema } from "./lead-policy";
+import { confirmedLeadFacts, leadResearchSchema, stripSenderContacts } from "./lead-policy";
 import { ASSET_CLASSES } from "./taxonomy";
 import { pickCompany, type Company } from "./company-lookup";
 
@@ -38,6 +38,7 @@ async function lookupCompany(q: string): Promise<Company[]> {
   return j.results ?? [];
 }
 
+export const DOCS_PENDING = "Lecture des documents en cours : l'enquête partira automatiquement ensuite.";
 const empty = (v: unknown) => v == null || String(v).trim() === "";
 
 export async function researchDeal(admin: Admin, dealId: string, ownerId: string) {
@@ -48,6 +49,10 @@ export async function researchDeal(admin: Admin, dealId: string, ownerId: string
     const { data: na } = await admin.from("assets").insert({ owner_id: deal.owner_id, title: deal.name, address: deal.address, surface: deal.surface, rent: deal.rent, price: deal.amount, status: "prospection" } as never).select("id").single();
     if (na) { await admin.from("deals").update({ asset_id: na.id }).eq("id", dealId); deal.asset_id = na.id; }
   }
+  // Verrou : jamais d'enquête avant la lecture complète des pièces jointes.
+  const { count: unlisted } = await admin.from("mail_messages").select("id", { count: "exact", head: true }).eq("deal_id", dealId).eq("folder", "inbox").is("attachments_listed_at", null);
+  const { count: waiting } = deal.asset_id ? await admin.from("mail_attachment_jobs").select("id", { count: "exact", head: true }).eq("asset_id", deal.asset_id).eq("status", "pending") : { count: 0 };
+  if (unlisted || waiting) throw new Error(DOCS_PENDING);
   if (deal.asset_id) asset = (await admin.from("assets").select("*").eq("id", deal.asset_id).maybeSingle()).data as Record<string, unknown> | null;
   const { data: mails } = await admin.from("mail_messages").select("subject,preview,from_name,from_email").eq("deal_id", dealId).order("received_at").limit(10);
   // Toute la fiche (champs non vides) : rien de ce que l'agent a saisi ne doit être ignoré.
@@ -75,7 +80,10 @@ export async function researchDeal(admin: Admin, dealId: string, ownerId: string
   const parsed = leadResearchSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Résultat de recherche non vérifiable : aucun champ modifié.");
   const verified = parsed.data;
-  const f = { identified: verified.identified ?? null, ...confirmedLeadFacts(verified.facts), summary: verified.summary, suggestion: verified.suggestion } as Found;
+  // Verrou confrère : expéditeurs et interlocuteurs des mails ne deviennent jamais contact propriétaire.
+  const { data: contacts } = await admin.from("deal_contacts").select("email,name").eq("deal_id", dealId);
+  const senders = [...(mails ?? []).map((m) => ({ email: m.from_email, name: m.from_name })), ...(contacts ?? [])];
+  const f = stripSenderContacts({ identified: verified.identified ?? null, ...confirmedLeadFacts(verified.facts), summary: verified.summary, suggestion: verified.suggestion } as Found, senders);
   if (!f.summary && !f.identified && !f.owner_company) {
     await admin.from("deals").update({ research_failed_at: new Date().toISOString() }).eq("id", dealId);
     throw new Error("La recherche n'a rien trouvé d'exploitable.");

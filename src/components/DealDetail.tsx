@@ -102,6 +102,16 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
     },
     refetchInterval: (query) => ["pending", "running"].includes(query.state.data?.status ?? "") ? 15000 : false,
   });
+  const assetIdForDocs = (deal.data as { asset_id?: string | null } | null | undefined)?.asset_id ?? null;
+  const docsPending = useQuery({
+    queryKey: ["lead-docs-pending", id, assetIdForDocs],
+    queryFn: async () => {
+      const { count: unlisted } = await supabase.from("mail_messages").select("id", { count: "exact", head: true }).eq("deal_id", id).eq("folder", "inbox").is("attachments_listed_at", null);
+      const { count: waiting } = assetIdForDocs ? await supabase.from("mail_attachment_jobs").select("id", { count: "exact", head: true }).eq("asset_id", assetIdForDocs).eq("status", "pending") : { count: 0 };
+      return (unlisted ?? 0) + (waiting ?? 0);
+    },
+    refetchInterval: (q) => (q.state.data ?? 0) > 0 ? 20000 : false,
+  });
   const [researchBusy,setResearchBusy]=useState(false);
   const [form, setForm] = useState<(Partial<Deal> & { address?: string | null }) | null>(null);
   const current = form ?? deal.data ?? null;
@@ -523,7 +533,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
         <h3 className="text-sm font-semibold">Enquête</h3>
         {jobs.data && <p className="text-sm text-muted-foreground">{({ pending: "En attente", running: "Enquête en cours", done: "Enquête terminée", failed: "Enquête interrompue", paused: "Enquête en pause" } as Record<string,string>)[jobs.data.status] ?? jobs.data.status}</p>}
         {jobs.data?.error && <p className="break-words text-sm text-destructive">{jobs.data.error}</p>}
-        {(() => { const failedAt = (deal.data as { research_failed_at?: string | null } | null | undefined)?.research_failed_at; const run = async()=>{setResearchBusy(true);try{await research({data:{id:id}});refresh();void qc.invalidateQueries({queryKey:["lead-jobs",id]});void qc.invalidateQueries({queryKey:["deal-dossier"]});toast.success("Enquête terminée");}catch(e){refresh();toast.error(e instanceof Error ? e.message : "Échec de la recherche");}finally{setResearchBusy(false);}}; return failedAt && !researchBusy ? <div className="flex flex-wrap items-center gap-3"><Button variant="outline" disabled>Enquête infructueuse {new Date(failedAt).toLocaleDateString("fr-FR")}</Button><button type="button" className="min-h-11 text-sm underline text-muted-foreground" disabled={jobs.data?.status === "running"} onClick={run}>Relancer quand même</button></div> : <Button variant="outline" disabled={researchBusy || jobs.data?.status === "running"} onClick={run}>{researchBusy ? "Enquête en cours…" : "Compléter les informations via IA"}</Button>; })()}
+        {(() => { const failedAt = (deal.data as { research_failed_at?: string | null } | null | undefined)?.research_failed_at; const run = async()=>{setResearchBusy(true);try{await research({data:{id:id}});refresh();void qc.invalidateQueries({queryKey:["lead-jobs",id]});void qc.invalidateQueries({queryKey:["deal-dossier"]});toast.success("Enquête terminée");}catch(e){refresh();toast.error(e instanceof Error ? e.message : "Échec de la recherche");}finally{setResearchBusy(false);}}; return failedAt && !researchBusy ? <div className="flex flex-wrap items-center gap-3"><Button variant="outline" disabled>Enquête infructueuse {new Date(failedAt).toLocaleDateString("fr-FR")}</Button><button type="button" className="min-h-11 text-sm underline text-muted-foreground" disabled={jobs.data?.status === "running"} onClick={run}>Relancer quand même</button></div> : (docsPending.data ?? 0) > 0 ? <Button variant="outline" disabled>Lecture des documents en cours…</Button> : <Button variant="outline" disabled={researchBusy || jobs.data?.status === "running"} onClick={run}>{researchBusy ? "Enquête en cours…" : "Compléter les informations via IA"}</Button>; })()}
         {(() => {
           const parsed = leadResearchSchema.safeParse(current.lead_research);
           if (!parsed.success) return null;

@@ -35,3 +35,29 @@ export function confirmedLeadFacts(facts: LeadResearch["facts"]): Record<string,
   }
   return out;
 }
+const FREE_MAIL = /^(gmail|yahoo|hotmail|outlook|live|icloud|orange|free|sfr|wanadoo|laposte|msn|aol|proton(mail)?|gmx|bbox|neuf)\./i;
+const normName = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z]+/g, " ").trim();
+
+/** Mail senders (brokers, colleagues) can never become owner contacts: their names, e-mails, domains and phones are stripped. */
+export function stripSenderContacts<T extends { contact_name?: string | null; contact_email?: string | null; contact_phone?: string | null }>(
+  found: T, senders: { email?: string | null; name?: string | null }[],
+): T {
+  const emails = new Set(senders.map((s) => String(s.email ?? "").toLowerCase().trim()).filter(Boolean));
+  const domains = new Set([...emails].map((e) => e.split("@")[1] ?? "").filter((d) => d && !FREE_MAIL.test(d)));
+  const names = senders.map((s) => normName(String(s.name ?? ""))).filter((n) => n.length >= 4);
+  const out = { ...found };
+  const mail = String(out.contact_email ?? "").toLowerCase().trim();
+  const badMail = Boolean(mail) && (emails.has(mail) || domains.has(mail.split("@")[1] ?? ""));
+  const cname = normName(String(out.contact_name ?? ""));
+  const badName = Boolean(cname) && names.some((n) => cname.includes(n) || n.includes(cname));
+  if (badMail) out.contact_email = null;
+  if (badName) out.contact_name = null;
+  if (badMail || badName) out.contact_phone = null;
+  return out;
+}
+
+/** "12 bis, Rue de la Paix 75002 Paris" → "12 rue de la paix" (number + street) for duplicate detection. */
+export function addressKey(address?: string | null): string | null {
+  const m = normName(String(address ?? "").replace(/(\d+)/g, " $1 ")).match(/\b(\d{1,4}) (?:bis |ter )?((?:rue|avenue|av|boulevard|bd|place|chemin|route|allee|quai|impasse|cours|square|parc) [a-z ]{3,}?)(?= \d| paris| cedex|$)/);
+  return m ? `${m[1]} ${m[2]!.trim()}` : null;
+}
