@@ -470,6 +470,13 @@ export function DealsTable({ mode }: { mode: Mode }) {
     move.mutate({id:d.id,stage:"Disponible"});
   };
   const closeDetail = () => { setOpenId(null); setReview(false); setReviewIds([]); };
+  const openChain = (id: string) => {
+    const ids = rows.filter(d => eligible(d.id)).map(d => d.id);
+    if (!ids.includes(id)) ids.unshift(id);
+    setReviewIds(ids);
+    setReview(true);
+    setOpenId(id);
+  };
   const eligible = (id: string) => !!piges.data && all.some(d => d.id === id && d.stage === TARGET_STAGE && ["new", "recall"].includes(statusOf(d)));
   const activeReviewIds = reviewIds.filter(eligible);
   const nextDetail = () => {
@@ -621,7 +628,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
                       </td>
                     </tr>
                   )}
-                  <tr onClick={() => setOpenId(d.id)} className="cursor-pointer border-t border-border hover:bg-accent">
+                  <tr onClick={() => mode === "targets" ? openChain(d.id) : setOpenId(d.id)} className="cursor-pointer border-t border-border hover:bg-accent">
                     <td className="px-2 py-2 font-medium">{d.name}{fill.loaded && <Completion value={fill.get(d.asset_id, undefined, d)} />}</td>
                     <td className="px-2 py-2">{d.nego1}</td>
                     <td className="px-2 py-2">{d.nego2}</td>
@@ -668,7 +675,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
         {rows.map((d, i) => (
           <Fragment key={d.id}>
           {mode === "targets" ? <div className="border-b border-border bg-card px-3 py-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
-            <Button variant="ghost" className="h-auto min-h-11 w-full min-w-0 flex-col items-start justify-start whitespace-normal px-0 text-left sm:flex-1" onClick={() => setOpenId(d.id)} aria-label={`Ouvrir ${d.name}`}>
+            <Button variant="ghost" className="h-auto min-h-11 w-full min-w-0 flex-col items-start justify-start whitespace-normal px-0 text-left sm:flex-1" onClick={() => openChain(d.id)} aria-label={`Ouvrir ${d.name}`}>
               <span className="w-full break-words font-semibold">{d.name}</span>{fill.loaded && <Completion value={fill.get(d.asset_id, undefined, d)} />}
               <span className="w-full text-sm font-semibold">{[assetOf(d)?.city || d.address, d.amount ? eur(d.amount) : null].filter(Boolean).join(" · ")}</span>
               <span className="w-full break-words text-xs font-normal text-muted-foreground">{shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "Classe à préciser"} · {d.contact_email || mailsOf(d.id)[0] || d.source || "Saisie manuelle"}</span>
