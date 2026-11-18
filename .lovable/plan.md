@@ -1,37 +1,26 @@
-# Traitement rapide des Leads
+# Ajustements du traitement rapide
 
-## Présentation et filtres
-- Remplacer « Traiter les leads » par **« Traitement rapide »**.
-- Afficher un grand pop-up **central**, jamais un panneau latéral ; plein écran sur téléphone, avec navigation « Suivant ».
-- Conserver les filtres existants et ajouter **« Attente de docs »** et **« A rappeler »**, avec leurs compteurs.
-- Donner au bouton « Traitement rapide » un fond bleu permanent.
-- Ajouter « Retour » à côté de « Suivant », désactivé sur le premier lead.
-- Exclure les leads en attente du traitement rapide dès la confirmation d’envoi ; ils ne réintègrent cette file qu’à l’état « A rappeler ». Le filtre « Attente de docs » reste consultable hors traitement rapide.
-- Afficher l’état « En attente de documents » en orange sur les leads concernés et « A rappeler » en rouge.
+## Boutons
+- **Traitement rapide** : fond bleu permanent, pas seulement au survol.
+- **Sans suite** : ajouter un contour visible autour du bouton.
+- **Demander les éléments manquants** : fond orange permanent et largeur réduite au contenu, sans dépasser l’écran sur téléphone.
+- **Retour** : ajouter ce bouton à côté de « Suivant » pour revenir au lead précédent ; le désactiver sur le premier lead.
 
-## Actions du pop-up
-- **Transformer en Actif dispo** : déplacer le dossier dans les actifs disponibles, avec contrôle de la classe d’actif obligatoire ; ne pas le transformer en affaire d’estimation.
-- **Sans suite** : archiver le lead, sans relance ultérieure.
-- Encadrer « Sans suite » avec un bouton visible ; réduire la largeur de « Demander les éléments manquants » et lui donner un fond orange permanent, adapté au téléphone.
-- Conserver « Qualifier » : ce bouton classe le lead dans « Qualifiés », sans le transformer en actif disponible.
-- **Demander les éléments manquants** : vérifier les données et documents déjà présents, adapter les pièces nécessaires au type et à l’occupation du bien, puis préparer un mail dans Outlook professionnel. Liste possible : plans, bail, état locatif, décompte de charges, taxe foncière, photos, prix, surface, loyer et caractéristiques hôtelières lorsque pertinentes. Ne pas demander systématiquement des pièces inapplicables.
-- Objet : « Votre dossier : [nom du lead] — Éléments complémentaires » ; corps avec salutation, liste des éléments manquants et formule de politesse.
-- L’ouverture d’Outlook sera enregistrée comme **préparation**, pas comme envoi. La fiche proposera **« Confirmer l’envoi »** après envoi dans Outlook, pour dater la demande et passer en attente de documents.
+## Leads en attente
+- Dès que l’envoi de la demande de documents est confirmé, retirer le lead du traitement rapide et afficher le suivant ; fermer le pop-up si aucun lead ne reste.
+- Ne jamais inclure les leads « Attente de docs » dans la navigation du traitement rapide, même après réouverture.
+- Les réintégrer uniquement lorsqu’ils passent à **« A rappeler »**.
+- Conserver leur consultation dans le filtre « Attente de docs », hors traitement rapide.
 
-## Relance à trois jours, hors week-end
-- À partir de l’envoi confirmé, prévoir **une relance automatique après trois jours calendaires**, seulement si aucun retour concernant ce dossier n’a été reçu ; pas une simple proposition de relance manuelle.
-- **Aucune relance le samedi ou le dimanche**, selon l’heure de Paris ; si l’échéance tombe le week-end, reporter au lundi.
-- Rechercher le retour dans le fil et les messages correspondants ; ne pas considérer un autre mail du même expéditeur comme une réponse à ce dossier.
-- Envoyer via la connexion Outlook professionnelle existante et journaliser le résultat ; après acceptation de l’envoi par Outlook, passer à **« A rappeler »**.
-- Objet : « [Relancé auto] Votre dossier : [nom du lead] ». **La couleur d’un objet de mail n’est pas contrôlable** ; la mention sera rouge dans le suivi du CRM et dans le corps du message.
-- Éviter les doublons et arrêter les relances lorsqu’un retour arrive, que le lead est archivé ou qu’il devient un actif disponible.
+## À quoi sert « Qualifier » ?
+Il classe le lead dans le filtre **« Qualifiés »**, sans le transformer en actif disponible et sans demander de documents. Aucun changement de ce bouton dans cette proposition.
 
-## Vérifications et limites
-- Tester les trois jours, le report au lundi, l’interdiction de relance le week-end, l’arrêt sur réponse et la prévention des doublons ; vérifier les filtres et le pop-up au toucher sur téléphone et sur ordinateur.
-- Ne pas envoyer de mail réel à un contact pour les essais sans autorisation spécifique.
-- **Aucune publication** ; l’envoi automatique sera activé après déploiement autorisé. Les filtres et actions seront vérifiables dans l’aperçu auparavant.
+## Vérifications
+- Vérifier les couleurs fixes, les boutons et la navigation sur ordinateur et au toucher sur téléphone.
+- Tester la sortie immédiate d’un lead en attente, son exclusion après réouverture et son retour à l’état « A rappeler ».
+- Ne modifier ni les textes des mails ni les règles de relance existantes : trois jours, jamais le week-end.
+- Aucune publication ni aucun mail réel envoyé pour les essais.
 
 ## Réalisation technique
-- Conserver `/cibles`, les contrôles d’accès actuels et la messagerie Outlook connectée.
-- Stocker les demandes et leur historique avec des accès limités aux personnes autorisées à voir le lead ; déduire les états de suivi depuis cet historique.
-- Réutiliser le traitement de synchronisation Outlook pour le rapprochement des réponses et les relances, sans ajouter de surveillance payante continue ni modifier les schedules existants sans classification préalable.
+- Limiter les modifications aux boutons et à la sélection/navigation des leads dans le traitement rapide.
+- Ajouter des tests ciblés sur l’exclusion des leads en attente et la réintégration des leads à rappeler.
