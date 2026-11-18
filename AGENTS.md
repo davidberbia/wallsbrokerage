@@ -35,3 +35,5 @@
 - Lead transfers use a staff-only atomic database function checking visibility, recipient membership and exclusive asset ownership; transfers never expose unrelated colleague records. Why: ordinary owner-scoped RLS cannot reassign a lead safely by itself.
 - Leads keep their existing /cibles URL, use lead_status for triage and require a linked asset class before changing stage; research waits for attachment processing and only applies confirmed URL-sourced facts to empty fields. Why: preserve links, avoid premature guesses and make the investigation auditable.
 - Lead document requests have RLS-scoped history, explicit desktop-email send confirmation and atomic reminder claims; reuse the existing Outlook sync, gated by lead_followup_control until authorized deployment. Why: opening mail is not evidence of sending, and uncertain provider results must never trigger duplicate emails.
+
+- Record completion and brochure readiness use the shared completion calculator across leads, assets and deals; quick review excludes waiting records and normalizes legacy qualified leads. Why: keep eligibility and progress consistent throughout the lifecycle.

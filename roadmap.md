@@ -1,10 +1,11 @@
 # Roadmap
 
-## Ajustements Leads et complétion — 18 novembre, en attente de validation du plan
-- [ ] Boutons bleu/orange fixes, Sans suite encadré, Retour et exclusion des leads en attente du traitement rapide jusqu’à A rappeler.
-- [ ] Supprimer le bouton Qualifier et le filtre Qualifiés sans perdre les leads existants.
-- [ ] Proposer Actif disponible lorsque photo principale, prix ou loyer adapté, surface, état locatif et honoraires sont renseignés.
-- [ ] Afficher un taux de remplissage pendant tout le parcours : cinq éléments minimum à 10 % chacun, plans 10 %, reportage photo 10 %, bail 10 %, mandat 20 % ; tester les critères et les écrans au toucher.
+## Ajustements Leads et complétion — 18 novembre, plan approuvé
+- [x] Boutons bleu/orange fixes, Sans suite encadré, Retour/Suivant vérifiés au toucher ; confirmation d’une demande temporaire ferme la file vide, attente toujours exclue après rechargement, données de test nettoyées sans mail envoyé.
+- [x] Bouton Qualifier et filtre Qualifiés supprimés ; anciens qualifiés inclus dans À traiter sans modification des données.
+- [x] Proposition Actif disponible conditionnée aux cinq éléments minimum, calcul testé indépendamment du pourcentage ; garde sur le changement manuel vers Disponible.
+- [x] Remplissage pondéré affiché dans listes et fiches Leads/Actifs/Affaires ; 69 leads et 342 actifs vérifiés, 21 tests réussis et compilation correcte, aucun débordement mobile ni erreur navigateur.
+- [ ] Retour à rappeler après envoi Outlook réel : attend l’autorisation d’envoi et d’activation déjà prévue ; inclusion à rappeler testée par test unitaire, écriture d’un état rappel de test refusée par les protections existantes, non contournées.
 
 ## Traitement rapide des Leads — 18 novembre, approuvé
 - [x] Pop-up central 1100 px sur ordinateur, plein écran mobile, actions Actif dispo/Sans suite/demande de pièces, filtres Attente de docs/A rappeler vérifiés au toucher.

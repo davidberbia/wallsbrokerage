@@ -1,3 +1,5 @@
+import { Completion } from "@/components/Completion";
+import { useCompletion } from "@/hooks/useCompletion";
 import { pickMainPhoto, imageSize } from "@/lib/main-photo";
 import { docFolder } from "@/lib/doc-folders";
 import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
@@ -96,6 +98,7 @@ type Draft = Partial<Asset> & { title: string };
 const emptyDraft: Draft = { title: "", status: "disponible" };
 
 function AssetsPage() {
+  const fill = useCompletion();
   const { canEdit } = useAuth();
   const qc = useQueryClient();
   const af = useAgentFilter();
@@ -272,6 +275,7 @@ function AssetsPage() {
       return assetId!;
     },
     onSuccess: (assetId) => {
+      qc.invalidateQueries({ queryKey: ["record-completion"] });
       qc.invalidateQueries({ queryKey: ["assets"] });
       qc.invalidateQueries({ queryKey: ["asset-documents", assetId] });
       qc.invalidateQueries({ queryKey: ["asset-photos", assetId] });
@@ -438,7 +442,7 @@ function AssetsPage() {
             key={asset.id}
             title={[asset.city, asset.title].filter(Boolean).join(" · ")}
             subtitle={[asset.address, asset.asset_class, asset.status].filter(Boolean).join(" · ")}
-            summary={`${asset.surface ?? "—"} m² · ${formatEUR(asset.price ?? asset.rent)}`}
+            summary={`${asset.surface ?? "—"} m² · ${formatEUR(asset.price ?? asset.rent)}${fill.loaded ? ` · Remplissage ${fill.get(asset.id, asset).percent} %` : ""}`}
             onOpen={() => setDetail(asset)}
             onEdit={canEdit ? () => openEditor(asset) : undefined}
             onDelete={canEdit ? () => remove.mutate(asset.id) : undefined}
@@ -1335,6 +1339,7 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           </Button>
         )}
       </div>
+      <AssetCompletion asset={asset} />
       <RecordFacts
         facts={[
           ["Mandat / Référence", asset.reference],
@@ -1436,3 +1441,5 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
     </>
   );
 }
+
+function AssetCompletion({ asset }: { asset: Asset }) { const fill = useCompletion(); return fill.loaded ? <Completion detail value={fill.get(asset.id, asset)} /> : null; }

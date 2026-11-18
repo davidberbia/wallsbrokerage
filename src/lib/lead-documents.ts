@@ -33,7 +33,7 @@ export function leadViewStatus(status: string, request?: Pick<LeadRequest, "stat
   if (status === "archived") return "archived";
   if (request?.status === "reminded" || request?.status === "error") return "recall";
   if (request?.status === "waiting" || request?.status === "sending") return "waiting";
-  return status;
+  return status === "qualified" ? "new" : status;
 }
 
 export type MissingAsset = { asset_class?: string | null; price?: number | null; surface?: number | null; rent?: number | null; keys_count?: number | null; hotel_category?: string | null };
@@ -66,3 +66,4 @@ export function documentMail(name: string, items: string[], reminder = false) {
     body: `Bonjour,\n\n${reminder ? "Je me permets de vous relancer concernant les éléments complémentaires demandés pour votre dossier" : "Afin de poursuivre l’étude de votre dossier"} « ${name} », pourriez-vous me transmettre les éléments suivants ?\n\n${items.map(item => `• ${item}`).join("\n")}\n\nJe vous remercie par avance pour votre retour.\n\nBien cordialement,`,
   };
 }
+export function inQuickReview(status: string, request?: Pick<LeadRequest, "status">) { return ["new", "recall"].includes(leadViewStatus(status, request)); }

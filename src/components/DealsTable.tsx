@@ -1,10 +1,12 @@
+import { Completion } from "@/components/Completion";
+import { useCompletion } from "@/hooks/useCompletion";
 import { correspondents as thirdParties } from "@/lib/correspondents";
 import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow } from "@/components/CompactRow";
 import { LeadActions } from "@/components/LeadActions";
-import { leadViewStatus, type LeadRequest } from "@/lib/lead-documents";
-import { Fragment, useMemo, useRef, useState } from "react";
+import { inQuickReview, leadViewStatus, type LeadRequest } from "@/lib/lead-documents";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { FileSpreadsheet, Merge, Plus, Sparkles } from "lucide-react";
@@ -89,6 +91,7 @@ function normalizeStage(v: unknown): string {
 export function DealsTable({ mode }: { mode: Mode }) {
   const { canEdit, user } = useAuth();
   const qc = useQueryClient();
+  const fill = useCompletion();
   const selfEmails = useSelfEmails();
   const isMobile = useIsMobile();
   const thisYear = new Date().getFullYear();
@@ -444,17 +447,24 @@ export function DealsTable({ mode }: { mode: Mode }) {
 
   const title = mode === "targets" ? "Leads" : "Suivi des affaires";
   const promote = (d: Deal) => {
+    if (!fill.loaded || !fill.get(d.asset_id, undefined, d).ready) { toast.error("Complétez les éléments minimum pour la brochure"); setOpenId(d.id); return; }
     if (!classOf(d)) { toast.error("Choisissez d’abord la classe d’actif"); setOpenId(d.id); return; }
     move.mutate({id:d.id,stage:"Disponible"});
   };
   const closeDetail = () => { setOpenId(null); setReview(false); setReviewIds([]); };
+  const eligible = (id: string) => all.some(d => d.id === id && d.stage === TARGET_STAGE && inQuickReview(d.lead_status ?? "new", requests.data?.get(d.id)));
+  const activeReviewIds = reviewIds.filter(eligible);
   const nextDetail = () => {
     const index = reviewIds.indexOf(openId ?? "");
-    const next = reviewIds.slice(index + 1).find(id => all.some(d => d.id === id && d.stage === TARGET_STAGE && d.lead_status !== "archived"));
+    const next = reviewIds.slice(index + 1).find(eligible);
     if (next) setOpenId(next); else closeDetail();
   };
-  const detail = openId ? <DealDetail key={openId} id={openId} onClose={review ? nextDetail : closeDetail} /> : null;
-  const reviewNav = review && <div className="sticky top-0 z-10 mb-4 flex min-h-11 items-center justify-between border-b border-border bg-background py-2 pr-10"><span className="text-sm">{reviewIds.indexOf(openId ?? "") + 1} / {reviewIds.length}</span><Button variant="outline" className="min-h-11" onClick={nextDetail}>Suivant</Button></div>;
+  useEffect(() => {
+    if (review && openId && requests.data && deals.data && !eligible(openId)) nextDetail();
+  }, [review, openId, requests.data, deals.data]);
+  const previous = reviewIds.slice(0, reviewIds.indexOf(openId ?? "")).filter(eligible).at(-1);
+  const detail = openId ? <DealDetail key={openId} id={openId} onWaiting={review ? nextDetail : undefined} onClose={review ? nextDetail : closeDetail} /> : null;
+  const reviewNav = review && <div className="sticky top-0 z-10 mb-4 flex min-h-11 flex-wrap items-center justify-between gap-2 border-b border-border bg-background py-2"><span className="text-sm">{Math.max(0, activeReviewIds.indexOf(openId ?? "")) + 1} / {activeReviewIds.length}</span><div className="flex gap-2"><Button variant="outline" className="min-h-11" disabled={!previous} onClick={() => previous && setOpenId(previous)}>Retour</Button><Button variant="outline" className="min-h-11" onClick={nextDetail}>Suivant</Button></div></div>;
 
   return (
     <div className="space-y-4">
@@ -497,8 +507,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
       {mode === "targets" && <div className="space-y-3">
         <Input aria-label="Rechercher un lead" placeholder="Rechercher un lead…" value={leadSearch} onChange={(e) => setLeadSearch(e.target.value)} />
         <div className="flex flex-wrap items-center gap-2">
-          {([["new", "À traiter"], ["qualified", "Qualifiés"], ["waiting", "Attente de docs"], ["recall", "A rappeler"], ["archived", "Sans suite"]] as const).map(([value, label]) => <Button key={value} variant={leadView === value ? "default" : "outline"} aria-pressed={leadView === value} className={`min-h-11 ${value === "waiting" && leadView !== value ? "text-warning" : value === "recall" && leadView !== value ? "text-destructive" : ""}`} onClick={() => setLeadView(value)}>{label} · {leadRows.filter((d) => statusOf(d) === value).length}</Button>)}
-          <Button variant="outline" className="min-h-11" disabled={!rows.length} onClick={() => { setReviewIds(rows.map(d => d.id)); setReview(true); setOpenId(rows[0]?.id ?? null); }}>Traitement rapide</Button>
+          {([["new", "À traiter"], ["waiting", "Attente de docs"], ["recall", "A rappeler"], ["archived", "Sans suite"]] as const).map(([value, label]) => <Button key={value} variant={leadView === value ? "default" : "outline"} aria-pressed={leadView === value} className={`min-h-11 ${value === "waiting" && leadView !== value ? "text-warning" : value === "recall" && leadView !== value ? "text-destructive" : ""}`} onClick={() => setLeadView(value)}>{label} · {leadRows.filter((d) => statusOf(d) === value).length}</Button>)}
+          <Button variant="blue" className="min-h-11" disabled={requests.isLoading || !rows.some(d => eligible(d.id))} onClick={() => { const ids = rows.filter(d => eligible(d.id)).map(d => d.id); setReviewIds(ids); setReview(true); setOpenId(ids[0] ?? null); }}>Traitement rapide</Button>
         </div>
       </div>}
 
@@ -594,7 +604,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
                     </tr>
                   )}
                   <tr onClick={() => setOpenId(d.id)} className="cursor-pointer border-t border-border hover:bg-accent">
-                    <td className="px-2 py-2 font-medium">{d.name}</td>
+                    <td className="px-2 py-2 font-medium">{d.name}{fill.loaded && <Completion value={fill.get(d.asset_id, undefined, d)} />}</td>
                     <td className="px-2 py-2">{d.nego1}</td>
                     <td className="px-2 py-2">{d.nego2}</td>
                     <td className="px-2 py-2">{d.seller}</td>
@@ -641,13 +651,13 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <Fragment key={d.id}>
           {mode === "targets" ? <div className="border-b border-border bg-card px-3 py-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
             <Button variant="ghost" className="h-auto min-h-11 w-full min-w-0 flex-col items-start justify-start whitespace-normal px-0 text-left sm:flex-1" onClick={() => setOpenId(d.id)} aria-label={`Ouvrir ${d.name}`}>
-              <span className="w-full break-words font-semibold">{d.name}</span>
+              <span className="w-full break-words font-semibold">{d.name}</span>{fill.loaded && <Completion value={fill.get(d.asset_id, undefined, d)} />}
               <span className="w-full text-sm font-semibold">{[assetOf(d)?.city || d.address, d.amount ? eur(d.amount) : null].filter(Boolean).join(" · ")}</span>
               <span className="w-full break-words text-xs font-normal text-muted-foreground">{shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "Classe à préciser"} · {d.contact_email || mailsOf(d.id)[0] || d.source || "Saisie manuelle"}</span>
               {statusOf(d) === "waiting" && <span className="text-xs font-semibold text-warning">En attente de documents</span>}
               {statusOf(d) === "recall" && <span className="text-xs font-semibold text-destructive">A rappeler · {requests.data?.get(d.id)?.status === "reminded" ? "Relancé auto" : "Envoi à vérifier"}</span>}
             </Button>
-            <div className="mt-1 flex shrink-0 justify-end sm:mt-0"><LeadActions id={d.id} name={d.name} owner={d.owner_id} email={d.contact_email || mailsOf(d.id)[0]} phone={d.contact_phone} archived={d.lead_status === "archived"} onPromote={() => promote(d)} /></div>
+            <div className="mt-1 flex shrink-0 justify-end sm:mt-0"><LeadActions ready={fill.loaded && fill.get(d.asset_id, undefined, d).ready} id={d.id} name={d.name} owner={d.owner_id} email={d.contact_email || mailsOf(d.id)[0]} phone={d.contact_phone} archived={d.lead_status === "archived"} onPromote={() => promote(d)} /></div>
           </div> : <>
           {i === firstLost && (
             <div className="border-t-4 border-border bg-muted px-3 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
@@ -657,7 +667,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <CompactRow
             title={d.name}
             subtitle={[d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ")}
-            summary={`Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
+            summary={`Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}${fill.loaded ? ` · Remplissage ${fill.get(d.asset_id, undefined, d).percent} %` : ""}`}
             onOpen={() => setOpenId(d.id)}
             trailing={
               canEdit ? (

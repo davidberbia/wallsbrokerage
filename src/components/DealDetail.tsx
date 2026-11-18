@@ -1,3 +1,5 @@
+import { Completion } from "@/components/Completion";
+import { useCompletion } from "@/hooks/useCompletion";
 import { useServerFn } from "@tanstack/react-start";
 import { investigateLead } from "@/lib/leads.functions";
 import { useState } from "react";
@@ -33,8 +35,9 @@ const fmtDate = (v: string | null) =>
 const fmtAmount = (v: number | null) =>
   v == null ? null : `${new Intl.NumberFormat("fr-FR").format(v)} €`;
 
-export function DealDetail({ id, onClose }: { id: string; onClose: () => void }) {
+export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: () => void; onWaiting?: (() => void) | undefined }) {
   const qc = useQueryClient();
+  const fill = useCompletion();
   const selfEmails = useSelfEmails();
   const deal = useQuery({
     queryKey: ["deal", id],
@@ -75,7 +78,8 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
     queryKey: ["deal-dossier", deal.data?.asset_id],
     enabled: !!deal.data?.asset_id,
     queryFn: async () => {
-      const aid = deal.data!.asset_id!;
+      const aid = deal.data?.asset_id;
+      if (!aid) return { asset: null, docs: [] };
       const [a, docs] = await Promise.all([
         supabase.from("assets").select("city,address,postal_code,surface,price,rent,yield_pct,keys_count,revenue,revenue_n1,revenue_n2,ebe,ebe_n1,ebe_n2,hotel_category,asset_class,autofill_sources").eq("id", aid).single(),
         supabase.from("asset_documents").select("id,name,path").eq("asset_id", aid).order("sort_order"),
@@ -106,6 +110,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
   const [search, setSearch] = useState("");
 
   const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["record-completion"] });
     qc.invalidateQueries({ queryKey: ["deal", id] });
     qc.invalidateQueries({ queryKey: ["deals"] });
     qc.invalidateQueries({ queryKey: ["deal-contacts", id] });
@@ -115,6 +120,10 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
   const save = async () => {
     const dirtyAsset = assetClass !== null || Object.keys(hotel).length > 0;
     if (!form && !dirtyAsset) return;
+    if (deal.data?.stage === "Prospection" && current?.stage === "Disponible" && (!fill.loaded || !fill.get(current.asset_id, undefined, current).ready)) {
+      toast.error("Complétez les éléments minimum pour la brochure");
+      return;
+    }
     if (!canChangeLeadStage(deal.data?.stage ?? "", current?.stage ?? "", assetClass ?? dossier.data?.asset?.asset_class)) {
       toast.error("Choisissez une classe d’actif avant de changer le statut");
       return;
@@ -257,8 +266,10 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
       <SheetHeader>
         <SheetTitle>{current.name}</SheetTitle>
       </SheetHeader>
+      {fill.loaded && <Completion detail value={fill.get(current.asset_id, undefined, current)} />}
+      {current.stage === "Prospection" && fill.loaded && !fill.get(current.asset_id, undefined, current).ready && <p className="text-xs text-muted-foreground">Pour la brochure : {fill.get(current.asset_id, undefined, current).missing.join(" · ")}</p>}
       {current.stage === "Prospection" && <div className="flex flex-wrap items-center justify-between gap-2">
-        <LeadActions full id={id} name={current.name ?? "Lead"} owner={current.owner_id} email={current.contact_email} phone={current.contact_phone} archived={current.lead_status === "archived"} onPromote={() => {
+        <LeadActions full ready={fill.loaded && fill.get(current.asset_id, undefined, current).ready} id={id} name={current.name ?? "Lead"} owner={current.owner_id} email={current.contact_email} phone={current.contact_phone} archived={current.lead_status === "archived"} onPromote={() => {
           if (!canChangeLeadStage("Prospection", "Disponible", dossier.data?.asset?.asset_class)) { toast.error("Enregistrez d’abord la classe d’actif"); document.getElementById("lead-class")?.focus(); return; }
           void (async () => {
             const { error } = await supabase.from("deals").update({ stage: "Disponible", last_activity_at: new Date().toISOString() }).eq("id", id).eq("stage", "Prospection");
@@ -267,12 +278,9 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
             refresh(); toast.success("Transformé en Actif dispo"); onClose();
           })();
         }} />
-        <Button variant="outline" onClick={async () => {
-          const { error } = await supabase.from("deals").update({ lead_status: current.lead_status === "qualified" ? "new" : "qualified" }).eq("id", id);
-          if (error) toast.error(error.message); else { refresh(); setForm(null); }
-        }}>{current.lead_status === "qualified" ? "À traiter" : "Qualifier"}</Button>
+
       </div>}
-      {current.stage === "Prospection" && current.lead_status !== "archived" && <LeadDocumentRequest id={id} />}
+      {current.stage === "Prospection" && current.lead_status !== "archived" && <LeadDocumentRequest id={id} onWaiting={onWaiting} />}
       {(() => {
         // Interlocuteur principal : l'expéditeur du premier mail reçu (celui qui a envoyé le dossier).
         const ordered = [...(mails.data ?? [])].sort((x, y) => (x.received_at ?? "").localeCompare(y.received_at ?? ""));

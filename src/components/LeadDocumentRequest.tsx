@@ -9,7 +9,7 @@ import { Input } from "./ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { leadDocumentOverview, prepareLeadDocumentRequest, confirmLeadDocumentRequest } from "@/lib/lead-documents.functions";
 
-export function LeadDocumentRequest({ id }: { id: string }) {
+export function LeadDocumentRequest({ id, onWaiting }: { id: string; onWaiting?: (() => void) | undefined }) {
   const qc = useQueryClient();
   const { user } = useAuth();
   const overview = useServerFn(leadDocumentOverview);
@@ -26,7 +26,7 @@ export function LeadDocumentRequest({ id }: { id: string }) {
   const openMail = (r: { to_email: string; subject: string; body_text: string }) => { window.location.href = `mailto:${encodeURIComponent(r.to_email)}?subject=${encodeURIComponent(r.subject)}&body=${encodeURIComponent(r.body_text)}`; };
   const labels: Record<string, string> = { prepared: "Message préparé — envoi à confirmer", waiting: "En attente de documents", sending: "Relance en cours", reminded: "Relancé auto · A rappeler", received: "Retour reçu", cancelled: "Demande clôturée", error: "A rappeler · envoi à vérifier" };
   return <section className="space-y-3 border-y border-border py-3">
-    <Button variant="outline" className="min-h-11 h-auto w-full whitespace-normal" disabled={data.isLoading} onClick={() => setExpanded(v => !v)}><FileQuestion className="size-4 shrink-0" />Demander les éléments manquants</Button>
+    <Button variant="warning" className="min-h-11 h-auto w-fit max-w-full whitespace-normal" disabled={data.isLoading} onClick={() => setExpanded(v => !v)}><FileQuestion className="size-4 shrink-0" />Demander les éléments manquants</Button>
     {data.error && <p className="text-sm text-destructive">{data.error.message}</p>}
     {expanded && data.data && <div className="space-y-3">
       <p className="break-all text-sm">{data.data.sender || "Expéditeur à renseigner"}</p>
@@ -41,7 +41,7 @@ export function LeadDocumentRequest({ id }: { id: string }) {
     </div>}
     {active?.status === "prepared" && active.created_by === user?.id && <Button className="min-h-11 w-full" disabled={busy} onClick={async () => {
       setBusy(true);
-      try { await confirmSend({ data: { id: active.id } }); refresh(); toast.success("Envoi confirmé — en attente de documents"); }
+      try { await confirmSend({ data: { id: active.id } }); refresh(); toast.success("Envoi confirmé — en attente de documents"); onWaiting?.(); }
       catch (e) { toast.error(e instanceof Error ? e.message : "Confirmation impossible"); }
       finally { setBusy(false); }
     }}><Check className="size-4" />Confirmer l’envoi</Button>}

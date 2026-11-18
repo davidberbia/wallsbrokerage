@@ -1,0 +1,20 @@
+import { describe, expect, it } from 'vitest';
+import { completion } from './completion';
+import { inQuickReview, leadViewStatus } from './lead-documents';
+const asset = { transaction_type: 'Vente', price: 100000, surface: 100, fee_value: 3 };
+const docs = [{ name: 'Photo principale.jpg', category: 'photo' }, { name: 'État locatif.pdf' }] as const;
+describe('Record completion', () => {
+  it('counts the main photo as 10% without a photo report', () => { expect(completion({}, [docs[0]]).percent).toBe(10); });
+  it('counts the matching price as 10%', () => { expect(completion({transaction_type:'Vente', price: 100}).percent).toBe(10); expect(completion({transaction_type:'Location', price:100}).percent).toBe(0); expect(completion({transaction_type:'Location', rent:100}).percent).toBe(10); });
+  it('counts surface as 10%', () => { expect(completion({surface:100}).percent).toBe(10); });
+  it('counts tenancy as 10%', () => { expect(completion({}, [docs[1]]).percent).toBe(10); });
+  it('counts fees as 10%', () => { expect(completion({fee_value:3}).percent).toBe(10); });
+  it('counts plans as 10%', () => { expect(completion({}, [{name:'Plan RDC.pdf'}]).percent).toBe(10); });
+  it('counts a separate photo report as 10%', () => { expect(completion({}, [{name:'Façade.jpg'}]).percent).toBe(10); });
+  it('counts a lease as 10%', () => { expect(completion({}, [{name:'Bail.pdf'}]).percent).toBe(10); });
+  it('counts the mandate as 20%', () => { expect(completion({}, [], true).percent).toBe(20); });
+  it('requires all five minimum elements, not any 50%', () => { expect(completion(asset, docs)).toMatchObject({percent:50,ready:true}); expect(completion({}, [{name:'Plan.pdf'},{name:'Bail.pdf'},{name:'Façade.jpg'}],true)).toMatchObject({percent:50,ready:false}); });
+  it('reaches exactly 100% with all nine criteria', () => { expect(completion(asset,[...docs,{name:'Plan.pdf'},{name:'Bail.pdf'},{name:'Façade.jpg'}],true)).toMatchObject({percent:100,ready:true}); });
+  it('keeps legacy qualified leads in the new filter', () => { expect(leadViewStatus('qualified')).toBe('new'); });
+  it('excludes waiting records until recall', () => { expect(inQuickReview('new',{status:'waiting'})).toBe(false); expect(inQuickReview('new',{status:'sending'})).toBe(false); expect(inQuickReview('new',{status:'reminded'})).toBe(true); expect(inQuickReview('archived')).toBe(false); });
+});
