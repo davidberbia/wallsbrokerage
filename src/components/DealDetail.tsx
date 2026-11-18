@@ -273,7 +273,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
       {fill.loaded && <Completion detail value={fill.get(current.asset_id, undefined, current)} />}
       {current.stage === "Prospection" && fill.loaded && !fill.get(current.asset_id, undefined, current).ready && <p className="text-xs text-muted-foreground">Pour la brochure : {fill.get(current.asset_id, undefined, current).missing.join(" · ")}</p>}
       {current.stage === "Prospection" && <div className="flex flex-wrap items-center justify-between gap-2">
-        <LeadActions full ready={fill.loaded && fill.get(current.asset_id, undefined, current).ready} id={id} name={current.name ?? "Lead"} owner={current.owner_id} email={current.contact_email} phone={current.contact_phone} archived={current.lead_status === "archived"} onArchived={onClose} onPromote={() => {
+        <LeadActions full id={id} name={current.name ?? "Lead"} owner={current.owner_id} email={current.contact_email} phone={current.contact_phone} archived={current.lead_status === "archived"} onArchived={onClose} onPromote={() => {
           if (!canChangeLeadStage("Prospection", "Disponible", dossier.data?.asset?.asset_class)) { toast.error("Enregistrez d’abord la classe d’actif"); document.getElementById("lead-class")?.focus(); return; }
           void (async () => {
             const { error } = await supabase.from("deals").update({ stage: "Disponible", last_activity_at: new Date().toISOString() }).eq("id", id).eq("stage", "Prospection");

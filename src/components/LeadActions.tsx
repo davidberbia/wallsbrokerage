@@ -11,8 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PigeButton } from "./Pige";
 
-export function LeadActions({ id, name, email, phone, owner, archived, onPromote, full = false, ready = true, onArchived }: {
-  id: string; name: string; email?: string | null | undefined; phone?: string | null | undefined; owner?: string | null | undefined; archived?: boolean; onPromote: () => void; full?: boolean; ready?: boolean; onArchived?: () => void;
+export function LeadActions({ id, name, email, phone, owner, archived, onPromote, full = false, onArchived }: {
+  id: string; name: string; email?: string | null | undefined; phone?: string | null | undefined; owner?: string | null | undefined; archived?: boolean; onPromote: () => void; full?: boolean; onArchived?: () => void;
 }) {
   const qc = useQueryClient();
   const getRecipients = useServerFn(leadRecipients);
@@ -48,7 +48,7 @@ export function LeadActions({ id, name, email, phone, owner, archived, onPromote
   };
   return <>
     <div className={full ? "flex w-full flex-wrap items-center gap-2" : "flex shrink-0 items-center gap-0.5"}>
-      {ready && !archived && <Button variant={full ? "default" : "ghost"} size={full ? "default" : "icon"} className={full ? "min-h-11 h-auto whitespace-normal" : "size-11"} title="Transformer en Actif dispo" aria-label={`Transformer ${name} en Actif dispo`} onClick={onPromote}><ArrowUpRight className="size-4 shrink-0" />{full && "Transformer en Actif dispo"}</Button>}
+      {!archived && <Button variant={full ? "default" : "ghost"} size={full ? "default" : "icon"} className={full ? "h-auto min-h-11 flex-col gap-0 py-1" : "size-11"} title="Upgrade : Actif dispo" aria-label={`Transformer ${name} en Actif dispo`} onClick={onPromote}><span className="flex items-center gap-2"><ArrowUpRight className="size-4 shrink-0" />Upgrade</span>{full && <span className="text-[10px] font-normal opacity-80">Actif dispo</span>}</Button>}
       {email ? <Button asChild variant="ghost" size="icon" className="size-11" title="Contacter" aria-label={`Contacter ${name}`}><a href={`mailto:${email}?subject=${encodeURIComponent(`Votre dossier : ${name}`)}`}><Mail className="size-4" /></a></Button> : phone ? <Button asChild variant="ghost" size="icon" className="size-11" title="Appeler" aria-label={`Appeler ${name}`}><a href={`tel:${phone}`}><Phone className="size-4" /></a></Button> : null}
       <Button variant={full ? "outline" : "ghost"} size={full ? "default" : "icon"} className={full ? "min-h-11" : "size-11"} title="Transférer" aria-label={`Transférer ${name}`} onClick={() => setOpen(true)}><Forward className="size-4" />{full && "Transférer"}</Button>
       {full && !archived && <PigeButton id={id} />}

@@ -1,5 +1,10 @@
 # Roadmap
 
+## Bouton Upgrade (Actif dispo) — 18 novembre, réponse reçue
+- [x] Bouton « Upgrade » avec la mention « Actif dispo » en petit sous le titre, dans Traitement rapide et dans les lignes de la liste Leads.
+- [x] Bouton visible même quand la fiche est incomplète, et passage en Actif dispo accepté sans condition de complétion (choix « Toujours, sans bloquer ») ; la classe d'actif reste exigée.
+- [x] Vérification au doigt sur téléphone : Upgrade sur une fiche incomplète qui passe bien en Actif dispo (message « Transformé en Actif dispo », fenêtre fermée), puis suppression des deux dossiers d'essai.
+
 ## Pige via Brevo — 18 novembre, plan approuvé
 - [x] Ouverture Outlook et confirmation manuelle retirées uniquement de Pige ; aperçu puis confirmation Brevo vérifiés au toucher sur téléphone, demande préparée relue en base sans mail envoyé.
 - [x] Réservation atomique, états accepté/refusé/incertain, aucun nouvel essai aveugle ; événements associés par identifiant exact, 6 tests réussis et aperçu sans erreur.

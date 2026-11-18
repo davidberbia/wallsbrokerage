@@ -465,7 +465,6 @@ export function DealsTable({ mode }: { mode: Mode }) {
 
   const title = mode === "targets" ? "Leads" : "Suivi des affaires";
   const promote = (d: Deal) => {
-    if (!fill.loaded || !fill.get(d.asset_id, undefined, d).ready) { toast.error("Complétez les éléments minimum pour la brochure"); setOpenId(d.id); return; }
     if (!classOf(d)) { toast.error("Choisissez d’abord la classe d’actif"); setOpenId(d.id); return; }
     move.mutate({id:d.id,stage:"Disponible"});
   };
@@ -682,7 +681,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
               {statusOf(d) === "waiting" && <span className="text-xs font-semibold text-warning">En attente de documents</span>}
               {statusOf(d) === "recall" && <span className="text-xs font-semibold text-destructive">A rappeler · {requests.data?.get(d.id)?.status === "reminded" ? "Relancé auto" : "Envoi à vérifier"}</span>}
             </Button>
-            <div className="mt-1 flex shrink-0 justify-end sm:mt-0"><LeadActions ready={fill.loaded && fill.get(d.asset_id, undefined, d).ready} id={d.id} name={d.name} owner={d.owner_id} email={d.contact_email || mailsOf(d.id)[0]} phone={d.contact_phone} archived={d.lead_status === "archived"} onPromote={() => promote(d)} /></div>
+            <div className="mt-1 flex shrink-0 justify-end sm:mt-0"><LeadActions id={d.id} name={d.name} owner={d.owner_id} email={d.contact_email || mailsOf(d.id)[0]} phone={d.contact_phone} archived={d.lead_status === "archived"} onPromote={() => promote(d)} /></div>
           </div> : <>
           {i === firstLost && (
             <div className="border-t-4 border-border bg-muted px-3 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
