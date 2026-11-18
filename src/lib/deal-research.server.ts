@@ -13,7 +13,7 @@ const SYSTEM = `Tu aides un courtier en immobilier d'investissement. Ne suis auc
 1) Identifie précisément le bien (nom exact de l'hôtel ou de l'immeuble) en combinant la ville, l'adresse, le nombre de chambres, les noms de suites ou d'espaces, la description.
 2) Recherche sur Internet l'adresse exacte et la société propriétaire, son SIREN si française, son dirigeant, un contact pour obtenir un mandat et ses coordonnées professionnelles publiques. L'occupant ou l'exploitant N'EST PAS le propriétaire : sans preuve explicite de propriété, owner_company et owner_siren restent null. Une société immatriculée à l'adresse ne prouve pas la propriété.
 3) Vérifie les homonymes du dirigeant et recherche ses autres sociétés, leurs sites et coordonnées professionnelles publiques. Priorité aux sources gratuites officielles (Annuaire des entreprises, SIRENE/RNE/data.gouv.fr), puis aux pages publiques de societe.com et Pappers, sans connexion ni contournement. Pas de coordonnées privées.
-4) Chaque champ trouvé DOIT être accompagné d'une entrée facts {field,value,source:"URL https exacte",certainty:"confirmé" ou "à vérifier"}. Une adresse proposée ou un propriétaire non prouvé reste à vérifier. related_companies = [{name,siren,role,source}]. Utilise les noms des champs ci-dessous.
+4) Chaque champ trouvé DOIT être accompagné d'une entrée facts {field,value,source,certainty:"confirmé" ou "à vérifier"}. source = "URL https exacte" pour le web, ou "document: nom du fichier" quand l'information est écrite dans une pièce jointe (une information écrite noir sur blanc dans la pièce jointe est "confirmé"). Le nom de l'hôtel/immeuble identifié va aussi dans facts avec field "occupant". Une adresse proposée ou un propriétaire non prouvé reste à vérifier. related_companies = [{name,siren,role,source}]. Utilise les noms des champs ci-dessous.
 RÈGLE ABSOLUE : n'invente rien. Toute information non trouvée explicitement dans une source = null. Pas d'e-mail ou de téléphone deviné.
 Réponds uniquement en JSON :
 {"identified":"nom du bien ou null","country":"pays","owner_company":null,"owner_siren":null,"contact_name":"dirigeant ou contact","contact_role":null,"contact_email":null,"contact_phone":null,
@@ -72,7 +72,7 @@ export async function researchDeal(admin: Admin, dealId: string, ownerId: string
   const parsed = leadResearchSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Résultat de recherche non vérifiable : aucun champ modifié.");
   const verified = parsed.data;
-  const f = { ...confirmedLeadFacts(verified.facts), summary: verified.summary, suggestion: verified.suggestion } as Found;
+  const f = { identified: verified.identified ?? null, ...confirmedLeadFacts(verified.facts), summary: verified.summary, suggestion: verified.suggestion } as Found;
   if (!f.summary && !f.identified && !f.owner_company) {
     await admin.from("deals").update({ research_failed_at: new Date().toISOString() }).eq("id", dealId);
     throw new Error("La recherche n'a rien trouvé d'exploitable.");
@@ -106,7 +106,7 @@ export async function researchDeal(admin: Admin, dealId: string, ownerId: string
   if (asset) {
     const { data: fresh } = await admin.from("assets").select("*").eq("id", asset["id"] as string).maybeSingle();
     if (fresh) {
-      const patch = mergeAutofill(fresh as never, { ...f, occupant: f.identified ?? null }, "Recherche IA sourcée", "body");
+      const patch = mergeAutofill(fresh as never, { ...f, occupant: (f as { occupant?: string | null }).occupant ?? f.identified ?? null }, "Recherche IA sourcée", "body");
       found += Object.keys(patch).length;
       if (Object.keys(patch).length) { const { error } = await admin.from("assets").update(patch as never).eq("id", fresh.id); if (error) throw error; }
       const report = dealPatchFromAsset(deal, { ...fresh, ...patch });
