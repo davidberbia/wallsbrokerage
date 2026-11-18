@@ -127,7 +127,7 @@ export async function researchDeal(admin: Admin, dealId: string, ownerId: string
       Object.assign(dp, report);
     }
   }
-  dp["research_failed_at"] = found > 0 ? null : new Date().toISOString();
+  dp["research_failed_at"] = found > 0 || f.identified || (verified.facts?.length ?? 0) > 0 ? null : new Date().toISOString();
   const { error } = await admin.from("deals").update(dp as never).eq("id", dealId).eq("stage", "Prospection").eq("owner_id", ownerId);
   if (error) throw error;
   return { summary: f.summary ?? f.identified ?? "", ...(f.suggestion ? { suggestion: f.suggestion } : {}) };

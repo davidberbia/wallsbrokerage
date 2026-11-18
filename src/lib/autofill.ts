@@ -70,7 +70,7 @@ export function dealPatchFromAsset(deal: Record<string, unknown>, a: Record<stri
   return p;
 }
 
-const AUTO_NOTE = /^(origine\s*:|(avis de valeur|teaser|présentation|portefeuille|mandat|autre|prospection|disponible)\s*(\n|$))/i;
+const AUTO_NOTE = /^((ce|cet|cette) (document|teaser|dossier|brochure|plaquette) présente|origine\s*:|(avis de valeur|teaser|présentation|portefeuille|mandat|autre|prospection|disponible)\s*(\n|$))/i;
 /** Description de la piste : écrite si vide ou si elle ne contient que la note technique créée automatiquement. */
 export function descriptionPatch(notes: string | null | undefined, presentation: string | null | undefined): string | null {
   const p = (presentation ?? "").trim();
