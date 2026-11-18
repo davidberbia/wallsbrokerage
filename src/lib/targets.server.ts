@@ -57,6 +57,19 @@ async function findDeal(admin: Admin, key: string, name: string) {
   return null;
 }
 
+/** Doublons : même référence (64_0001) dans un lead ou l'objet d'un mail rangé, ou même bien sous un autre libellé. */
+async function findExistingLead(admin: Admin, name: string, text: string): Promise<string | null> {
+  const ref = `${name} ${text}`.match(/\b\d{2}_\d{4}\b/)?.[0];
+  if (ref) {
+    const { data: byName } = await admin.from("deals").select("id").ilike("name", `%${ref.replace("_", "\\_")}%`).neq("lead_status", "archived").limit(1).maybeSingle();
+    if (byName) return byName.id;
+    const { data: byMail } = await admin.from("mail_messages").select("deal_id").ilike("subject", `%${ref.replace("_", "\\_")}%`).not("deal_id", "is", null).limit(1).maybeSingle();
+    if (byMail?.deal_id) return byMail.deal_id;
+  }
+  const hit = await findDeal(admin, nameKey(name), name);
+  return hit?.id ?? null;
+}
+
 /** Crée ou complète les cibles, applique les honoraires. Jamais de doublon (clé de nom). */
 export async function saveTargets(
   admin: Admin,
@@ -76,6 +89,8 @@ export async function saveTargets(
     if(key.length<3 || BAD_NAME.test(name) || isGenericDealName(name))continue;
     const {data:existing}=await admin.from("deals").select("id").eq("name_key",key).eq("stage","Prospection").eq("owner_id",ownerId).maybeSingle();
     if(existing){ids.push(existing.id);continue;}
+    const dup=await findExistingLead(admin,name,[t.excerpt,t.origin].filter(Boolean).join(" "));
+    if(dup){ids.push(dup);continue;}
     const {data,error}=await admin.from("deals").insert({name,name_key:key,stage:"Prospection",owner_id:ownerId,source,notes:[t.origin,t.asset_class,t.excerpt].filter(Boolean).join("\n").slice(0,2000),vintage:yearOf(date),surface:num(t.surface),rent:num(t.rent),amount:num(t.price),address:[t.address,t.city].filter(Boolean).join(", ").slice(0,300) || null}).select("id").single();
     if(error)throw error;if(data){created++;ids.push(data.id);}
   }
