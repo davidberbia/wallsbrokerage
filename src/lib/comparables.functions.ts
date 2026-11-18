@@ -16,7 +16,7 @@ const norm = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").t
 /** Typologie de recherche à partir du type de bien de la brochure. */
 export function searchClass(typeBien: string, envType?: string): string {
   const t = norm(typeBien || "");
-  if (/habitat|logement|appart|maison|residen/.test(t)) return "Logements";
+  if (/habitat|logement|appart|maison|residen/.test(t)) return "Habitation";
   if (/bureau|office/.test(t)) return "Bureaux";
   if (/logist|entrep/.test(t)) return "Logistique";
   if (/activit|industri/.test(t)) return "Activité";
@@ -34,14 +34,14 @@ async function nearby(context: { supabase: any }, t: Target): Promise<any[] | nu
   const p = f.properties ?? {};
   const [lon, lat] = f.geometry.coordinates as [number, number];
   const cls = searchClass(t.typeBien ?? "", t.envType);
-  if (cls === "Logements") {
+  if (cls === "Habitation") {
     const y = new Date().getFullYear() - 5;
     const r = await fetch(`https://apidf-preprod.cerema.fr/dvf_opendata/mutations/?code_insee=${p.citycode}&anneemut_min=${y}&page_size=200`).then((x) => x.json()).catch(() => null);
     return (r?.results ?? [])
       .filter((m: any) => /MAISON|APPARTEMENT/.test(m.libtypbien ?? "") && Number(m.sbati) > 0)
       .slice(0, 30)
       .map((m: any) => ({
-        id: `dvf-${m.idmutation}`, kind: "vente", asset_class: "Logements", updated_at: m.datemut,
+        id: `dvf-${m.idmutation}`, kind: "vente", asset_class: "Habitation", updated_at: m.datemut,
         enseigne: m.libtypbien, city: p.city, postal_code: p.postcode, address: p.city,
         surface: Number(m.sbati), price: Number(m.valeurfonc), price_m2: Math.round(Number(m.valeurfonc) / Number(m.sbati)),
         deal_date: m.datemut, source: "DVF (Etalab)",

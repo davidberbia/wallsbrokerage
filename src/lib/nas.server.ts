@@ -34,7 +34,10 @@ async function check(hashes: string[]) {
 }
 
 /** Résout (ou crée) le dossier d'actif : fiche existante, nouvelle fiche, ou « À rattacher » en cas de doute. */
-async function resolveFolder(f: { folder_path: string; year?: string; city: string; label: string }) {
+/** Typologie détaillée déduite de la famille seulement quand elle est sans ambiguïté. */
+const FAMILY_CLASS: Record<string, string> = { "Bureaux": "Bureaux", "Centres commerciaux": "Centres commerciaux", "Coliving": "Coliving", "Habitation": "Habitation", "Portefeuilles": "Portefeuille d'actifs", "Santé": "Santé", "Terrains": "Terrains à bâtir" };
+
+async function resolveFolder(f: { folder_path: string; year?: string; city: string; label: string; family?: string; country?: string }) {
   const db = await admin();
   const { data: existing } = await db.from("nas_folders").select("id, asset_id, status").eq("folder_path", f.folder_path).maybeSingle();
   if (existing) return existing;
@@ -52,7 +55,10 @@ async function resolveFolder(f: { folder_path: string; year?: string; city: stri
       city: f.city,
       address: isCityOnly ? null : f.label,
       owner_id: null,
-    }).select("id").single();
+      family: f.family ?? null,
+      asset_class: f.family ? FAMILY_CLASS[f.family] ?? null : null,
+      region: f.country && norm(f.country) !== "france" ? f.country : null,
+    } as never).select("id").single();
     if (error) throw new Error(error.message);
     asset_id = created.id;
     status = "created";
@@ -64,7 +70,7 @@ async function resolveFolder(f: { folder_path: string; year?: string; city: stri
   return data;
 }
 
-async function uploadUrl(b: { folder_path: string; year?: string; city: string; label: string; name: string; sha256: string }) {
+async function uploadUrl(b: { folder_path: string; year?: string; city: string; label: string; name: string; sha256: string; family?: string; country?: string }) {
   const folder = await resolveFolder(b);
   const cat = categorize(b.name);
   const base = folder.asset_id ? `actifs/${folder.asset_id}` : `nas/a-rattacher/${folder.id}`;

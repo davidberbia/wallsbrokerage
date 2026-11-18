@@ -7,7 +7,7 @@ export const COMPARABLE_CLASSES = [
   "Bureaux",
   "Commerce centre-ville",
   "Commerce périphérie",
-  "Logements",
+  "Habitation",
   "Logistique",
 ] as const;
 
@@ -28,7 +28,7 @@ export function normalizeAssetClass(raw: string | null | undefined): ComparableC
   if (/^acti|activite|industri/.test(t)) return "Activité";
   if (/bureau|office|centre d.affaire/.test(t)) return "Bureaux";
   if (/habitat|logement|appart|coliving|chalet|villa|studio|maison|detached|residen|immeuble de rapport|copropriete|loft/.test(t))
-    return "Logements";
+    return "Habitation";
   if (/periph|retail|supermarche|hypermarch|supermarket|moyenne surface|grande surface|club de sport|salle de sport|borne de recharge|galerie marchande|loisir/.test(t))
     return "Commerce périphérie";
   if (/commerce|boulangerie|cabinet|clini|medical|hotel|local|laverie|showroom|restaurant|boutique|coiffure|mixte|mixed/.test(t))

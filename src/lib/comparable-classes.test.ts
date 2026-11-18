@@ -8,7 +8,7 @@ describe("normalizeAssetClass", () => {
       "Bureaux",
       "Commerce centre-ville",
       "Commerce périphérie",
-      "Logements",
+      "Habitation",
       "Logistique",
     ]);
   });
@@ -23,8 +23,8 @@ describe("normalizeAssetClass", () => {
     expect(normalizeAssetClass("Activité / Logistique")).toBe("Logistique");
     expect(normalizeAssetClass("Industrial Warehouse")).toBe("Logistique");
     expect(normalizeAssetClass("Acti")).toBe("Activité");
-    expect(normalizeAssetClass("Coliving")).toBe("Logements");
-    expect(normalizeAssetClass("Habitation")).toBe("Logements");
+    expect(normalizeAssetClass("Coliving")).toBe("Habitation");
+    expect(normalizeAssetClass("Habitation")).toBe("Habitation");
   });
 
   it("laisse vide ce qui est hors champ", () => {

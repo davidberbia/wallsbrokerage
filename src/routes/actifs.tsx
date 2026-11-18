@@ -63,7 +63,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ASSET_CLASSES, ASSET_CLASS_GROUPS, ASSET_SUBCLASSES, ASSET_STATUS, REGIONS, STRATEGIES, assetKindLabel, formatEUR } from "@/lib/taxonomy";
+import { ASSET_CLASSES, ASSET_CLASS_GROUPS, ASSET_FAMILIES, familyOf, ASSET_SUBCLASSES, ASSET_STATUS, REGIONS, STRATEGIES, assetKindLabel, formatEUR } from "@/lib/taxonomy";
 import type { Asset, PortfolioLot } from "@/lib/types";
 
 export const Route = createFileRoute("/actifs")({
@@ -99,6 +99,7 @@ function AssetsPage() {
   const qc = useQueryClient();
   const af = useAgentFilter();
   const [search, setSearch] = useState("");
+  const [family, setFamily] = useState("all");
   const [detail, setDetail] = useState<Asset | null>(null);
   const [editing, setEditing] = useState<Draft | null>(null);
   const [newFiles, setNewFiles] = useState<File[]>([]);
@@ -323,7 +324,7 @@ function AssetsPage() {
     onSettled: () => { void qc.invalidateQueries({ queryKey: ["assets"] }); void qc.invalidateQueries({ queryKey: ["deals"] }); },
   });
 
-  const filtered = (data ?? []).filter((asset) => af.keep((asset as { owner_id?: string | null }).owner_id) && matchesAssetSearch(asset, search));
+  const filtered = (data ?? []).filter((asset) => af.keep((asset as { owner_id?: string | null }).owner_id) && matchesAssetSearch(asset, search) && (family === "all" || ((asset as { family?: string | null }).family ?? familyOf(asset.asset_class)) === family));
 
   return (
     <div className="space-y-6">
@@ -331,7 +332,14 @@ function AssetsPage() {
         <div>
           <p className="eyebrow">Portefeuille</p>
           <h1 className="mt-1 text-3xl">Actifs à placer</h1>
-        <AgentSelect f={af} />
+        <div className="mt-2 flex flex-wrap gap-2"><AgentSelect f={af} />
+        <Select value={family} onValueChange={setFamily}>
+          <SelectTrigger className="w-[11rem]" aria-label="Famille"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes familles</SelectItem>
+            {ASSET_FAMILIES.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+          </SelectContent>
+        </Select></div>
         </div>
         <Dialog
           open={editing !== null}

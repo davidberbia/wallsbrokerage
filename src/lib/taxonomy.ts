@@ -14,13 +14,14 @@ export const ASSET_CLASSES = [
   "Resort Hôtel (sans fonds)",
   "Resort Hôtel (murs et fonds)",
   "Résidence étudiants",
+  "Coliving",
   "EHPAD",
   "Santé",
   "Salle de sport",
   "Buffets à volonté",
   "Loisirs",
   "Murs de restaurants",
-  "Immeubles de logements ou mixtes",
+  "Habitation",
   "Immeubles à restructurer",
   "Activité",
   "Logistique",
@@ -32,17 +33,28 @@ export const ASSET_SUBCLASSES: Record<string, readonly string[]> = {
   Bureaux: ["Immeuble(s)", "Plateau(x)", "Lot(s)"],
 };
 
-/** Rubriques du menu déroulant (simple aide au choix : chaque classe reste distincte). */
+/** Les 10 familles du serveur (dossier INVESTISSEMENT), utilisées comme rubriques et filtre. */
+export const ASSET_FAMILIES = ["Activité - Logistique", "Bureaux", "Centres commerciaux", "Coliving", "Commerce", "Habitation", "Hôtels", "Portefeuilles", "Santé", "Terrains"] as const;
+
+/** Rubriques du menu déroulant = familles du serveur ; chaque typologie détaillée reste distincte. */
 export const ASSET_CLASS_GROUPS: [string, readonly string[]][] = [
+  ["Activité - Logistique", ["Activité", "Logistique"]],
   ["Bureaux", ["Bureaux"]],
-  ["Commerces", ["Murs de commerces de pied d'immeuble", "Locaux commerciaux de périphérie", "Ensemble commercial de périphérie", "Retail Park complet", "Galeries commerciales", "Centres commerciaux", "Murs de restaurants", "Buffets à volonté"]],
-  ["Hôtellerie", ["City Hôtel (sans fonds)", "City Hôtel (murs et fonds)", "Resort Hôtel (sans fonds)", "Resort Hôtel (murs et fonds)"]],
-  ["Résidentiel", ["Appartement", "Maison", "Immeubles de logements ou mixtes", "Résidence étudiants"]],
-  ["Santé", ["EHPAD", "Santé"]],
-  ["Sport et loisirs", ["Salle de sport", "Loisirs"]],
-  ["Industriel", ["Activité", "Logistique"]],
-  ["Foncier", ["Terrains à bâtir", "Immeubles à restructurer"]],
+  ["Centres commerciaux", ["Centres commerciaux", "Galeries commerciales", "Retail Park complet", "Ensemble commercial de périphérie"]],
+  ["Coliving", ["Coliving", "Résidence étudiants"]],
+  ["Commerce", ["Murs de commerces de pied d'immeuble", "Locaux commerciaux de périphérie", "Murs de restaurants", "Buffets à volonté", "Salle de sport", "Loisirs"]],
+  ["Habitation", ["Habitation", "Appartement", "Maison", "Immeubles à restructurer"]],
+  ["Hôtels", ["City Hôtel (sans fonds)", "City Hôtel (murs et fonds)", "Resort Hôtel (sans fonds)", "Resort Hôtel (murs et fonds)"]],
+  ["Portefeuilles", ["Portefeuille d'actifs", "Portefeuille de commerces"]],
+  ["Santé", ["Santé", "EHPAD"]],
+  ["Terrains", ["Terrains à bâtir"]],
 ];
+
+/** Famille serveur d'une typologie détaillée (même règle que la base). */
+export function familyOf(cls?: string | null): string | null {
+  if (!cls) return null;
+  return ASSET_CLASS_GROUPS.find(([, l]) => l.includes(cls))?.[0] ?? (/bureau/i.test(cls) ? "Bureaux" : "Commerce");
+}
 
 /** Libellé lisible d'un actif : "Bureaux – Immeuble(s)" → "immeuble de bureaux". */
 export function assetKindLabel(cls?: string | null, sub?: string | null): string {
@@ -152,7 +164,7 @@ export const formatEUR = (value: number | null | undefined) =>
       }).format(value);
 
 /** Classes résidentielles : l'adresse s'affiche avant la ville. */
-const RESIDENTIAL = new Set(["Appartement", "Maison", "Immeubles de logements ou mixtes", "Résidence étudiants"]);
+const RESIDENTIAL = new Set(["Appartement", "Maison", "Habitation", "Résidence étudiants"]);
 export const isResidentialClass = (cls?: string | null) => !!cls && RESIDENTIAL.has(cls);
 
 /** Commercial : « Ville · Adresse » ; résidentiel : « Adresse · Ville ». */
@@ -169,8 +181,7 @@ export function shortClassLabel(cls?: string | null, sub?: string | null): strin
   if (!cls) return "";
   if (cls === "Bureaux") return assetKindLabel(cls, sub).replace(/^./, (c) => c.toUpperCase());
   if (/Hôtel/.test(cls)) return "Hôtel";
-  if (cls === "Immeubles de logements ou mixtes") return "Logements";
-  const SHORT: Record<string, string> = { "Murs de commerces de pied d'immeuble": "Commerce", "Locaux commerciaux de périphérie": "Commerce périphérie", "Ensemble commercial de périphérie": "Ensemble commercial", "Résidence étudiants": "Résid. étudiants", "Immeubles à restructurer": "À restructurer", "Terrains à bâtir": "Terrain" };
+    const SHORT: Record<string, string> = { "Murs de commerces de pied d'immeuble": "Commerce", "Locaux commerciaux de périphérie": "Commerce périphérie", "Ensemble commercial de périphérie": "Ensemble commercial", "Résidence étudiants": "Résid. étudiants", "Immeubles à restructurer": "À restructurer", "Terrains à bâtir": "Terrain" };
   return SHORT[cls] ?? cls;
 }
 
@@ -193,7 +204,7 @@ export function guessClassFromName(name?: string | null): string | null {
     [/appartement/, "Appartement"],
     [/\bmaison|\bvilla\b/, "Maison"],
     [/terrain/, "Terrains à bâtir"],
-    [/logements|residentiel|immeuble mixte/, "Immeubles de logements ou mixtes"],
+    [/logements|residentiel|immeuble mixte/, "Habitation"],
   ];
   return rules.find(([r]) => r.test(n))?.[1] ?? null;
 }
