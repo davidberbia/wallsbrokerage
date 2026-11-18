@@ -421,6 +421,13 @@
       "when": 1795010908321,
       "tag": "0059_attachments_follow_mail",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1795022090602,
+      "tag": "0060_contact_link_by_subject",
+      "breakpoints": true
     }
   ]
 }
