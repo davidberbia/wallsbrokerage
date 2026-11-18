@@ -336,6 +336,10 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
           <Label>Occupant</Label>
           <Input placeholder="Nom de l'hôtel, enseigne, locataire…" value={String(("occupant" in hotel ? hotel["occupant"] : (dossier.data?.asset as Record<string, unknown> | undefined)?.["occupant"]) ?? "")} onChange={(e) => setHotel({ ...hotel, occupant: e.target.value.trim() ? e.target.value : null })} />
         </div>
+        <div className="sm:col-span-2">
+          <Label>Adresse de l'actif</Label>
+          <Input value={current.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
+        </div>
         <div>
           <Label>Étape</Label>
           <Select value={current.stage ?? "Prospection"} onValueChange={(v) => {
@@ -452,10 +456,6 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
             value={current.amount ?? ""}
             onChange={(e) => set({ amount: e.target.value === "" ? null : Number(e.target.value) })}
           />
-        </div>
-        <div>
-          <Label>Adresse de l'actif</Label>
-          <Input value={current.address ?? ""} onChange={(e) => set({ address: e.target.value })} />
         </div>
         <div>
           <Label>Honoraires prévus (€)</Label>
