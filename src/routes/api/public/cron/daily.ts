@@ -179,7 +179,7 @@ export const Route = createFileRoute("/api/public/cron/daily")({
   <p>Bonjour ${prenom},</p>
   <p>Cela fait six mois que nous n'avons pas actualisé votre profil investisseur. Pour continuer à ne recevoir que des opportunités réellement pertinentes, pouvez-vous vérifier vos critères (budget, classe d'actif, stratégie, région, rendement) ?</p>
   <p><a href="${APP_URL}/mon-profil" style="background:#16212f;color:#ffffff;padding:11px 18px;border-radius:6px;text-decoration:none;display:inline-block;">Mettre à jour mon profil</a></p>
-  <p>Bien à vous,<br>David Berbia — Walls Brokerage</p>
+  <p>Bien à vous,<br>David Berbia — Wallsbroker</p>
 </div>`,
           });
           await admin

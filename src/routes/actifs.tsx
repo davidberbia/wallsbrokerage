@@ -72,13 +72,13 @@ import type { Asset, PortfolioLot } from "@/lib/types";
 export const Route = createFileRoute("/actifs")({
   head: () => ({
     meta: [
-      { title: "Actifs à placer — Walls Brokerage CRM" },
+      { title: "Actifs à placer — Wallsbrokerage CRM" },
       {
         name: "description",
         content:
           "Enregistrez vos actifs à la vente : classe, stratégie, région, prix, rendement et brochure.",
       },
-      { property: "og:title", content: "Actifs à placer — Walls Brokerage CRM" },
+      { property: "og:title", content: "Actifs à placer — Wallsbrokerage CRM" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       {

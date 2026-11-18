@@ -5,13 +5,13 @@ import { InvestorsPage } from "@/components/InvestorsPage";
 export const Route = createFileRoute("/investisseurs")({
   head: () => ({
     meta: [
-      { title: "Investisseurs — Walls Brokerage CRM" },
+      { title: "Investisseurs — Wallsbrokerage CRM" },
       {
         name: "description",
         content:
           "Gérez les profils investisseurs : tranche d'investissement, classes d'actifs, stratégies et régions.",
       },
-      { property: "og:title", content: "Investisseurs — Walls Brokerage CRM" },
+      { property: "og:title", content: "Investisseurs — Wallsbrokerage CRM" },
       {
         property: "og:description",
         content: "Tous les profils investisseurs et leurs critères d'investissement.",

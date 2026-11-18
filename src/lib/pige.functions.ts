@@ -30,7 +30,7 @@ export const preparePige = createServerFn({ method: "POST" }).middleware([requir
     const person = agent.data ? [agent.data.first_name, agent.data.last_name].filter(Boolean).join(" ") : sender.toLowerCase() === "d.berbia@wallsbroker.com" ? "David Berbia" : "";
     const { pigeSender } = await import("./pige-brevo");
     if (!pigeSender(sender, person)) throw new Error("Votre adresse n’est pas encore autorisée pour la Pige Brevo.");
-    const signature = [person, "Walls Brokerage", agent.data?.phone, sender].filter(Boolean).join("\n");
+    const signature = [person, "Wallsbroker", agent.data?.phone, sender].filter(Boolean).join("\n");
     let cycle = overview.cycles.find(c => !c.completed_at);
     if (cycle && cycle.created_by !== context.userId) throw new Error("Cette Pige est préparée par un autre agent.");
     if (cycle?.started_at && cycle.due_at && new Date(cycle.due_at) <= new Date()) throw new Error("Clôturez la Pige précédente avant de recommencer.");

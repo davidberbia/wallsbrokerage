@@ -111,10 +111,10 @@ ${section.note ? `<p style="margin:0 0 8px;color:#8a8378;font-size:13px;">${esca
     .join("");
 
   return `<div style="font-family:Arial,Helvetica,sans-serif;background:#ffffff;padding:24px;max-width:760px;">
-  <p style="letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:#a4763c;margin:0;">Walls Brokerage</p>
+  <p style="letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:#a4763c;margin:0;">Wallsbroker</p>
   <h2 style="margin:6px 0 10px;font-size:20px;color:#16212f;">${escapeHtml(params.title)}</h2>
   <p style="margin:0;color:#5d574e;font-size:14px;">${escapeHtml(params.intro)}</p>
   ${sections}
-  <p style="margin-top:28px;color:#8a8378;font-size:12px;">Rapport généré automatiquement par le CRM Walls Brokerage. Les heures sont en heure de Paris.</p>
+  <p style="margin-top:28px;color:#8a8378;font-size:12px;">Rapport généré automatiquement par le CRM Wallsbroker. Les heures sont en heure de Paris.</p>
 </div>`;
 }

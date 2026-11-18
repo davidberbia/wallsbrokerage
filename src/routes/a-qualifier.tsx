@@ -21,13 +21,13 @@ import {
 export const Route = createFileRoute("/a-qualifier")({
   head: () => ({
     meta: [
-      { title: "À qualifier — Walls Brokerage CRM" },
+      { title: "À qualifier — Wallsbrokerage CRM" },
       {
         name: "description",
         content:
           "Contacts professionnels repérés dans la boîte mail, à valider avant intégration aux bases prospects et investisseurs.",
       },
-      { property: "og:title", content: "À qualifier — Walls Brokerage CRM" },
+      { property: "og:title", content: "À qualifier — Wallsbrokerage CRM" },
       {
         property: "og:description",
         content: "Validez les contacts trouvés dans vos emails avant de les ajouter à vos bases.",

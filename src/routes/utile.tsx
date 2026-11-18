@@ -5,9 +5,9 @@ import { DirectoryPage } from "@/components/DirectoryPage";
 export const Route = createFileRoute("/utile")({
   head: () => ({
     meta: [
-      { title: "Contacts utiles — Walls Brokerage CRM" },
+      { title: "Contacts utiles — Wallsbrokerage CRM" },
       { name: "description", content: "Diagnostiqueurs et autres contacts utiles." },
-      { property: "og:title", content: "Contacts utiles — Walls Brokerage CRM" },
+      { property: "og:title", content: "Contacts utiles — Wallsbrokerage CRM" },
       { property: "og:description", content: "Diagnostiqueurs et autres contacts utiles." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -28,12 +28,12 @@ export const Route = createFileRoute("/presentation")({
   }),
   head: () => ({
     meta: [
-      { title: "Teasers — brochures de vente — Walls Brokerage CRM" },
+      { title: "Teasers — brochures de vente — Wallsbrokerage CRM" },
       {
         name: "description",
         content: "Générez étape par étape la brochure de vente PowerPoint d'un actif.",
       },
-      { property: "og:title", content: "Teasers — Walls Brokerage CRM" },
+      { property: "og:title", content: "Teasers — Wallsbrokerage CRM" },
       { property: "og:description", content: "Génération des brochures de vente par étapes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

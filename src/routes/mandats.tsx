@@ -29,9 +29,9 @@ import {
 export const Route = createFileRoute("/mandats")({
   head: () => ({
     meta: [
-      { title: "Registre des mandats — Walls Brokerage CRM" },
+      { title: "Registre des mandats — Wallsbrokerage CRM" },
       { name: "description", content: "Registre numéroté des mandats de vente et de location." },
-      { property: "og:title", content: "Registre des mandats — Walls Brokerage CRM" },
+      { property: "og:title", content: "Registre des mandats — Wallsbrokerage CRM" },
       {
         property: "og:description",
         content: "Registre numéroté des mandats de vente et de location.",

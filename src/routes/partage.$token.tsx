@@ -7,10 +7,10 @@ import { downloadShared, viewShare } from "@/lib/share.functions";
 export const Route = createFileRoute("/partage/$token")({
   head: () => ({
     meta: [
-      { title: "Documents partagés — Walls Brokerage" },
-      { name: "description", content: "Documents mis à disposition par Walls Brokerage." },
-      { property: "og:title", content: "Documents partagés — Walls Brokerage" },
-      { property: "og:description", content: "Documents mis à disposition par Walls Brokerage." },
+      { title: "Documents partagés — Wallsbroker" },
+      { name: "description", content: "Documents mis à disposition par Wallsbroker." },
+      { property: "og:title", content: "Documents partagés — Wallsbroker" },
+      { property: "og:description", content: "Documents mis à disposition par Wallsbroker." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -45,7 +45,7 @@ function SharePage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-xl space-y-6 p-5">
-      <p className="eyebrow">Walls Brokerage</p>
+      <p className="eyebrow">Wallsbroker</p>
       {!view && <p className="text-sm text-muted-foreground">Chargement…</p>}
       {view && !view.ok && <div className="panel p-6 text-center">{view.reason}</div>}
       {view?.ok && (

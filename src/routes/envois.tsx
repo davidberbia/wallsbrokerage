@@ -23,13 +23,13 @@ import { escapeHtml, SIGNATURE_HTML } from "@/components/CampaignDialog";
 export const Route = createFileRoute("/envois")({
   head: () => ({
     meta: [
-      { title: "Historique des envois — Walls Brokerage CRM" },
+      { title: "Historique des envois — Wallsbrokerage CRM" },
       {
         name: "description",
         content:
           "Traçabilité horodatée des brochures envoyées à chaque investisseur, avec accusé de lecture.",
       },
-      { property: "og:title", content: "Historique des envois — Walls Brokerage CRM" },
+      { property: "og:title", content: "Historique des envois — Wallsbrokerage CRM" },
       {
         property: "og:description",
         content: "Qui a reçu quelle brochure, quand, et qui l'a ouverte.",

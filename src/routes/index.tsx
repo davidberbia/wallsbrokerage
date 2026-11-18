@@ -7,9 +7,9 @@ export const Route = createFileRoute("/")({
     typeof s["asset"] === "string" ? { asset: s["asset"] } : {},
   head: () => ({
     meta: [
-      { title: "Accueil — Suivi des affaires — Walls Brokerage CRM" },
-      { name: "description", content: "Accédez à vos affaires en cours dans Walls Brokerage." },
-      { property: "og:title", content: "Accueil — Walls Brokerage CRM" },
+      { title: "Accueil — Suivi des affaires — Wallsbrokerage CRM" },
+      { name: "description", content: "Accédez à vos affaires en cours dans Wallsbrokerage." },
+      { property: "og:title", content: "Accueil — Wallsbrokerage CRM" },
       { property: "og:description", content: "Votre suivi des affaires immobilières en cours." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

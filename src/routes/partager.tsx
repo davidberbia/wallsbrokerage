@@ -25,13 +25,13 @@ export const Route = createFileRoute("/partager")({
   validateSearch: search,
   head: () => ({
     meta: [
-      { title: "Extractions — Walls Brokerage CRM" },
+      { title: "Extractions — Wallsbrokerage CRM" },
       {
         name: "description",
         content:
           "Envoyez un article, une vidéo ou un reel : l'IA en extrait contacts, comparables et actualités.",
       },
-      { property: "og:title", content: "Extractions — Walls Brokerage CRM" },
+      { property: "og:title", content: "Extractions — Wallsbrokerage CRM" },
       {
         property: "og:description",
         content: "Analyse automatique des liens partagés depuis le téléphone.",

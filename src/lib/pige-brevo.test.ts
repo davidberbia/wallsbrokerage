@@ -20,7 +20,7 @@ it("matches reply references exactly rather than by subject", () => {
 
 describe("expéditeur Pige", () => {
   it("affiche le collaborateur et le tague", () => {
-    expect(pigeSender("L.Crausaz@wallsbroker.com", "Ladislas Crausaz")).toEqual({ email: "l.crausaz@wallsbroker.com", name: "Ladislas Crausaz | Walls Brokerage", tags: ["pige", "ladislas-crausaz"] });
+    expect(pigeSender("L.Crausaz@wallsbroker.com", "Ladislas Crausaz")).toEqual({ email: "l.crausaz@wallsbroker.com", name: "Ladislas Crausaz | Wallsbroker", tags: ["pige", "ladislas-crausaz"] });
   });
   it("refuse une adresse non autorisée dans Brevo", () => {
     expect(pigeSender("autre@wallsbroker.com", "Autre")).toBeNull();

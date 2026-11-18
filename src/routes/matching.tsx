@@ -36,7 +36,7 @@ export const Route = createFileRoute("/matching")({
     typeof search["asset"] === "string" ? { asset: search["asset"] as string } : {},
   head: () => ({
     meta: [
-      { title: "Matching investisseurs — Walls Brokerage CRM" },
+      { title: "Matching investisseurs — Wallsbrokerage CRM" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       {
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/matching")({
         content:
           "Saisissez un actif et obtenez instantanément la liste des investisseurs à qui envoyer la brochure de vente.",
       },
-      { property: "og:title", content: "Matching investisseurs — Walls Brokerage CRM" },
+      { property: "og:title", content: "Matching investisseurs — Wallsbrokerage CRM" },
       {
         property: "og:description",
         content: "Trouvez en un clic les acquéreurs dont le profil correspond à votre actif.",

@@ -259,7 +259,7 @@ export async function buildDigest(listenUrl: string | null): Promise<Digest> {
 
   const dateLabel = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Paris" });
   const html = `<div style="font-family:Arial,Helvetica,sans-serif;background:#ffffff;padding:22px;max-width:780px;color:#16212f;">
-<p style="letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:#2a7f99;margin:0;">Walls Brokerage — Synthèse du jour</p>
+<p style="letter-spacing:.14em;text-transform:uppercase;font-size:11px;color:#2a7f99;margin:0;">Wallsbroker — Synthèse du jour</p>
 <h2 style="margin:6px 0 4px;font-size:20px;">${e(dateLabel)}</h2>
 <p style="margin:0 0 12px;color:#5d6773;font-size:14px;">${plural(unanswered.length, "mail sans réponse", "mails sans réponse")} · ${plural(relaunch.length, "relance suggérée", "relances suggérées")} · ${plural(calls.length, "appel suggéré", "appels suggérés")} · ${plural(dormant.length, "dossier dormant", "dossiers dormants")}</p>
 ${listenUrl ? `<p style="margin:10px 0 4px;"><a href="${listenUrl}" style="background:#16212f;color:#ffffff;padding:11px 18px;border-radius:4px;text-decoration:none;display:inline-block;font-size:14px;">▶ Écouter la synthèse</a></p>` : ""}
@@ -322,7 +322,7 @@ ${table(["Type", "Ville", "Surface", "Valeur", "Détail"], (comps ?? []).map((c)
   c.kind === "location" ? (c.price_m2 ? `${Math.round(Number(c.price_m2))} €/m²/an` : "—") : c.price ? eur(Number(c.price)) : "—",
   e(c.excerpt.slice(0, 180)),
 ]), "Aucun nouveau comparable.")}`)}
-<p style="margin-top:26px;color:#6b7684;font-size:12px;">Synthèse générée automatiquement par le CRM Walls Brokerage à partir de votre boîte Outlook. <a href="${APP_URL}/dossiers" style="color:#2a7f99;">Affaires en cours</a> · <a href="${APP_URL}/comparables" style="color:#2a7f99;">Comparables</a> · <a href="${APP_URL}/a-qualifier" style="color:#2a7f99;">À qualifier</a> · <a href="${APP_URL}/cibles" style="color:#2a7f99;">Cibles</a></p>
+<p style="margin-top:26px;color:#6b7684;font-size:12px;">Synthèse générée automatiquement par le CRM Wallsbroker à partir de votre boîte Outlook. <a href="${APP_URL}/dossiers" style="color:#2a7f99;">Affaires en cours</a> · <a href="${APP_URL}/comparables" style="color:#2a7f99;">Comparables</a> · <a href="${APP_URL}/a-qualifier" style="color:#2a7f99;">À qualifier</a> · <a href="${APP_URL}/cibles" style="color:#2a7f99;">Cibles</a></p>
 </div>`;
 
   // ---------- Texte parlé façon Jarvis ----------

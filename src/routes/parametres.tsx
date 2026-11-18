@@ -32,13 +32,13 @@ import {
 export const Route = createFileRoute("/parametres")({
   head: () => ({
     meta: [
-      { title: "Paramètres — Walls Brokerage CRM" },
+      { title: "Paramètres — Wallsbrokerage CRM" },
       {
         name: "description",
         content:
           "Gérez les utilisateurs du back-office et les listes de référence : classes d'actifs, types d'investisseurs, pays et tranches de prix.",
       },
-      { property: "og:title", content: "Paramètres — Walls Brokerage CRM" },
+      { property: "og:title", content: "Paramètres — Wallsbrokerage CRM" },
       {
         property: "og:description",
         content: "Utilisateurs, classes d'actifs, types d'investisseurs, pays et tranches de prix.",

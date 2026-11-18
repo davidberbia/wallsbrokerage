@@ -27,9 +27,9 @@ import type { Investor, InvestorCriteria } from "@/lib/types";
 export const Route = createFileRoute("/mon-profil")({
   head: () => ({
     meta: [
-      { title: "Mon profil investisseur — Walls Brokerage" },
-      { name: "description", content: "Créez et mettez à jour votre profil d’investissement Walls Brokerage." },
-      { property: "og:title", content: "Mon profil investisseur — Walls Brokerage" },
+      { title: "Mon profil investisseur — Wallsbroker" },
+      { name: "description", content: "Créez et mettez à jour votre profil d’investissement Wallsbroker." },
+      { property: "og:title", content: "Mon profil investisseur — Wallsbroker" },
       { property: "og:description", content: "Définissez vos actifs, stratégies, montants et zones géographiques." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

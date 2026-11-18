@@ -80,13 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Walls Brokerage — CRM Investisseurs" },
+      { title: "Wallsbroker — CRM Investisseurs" },
       {
         name: "description",
         content:
           "CRM immobilier : profils investisseurs, actifs à placer et matching automatique pour l'envoi des brochures.",
       },
-      { name: "author", content: "Walls Brokerage" },
+      { name: "author", content: "Wallsbroker" },
       { name: "theme-color", content: "#0e1b24" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "Wallsbroker" },
@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "google-site-verification",
         content: "OD3sViJXZnP9-kMQGvukwhM3MSqbxYBkXUxSC7psMkQ",
       },
-      { property: "og:title", content: "Walls Brokerage — CRM Investisseurs" },
+      { property: "og:title", content: "Wallsbroker — CRM Investisseurs" },
       {
         property: "og:description",
         content: "Trouvez en un clic les investisseurs correspondant à chaque actif.",

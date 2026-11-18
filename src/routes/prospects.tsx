@@ -40,13 +40,13 @@ import type { Asset } from "@/lib/types";
 export const Route = createFileRoute("/prospects")({
   head: () => ({
     meta: [
-      { title: "Prospects — Walls Brokerage CRM" },
+      { title: "Prospects — Wallsbrokerage CRM" },
       {
         name: "description",
         content:
           "Base de prospects par société : collaborateurs, emails, téléphones et envoi ciblé de brochures.",
       },
-      { property: "og:title", content: "Prospects — Walls Brokerage CRM" },
+      { property: "og:title", content: "Prospects — Wallsbrokerage CRM" },
       {
         property: "og:description",
         content: "Recherchez une société, dépliez ses collaborateurs et envoyez-leur un actif.",

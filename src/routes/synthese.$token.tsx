@@ -8,9 +8,9 @@ export const Route = createFileRoute("/synthese/$token")({
   loader: ({ params }) => getDigestByToken({ data: { token: params.token } }),
   head: () => ({
     meta: [
-      { title: "Synthèse du jour — Walls Brokerage" },
+      { title: "Synthèse du jour — Wallsbroker" },
       { name: "description", content: "Synthèse quotidienne des dossiers, relances et encaissements." },
-      { property: "og:title", content: "Synthèse du jour — Walls Brokerage" },
+      { property: "og:title", content: "Synthèse du jour — Wallsbroker" },
       { property: "og:description", content: "Synthèse quotidienne des dossiers, relances et encaissements." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

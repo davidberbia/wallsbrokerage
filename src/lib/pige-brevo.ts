@@ -16,6 +16,6 @@ const slug = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").t
 export function pigeSender(email: string, person: string) {
   const address = email.trim().toLowerCase();
   if (!PIGE_SENDERS.includes(address)) return null;
-  const name = person.trim() ? `${person.trim()} | Walls Brokerage` : "Walls Brokerage";
+  const name = person.trim() ? `${person.trim()} | Wallsbroker` : "Wallsbroker";
   return { email: address, name, tags: ["pige", slug(person) || slug(address.split("@")[0] ?? "")] };
 }

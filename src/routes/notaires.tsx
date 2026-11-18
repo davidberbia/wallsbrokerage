@@ -5,9 +5,9 @@ import { DirectoryPage } from "@/components/DirectoryPage";
 export const Route = createFileRoute("/notaires")({
   head: () => ({
     meta: [
-      { title: "Notaires — Walls Brokerage CRM" },
+      { title: "Notaires — Wallsbrokerage CRM" },
       { name: "description", content: "Annuaire des notaires partenaires." },
-      { property: "og:title", content: "Notaires — Walls Brokerage CRM" },
+      { property: "og:title", content: "Notaires — Wallsbrokerage CRM" },
       { property: "og:description", content: "Annuaire des notaires partenaires." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

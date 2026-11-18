@@ -23,12 +23,12 @@ type Kind = "location" | "vente";
 export const Route = createFileRoute("/comparables")({
   head: () => ({
     meta: [
-      { title: "Comparables location et vente — Walls Brokerage CRM" },
+      { title: "Comparables location et vente — Wallsbrokerage CRM" },
       {
         name: "description",
         content: "Base de comparables locatifs et de prix, identique au Générateur de brochures.",
       },
-      { property: "og:title", content: "Comparables — Walls Brokerage CRM" },
+      { property: "og:title", content: "Comparables — Wallsbrokerage CRM" },
       { property: "og:description", content: "Comparables de location et de vente." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
