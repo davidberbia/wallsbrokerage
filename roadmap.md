@@ -189,4 +189,5 @@
 
 ## Notoriété LinkedIn automatique — 18 novembre, plan en attente
 - [ ] Planning mensuel auto, validation puis option tout automatique, connexion LinkedIn par collaborateur
+- [ ] Actifs alternés lundi/mardi, spécialité alternée jeudi/vendredi
 - [ ] Invitations 10/jour max, attente aléatoire 50 min–2 h, sans message personnalisé

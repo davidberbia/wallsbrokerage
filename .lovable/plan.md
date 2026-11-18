@@ -3,8 +3,8 @@
 ## Ce que le collaborateur verra
 - **Connexion LinkedIn** dans Réglages : un bouton « Connecter mon LinkedIn » (son propre compte, connexion officielle).
 - **Planning du mois** préparé tout seul le 1er de chaque mois (et dès l'enregistrement des réglages) :
-  - chaque lundi : 3 actifs disponibles anonymisés ;
-  - chaque mercredi : un article sur sa spécialité ;
+  - 3 actifs anonymisés chaque semaine, en alternance lundi / mardi ;
+  - un article sur sa spécialité chaque semaine, en alternance jeudi / vendredi ;
   - le jour choisi : le point marché avec graphique.
 - Onglet Posts : la liste du mois, il relit, corrige, coche « Valider ». Un post validé part seul à sa date (9 h).
 - **Mode tout automatique** (option) : les posts partent à leur date sans validation.
