@@ -407,6 +407,13 @@
       "when": 1795004257502,
       "tag": "0057_investor_email_bounce",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1795005834380,
+      "tag": "0058_deal_research_failed",
+      "breakpoints": true
     }
   ]
 }

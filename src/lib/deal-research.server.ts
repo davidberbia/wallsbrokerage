@@ -57,7 +57,10 @@ export async function researchDeal(admin: Admin, dealId: string, ownerId: string
   if (!parsed.success) throw new Error("Résultat de recherche non vérifiable : aucun champ modifié.");
   const verified = parsed.data;
   const f = { ...confirmedLeadFacts(verified.facts), summary: verified.summary, suggestion: verified.suggestion } as Found;
-  if (!f.summary && !f.identified && !f.owner_company) throw new Error("La recherche n'a rien trouvé d'exploitable.");
+  if (!f.summary && !f.identified && !f.owner_company) {
+    await admin.from("deals").update({ research_failed_at: new Date().toISOString() }).eq("id", dealId);
+    throw new Error("La recherche n'a rien trouvé d'exploitable.");
+  }
 
   // Vérification officielle pour une société française.
   let company: Company | null = null;
@@ -82,17 +85,20 @@ export async function researchDeal(admin: Admin, dealId: string, ownerId: string
   if (empty(deal.contact_phone) && f.contact_phone) dp["contact_phone"] = f.contact_phone.trim();
   const desc = descriptionPatch(deal.notes, f.presentation);
   if (desc) dp["notes"] = desc;
-  const { error } = await admin.from("deals").update(dp as never).eq("id", dealId).eq("stage", "Prospection");
-  if (error) throw error;
+  let found = Object.keys(dp).length - 4;
 
   if (asset) {
     const { data: fresh } = await admin.from("assets").select("*").eq("id", asset["id"] as string).maybeSingle();
     if (fresh) {
       const patch = mergeAutofill(fresh as never, { ...f, occupant: f.identified ?? null }, "Recherche IA sourcée", "body");
+      found += Object.keys(patch).length;
       if (Object.keys(patch).length) { const { error } = await admin.from("assets").update(patch as never).eq("id", fresh.id); if (error) throw error; }
       const report = dealPatchFromAsset(deal, { ...fresh, ...patch });
-      if (Object.keys(report).length) { const { error } = await admin.from("deals").update(report as never).eq("id", dealId).eq("stage", "Prospection").eq("owner_id", ownerId); if (error) throw error; }
+      Object.assign(dp, report);
     }
   }
+  dp["research_failed_at"] = found > 0 ? null : new Date().toISOString();
+  const { error } = await admin.from("deals").update(dp as never).eq("id", dealId).eq("stage", "Prospection").eq("owner_id", ownerId);
+  if (error) throw error;
   return { summary: f.summary ?? f.identified ?? "", ...(f.suggestion ? { suggestion: f.suggestion } : {}) };
 }

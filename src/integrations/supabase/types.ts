@@ -1251,6 +1251,7 @@ export type Database = {
           paid_at: string | null
           probability: number | null
           rent: number | null
+          research_failed_at: string | null
           seller: string | null
           snooze_until: string | null
           sort_order: number
@@ -1293,6 +1294,7 @@ export type Database = {
           paid_at?: string | null
           probability?: number | null
           rent?: number | null
+          research_failed_at?: string | null
           seller?: string | null
           snooze_until?: string | null
           sort_order?: number
@@ -1335,6 +1337,7 @@ export type Database = {
           paid_at?: string | null
           probability?: number | null
           rent?: number | null
+          research_failed_at?: string | null
           seller?: string | null
           snooze_until?: string | null
           sort_order?: number
