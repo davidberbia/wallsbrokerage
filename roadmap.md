@@ -184,3 +184,5 @@
 - [ ] Enregistrement auto des champs de la fiche lead (blur/Tab/Entrée)
 - [ ] Enquête IA : toute la fiche + texte des pièces jointes
 - [ ] Doublons de leads par référence (75_0027)
+
+- [x] Notoriété LinkedIn (v1 : brouillons à la demande, publication par copier-ouvrir) — reste : connexion LinkedIn officielle pour publication auto + préparation planifiée

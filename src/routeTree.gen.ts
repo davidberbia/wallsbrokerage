@@ -28,6 +28,7 @@ import { Route as MatchingRouteImport } from './routes/matching'
 import { Route as MonContratRouteImport } from './routes/mon-contrat'
 import { Route as MonProfilRouteImport } from './routes/mon-profil'
 import { Route as NotairesRouteImport } from './routes/notaires'
+import { Route as NotorieteRouteImport } from './routes/notoriete'
 import { Route as ParametresRouteImport } from './routes/parametres'
 import { Route as PartagerRouteImport } from './routes/partager'
 import { Route as PresentationRouteImport } from './routes/presentation'
@@ -152,6 +153,11 @@ const MonProfilRoute = MonProfilRouteImport.update({
 const NotairesRoute = NotairesRouteImport.update({
   id: '/notaires',
   path: '/notaires',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotorieteRoute = NotorieteRouteImport.update({
+  id: '/notoriete',
+  path: '/notoriete',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ParametresRoute = ParametresRouteImport.update({
@@ -332,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/mon-contrat': typeof MonContratRoute
   '/mon-profil': typeof MonProfilRoute
   '/notaires': typeof NotairesRoute
+  '/notoriete': typeof NotorieteRoute
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
   '/presentation': typeof PresentationRoute
@@ -383,6 +390,7 @@ export interface FileRoutesByTo {
   '/mon-contrat': typeof MonContratRoute
   '/mon-profil': typeof MonProfilRoute
   '/notaires': typeof NotairesRoute
+  '/notoriete': typeof NotorieteRoute
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
   '/presentation': typeof PresentationRoute
@@ -435,6 +443,7 @@ export interface FileRoutesById {
   '/mon-contrat': typeof MonContratRoute
   '/mon-profil': typeof MonProfilRoute
   '/notaires': typeof NotairesRoute
+  '/notoriete': typeof NotorieteRoute
   '/parametres': typeof ParametresRoute
   '/partager': typeof PartagerRoute
   '/presentation': typeof PresentationRoute
@@ -488,6 +497,7 @@ export interface FileRouteTypes {
     | '/mon-contrat'
     | '/mon-profil'
     | '/notaires'
+    | '/notoriete'
     | '/parametres'
     | '/partager'
     | '/presentation'
@@ -539,6 +549,7 @@ export interface FileRouteTypes {
     | '/mon-contrat'
     | '/mon-profil'
     | '/notaires'
+    | '/notoriete'
     | '/parametres'
     | '/partager'
     | '/presentation'
@@ -590,6 +601,7 @@ export interface FileRouteTypes {
     | '/mon-contrat'
     | '/mon-profil'
     | '/notaires'
+    | '/notoriete'
     | '/parametres'
     | '/partager'
     | '/presentation'
@@ -642,6 +654,7 @@ export interface RootRouteChildren {
   MonContratRoute: typeof MonContratRoute
   MonProfilRoute: typeof MonProfilRoute
   NotairesRoute: typeof NotairesRoute
+  NotorieteRoute: typeof NotorieteRoute
   ParametresRoute: typeof ParametresRoute
   PartagerRoute: typeof PartagerRoute
   PresentationRoute: typeof PresentationRoute
@@ -807,6 +820,13 @@ declare module '@tanstack/react-router' {
       path: '/notaires'
       fullPath: '/notaires'
       preLoaderRoute: typeof NotairesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notoriete': {
+      id: '/notoriete'
+      path: '/notoriete'
+      fullPath: '/notoriete'
+      preLoaderRoute: typeof NotorieteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/parametres': {
@@ -1042,6 +1062,7 @@ const rootRouteChildren: RootRouteChildren = {
   MonContratRoute: MonContratRoute,
   MonProfilRoute: MonProfilRoute,
   NotairesRoute: NotairesRoute,
+  NotorieteRoute: NotorieteRoute,
   ParametresRoute: ParametresRoute,
   PartagerRoute: PartagerRoute,
   PresentationRoute: PresentationRoute,

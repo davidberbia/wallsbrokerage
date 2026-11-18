@@ -2127,6 +2127,108 @@ export type Database = {
           },
         ]
       }
+      linkedin_invites: {
+        Row: {
+          contact_id: string
+          done_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          done_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          done_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      linkedin_posts: {
+        Row: {
+          body: string
+          chart: Json | null
+          created_at: string
+          id: string
+          kind: string
+          published_at: string | null
+          scheduled_for: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          body?: string
+          chart?: Json | null
+          created_at?: string
+          id?: string
+          kind: string
+          published_at?: string | null
+          scheduled_for?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          chart?: Json | null
+          created_at?: string
+          id?: string
+          kind?: string
+          published_at?: string | null
+          scheduled_for?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      linkedin_settings: {
+        Row: {
+          auto_publish: boolean
+          invites_per_day: number
+          market_day: number
+          specialty: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_publish?: boolean
+          invites_per_day?: number
+          market_day?: number
+          specialty?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_publish?: boolean
+          invites_per_day?: number
+          market_day?: number
+          specialty?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      linkedin_sources: {
+        Row: {
+          created_at: string
+          id: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       mail_attachment_jobs: {
         Row: {
           asset_id: string
