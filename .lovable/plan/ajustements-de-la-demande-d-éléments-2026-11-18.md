@@ -6,6 +6,7 @@
 - Conserver l’objet contenant l’adresse dans l’historique et lors des relances, sans modifier les demandes déjà envoyées ni le délai actuel.
 
 ## Transférer et Pige dans Traitement rapide
+
 - Remplacer le pictogramme de transfert par un bouton textuel **Transférer**, en conservant son fonctionnement actuel.
 - Placer le bouton **Pige** entre **Transférer** et **Sans suite**.
 - Pige ouvre la liste des investisseurs avec les filtres déjà renseignés à partir des informations connues du lead : type de bien, prix, région, stratégie et rendement si disponibles. Les filtres restent modifiables, sans inventer de données manquantes.
@@ -14,9 +15,10 @@
 - Utiliser l’objet de l’actif et le texte ci-dessous, modifiable avant l’envoi. Renseigner uniquement les informations présentes ; adapter le type de bien si ce n’est pas un hôtel. Aucune brochure ni autre pièce jointe ajoutée automatiquement à cette simple prise de contact.
 
 ### Message préparé
+
 Bonjour [prénom],
 
-Un confrère m’indique qu’un hôtel de [description de l’actif] situé à [ville] et disposant de [nombre de chambres] serait à vendre au prix de [prix].
+Un confrère m’indique qu'un [actif] situé à [ville] et disposant de [nombre de chambres] serait à vendre au prix de [prix].
 
 Est-ce que ce dossier pourrait t’intéresser ?
 
@@ -27,6 +29,7 @@ Bien à toi,
 [Signature professionnelle]
 
 ## Suivi des Piges et retour dans les Leads
+
 - Après les envois confirmés, placer le dossier dans l’état **Pige**, accessible par un filtre dédié, et le sortir du traitement rapide pendant la semaine d’interrogation.
 - Conserver pour chaque investisseur le message préparé, la date d’envoi et les événements disponibles : **Contacté**, **Réception confirmée**, **Lecture signalée**, **Répondu**. L’ouverture d’Outlook seule ne vaut jamais un envoi.
 - Confirmer les envois depuis les messages envoyés de la boîte professionnelle lorsqu’elle est accessible ; prévoir une confirmation manuelle explicite si la vérification n’est pas disponible.
@@ -37,6 +40,7 @@ Bien à toi,
 - Réutiliser le suivi périodique Outlook existant ; les retours apparaissent au passage suivant, pas nécessairement à la minute exacte. Aucune activation avant l’autorisation prévue, aucune publication.
 
 ## Vérifications
+
 - Vérifier l’objet et le contenu préparés pour Outlook avec une adresse réelle et des éléments complémentaires.
 - Vérifier les cases et les champs par toucher sur un écran de téléphone.
 - Vérifier l’ordre Transférer / Pige / Sans suite, les filtres préremplis et la sélection d’investisseurs au toucher sur téléphone.
@@ -45,6 +49,7 @@ Bien à toi,
 - Aucune publication ni aucun envoi de mail pendant les tests.
 
 ## Détails techniques
+
 - Récupérer l’adresse depuis les données accessibles de la fiche et de l’actif lié lors de la préparation côté serveur.
 - Remplacer le champ complémentaire unique par des lignes sélectionnables et appliquer la même sélection à la préparation du message et à son historique.
 - Réutiliser la logique de matching existante avec un mode Pige pour les leads, sans transformer le lead en Actif disponible et sans passer par la campagne de brochures.

@@ -15,7 +15,7 @@ export const leadDocumentOverview = createServerFn({ method: "GET" }).middleware
     let docs: { name: string; category: string }[] = [];
     if (deal.asset_id) {
       const [a, d] = await Promise.all([
-        context.supabase.from("assets").select("asset_class,price,surface,rent,keys_count,hotel_category").eq("id", deal.asset_id).single(),
+        context.supabase.from("assets").select("asset_class,price,surface,rent,keys_count,hotel_category,address,city,postal_code").eq("id", deal.asset_id).single(),
         context.supabase.from("asset_documents").select("name,category").eq("asset_id", deal.asset_id),
       ]);
       if (a.error) throw new Error(a.error.message);
@@ -27,7 +27,7 @@ export const leadDocumentOverview = createServerFn({ method: "GET" }).middleware
     const missing = missingLeadItems({ ...asset, price: asset?.price ?? deal.amount, surface: asset?.surface ?? deal.surface, rent: asset?.rent ?? deal.rent }, docs.map(d => `${d.name} ${d.category === "photo" ? "photo" : d.category === "plan" ? "plan" : ""}`), [deal.notes, ...(mails ?? []).map(m => `${m.subject ?? ""} ${m.preview ?? ""}`)].filter(Boolean).join("\n"));
     const { data: requests, error: requestError } = await context.supabase.from("lead_document_requests").select("*").eq("deal_id", data.id).order("created_at", { ascending: false }).limit(30);
     if (requestError) throw new Error(requestError.message);
-    return { name: deal.name, sender, missing, requests: requests ?? [] };
+    return { name: deal.name, address: deal.address?.trim() || [asset?.address, asset?.postal_code, asset?.city].filter(Boolean).join(" "), sender, missing, requests: requests ?? [] };
   });
 
 export const prepareLeadDocumentRequest = createServerFn({ method: "POST" }).middleware([requireStaffAuth])
@@ -40,7 +40,7 @@ export const prepareLeadDocumentRequest = createServerFn({ method: "POST" }).mid
     if (!senderEmail) throw new Error("Votre adresse professionnelle est indisponible.");
     const active = overview.requests.find(r => ["prepared", "waiting", "sending"].includes(r.status));
     if (active) return active;
-    const { subject, body } = documentMail(overview.name, data.items);
+    const { subject, body } = documentMail(overview.name, data.items, false, overview.address);
     const { data: request, error } = await context.supabase.from("lead_document_requests").insert({ deal_id: data.id, created_by: context.userId, sender_email: senderEmail, to_email: z.string().email().parse(overview.sender), missing_items: data.items, subject, body_text: body }).select("*").single();
     if (error) throw new Error(error.message);
     return request;

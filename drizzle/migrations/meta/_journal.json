@@ -351,6 +351,20 @@
       "when": 1794977718180,
       "tag": "0049_lead_document_followups",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1794982664787,
+      "tag": "0050_lead_pige_cycles",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1794982820495,
+      "tag": "0051_pige_message_updates",
+      "breakpoints": true
     }
   ]
 }

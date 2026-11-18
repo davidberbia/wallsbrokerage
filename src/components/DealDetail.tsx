@@ -22,6 +22,7 @@ import { CopyEmail } from "@/components/CopyEmail";
 import { ASSET_CLASS_GROUPS } from "@/lib/taxonomy";
 import { LeadActions } from "@/components/LeadActions";
 import { LeadDocumentRequest } from "@/components/LeadDocumentRequest";
+import { PigeHistory } from "@/components/Pige";
 import { canChangeLeadStage, leadResearchSchema } from "@/lib/lead-policy";
 
 const STAGES = [TARGET_STAGE, ...STAGE_NAMES];
@@ -281,6 +282,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
 
       </div>}
       {current.stage === "Prospection" && current.lead_status !== "archived" && <LeadDocumentRequest id={id} onWaiting={onWaiting} />}
+      {current.stage === "Prospection" && <PigeHistory id={id} />}
       {(() => {
         // Interlocuteur principal : l'expéditeur du premier mail reçu (celui qui a envoyé le dossier).
         const ordered = [...(mails.data ?? [])].sort((x, y) => (x.received_at ?? "").localeCompare(y.received_at ?? ""));

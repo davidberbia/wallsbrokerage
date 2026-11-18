@@ -1,13 +1,13 @@
 # Roadmap
 
-## Demandes de documents et Pige — 18 novembre, validation du plan attendue
-- [ ] Ajouter l’adresse du bien dans l’objet des demandes et des lignes libres à cocher.
-- [ ] Dans Traitement rapide, remplacer le pictogramme de transfert par un bouton Transférer et insérer Pige avant Sans suite.
-- [ ] Ouvrir la sélection d’investisseurs avec les critères du lead préremplis et permettre la sélection des destinataires.
-- [ ] Préparer dans Outlook un message individuel avec prénom, objet du bien, texte demandé et signature, sans envoi automatique ni pièces jointes automatiques.
-- [ ] Après envoi confirmé, passer le lead en Pige et conserver l’historique par investisseur : contacté, réception, lecture et réponse uniquement sur preuves disponibles.
-- [ ] Après sept jours, remettre le dossier dans les Leads avec un marketing report factuel pour décider de la suite ; préciser les limites de suivi des mails envoyés depuis Outlook.
-- [ ] Vérifier le parcours au toucher sur téléphone, sans envoi réel ni publication.
+## Demandes de documents et Pige — 18 novembre, plan approuvé
+- [x] Adresse de la fiche ou de l’actif liée ajoutée à l’objet des nouvelles demandes ; relance conserve l’objet enregistré ; trois lignes libres à cocher et ajout de lignes vérifiés au toucher.
+- [x] Transférer textuel et Pige avant Sans suite dans Traitement rapide ; filtres du bien préremplis, investisseurs sélectionnables sans sélection automatique.
+- [x] Messages individuels personnalisés, modifiables et enregistrés avant ouverture Outlook ; aucune pièce jointe ni aucun envoi automatique.
+- [x] Passage en Pige après confirmation explicite vérifié au toucher avec dossier temporaire, historique relu et exclusion du traitement rapide constatée.
+- [x] Retour dans À traiter et le traitement rapide après sept jours avec marketing report vérifié au toucher en avançant uniquement l’échéance du dossier d’essai ; données temporaires supprimées.
+- [x] 23 tests réussis, aperçu sans erreur ; suivi réception/lecture non inventé, confirmations inconnues affichées ; aucune publication ni mail envoyé.
+- [ ] Suivi Outlook réel des réponses : attend activation autorisée du contrôle existant et autorisation d’un essai d’envoi réel ; inspection par conversation/destinataire préparée sans nouvel horaire automatique.
 
 ## Ajustements Leads et complétion — 18 novembre, plan approuvé
 - [x] Boutons bleu/orange fixes, Sans suite encadré, Retour/Suivant vérifiés au toucher ; confirmation d’une demande temporaire ferme la file vide, attente toujours exclue après rechargement, données de test nettoyées sans mail envoyé.

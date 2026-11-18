@@ -37,3 +37,4 @@
 - Lead document requests have RLS-scoped history, explicit desktop-email send confirmation and atomic reminder claims; reuse the existing Outlook sync, gated by lead_followup_control until authorized deployment. Why: opening mail is not evidence of sending, and uncertain provider results must never trigger duplicate emails.
 
 - Record completion and brochure readiness use the shared completion calculator across leads, assets and deals; quick review excludes waiting records and normalizes legacy qualified leads. Why: keep eligibility and progress consistent throughout the lifecycle.
+- Pige uses owner-scoped cycles and per-recipient message history with explicit sending confirmation, seven-day eligibility and read-only Outlook thread inspection gated by the existing followup control. Why: desktop mail opening is not proof of delivery or reading and must not create automatic sends.

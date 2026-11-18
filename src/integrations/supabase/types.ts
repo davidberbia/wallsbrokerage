@@ -1946,6 +1946,122 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_pige_contacts: {
+        Row: {
+          body_text: string
+          confirmation: string | null
+          conversation_id: string | null
+          delivered_at: string | null
+          email: string
+          id: string
+          investor_id: string | null
+          message_id: string | null
+          name: string
+          opened_at: string | null
+          pige_id: string
+          prepared_at: string
+          replied_at: string | null
+          reply_preview: string | null
+          sent_at: string | null
+          subject: string
+          sync_error: string | null
+        }
+        Insert: {
+          body_text: string
+          confirmation?: string | null
+          conversation_id?: string | null
+          delivered_at?: string | null
+          email: string
+          id?: string
+          investor_id?: string | null
+          message_id?: string | null
+          name: string
+          opened_at?: string | null
+          pige_id: string
+          prepared_at?: string
+          replied_at?: string | null
+          reply_preview?: string | null
+          sent_at?: string | null
+          subject: string
+          sync_error?: string | null
+        }
+        Update: {
+          body_text?: string
+          confirmation?: string | null
+          conversation_id?: string | null
+          delivered_at?: string | null
+          email?: string
+          id?: string
+          investor_id?: string | null
+          message_id?: string | null
+          name?: string
+          opened_at?: string | null
+          pige_id?: string
+          prepared_at?: string
+          replied_at?: string | null
+          reply_preview?: string | null
+          sent_at?: string | null
+          subject?: string
+          sync_error?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_pige_contacts_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_pige_contacts_pige_id_fkey"
+            columns: ["pige_id"]
+            isOneToOne: false
+            referencedRelation: "lead_piges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_piges: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          deal_id: string
+          due_at: string | null
+          id: string
+          sender_email: string
+          started_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          deal_id: string
+          due_at?: string | null
+          id?: string
+          sender_email: string
+          started_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          deal_id?: string
+          due_at?: string | null
+          id?: string
+          sender_email?: string
+          started_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_piges_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_transfers: {
         Row: {
           created_at: string
@@ -3044,6 +3160,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      close_due_piges: { Args: { _deal: string }; Returns: undefined }
       comparable_facets: {
         Args: never
         Returns: {
@@ -3057,6 +3174,7 @@ export type Database = {
         Args: { _due: string; _id: string }
         Returns: undefined
       }
+      confirm_pige_contact: { Args: { _id: string }; Returns: undefined }
       deal_touch_activity: { Args: { _deal: string }; Returns: undefined }
       directory_to_prospect: {
         Args: { _company: string; _id: string }
@@ -3168,6 +3286,10 @@ export type Database = {
         Returns: undefined
       }
       trigger_automation: { Args: { path: string }; Returns: undefined }
+      update_pige_message: {
+        Args: { _body: string; _id: string; _subject: string }
+        Returns: undefined
+      }
       wake_extractions: { Args: never; Returns: undefined }
     }
     Enums: {

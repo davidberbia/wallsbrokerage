@@ -1,0 +1,20 @@
+CREATE TABLE public.lead_piges (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), deal_id uuid NOT NULL REFERENCES public.deals(id) ON DELETE CASCADE, created_by uuid NOT NULL, sender_email text NOT NULL, started_at timestamptz, due_at timestamptz, completed_at timestamptz, created_at timestamptz NOT NULL DEFAULT now());
+GRANT SELECT, INSERT ON public.lead_piges TO authenticated; GRANT ALL ON public.lead_piges TO service_role;
+ALTER TABLE public.lead_piges ENABLE ROW LEVEL SECURITY;
+CREATE POLICY pige_read ON public.lead_piges FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.deals d WHERE d.id=deal_id AND public.can_see_deal(d.owner_id)));
+CREATE POLICY pige_create ON public.lead_piges FOR INSERT TO authenticated WITH CHECK (created_by=auth.uid() AND started_at IS NULL AND due_at IS NULL AND completed_at IS NULL AND (public.has_role(auth.uid(),'admin') OR public.has_role(auth.uid(),'broker')) AND EXISTS (SELECT 1 FROM public.deals d WHERE d.id=deal_id AND d.stage='Prospection' AND d.lead_status<>'archived' AND public.can_see_deal(d.owner_id)));
+CREATE UNIQUE INDEX lead_pige_one_open ON public.lead_piges(deal_id) WHERE completed_at IS NULL;
+CREATE TABLE public.lead_pige_contacts (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), pige_id uuid NOT NULL REFERENCES public.lead_piges(id) ON DELETE CASCADE, investor_id uuid REFERENCES public.investors(id) ON DELETE SET NULL, name text NOT NULL, email text NOT NULL, subject text NOT NULL, body_text text NOT NULL, prepared_at timestamptz NOT NULL DEFAULT now(), sent_at timestamptz, confirmation text CHECK (confirmation IN ('manual','outlook')), conversation_id text, message_id text, delivered_at timestamptz, opened_at timestamptz, replied_at timestamptz, reply_preview text, sync_error text, UNIQUE(pige_id,email));
+GRANT SELECT, INSERT ON public.lead_pige_contacts TO authenticated; GRANT ALL ON public.lead_pige_contacts TO service_role;
+ALTER TABLE public.lead_pige_contacts ENABLE ROW LEVEL SECURITY;
+CREATE POLICY pige_contact_read ON public.lead_pige_contacts FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.lead_piges p WHERE p.id=pige_id));
+CREATE POLICY pige_contact_create ON public.lead_pige_contacts FOR INSERT TO authenticated WITH CHECK (sent_at IS NULL AND confirmation IS NULL AND conversation_id IS NULL AND message_id IS NULL AND delivered_at IS NULL AND opened_at IS NULL AND replied_at IS NULL AND reply_preview IS NULL AND sync_error IS NULL AND EXISTS (SELECT 1 FROM public.lead_piges p WHERE p.id=pige_id AND p.created_by=auth.uid() AND p.completed_at IS NULL) AND EXISTS (SELECT 1 FROM public.investors i WHERE i.id=investor_id AND lower(trim(i.email))=lower(trim(email))));
+CREATE FUNCTION public.confirm_pige_contact(_id uuid) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ DECLARE p public.lead_piges; BEGIN
+IF NOT (public.has_role(auth.uid(),'admin') OR public.has_role(auth.uid(),'broker')) THEN RAISE EXCEPTION 'Accès refusé'; END IF;
+SELECT lp.* INTO p FROM public.lead_piges lp JOIN public.lead_pige_contacts c ON c.pige_id=lp.id WHERE c.id=_id FOR UPDATE OF lp;
+IF p.id IS NULL OR p.created_by<>auth.uid() OR p.completed_at IS NOT NULL OR NOT EXISTS(SELECT 1 FROM public.deals d WHERE d.id=p.deal_id AND d.stage='Prospection' AND d.lead_status<>'archived' AND public.can_see_deal(d.owner_id)) THEN RAISE EXCEPTION 'Confirmation non autorisée'; END IF;
+UPDATE public.lead_pige_contacts SET sent_at=now(), confirmation='manual' WHERE id=_id AND sent_at IS NULL;
+UPDATE public.lead_piges SET started_at=COALESCE(started_at,now()), due_at=COALESCE(due_at,now()+interval '7 days') WHERE id=p.id;
+END $$;
+REVOKE ALL ON FUNCTION public.confirm_pige_contact(uuid) FROM PUBLIC, anon; GRANT EXECUTE ON FUNCTION public.confirm_pige_contact(uuid) TO authenticated;
+CREATE INDEX pige_contact_sync ON public.lead_pige_contacts(prepared_at);

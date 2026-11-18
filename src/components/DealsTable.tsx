@@ -5,7 +5,8 @@ import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow } from "@/components/CompactRow";
 import { LeadActions } from "@/components/LeadActions";
-import { inQuickReview, leadViewStatus, type LeadRequest } from "@/lib/lead-documents";
+import { leadViewStatus, type LeadRequest } from "@/lib/lead-documents";
+import { pigeActive } from "@/lib/pige";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -169,7 +170,23 @@ export function DealsTable({ mode }: { mode: Mode }) {
       return latest;
     },
   });
-  const statusOf = (d: Deal) => leadViewStatus(d.lead_status ?? "new", requests.data?.get(d.id));
+  const piges = useQuery({ queryKey: ["lead-piges"], enabled: mode === "targets", refetchInterval: 30000, queryFn: async () => {
+    const rows = [];
+    for (let from = 0; ; from += 1000) {
+      const result = await supabase.from("lead_piges").select("deal_id,started_at,due_at,completed_at,created_at").order("created_at", { ascending: false }).order("id").range(from, from + 999);
+      if (result.error) throw new Error(result.error.message);
+      rows.push(...result.data);
+      if (result.data.length < 1000) return rows;
+    }
+  } });
+  const statusOf = (d: Deal) => {
+    if (d.lead_status === "archived") return "archived";
+    const p = piges.data?.find(p => p.deal_id === d.id && p.started_at);
+    if (pigeActive(p)) return "pige";
+    const request = requests.data?.get(d.id);
+    if (p && (!request || request.created_at < (p.started_at ?? p.created_at))) return "new";
+    return leadViewStatus(d.lead_status ?? "new", requests.data?.get(d.id));
+  };
   const leadRows = all.filter((d) => d.stage === TARGET_STAGE && inVintage(d, year));
   const rows = all.filter(
     (d) =>
@@ -452,7 +469,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     move.mutate({id:d.id,stage:"Disponible"});
   };
   const closeDetail = () => { setOpenId(null); setReview(false); setReviewIds([]); };
-  const eligible = (id: string) => all.some(d => d.id === id && d.stage === TARGET_STAGE && inQuickReview(d.lead_status ?? "new", requests.data?.get(d.id)));
+  const eligible = (id: string) => !!piges.data && all.some(d => d.id === id && d.stage === TARGET_STAGE && ["new", "recall"].includes(statusOf(d)));
   const activeReviewIds = reviewIds.filter(eligible);
   const nextDetail = () => {
     const index = reviewIds.indexOf(openId ?? "");
@@ -461,7 +478,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
   };
   useEffect(() => {
     if (review && openId && requests.data && deals.data && !eligible(openId)) nextDetail();
-  }, [review, openId, requests.data, deals.data]);
+  }, [review, openId, requests.data, deals.data, piges.data]);
   const previous = reviewIds.slice(0, reviewIds.indexOf(openId ?? "")).filter(eligible).at(-1);
   const detail = openId ? <DealDetail key={openId} id={openId} onWaiting={review ? nextDetail : undefined} onClose={review ? nextDetail : closeDetail} /> : null;
   const reviewNav = review && <div className="sticky top-0 z-10 mb-4 flex min-h-11 flex-wrap items-center justify-between gap-2 border-b border-border bg-background py-2"><span className="text-sm">{Math.max(0, activeReviewIds.indexOf(openId ?? "")) + 1} / {activeReviewIds.length}</span><div className="flex gap-2"><Button variant="outline" className="min-h-11" disabled={!previous} onClick={() => previous && setOpenId(previous)}>Retour</Button><Button variant="outline" className="min-h-11" onClick={nextDetail}>Suivant</Button></div></div>;
@@ -507,7 +524,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
       {mode === "targets" && <div className="space-y-3">
         <Input aria-label="Rechercher un lead" placeholder="Rechercher un lead…" value={leadSearch} onChange={(e) => setLeadSearch(e.target.value)} />
         <div className="flex flex-wrap items-center gap-2">
-          {([["new", "À traiter"], ["waiting", "Attente de docs"], ["recall", "A rappeler"], ["archived", "Sans suite"]] as const).map(([value, label]) => <Button key={value} variant={leadView === value ? "default" : "outline"} aria-pressed={leadView === value} className={`min-h-11 ${value === "waiting" && leadView !== value ? "text-warning" : value === "recall" && leadView !== value ? "text-destructive" : ""}`} onClick={() => setLeadView(value)}>{label} · {leadRows.filter((d) => statusOf(d) === value).length}</Button>)}
+          {([["new", "À traiter"], ["waiting", "Attente de docs"], ["recall", "A rappeler"], ["pige", "Pige"], ["archived", "Sans suite"]] as const).map(([value, label]) => <Button key={value} variant={leadView === value ? "default" : "outline"} aria-pressed={leadView === value} className={`min-h-11 ${value === "waiting" && leadView !== value ? "text-warning" : value === "recall" && leadView !== value ? "text-destructive" : ""}`} onClick={() => setLeadView(value)}>{label} · {leadRows.filter((d) => statusOf(d) === value).length}</Button>)}
           <Button variant="blue" className="min-h-11" disabled={requests.isLoading || !rows.some(d => eligible(d.id))} onClick={() => { const ids = rows.filter(d => eligible(d.id)).map(d => d.id); setReviewIds(ids); setReview(true); setOpenId(ids[0] ?? null); }}>Traitement rapide</Button>
         </div>
       </div>}

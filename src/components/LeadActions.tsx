@@ -8,6 +8,7 @@ import { leadRecipients, transferLead } from "@/lib/leads.functions";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PigeButton } from "./Pige";
 
 export function LeadActions({ id, name, email, phone, owner, archived, onPromote, full = false, ready = true }: {
   id: string; name: string; email?: string | null | undefined; phone?: string | null | undefined; owner?: string | null | undefined; archived?: boolean; onPromote: () => void; full?: boolean; ready?: boolean;
@@ -35,7 +36,8 @@ export function LeadActions({ id, name, email, phone, owner, archived, onPromote
     <div className={full ? "flex w-full flex-wrap items-center gap-2" : "flex shrink-0 items-center gap-0.5"}>
       {ready && !archived && <Button variant={full ? "default" : "ghost"} size={full ? "default" : "icon"} className={full ? "min-h-11 h-auto whitespace-normal" : "size-11"} title="Transformer en Actif dispo" aria-label={`Transformer ${name} en Actif dispo`} onClick={onPromote}><ArrowUpRight className="size-4 shrink-0" />{full && "Transformer en Actif dispo"}</Button>}
       {email ? <Button asChild variant="ghost" size="icon" className="size-11" title="Contacter" aria-label={`Contacter ${name}`}><a href={`mailto:${email}?subject=${encodeURIComponent(`Votre dossier : ${name}`)}`}><Mail className="size-4" /></a></Button> : phone ? <Button asChild variant="ghost" size="icon" className="size-11" title="Appeler" aria-label={`Appeler ${name}`}><a href={`tel:${phone}`}><Phone className="size-4" /></a></Button> : null}
-      <Button variant="ghost" size="icon" className="size-11" title="Transférer" aria-label={`Transférer ${name}`} onClick={() => setOpen(true)}><Forward className="size-4" /></Button>
+      <Button variant={full ? "outline" : "ghost"} size={full ? "default" : "icon"} className={full ? "min-h-11" : "size-11"} title="Transférer" aria-label={`Transférer ${name}`} onClick={() => setOpen(true)}><Forward className="size-4" />{full && "Transférer"}</Button>
+      {full && !archived && <PigeButton id={id} />}
       <Button variant="outline" size={full ? "default" : "icon"} className={full ? "min-h-11 border-destructive text-destructive" : "size-11 border-destructive text-destructive"} disabled={busy} title={archived ? "Réouvrir" : "Sans suite"} aria-label={`${archived ? "Réouvrir" : "Classer sans suite"} ${name}`} onClick={() => void archive()}>{archived ? <RotateCcw className="size-4" /> : <Archive className="size-4" />}{full && (archived ? "Réouvrir" : "Sans suite")}</Button>
     </div>
     <Dialog open={open} onOpenChange={setOpen}>

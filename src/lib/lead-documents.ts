@@ -60,9 +60,10 @@ export function missingLeadItems(asset: MissingAsset, names: string[], evidence:
   return missing;
 }
 
-export function documentMail(name: string, items: string[], reminder = false) {
+export function documentMail(name: string, items: string[], reminder = false, address?: string | null) {
+  const dossier = [name, address?.trim()].filter(Boolean).join(" — ");
   return {
-    subject: reminder ? `[Relancé auto] Votre dossier : ${name}` : `Votre dossier : ${name} — Éléments complémentaires`,
+    subject: reminder ? `[Relancé auto] Votre dossier : ${dossier}` : `Votre dossier : ${dossier} — Éléments complémentaires`,
     body: `Bonjour,\n\n${reminder ? "Je me permets de vous relancer concernant les éléments complémentaires demandés pour votre dossier" : "Afin de poursuivre l’étude de votre dossier"} « ${name} », pourriez-vous me transmettre les éléments suivants ?\n\n${items.map(item => `• ${item}`).join("\n")}\n\nJe vous remercie par avance pour votre retour.\n\nBien cordialement,`,
   };
 }
