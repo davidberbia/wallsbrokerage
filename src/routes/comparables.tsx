@@ -3,6 +3,8 @@ import { CompactRow, RecordDialog } from "@/components/CompactRow";
 import { comparableMetric } from "@/lib/comparable-metrics";
 import { Label } from "@/components/ui/label";
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { extractComparablesFromFile } from "@/lib/comparables-import.functions";
 import { useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -130,6 +132,7 @@ function ComparablesPage() {
   const [fClass, setFClass] = useState("");
   const [fCity, setFCity] = useState("");
   const [fStreet, setFStreet] = useState("");
+  const extractFile = useServerFn(extractComparablesFromFile);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading } = useQuery({
@@ -245,7 +248,14 @@ function ComparablesPage() {
         source?: string;
       };
       let list: Src[] = [];
-      if (/\.(xlsx|xlsm|xls|xlsb)$/i.test(file.name)) {
+      if (/\.(docx|pptx|pdf)$/i.test(file.name)) {
+        if (file.size > 20_000_000) throw new Error("Fichier trop volumineux (20 Mo max)");
+        const buf = new Uint8Array(await file.arrayBuffer());
+        let bin = "";
+        for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+        toast.info("Lecture du document…");
+        list = (await extractFile({ data: { name: file.name, mime: file.type, base64: btoa(bin) } })) as Src[];
+      } else if (/\.(xlsx|xlsm|xls|xlsb|csv)$/i.test(file.name)) {
         const XLSX = await import("xlsx");
         const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
         const norm = (s: string) =>
@@ -256,7 +266,10 @@ function ComparablesPage() {
         const pick = (h: string): keyof Src | null => {
           const n = norm(h);
           if (n.startsWith("type d")) return "typeActif";
-          if (n.startsWith("enseigne")) return "enseigne";
+          if (n.startsWith("enseigne") || n.startsWith("preneur") || n.startsWith("locataire")) return "enseigne";
+          if (n === "cp" || n.startsWith("cp ")) return "codePostal";
+          if (n.startsWith("commune")) return "ville";
+          if (n.startsWith("rue") || n.startsWith("adr")) return "adresse";
           if (n.startsWith("ville")) return "ville";
           if (n.startsWith("code postal")) return "codePostal";
           if (n.startsWith("adresse")) return "adresse";
@@ -324,7 +337,8 @@ function ComparablesPage() {
             city: c.ville || null,
             address: c.adresse || null,
             surface: n(c.surface),
-            weighted_surface: n(c.surfacePonderee),
+            weighted_surface:
+              n(c.surfacePonderee) ?? (c.kind !== "prix" && n(c.surface) ? Math.round(n(c.surface)! * 0.65 * 100) / 100 : null),
             rent: n(c.loyerAnnuel),
             rent_m2: n(c.loyerM2),
             rent_m2_weighted: n(c.loyerM2Pondere),
@@ -333,7 +347,7 @@ function ComparablesPage() {
             yield_pct: n(c.rendement),
             deal_date: d && !Number.isNaN(d.getTime()) ? d.toISOString() : null,
             notes: c.notes || null,
-            source: c.source || "Générateur de brochures",
+            source: c.source || file.name,
             excerpt: "",
           };
         })
@@ -371,7 +385,7 @@ function ComparablesPage() {
             <input
               ref={fileRef}
               type="file"
-              accept=".json,application/json"
+              accept=".json,.xlsx,.xls,.xlsm,.csv,.docx,.pptx,.pdf"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
@@ -380,7 +394,7 @@ function ComparablesPage() {
               }}
             />
             <Button variant="outline" onClick={() => fileRef.current?.click()}>
-              <Upload className="size-4" /> Importer (Générateur)
+              <Upload className="size-4" /> Importer un document
             </Button>
             <Button onClick={add}>
               <Plus className="size-4" /> Ajouter
