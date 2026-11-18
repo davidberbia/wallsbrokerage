@@ -340,7 +340,7 @@ function AssetsPage() {
         <Select value={family} onValueChange={setFamily}>
           <SelectTrigger className="w-[11rem]" aria-label="Famille"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Toutes familles</SelectItem>
+            <SelectItem value="all">Tous les actifs</SelectItem>
             {ASSET_FAMILIES.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
           </SelectContent>
         </Select>
