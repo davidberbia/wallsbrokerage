@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { canSelectInvestor } from "@/lib/pige-brevo";
 import {
   Select,
   SelectContent,
@@ -176,7 +177,8 @@ function MatchingPage() {
 
   // Sélection : par défaut tous les investisseurs trouvés sont cochés.
   const visibleIds = useMemo(() => results.map((r) => r.investor.id), [results]);
-  const isSelected = (id: string) => !selected.has(`-${id}`);
+  const bounced = useMemo(() => new Set(results.filter((r) => !canSelectInvestor(r.investor as { email?: string | null; email_bounced_at?: string | null })).map((r) => r.investor.id)), [results]);
+  const isSelected = (id: string) => !bounced.has(id) && !selected.has(`-${id}`);
   const toggle = (id: string) => {
     const next = new Set(selected);
     const key = `-${id}`;
@@ -184,7 +186,7 @@ function MatchingPage() {
     else next.add(key);
     setSelected(next);
   };
-  const allSelected = visibleIds.every((id) => isSelected(id)) && visibleIds.length > 0;
+  const allSelected = visibleIds.filter((id) => !bounced.has(id)).every((id) => isSelected(id)) && visibleIds.length > 0;
   const toggleAll = () => {
     setSelected(allSelected ? new Set(visibleIds.map((id) => `-${id}`)) : new Set());
   };
@@ -469,12 +471,14 @@ function MatchingPage() {
           const row = ({ investor, score }: (typeof results)[number], nested = false) => (
             <CompactRow
               key={investor.id}
-              title={displayInvestorName(investor)}
-              subtitle={[nested ? investor.job_title : investor.company, investor.city, investor.email].filter(Boolean).join(" · ")}
+              title={bounced.has(investor.id) ? `⚠ ${displayInvestorName(investor)}` : displayInvestorName(investor)}
+              {...(bounced.has(investor.id) ? { tone: "danger" as const } : {})}
+              subtitle={[bounced.has(investor.id) ? "E-mail en erreur" : null, nested ? investor.job_title : investor.company, investor.city, investor.email].filter(Boolean).join(" · ")}
               summary={`${score}%`}
               leading={
                 <Checkbox
                   checked={isSelected(investor.id)}
+                  disabled={bounced.has(investor.id)}
                   onCheckedChange={() => toggle(investor.id)}
                   aria-label={`Sélectionner ${displayInvestorName(investor)}`}
                 />

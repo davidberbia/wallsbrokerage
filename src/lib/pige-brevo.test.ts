@@ -26,3 +26,15 @@ describe("expéditeur Pige", () => {
     expect(pigeSender("autre@wallsbroker.com", "Autre")).toBeNull();
   });
 });
+
+import { canSelectInvestor, isHardBounce } from "./pige-brevo";
+describe("e-mail en erreur", () => {
+  it("un contact dont l'e-mail est revenu en erreur n'est pas sélectionnable", () => {
+    expect(canSelectInvestor({ email: "a@b.fr", email_bounced_at: "2026-11-18T10:00:00Z" })).toBe(false);
+    expect(canSelectInvestor({ email: "a@b.fr", email_bounced_at: null })).toBe(true);
+  });
+  it("seules les erreurs définitives bloquent l'adresse", () => {
+    expect(isHardBounce("hard_bounce")).toBe(true);
+    expect(isHardBounce("soft_bounce")).toBe(false);
+  });
+});

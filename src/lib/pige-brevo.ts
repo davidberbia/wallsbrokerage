@@ -19,3 +19,13 @@ export function pigeSender(email: string, person: string) {
   const name = person.trim() ? `${person.trim()} | Wallsbroker` : "Wallsbroker";
   return { email: address, name, tags: ["pige", slug(person) || slug(address.split("@")[0] ?? "")] };
 }
+
+/** Erreurs définitives : l'adresse ne doit plus être sélectionnée. */
+export function isHardBounce(type: string) {
+  return ["hard_bounce", "invalid", "blocked"].includes(type);
+}
+
+/** Un investisseur dont l'e-mail est revenu en erreur ne peut plus être sélectionné. */
+export function canSelectInvestor(i: { email?: string | null; email_bounced_at?: string | null }) {
+  return Boolean(i.email) && !i.email_bounced_at;
+}

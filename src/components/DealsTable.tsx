@@ -137,7 +137,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const dealAssets = useQuery({
     queryKey: ["deal-assets"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("assets").select("id,asset_class,asset_subclass,city,address").limit(5000);
+      const { data, error } = await supabase.from("assets").select("id,asset_class,asset_subclass,city,address,occupant").limit(5000);
       if (error) throw error;
       return new Map((data ?? []).map((a) => [a.id, a]));
     },
@@ -678,7 +678,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
             <Button variant="ghost" className="h-auto min-h-11 w-full min-w-0 flex-col items-start justify-start whitespace-normal px-0 text-left sm:flex-1" onClick={() => openChain(d.id)} aria-label={`Ouvrir ${d.name}`}>
               <span className="w-full break-words font-semibold">{d.name}</span>{fill.loaded && <Completion value={fill.get(d.asset_id, undefined, d)} />}
               <span className="w-full text-sm font-semibold">{[assetOf(d)?.city || d.address, d.amount ? eur(d.amount) : null].filter(Boolean).join(" · ")}</span>
-              <span className="w-full break-words text-xs font-normal text-muted-foreground">{shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "Classe à préciser"} · {d.contact_email || mailsOf(d.id)[0] || d.source || "Saisie manuelle"}</span>
+              <span className="w-full break-words text-xs font-normal text-muted-foreground">{shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "Classe à préciser"}{assetOf(d)?.occupant ? ` · ${assetOf(d)?.occupant}` : ""} · {d.contact_email || mailsOf(d.id)[0] || d.source || "Saisie manuelle"}</span>
               {statusOf(d) === "waiting" && <span className="text-xs font-semibold text-warning">En attente de documents</span>}
               {statusOf(d) === "recall" && <span className="text-xs font-semibold text-destructive">A rappeler · {requests.data?.get(d.id)?.status === "reminded" ? "Relancé auto" : "Envoi à vérifier"}</span>}
             </Button>

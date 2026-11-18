@@ -1788,6 +1788,7 @@ export type Database = {
           country: string | null
           created_at: string
           email: string | null
+          email_bounced_at: string | null
           financing: string | null
           first_name: string | null
           full_name: string
@@ -1820,6 +1821,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string | null
+          email_bounced_at?: string | null
           financing?: string | null
           first_name?: string | null
           full_name: string
@@ -1852,6 +1854,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           email?: string | null
+          email_bounced_at?: string | null
           financing?: string | null
           first_name?: string | null
           full_name?: string

@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Target, Mail } from "lucide-react";
+import { Target, Mail, Pencil } from "lucide-react";
+import { InvestorForm, investorPayload, type InvestorDraft } from "@/components/InvestorForm";
+import { canSelectInvestor } from "@/lib/pige-brevo";
 import { supabase } from "@/integrations/supabase/client";
 import { pigeOverview, preparePige, sendPigeBrevo, updatePigeMessage } from "@/lib/pige.functions";
 import { pigeActive } from "@/lib/pige";
@@ -25,6 +27,8 @@ function PigeEditor({ id }: { id: string }) {
   const overview = useServerFn(pigeOverview);
   const prepare = useServerFn(preparePige);
   const qc = useQueryClient();
+  const [editing, setEditing] = useState<InvestorDraft | null>(null);
+  const [saving, setSaving] = useState(false);
   const data = useQuery({ queryKey: ["pige", id], queryFn: () => overview({ data: { id } }) });
   const investors = useQuery({ queryKey: ["pige-investors"], queryFn: async () => {
     const rows: Investor[] = [];
@@ -50,8 +54,9 @@ function PigeEditor({ id }: { id: string }) {
       <div className="grid gap-3 sm:grid-cols-2">{([['asset_class', "Type de bien", ASSET_CLASSES], ['region', "Région", REGIONS], ['strategy', "Stratégie", STRATEGIES]] as const).map(([key, label, options]) => <div key={key}><p className="mb-1 text-sm">{label}</p><Select value={criteria[key] || "all"} onValueChange={v => setCriteria(c => ({ ...c, [key]: v === "all" ? null : v }))}><SelectTrigger aria-label={label}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Tous</SelectItem>{[...new Set([...options, ...(criteria[key] ? [criteria[key]] : [])])].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></div>)}
       {([['price', "Prix (€)"], ['yield_pct', "Rendement (%)"]] as const).map(([key, label]) => <label key={key} className="text-sm">{label}<Input type="number" min="0" value={criteria[key] ?? ""} onChange={e => setCriteria(c => ({ ...c, [key]: e.target.value ? Number(e.target.value) : null }))} /></label>)}</div>
       <p className="text-sm">{results.length} investisseurs · {selected.length} sélectionnés</p>
-      <div className="max-h-80 overflow-y-auto divide-y divide-border">{results.map(i => <label key={i.id} className="flex min-h-14 items-center gap-3 py-2"><Checkbox aria-label={`Interroger ${i.company || i.full_name}`} checked={selected.includes(i.id)} onCheckedChange={checked => setSelected(old => checked ? [...old, i.id] : old.filter(v => v !== i.id))} /><span className="min-w-0 break-words text-sm"><strong>{i.company || i.full_name}</strong><span className="block">{contactName(i.first_name, i.full_name)} · {i.email}</span></span></label>)}</div>
-      <div className="sticky bottom-0 border-t border-border bg-background py-2"><Button className="min-h-11" disabled={busy || !selected.length} onClick={async () => { setBusy(true); try { await prepare({ data: { id, investors: selected } }); await qc.invalidateQueries({ queryKey: ["pige", id] }); setStep(true); } catch (e) { toast.error(e instanceof Error ? e.message : "Préparation impossible"); } finally { setBusy(false); } }}>Valider la sélection</Button></div>
+      <div className="max-h-80 overflow-y-auto divide-y divide-border">{results.map(i => { const ok = canSelectInvestor(i as Investor & { email_bounced_at?: string | null }); return <div key={i.id} className="flex min-h-14 items-center gap-3 py-2"><Checkbox disabled={!ok} aria-label={`Interroger ${i.company || i.full_name}`} checked={ok && selected.includes(i.id)} onCheckedChange={checked => setSelected(old => checked ? [...old, i.id] : old.filter(v => v !== i.id))} /><span className={`min-w-0 flex-1 break-words text-sm ${ok ? "" : "text-destructive"}`}><strong>{i.company || i.full_name}</strong><span className="block">{contactName(i.first_name, i.full_name)} · {i.email}</span>{!ok && <span className="block text-xs font-semibold">E-mail en erreur — corrigez la fiche</span>}</span><Button variant="ghost" size="sm" className="min-h-11 shrink-0" aria-label={`Modifier ${i.company || i.full_name}`} onClick={() => setEditing({ ...i })}><Pencil className="size-4" />Modifier</Button></div>; })}</div>
+      <Dialog open={editing !== null} onOpenChange={o => !o && setEditing(null)}><DialogContent className="flex max-h-[96dvh] max-w-xl flex-col overflow-hidden"><DialogHeader><DialogTitle>Modifier le profil</DialogTitle></DialogHeader>{editing && <InvestorForm draft={editing} onChange={setEditing} saving={saving} submitLabel="Valider les modifications" onSubmit={async () => { if (!editing.id) return; setSaving(true); const { error } = await supabase.from("investors").update(investorPayload(editing)).eq("id", editing.id); setSaving(false); if (error) { toast.error(error.message); return; } await qc.invalidateQueries({ queryKey: ["pige-investors"] }); await qc.invalidateQueries({ queryKey: ["investors"] }); setEditing(null); toast.success("Profil enregistré"); }} />}</DialogContent></Dialog>
+      <div className="sticky bottom-0 border-t border-border bg-background py-2"><Button className="min-h-11" disabled={busy || !selected.length} onClick={async () => { setBusy(true); try { await prepare({ data: { id, investors: selected.filter(v => results.some(r => r.id === v && canSelectInvestor(r as Investor & { email_bounced_at?: string | null }))) } }); await qc.invalidateQueries({ queryKey: ["pige", id] }); setStep(true); } catch (e) { toast.error(e instanceof Error ? e.message : "Préparation impossible"); } finally { setBusy(false); } }}>Valider la sélection</Button></div>
       {cycle && <Button variant="outline" onClick={() => setStep(true)}>Reprendre les messages préparés</Button>}
     </>}
     {step && <><Button variant="outline" onClick={() => setStep(false)}>Retour aux investisseurs</Button>{cycle ? <PigeMessages id={id} cycle={cycle} /> : <p>Aucune Pige en cours.</p>}</>}

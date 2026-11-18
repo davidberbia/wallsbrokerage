@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getAdmin } from "@/lib/automation.server";
-import { brevoEventPatch } from "@/lib/pige-brevo";
+import { isHardBounce, brevoEventPatch } from "@/lib/pige-brevo";
 
 type BrevoEvent = {
   event?: string;
@@ -48,6 +48,10 @@ export const Route = createFileRoute("/api/public/brevo-events")({
         if (!type || (!email && !messageId)) return Response.json({ ok: true });
 
         const occurredAt = eventDate(event);
+        if (email && isHardBounce(type)) {
+          const inv = await admin.from("investors").update({ email_bounced_at: occurredAt }).ilike("email", email).is("email_bounced_at", null);
+          if (inv.error) { console.error("Brevo investor bounce", inv.error); return new Response("Update failed", { status: 500 }); }
+        }
         const pigePatch = brevoEventPatch(type, occurredAt);
         if (messageId && pigePatch) {
           const pige = await admin.from("lead_pige_contacts").update(pigePatch).eq("provider_message_id", messageId).select("id");
