@@ -11,7 +11,7 @@ import { lookupSiren } from "@/lib/siren.functions";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { MergePicker } from "@/components/MergePicker";
 import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
-import { Merge, Folder } from "lucide-react";
+import { Merge, Folder, ArrowDown } from "lucide-react";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
 import { assetYears, matchesAssetYear } from "@/lib/asset-year";
@@ -304,6 +304,24 @@ function AssetsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["assets"] }),
   });
 
+  const downgrade = useMutation({
+    mutationFn: async (asset: Asset) => {
+      const now = new Date().toISOString();
+      const { data: rows, error } = await supabase.from("deals").update({ stage: "Prospection", last_activity_at: now } as never).eq("asset_id", asset.id).in("stage", ["Disponible", "Avis de valeur"]).select("id");
+      if (error) throw error;
+      if (!rows?.length) {
+        const { count } = await supabase.from("deals").select("id", { count: "exact", head: true }).eq("asset_id", asset.id);
+        if (count) throw new Error("Cet actif est déjà engagé (offre ou vente)");
+        const a = asset as Asset & { owner_id?: string | null };
+        const { error: e2 } = await supabase.from("deals").insert({ name: a.title, stage: "Prospection", asset_id: a.id, address: a.address, surface: a.surface, rent: a.rent, amount: a.price, owner_id: a.owner_id, vintage: new Date().getFullYear() } as never);
+        if (e2) throw e2;
+      }
+    },
+    onSuccess: () => toast.success("Renvoyé dans les Leads"),
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => { for (const k of ["assets", "deals", "deal-assets"]) void qc.invalidateQueries({ queryKey: [k] }); },
+  });
+
   const [mergeFor, setMergeFor] = useState<Asset | null>(null);
   const mergeAssets = useMutation({
     mutationFn: async ({ keep, ids }: { keep: Asset; ids: string[] }) => {
@@ -446,11 +464,14 @@ function AssetsPage() {
             onOpen={() => setDetail(asset)}
             onEdit={canEdit ? () => openEditor(asset) : undefined}
             onDelete={canEdit ? () => remove.mutate(asset.id) : undefined}
-            trailing={canEdit ? (
+            trailing={canEdit ? (<>
+              <Button variant="outline" size="icon" className="size-11" title="Downgrade : Lead" aria-label={`Renvoyer ${asset.title} dans les Leads`} onClick={() => { if (confirm(`Renvoyer « ${asset.title} » dans les Leads ?`)) downgrade.mutate(asset); }}>
+                <ArrowDown className="size-4" />
+              </Button>
               <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${asset.title}`} onClick={() => setMergeFor(asset)}>
                 <Merge className="size-4" />
               </Button>
-            ) : undefined}
+            </>) : undefined}
           />
         ))}
       </div>
