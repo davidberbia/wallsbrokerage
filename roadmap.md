@@ -1,10 +1,11 @@
 # Roadmap
 
-## Pige via Brevo — 18 novembre, validation attendue
-- [ ] Remplacer uniquement les ouvertures Outlook de Pige par une validation puis un envoi personnalisé via Brevo.
-- [ ] Enregistrer les résultats d’envoi et les événements Brevo par message, sans doublons en cas d’incertitude.
-- [ ] Conserver les réponses dans la boîte professionnelle, le marketing report et le retour après sept jours.
-- [ ] Vérifier sans envoi réel ni publication ; essai réel uniquement sur autorisation spécifique.
+## Pige via Brevo — 18 novembre, plan approuvé
+- [x] Ouverture Outlook et confirmation manuelle retirées uniquement de Pige ; aperçu puis confirmation Brevo vérifiés au toucher sur téléphone, demande préparée relue en base sans mail envoyé.
+- [x] Réservation atomique, états accepté/refusé/incertain, aucun nouvel essai aveugle ; événements associés par identifiant exact, 6 tests réussis et aperçu sans erreur.
+- [x] Réponses rapprochées dans la boîte professionnelle par références Brevo, sans exiger un message dans les envoyés Outlook ; marketing report conservé et sept jours vérifiés sur acceptation simulée en base, essai nettoyé.
+- [ ] Réception et lecture réelles : Brevo renvoie « Webhook record does not exist » aux deux lectures de configuration ; raccordement à activer après publication autorisée, aucun réglage externe modifié.
+- [ ] Essai Brevo réel et synchronisation des réponses : attend autorisation spécifique d’envoi et activation du suivi existant ; aucune publication ni mail réel envoyé.
 
 ## Demandes de documents et Pige — 18 novembre, plan approuvé
 - [x] Adresse de la fiche ou de l’actif liée ajoutée à l’objet des nouvelles demandes ; relance conserve l’objet enregistré ; trois lignes libres à cocher et ajout de lignes vérifiés au toucher.

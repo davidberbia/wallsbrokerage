@@ -1,0 +1,4 @@
+ALTER FUNCTION public.finish_pige_brevo(uuid,text,text,text) RENAME TO finish_pige_brevo_internal;
+CREATE FUNCTION public.finish_pige_brevo(_id uuid,_state text,_message text DEFAULT NULL,_error text DEFAULT NULL) RETURNS void LANGUAGE sql SECURITY DEFINER SET search_path=public AS $$ SELECT public.finish_pige_brevo_internal(_id,_state,_message,_error); $$;
+REVOKE ALL ON FUNCTION public.finish_pige_brevo(uuid,text,text,text) FROM PUBLIC,anon,authenticated; GRANT EXECUTE ON FUNCTION public.finish_pige_brevo(uuid,text,text,text) TO service_role;
+CREATE POLICY pige_contact_proof_guard ON public.lead_pige_contacts AS RESTRICTIVE FOR INSERT TO authenticated WITH CHECK (send_state='prepared' AND provider_message_id IS NULL AND send_error IS NULL AND attempt_at IS NULL AND bounced_at IS NULL);

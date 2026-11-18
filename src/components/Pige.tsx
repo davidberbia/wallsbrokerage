@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Target, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { pigeOverview, preparePige, confirmPige, updatePigeMessage } from "@/lib/pige.functions";
+import { pigeOverview, preparePige, sendPigeBrevo, updatePigeMessage } from "@/lib/pige.functions";
 import { pigeActive } from "@/lib/pige";
 import { matchInvestor, type Criteria, type Investor } from "@/lib/types";
 import { ASSET_CLASSES, REGIONS, STRATEGIES } from "@/lib/taxonomy";
@@ -65,14 +65,19 @@ function PigeMessages({ id, cycle }: { id: string; cycle: Cycle }) {
   return <div className="space-y-3"><p>{index + 1} / {cycle.lead_pige_contacts.length}</p><PreparedMessage key={contact.id} id={id} cycle={cycle} contact={contact} /><div className="flex gap-2"><Button variant="outline" disabled={!index} onClick={() => setIndex(v => v - 1)}>Retour</Button><Button variant="outline" disabled={index === cycle.lead_pige_contacts.length - 1} onClick={() => setIndex(v => v + 1)}>Suivant</Button></div></div>;
 }
 function PreparedMessage({ id, cycle, contact }: { id: string; cycle: Cycle; contact: Cycle['lead_pige_contacts'][number] }) {
-  const { user } = useAuth(); const qc = useQueryClient(); const confirm = useServerFn(confirmPige);
+  const { user } = useAuth(); const qc = useQueryClient(); const send = useServerFn(sendPigeBrevo);
   const update = useServerFn(updatePigeMessage);
   const [subject, setSubject] = useState(contact.subject);
   const [body, setBody] = useState(contact.body_text);
   const [busy, setBusy] = useState(false);
-  const editable = !contact.sent_at && cycle.created_by === user?.id;
+  const [confirming, setConfirming] = useState(false);
+  const editable = !contact.sent_at && contact.send_state === "prepared" && cycle.created_by === user?.id;
   return <div className="space-y-3"><p className="break-words">{contact.name} · {contact.email}</p><Input aria-label="Objet de la Pige" value={subject} readOnly={!editable} onChange={e => setSubject(e.target.value)} /><Textarea aria-label="Message de la Pige" value={body} readOnly={!editable} onChange={e => setBody(e.target.value)} className="min-h-72" />
-    {editable && <><Button className="min-h-11" disabled={busy || !subject.trim() || !body.trim()} onClick={async () => { setBusy(true); try { await update({ data: { id: contact.id, subject, body } }); await qc.invalidateQueries({ queryKey: ["pige", id] }); window.location.href = `mailto:${encodeURIComponent(contact.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; } catch (e) { toast.error(e instanceof Error ? e.message : "Préparation impossible"); } finally { setBusy(false); } }}><Mail className="size-4" />Envoi — ouvrir dans Outlook</Button><Button variant="outline" disabled={busy} onClick={async () => { setBusy(true); try { await confirm({ data: { id: contact.id } }); for (const key of ["pige", "lead-piges", "deals"]) await qc.invalidateQueries({ queryKey: [key] }); toast.success("Envoi confirmé — dossier en Pige"); } catch (e) { toast.error(e instanceof Error ? e.message : "Confirmation impossible"); } finally { setBusy(false); } }}>Confirmer l’envoi effectué</Button></>}
+    {editable && <><Button className="min-h-11" disabled={busy || !subject.trim() || !body.trim()} onClick={async () => { setBusy(true); try { await update({ data: { id: contact.id, subject, body } }); await qc.invalidateQueries({ queryKey: ["pige", id] }); setConfirming(true); } catch (e) { toast.error(e instanceof Error ? e.message : "Préparation impossible"); } finally { setBusy(false); } }}><Mail className="size-4" />Envoyer via Brevo</Button><Dialog open={confirming} onOpenChange={setConfirming}><DialogContent><DialogHeader><DialogTitle>Confirmer l’envoi</DialogTitle></DialogHeader><p className="break-words">{contact.name} · {contact.email}</p><p className="break-words text-sm">{subject}</p><Button disabled={busy} onClick={async () => { setBusy(true); try { await send({ data: { id: contact.id } }); toast.success("Envoi accepté par Brevo — dossier en Pige"); } catch (e) { toast.error(e instanceof Error ? e.message : "Envoi à vérifier"); } finally { for (const key of ["pige", "lead-piges", "deals"]) await qc.invalidateQueries({ queryKey: [key] }); setConfirming(false); setBusy(false); } }}>Confirmer et envoyer</Button></DialogContent></Dialog></>}
+    {contact.send_state === "sending" && <p className="text-warning">Envoi en cours ou à vérifier — aucun nouvel essai</p>}
+    {contact.send_state === "uncertain" && <p className="text-warning">Résultat à vérifier dans Brevo — aucun nouvel essai</p>}
+    {contact.send_state === "rejected" && <p className="text-destructive">Envoi refusé par Brevo</p>}
+    {contact.send_error && <p className="break-words text-sm text-destructive">{contact.send_error}</p>}
     {contact.sent_at && <p className="text-sm">Contacté le {new Date(contact.sent_at).toLocaleString("fr-FR")}</p>}
   </div>;
 }

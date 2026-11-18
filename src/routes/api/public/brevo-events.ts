@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { getAdmin } from "@/lib/automation.server";
+import { brevoEventPatch } from "@/lib/pige-brevo";
 
 type BrevoEvent = {
   event?: string;
@@ -47,6 +48,12 @@ export const Route = createFileRoute("/api/public/brevo-events")({
         if (!type || (!email && !messageId)) return Response.json({ ok: true });
 
         const occurredAt = eventDate(event);
+        const pigePatch = brevoEventPatch(type, occurredAt);
+        if (messageId && pigePatch) {
+          const pige = await admin.from("lead_pige_contacts").update(pigePatch).eq("provider_message_id", messageId).select("id");
+          if (pige.error) { console.error("Brevo pige event", pige.error); return new Response("Update failed", { status: 500 }); }
+          if (pige.data?.length) return Response.json({ ok: true });
+        }
         const patch: {
           provider_status: string;
           opened_at?: string;

@@ -1948,7 +1948,9 @@ export type Database = {
       }
       lead_pige_contacts: {
         Row: {
+          attempt_at: string | null
           body_text: string
+          bounced_at: string | null
           confirmation: string | null
           conversation_id: string | null
           delivered_at: string | null
@@ -1960,14 +1962,19 @@ export type Database = {
           opened_at: string | null
           pige_id: string
           prepared_at: string
+          provider_message_id: string | null
           replied_at: string | null
           reply_preview: string | null
+          send_error: string | null
+          send_state: string
           sent_at: string | null
           subject: string
           sync_error: string | null
         }
         Insert: {
+          attempt_at?: string | null
           body_text: string
+          bounced_at?: string | null
           confirmation?: string | null
           conversation_id?: string | null
           delivered_at?: string | null
@@ -1979,14 +1986,19 @@ export type Database = {
           opened_at?: string | null
           pige_id: string
           prepared_at?: string
+          provider_message_id?: string | null
           replied_at?: string | null
           reply_preview?: string | null
+          send_error?: string | null
+          send_state?: string
           sent_at?: string | null
           subject: string
           sync_error?: string | null
         }
         Update: {
+          attempt_at?: string | null
           body_text?: string
+          bounced_at?: string | null
           confirmation?: string | null
           conversation_id?: string | null
           delivered_at?: string | null
@@ -1998,8 +2010,11 @@ export type Database = {
           opened_at?: string | null
           pige_id?: string
           prepared_at?: string
+          provider_message_id?: string | null
           replied_at?: string | null
           reply_preview?: string | null
+          send_error?: string | null
+          send_state?: string
           sent_at?: string | null
           subject?: string
           sync_error?: string | null
@@ -3156,6 +3171,7 @@ export type Database = {
       claim_investor_profile: { Args: never; Returns: string }
       claim_lead_document_reminder: { Args: { _id: string }; Returns: boolean }
       claim_lead_research: { Args: { _id: string }; Returns: boolean }
+      claim_pige_brevo: { Args: { _id: string }; Returns: boolean }
       claim_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
@@ -3228,6 +3244,19 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      finish_pige_brevo: {
+        Args: {
+          _error?: string
+          _id: string
+          _message?: string
+          _state: string
+        }
+        Returns: undefined
+      }
+      finish_pige_brevo_internal: {
+        Args: { _error: string; _id: string; _message: string; _state: string }
+        Returns: undefined
       }
       has_role: {
         Args: {

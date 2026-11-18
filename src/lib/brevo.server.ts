@@ -14,6 +14,9 @@ export type BrevoAttachment = {
 };
 
 export type BrevoResult = { messageId: string | null };
+export class BrevoSendError extends Error {
+  constructor(public status: number, body: string) { super(`Brevo [${status}] ${body.slice(0, 500)}`); }
+}
 
 const bytesToBase64 = (bytes: Uint8Array) => {
   let binary = "";
@@ -46,6 +49,7 @@ export async function sendBrevoMail(params: {
   attachments?: BrevoAttachment[] | null;
   /** Expéditeur spécifique (domaine wallsbroker.com authentifié dans Brevo). */
   sender?: { email: string; name: string } | null;
+  replyTo?: { email: string; name: string } | null;
 }): Promise<BrevoResult> {
   const lovableApiKey = process.env["LOVABLE_API_KEY"];
   const brevoApiKey = process.env["BREVO_API_KEY"];
@@ -56,7 +60,7 @@ export async function sendBrevoMail(params: {
   const body: Record<string, unknown> = {
     sender: params.sender ?? { email: FROM_EMAIL, name: FROM_NAME },
     to: [{ email: params.to, ...(params.toName ? { name: params.toName } : {}) }],
-    replyTo: { email: REPLY_TO, name: FROM_NAME },
+    replyTo: params.replyTo ?? { email: REPLY_TO, name: FROM_NAME },
     subject: params.subject,
     htmlContent: params.html,
   };
@@ -86,7 +90,7 @@ export async function sendBrevoMail(params: {
   const raw = await response.text();
   if (!response.ok) {
     console.error(`Brevo send failed [${response.status}]: ${raw}`);
-    throw new Error(`Brevo [${response.status}] ${raw.slice(0, 500)}`);
+    throw new BrevoSendError(response.status, raw);
   }
 
   try {

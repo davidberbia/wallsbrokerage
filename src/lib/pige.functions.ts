@@ -49,9 +49,39 @@ export const preparePige = createServerFn({ method: "POST" }).middleware([requir
     }
     return { ok: true };
   });
-export const confirmPige = createServerFn({ method: "POST" }).middleware([requireStaffAuth]).inputValidator(input).handler(async ({ data, context }) => {
-  const { error } = await context.supabase.rpc("confirm_pige_contact", { _id: data.id });
-  if (error) throw new Error(error.message);
+export const sendPigeBrevo = createServerFn({ method: "POST" }).middleware([requireStaffAuth]).inputValidator(input).handler(async ({ data, context }) => {
+  const result = await context.supabase.from("lead_pige_contacts").select("*,lead_piges!inner(created_by,sender_email)").eq("id", data.id).single();
+  if (result.error) throw new Error(result.error.message);
+  const contact = result.data;
+  if (contact.lead_piges.created_by !== context.userId) throw new Error("Seul l’auteur peut envoyer cette Pige.");
+  z.string().email().parse(contact.email);
+  z.string().email().parse(contact.lead_piges.sender_email);
+  z.string().trim().min(1).max(500).parse(contact.subject);
+  z.string().trim().min(1).max(10000).parse(contact.body_text);
+  // Load server-only code after authorisation, before claiming the irreversible send.
+  const { sendBrevoMail, BrevoSendError } = await import("./brevo.server");
+  const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+  if (!process.env["LOVABLE_API_KEY"] || !process.env["BREVO_API_KEY"]) throw new Error("Connexion Brevo indisponible.");
+  const claimed = await context.supabase.rpc("claim_pige_brevo", { _id: data.id });
+  if (claimed.error) throw new Error(claimed.error.message);
+  if (!claimed.data) throw new Error("Ce message a déjà été envoyé ou nécessite une vérification.");
+  // Re-read after the atomic claim: editing is now locked.
+  const locked = await context.supabase.from("lead_pige_contacts").select("subject,body_text").eq("id", data.id).single();
+  if (locked.error) throw new Error(locked.error.message);
+  const escape = (text: string) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  let state: "accepted" | "rejected" | "uncertain" = "uncertain";
+  let messageId: string | null = null;
+  let failure: string | null = null;
+  try {
+    const sent = await sendBrevoMail({ to: contact.email, toName: contact.name, subject: locked.data.subject, html: `<div>${escape(locked.data.body_text).replace(/\n/g, "<br>")}</div>`, sender: { email: contact.lead_piges.sender_email, name: "Walls Brokerage" }, replyTo: { email: contact.lead_piges.sender_email, name: "Walls Brokerage" } });
+    state = "accepted"; messageId = sent.messageId;
+  } catch (e) {
+    state = e instanceof BrevoSendError && e.status >= 400 && e.status < 500 && e.status !== 408 ? "rejected" : "uncertain";
+    failure = e instanceof Error ? e.message : "Résultat d’envoi à vérifier dans Brevo";
+  }
+  const finished = await admin.rpc("finish_pige_brevo", { _id: data.id, _state: state, ...(messageId ? { _message: messageId } : {}), ...(failure ? { _error: failure } : {}) });
+  if (finished.error) throw new Error("Résultat à vérifier dans Brevo : aucun nouvel essai automatique.");
+  if (failure) throw new Error(failure);
   return { ok: true };
 });
 export const updatePigeMessage = createServerFn({ method: "POST" }).middleware([requireStaffAuth])

@@ -1,6 +1,7 @@
 import { getAdmin } from "./automation.server";
 import { graphGet } from "./mailscan.server";
 import { pigeDue } from "./pige";
+import { replyReferences } from "./pige-brevo";
 type Message = { id: string; subject?: string; conversationId?: string; sentDateTime?: string; receivedDateTime?: string; bodyPreview?: string; toRecipients?: { emailAddress?: { address?: string } }[]; internetMessageHeaders?: { name: string; value: string }[] };
 const equal = (a?: string, b?: string) => !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
 async function messages(path: string) {
@@ -29,6 +30,19 @@ export async function runPigeSync() {
     if (equal(cycle.sender_email, mailbox.mail) || equal(cycle.sender_email, mailbox.userPrincipalName)) {
       for (const c of cycle.lead_pige_contacts) {
         try {
+          if (c.provider_message_id && c.sent_at) {
+            const filter = `receivedDateTime ge ${c.sent_at} and from/emailAddress/address eq '${c.email.replace(/'/g, "''")}'`;
+            const incoming = await messages(`/v1.0/me/mailFolders/inbox/messages?$filter=${encodeURIComponent(filter)}&$select=id,subject,conversationId,receivedDateTime,bodyPreview,internetMessageHeaders&$orderby=receivedDateTime&$top=100`);
+            const reply = incoming.find(m => replyReferences(m.internetMessageHeaders ?? [], c.provider_message_id ?? "") && !/automatic reply|réponse automatique|out of office|absence du bureau/i.test(m.subject || "") && !m.internetMessageHeaders?.some(h => (h.name.toLowerCase() === "auto-submitted" && h.value.toLowerCase() !== "no") || /disposition-notification|delivery-status/i.test(h.value)));
+            if (reply?.receivedDateTime && !c.replied_at) {
+              const updated = await admin.from("lead_pige_contacts").update({ replied_at: reply.receivedDateTime, reply_preview: reply.bodyPreview || "", sync_error: null }).eq("id", c.id);
+              if (updated.error) throw new Error(updated.error.message);
+            }
+            continue;
+          }
+          // Only pre-existing, already confirmed Outlook messages use the legacy thread path.
+          // A prepared Pige can now be confirmed exclusively by a Brevo result.
+          if (c.send_state !== "prepared" || !c.sent_at) continue;
           const start = new Date(new Date(c.prepared_at).getTime() - 60000).toISOString();
           const sent = await messages(`/v1.0/me/mailFolders/sentitems/messages?$filter=${encodeURIComponent(`sentDateTime ge ${start}`)}&$select=id,subject,conversationId,toRecipients,sentDateTime&$orderby=sentDateTime&$top=100`);
           const candidates = sent.filter(m => m.subject === c.subject && m.toRecipients?.some(r => equal(r.emailAddress?.address, c.email)));
