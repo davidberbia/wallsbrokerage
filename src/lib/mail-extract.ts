@@ -47,10 +47,17 @@ export function extractFromText(subject: string | null, preview: string | null):
   return {
     amounts: [...amounts].slice(0, 5),
     phones: [...phones].slice(0, 5),
-    addresses: [...addresses].slice(0, 5),
+    addresses: dedupeAddresses([...addresses]).slice(0, 5),
   };
 }
 
 export function isEmptyExtraction(e: MailExtraction): boolean {
   return e.amounts.length === 0 && e.phones.length === 0 && e.addresses.length === 0;
+}
+
+// Un aperçu de mail tronqué donne « 24 Rue de Téhé » à côté de « 24 Rue de Teheran… » : on garde la version complète.
+const normAddr = (a: string) => a.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+export function dedupeAddresses(list: string[]): string[] {
+  const keys = list.map(normAddr);
+  return list.filter((_, i) => !keys.some((k, j) => j !== i && (k === keys[i] ? j < i : k.startsWith(keys[i]))));
 }
