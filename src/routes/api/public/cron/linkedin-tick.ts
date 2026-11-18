@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/public/cron/linkedin-tick")({
           .eq("id", true).or(`lease_until.is.null,lease_until.lt.${now.toISOString()}`).select("id");
         if (!lease?.length) return Response.json({ skipped: "locked" });
 
-        const { ensureMonthPlan, writePost, publishToLinkedin, linkedinBudgetLeft } = await import("@/lib/linkedin.server");
+        const { ensureMonthPlan, writePost, publishToLinkedin, linkedinBudgetLeft, makePostImage } = await import("@/lib/linkedin.server");
         const { date, hour } = parisNow();
         let written = 0, published = 0;
         try {
@@ -48,6 +48,7 @@ export const Route = createFileRoute("/api/public/cron/linkedin-tick")({
                 continue;
               }
               await admin.from("linkedin_posts").update({ body: r.body.trim(), chart: r.chart, error: null }).eq("id", p.id);
+              await makePostImage(admin, p.user_id, p.id, p.kind as "actifs" | "specialite" | "marche", r.body, r.chart);
               written++;
             }
           }
@@ -56,14 +57,14 @@ export const Route = createFileRoute("/api/public/cron/linkedin-tick")({
           if (hour >= 9) {
             const auto = new Set((users ?? []).filter((u) => u.auto_publish).map((u) => u.user_id));
             const blocked = new Set((users ?? []).filter((u) => u.reconnect_required).map((u) => u.user_id));
-            const { data: due } = await admin.from("linkedin_posts").select("id, user_id, body, status")
+            const { data: due } = await admin.from("linkedin_posts").select("id, user_id, body, status, image_path")
               .in("status", ["valide", "brouillon"]).neq("body", "").lte("scheduled_for", date).order("scheduled_for").limit(50);
             const todo = (due ?? []).filter((p) => !blocked.has(p.user_id) && (p.status === "valide" || auto.has(p.user_id))).slice(0, PUBLISH_BATCH);
             for (const p of todo) {
               // Réservation : un post ne part qu'une fois.
               const { data: claim } = await admin.from("linkedin_posts").update({ status: "echec", error: "Envoi en cours" }).eq("id", p.id).eq("status", p.status).select("id");
               if (!claim?.length) continue;
-              const r = await publishToLinkedin(p.user_id, p.body);
+              const r = await publishToLinkedin(p.user_id, p.body, p.image_path);
               if (r.ok) { await admin.from("linkedin_posts").update({ status: "publie", published_at: new Date().toISOString(), error: null }).eq("id", p.id); published++; }
               else {
                 await admin.from("linkedin_posts").update({ error: r.error }).eq("id", p.id);

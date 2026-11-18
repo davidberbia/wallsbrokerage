@@ -2200,6 +2200,7 @@ export type Database = {
           created_at: string
           error: string | null
           id: string
+          image_path: string | null
           kind: string
           published_at: string | null
           scheduled_for: string
@@ -2212,6 +2213,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
+          image_path?: string | null
           kind: string
           published_at?: string | null
           scheduled_for?: string
@@ -2224,6 +2226,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           id?: string
+          image_path?: string | null
           kind?: string
           published_at?: string | null
           scheduled_for?: string

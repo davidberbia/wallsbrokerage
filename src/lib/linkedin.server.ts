@@ -2,6 +2,9 @@
 import { anonymizeAsset, monthPlan, type PostKind } from "@/lib/linkedin";
 
 export const LINKEDIN_BUDGET_EUR = 10;
+export const LINKEDIN_IMAGE_BUDGET_EUR = 5;
+const IMAGE_COST_EUR = 0.04; // ≈ 1 290 jetons image Gemini
+const IMAGE_MODEL = "gemini-2.5-flash-image";
 export const GATEWAY_BASE_URL = "https://connector-gateway.lovable.dev";
 export const LINKEDIN_SCOPES = ["openid", "profile", "w_member_social"];
 
@@ -51,6 +54,46 @@ export async function writePost(admin: Admin, userId: string, kind: PostKind): P
   }
 }
 
+async function imageBudgetLeft(admin: Admin): Promise<boolean> {
+  const start = new Date();
+  start.setUTCDate(1);
+  start.setUTCHours(0, 0, 0, 0);
+  const { data } = await admin.from("ai_usage").select("cost_eur").eq("task", "linkedin_image").gte("created_at", start.toISOString());
+  return (data ?? []).reduce((s, r) => s + Number(r.cost_eur ?? 0), 0) + IMAGE_COST_EUR <= LINKEDIN_IMAGE_BUDGET_EUR;
+}
+
+function imagePrompt(kind: PostKind, body: string, chart: Chart | null): string {
+  const common = "Format paysage 1200x627 pour LinkedIn, rendu professionnel haut de gamme, couleurs sobres. Aucun logo, aucune adresse, aucune enseigne, aucun visage reconnaissable.";
+  if (kind === "marche" && chart) {
+    return `Infographie élégante en graphique à barres, titre « ${chart.title} ». Valeurs exactes à afficher, dans cet ordre : ${chart.points.map((p) => `${p.label} = ${p.value.toLocaleString("fr-FR")}${chart.unit ? ` ${chart.unit}` : ""}`).join(" ; ")}. Textes en français, lisibles, sans faute. ${common}`;
+  }
+  const what = kind === "actifs" ? "une photographie d'architecture évoquant ces biens immobiliers à vendre" : "une photographie d'illustration éditoriale pour cet article immobilier";
+  return `Crée ${what}, sans aucun texte dans l'image. Sujet : ${body.slice(0, 900)}. ${common}`;
+}
+
+/** Gemini crée l'image du post et la range dans l'espace privé du collaborateur. */
+export async function makePostImage(admin: Admin, userId: string, postId: string, kind: PostKind, body: string, chart: Chart | null): Promise<{ path: string } | { error: string }> {
+  if (!(await imageBudgetLeft(admin))) return { error: `Plafond images LinkedIn de ${LINKEDIN_IMAGE_BUDGET_EUR} € atteint ce mois-ci.` };
+  const key = process.env["GEMINI_API_KEY"];
+  if (!key) return { error: "Clé Gemini absente." };
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateContent`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+    body: JSON.stringify({ contents: [{ parts: [{ text: imagePrompt(kind, body, chart) }] }], generationConfig: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio: "16:9" } } }),
+  });
+  if (!res.ok) return { error: `Image Gemini [${res.status}] ${(await res.text()).slice(0, 200)}` };
+  const d = (await res.json()) as { candidates?: { content?: { parts?: { inlineData?: { mimeType?: string; data?: string } }[] } }[] };
+  const img = d.candidates?.[0]?.content?.parts?.find((p) => p.inlineData?.data)?.inlineData;
+  await admin.from("ai_usage").insert({ task: "linkedin_image", tokens_in: 0, tokens_out: 1290, cost_eur: img ? IMAGE_COST_EUR : 0 });
+  if (!img?.data) return { error: "Gemini n'a pas renvoyé d'image." };
+  const bytes = Uint8Array.from(atob(img.data), (c) => c.charCodeAt(0));
+  const path = `${userId}/${postId}-${Date.now()}.png`;
+  const { error } = await admin.storage.from("linkedin-images").upload(path, bytes, { contentType: img.mimeType ?? "image/png" });
+  if (error) return { error: error.message };
+  await admin.from("linkedin_posts").update({ image_path: path }).eq("id", postId);
+  return { path };
+}
+
 /** Crée les emplacements vides du mois restant (sans IA). */
 export async function ensureMonthPlan(admin: Admin, userId: string, marketDay: number, from = new Date()) {
   const rows = monthPlan(from, marketDay).map((p) => ({ user_id: userId, kind: p.kind, scheduled_for: p.date, body: "" }));
@@ -63,7 +106,7 @@ export async function ensureMonthPlan(admin: Admin, userId: string, marketDay: n
 }
 
 /** Publie un texte sur le profil LinkedIn du collaborateur. */
-export async function publishToLinkedin(userId: string, text: string): Promise<{ ok: true } | { ok: false; reconnect?: boolean; error: string }> {
+export async function publishToLinkedin(userId: string, text: string, imagePath?: string | null): Promise<{ ok: true } | { ok: false; reconnect?: boolean; error: string }> {
   const { getConnectionKeyForUser } = await import("@/lib/appUserConnections.server");
   const { callAsAppUser, appUserReconnectRequired } = await import("@/integrations/lovable/appUserConnector");
   const key = await getConnectionKeyForUser(userId, "linkedin");
@@ -72,11 +115,30 @@ export async function publishToLinkedin(userId: string, text: string): Promise<{
   if (await appUserReconnectRequired(me)) return { ok: false, reconnect: true, error: "Connexion LinkedIn à renouveler." };
   if (!me.ok) return { ok: false, error: `LinkedIn profil [${me.status}] ${(await me.text()).slice(0, 200)}` };
   const { sub } = (await me.json()) as { sub: string };
+  let asset: string | null = null;
+  if (imagePath) {
+    const { getAdmin } = await import("@/lib/automation.server");
+    const { data: file } = await (await getAdmin()).storage.from("linkedin-images").download(imagePath);
+    if (!file) return { ok: false, error: "Image du post introuvable." };
+    const reg = await callAsAppUser({
+      gatewayBaseUrl: GATEWAY_BASE_URL, connectionAPIKey: key, connectorId: "linkedin", path: "/v2/assets?action=registerUpload", requiredScopes: LINKEDIN_SCOPES,
+      init: { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ registerUploadRequest: { recipes: ["urn:li:digitalmediaRecipe:feedshare-image"], owner: `urn:li:person:${sub}`, serviceRelationships: [{ relationshipType: "OWNER", identifier: "urn:li:userGeneratedContent" }] } }) },
+    });
+    if (!reg.ok) return { ok: false, error: `LinkedIn image [${reg.status}] ${(await reg.text()).slice(0, 200)}` };
+    const v = ((await reg.json()) as { value: { asset: string; uploadMechanism: Record<string, { uploadUrl: string }> } }).value;
+    const up = new URL(v.uploadMechanism["com.linkedin.digitalmedia.uploading.MediaUploadHttpRequest"]!.uploadUrl);
+    const put = await callAsAppUser({
+      gatewayBaseUrl: GATEWAY_BASE_URL, connectionAPIKey: key, connectorId: "linkedin", path: up.pathname + up.search, requiredScopes: LINKEDIN_SCOPES,
+      init: { method: "PUT", headers: { "Content-Type": "application/octet-stream" }, body: await file.arrayBuffer() },
+    });
+    if (!put.ok) return { ok: false, error: `LinkedIn envoi image [${put.status}] ${(await put.text()).slice(0, 200)}` };
+    asset = v.asset;
+  }
   const res = await callAsAppUser({
     gatewayBaseUrl: GATEWAY_BASE_URL, connectionAPIKey: key, connectorId: "linkedin", path: "/v2/ugcPosts", requiredScopes: LINKEDIN_SCOPES,
     init: { method: "POST", headers: { "Content-Type": "application/json", "X-Restli-Protocol-Version": "2.0.0" }, body: JSON.stringify({
       author: `urn:li:person:${sub}`, lifecycleState: "PUBLISHED",
-      specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text }, shareMediaCategory: "NONE" } },
+      specificContent: { "com.linkedin.ugc.ShareContent": { shareCommentary: { text }, ...(asset ? { shareMediaCategory: "IMAGE", media: [{ status: "READY", media: asset }] } : { shareMediaCategory: "NONE" }) } },
       visibility: { "com.linkedin.ugc.MemberNetworkVisibility": "PUBLIC" },
     }) },
   });

@@ -15,12 +15,18 @@ export const generateLinkedinPost = createServerFn({ method: "POST" })
     const r = await writePost(await getAdmin(), userId, data.kind);
     if ("error" in r) return { error: r.error };
     if (!r.body.trim()) return { error: "L'IA n'a rien renvoyé." };
-    if (data.postId) {
-      const { error } = await supabase.from("linkedin_posts").update({ body: r.body.trim(), chart: r.chart, error: null }).eq("id", data.postId).eq("user_id", userId);
-      return error ? { error: error.message } : { id: data.postId };
+    let id = data.postId;
+    if (id) {
+      const { error } = await supabase.from("linkedin_posts").update({ body: r.body.trim(), chart: r.chart, error: null }).eq("id", id).eq("user_id", userId);
+      if (error) return { error: error.message };
+    } else {
+      const { data: row, error } = await supabase.from("linkedin_posts").insert({ user_id: userId, kind: data.kind, body: r.body.trim(), chart: r.chart }).select("id").single();
+      if (error) return { error: error.message };
+      id = row.id;
     }
-    const { data: row, error } = await supabase.from("linkedin_posts").insert({ user_id: userId, kind: data.kind, body: r.body.trim(), chart: r.chart }).select("id").single();
-    return error ? { error: error.message } : { id: row.id };
+    const { makePostImage } = await import("@/lib/linkedin.server");
+    const img = await makePostImage(await getAdmin(), userId, id, data.kind, r.body, r.chart);
+    return { id, imageError: "error" in img ? img.error : null };
   });
 
 /** Prépare les emplacements du mois (sans IA ; la rédaction se fait ensuite par paquets). */
@@ -85,4 +91,18 @@ export const disconnectLinkedin = createServerFn({ method: "POST" })
     }
     await deleteConnectionForUser(context.userId, "linkedin");
     return { ok: true };
+  });
+
+/** Recrée l'image d'un post avec Gemini. */
+export const regenerateLinkedinImage = createServerFn({ method: "POST" })
+  .middleware([requireStaffAuth])
+  .inputValidator((d: { postId: string }) => z.object({ postId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: p } = await context.supabase.from("linkedin_posts").select("id, kind, body, chart").eq("id", data.postId).eq("user_id", context.userId).maybeSingle();
+    if (!p) return { error: "Post introuvable." };
+    if (!p.body.trim()) return { error: "Rédigez d'abord le texte." };
+    const { getAdmin } = await import("@/lib/automation.server");
+    const { makePostImage } = await import("@/lib/linkedin.server");
+    const r = await makePostImage(await getAdmin(), context.userId, p.id, p.kind as "actifs" | "specialite" | "marche", p.body, p.chart as never);
+    return "error" in r ? { error: r.error } : { ok: true };
   });

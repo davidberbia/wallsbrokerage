@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Download, ExternalLink, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { Check, Download, ExternalLink, ImagePlus, Plus, RefreshCw, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { completeLinkedinConnect, disconnectLinkedin, generateLinkedinPost, linkedinStatus, planLinkedinMonth, startLinkedinConnect } from "@/lib/linkedin.functions";
+import { completeLinkedinConnect, disconnectLinkedin, generateLinkedinPost, linkedinStatus, regenerateLinkedinImage, planLinkedinMonth, startLinkedinConnect } from "@/lib/linkedin.functions";
 import { canInviteNow, inviteQueue, inviteWaitMinutes, INVITES_MAX_PER_DAY, kindForDate, KIND_LABEL, type PostKind } from "@/lib/linkedin";
 
 export const Route = createFileRoute("/notoriete")({
@@ -59,27 +59,45 @@ function ChartSvg({ chart, svgRef }: { chart: Chart; svgRef?: React.Ref<SVGSVGEl
   );
 }
 
-function downloadPng(svg: SVGSVGElement | null) {
-  if (!svg) return;
-  const clone = svg.cloneNode(true) as SVGSVGElement;
-  const cs = getComputedStyle(svg);
-  clone.querySelectorAll("rect.fill-primary").forEach((r) => r.setAttribute("fill", getComputedStyle(svg.querySelector("rect.fill-primary")!).fill));
-  clone.setAttribute("color", cs.color);
-  clone.querySelector("rect")?.setAttribute("fill", cs.backgroundColor);
-  const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(clone)], { type: "image/svg+xml" }));
-  const img = new Image();
-  img.onload = () => {
-    const c = document.createElement("canvas");
-    c.width = 1200; c.height = 640;
-    c.getContext("2d")!.drawImage(img, 0, 0, 1200, 640);
-    const a = document.createElement("a");
-    a.href = c.toDataURL("image/png"); a.download = "graphique-marche.png"; a.click();
-    URL.revokeObjectURL(url);
+
+function PostImage({ p, onChange }: { p: Post; onChange: () => void }) {
+  const regen = useServerFn(regenerateLinkedinImage);
+  const [busy, setBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const url = useQuery({
+    queryKey: ["li-img", p.image_path],
+    enabled: !!p.image_path,
+    queryFn: async () => (await supabase.storage.from("linkedin-images").createSignedUrl(p.image_path!, 3600)).data?.signedUrl ?? null,
+  });
+  const redo = async () => {
+    setBusy(true);
+    const r = await regen({ data: { postId: p.id } }).catch((e) => ({ error: String(e) }));
+    setBusy(false);
+    if ("error" in r) toast.error(r.error); else onChange();
   };
-  img.src = url;
+  const upload = async (f: File) => {
+    setBusy(true);
+    const path = `${p.user_id}/${p.id}-${Date.now()}-${f.name.replace(/[^\w.-]/g, "_")}`;
+    const { error } = await supabase.storage.from("linkedin-images").upload(path, f, { contentType: f.type });
+    if (!error) await supabase.from("linkedin_posts").update({ image_path: path }).eq("id", p.id);
+    setBusy(false);
+    if (error) toast.error(error.message); else onChange();
+  };
+  const editable = p.status !== "publie" && p.status !== "valide";
+  return (
+    <div className="space-y-1">
+      {url.data ? <img src={url.data} alt="Image du post" className="w-full rounded-md border border-border" /> : p.body && <p className="text-xs text-muted-foreground">{busy ? "Création de l'image…" : "Pas encore d'image."}</p>}
+      <div className="flex flex-wrap gap-2">
+        {editable && p.body && <Button size="sm" variant="outline" disabled={busy} onClick={redo}><RefreshCw className="mr-1 size-4" />{busy ? "Image…" : p.image_path ? "Nouvelle image" : "Créer l'image"}</Button>}
+        {editable && <Button size="sm" variant="outline" disabled={busy} onClick={() => fileRef.current?.click()}><ImagePlus className="mr-1 size-4" />Importer</Button>}
+        {url.data && <Button size="sm" variant="outline" asChild><a href={url.data} download target="_blank" rel="noopener"><Download className="mr-1 size-4" />Télécharger</a></Button>}
+      </div>
+      <input ref={fileRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }} />
+    </div>
+  );
 }
 
-type Post = { id: string; kind: string; body: string; chart: unknown; status: string; created_at: string; scheduled_for: string; error: string | null };
+type Post = { id: string; user_id: string; image_path: string | null; kind: string; body: string; chart: unknown; status: string; created_at: string; scheduled_for: string; error: string | null };
 
 function PostCard({ p, onChange, onWrite, writing }: { p: Post; onChange: () => void; onWrite?: () => void; writing?: boolean }) {
   const [text, setText] = useState(p.body);
@@ -94,7 +112,7 @@ function PostCard({ p, onChange, onWrite, writing }: { p: Post; onChange: () => 
     await navigator.clipboard.writeText(text).catch(() => {});
     window.open(`https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(text)}`, "_blank", "noopener");
     await save({ body: text, status: "publie", published_at: new Date().toISOString() });
-    toast.success("Texte copié, LinkedIn ouvert.");
+    toast.success(p.image_path ? "Texte copié, LinkedIn ouvert — ajoutez l'image téléchargée." : "Texte copié, LinkedIn ouvert.");
   };
   const when = new Date(`${p.scheduled_for}T09:00:00`).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
   return (
@@ -105,12 +123,8 @@ function PostCard({ p, onChange, onWrite, writing }: { p: Post; onChange: () => 
       </div>
       {p.status === "valide" && <p className="text-xs font-medium text-primary">Validé — part seul ce jour-là à 9 h</p>}
       {p.status === "echec" && p.error && <p className="text-xs text-destructive">{p.error}</p>}
-      {chart && (
-        <div className="space-y-1">
-          <ChartSvg chart={chart} svgRef={ref} />
-          <Button size="sm" variant="outline" onClick={() => downloadPng(ref.current)}><Download className="mr-1 size-4" />Image du graphique</Button>
-        </div>
-      )}
+      <PostImage p={p} onChange={onChange} />
+      {chart && !p.image_path && <ChartSvg chart={chart} svgRef={ref} />}
       {p.status === "publie" ? (
         <p className="whitespace-pre-wrap text-sm">{p.body}</p>
       ) : !p.body ? (
