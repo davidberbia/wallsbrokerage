@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ASSET_STAGES, TARGET_STAGE, inVintage } from "@/lib/deal-stages";
+import { leadViewStatus } from "@/lib/lead-documents";
+import { pigeActive } from "@/lib/pige";
 
 type Counts = Record<string, number>;
 
@@ -36,7 +38,27 @@ export function useNavCounts(enabled: boolean) {
         count("comparables"),
         count("brochure_sends"),
         count("mailscan_candidates", (q) => q.eq("status", "à valider")),
-        count("deals", (q) => q.eq("stage", "Prospection")),
+        // Même règle que l'onglet « À traiter » des Leads.
+        (async () => {
+          const year = new Date().getFullYear();
+          const [deals, reqs, piges] = await Promise.all([
+            (supabase as any).from("deals").select("id, vintage, stage, carry_over, lead_status, snooze_until").eq("stage", TARGET_STAGE),
+            (supabase as any).from("lead_document_requests").select("deal_id,status,created_at").order("created_at", { ascending: false }).limit(5000),
+            (supabase as any).from("lead_piges").select("deal_id,started_at,due_at,completed_at,created_at").order("created_at", { ascending: false }).limit(5000),
+          ]);
+          const latest = new Map<string, any>();
+          for (const r of reqs.data ?? []) if (!latest.has(r.deal_id)) latest.set(r.deal_id, r);
+          const now = Date.now();
+          return ((deals.data ?? []) as any[]).filter((d) => {
+            if (!inVintage(d, year) || d.lead_status === "archived") return false;
+            const p = (piges.data ?? []).find((x: any) => x.deal_id === d.id && x.started_at);
+            if (pigeActive(p)) return false;
+            if (d.snooze_until && new Date(d.snooze_until).getTime() > now) return false;
+            const r = latest.get(d.id);
+            if (p && (!r || r.created_at < (p.started_at ?? p.created_at))) return true;
+            return leadViewStatus(d.lead_status ?? "new", r) === "new";
+          }).length;
+        })(),
         count("directory_contacts", (q) => q.eq("kind", "broker")),
         count("directory_contacts", (q) => q.eq("kind", "utile")),
         count("directory_contacts", (q) => q.eq("kind", "notary")),
