@@ -9,3 +9,13 @@ export function replyReferences(headers: { name: string; value: string }[], id: 
   const expected = id.replace(/[<>]/g, "").trim();
   return headers.some(h => ["in-reply-to", "references"].includes(h.name.toLowerCase()) && h.value.split(/\s+/).some(token => token.replace(/[<>]/g, "").trim() === expected));
 }
+/** Adresses autorisées comme expéditeur Brevo de la Pige (validées dans Brevo). */
+export const PIGE_SENDERS = ["d.berbia@wallsbroker.com", "l.crausaz@wallsbroker.com"];
+const slug = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+/** Identité d'expédition : nom du collaborateur + tag Brevo ; null si l'adresse n'est pas autorisée. */
+export function pigeSender(email: string, person: string) {
+  const address = email.trim().toLowerCase();
+  if (!PIGE_SENDERS.includes(address)) return null;
+  const name = person.trim() ? `${person.trim()} | Walls Brokerage` : "Walls Brokerage";
+  return { email: address, name, tags: ["pige", slug(person) || slug(address.split("@")[0])] };
+}

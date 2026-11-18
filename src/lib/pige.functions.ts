@@ -28,6 +28,8 @@ export const preparePige = createServerFn({ method: "POST" }).middleware([requir
     const agent = await context.supabase.from("commercial_agents").select("first_name,last_name,phone").eq("user_id", context.userId).maybeSingle();
     if (agent.error) throw new Error(agent.error.message);
     const person = agent.data ? [agent.data.first_name, agent.data.last_name].filter(Boolean).join(" ") : sender.toLowerCase() === "d.berbia@wallsbroker.com" ? "David Berbia" : "";
+    const { pigeSender } = await import("./pige-brevo");
+    if (!pigeSender(sender, person)) throw new Error("Votre adresse n’est pas encore autorisée pour la Pige Brevo.");
     const signature = [person, "Walls Brokerage", agent.data?.phone, sender].filter(Boolean).join("\n");
     let cycle = overview.cycles.find(c => !c.completed_at);
     if (cycle && cycle.created_by !== context.userId) throw new Error("Cette Pige est préparée par un autre agent.");
@@ -60,6 +62,12 @@ export const sendPigeBrevo = createServerFn({ method: "POST" }).middleware([requ
   z.string().trim().min(1).max(10000).parse(contact.body_text);
   // Load server-only code after authorisation, before claiming the irreversible send.
   const { sendBrevoMail, BrevoSendError } = await import("./brevo.server");
+  const { pigeSender } = await import("./pige-brevo");
+  const agent = await context.supabase.from("commercial_agents").select("first_name,last_name").eq("user_id", context.userId).maybeSingle();
+  const senderEmail = contact.lead_piges.sender_email;
+  const person = agent.data ? [agent.data.first_name, agent.data.last_name].filter(Boolean).join(" ") : senderEmail.toLowerCase() === "d.berbia@wallsbroker.com" ? "David Berbia" : "";
+  const identity = pigeSender(senderEmail, person);
+  if (!identity) throw new Error("Votre adresse n’est pas encore autorisée pour la Pige Brevo.");
   const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
   if (!process.env["LOVABLE_API_KEY"] || !process.env["BREVO_API_KEY"]) throw new Error("Connexion Brevo indisponible.");
   const claimed = await context.supabase.rpc("claim_pige_brevo", { _id: data.id });
@@ -73,7 +81,7 @@ export const sendPigeBrevo = createServerFn({ method: "POST" }).middleware([requ
   let messageId: string | null = null;
   let failure: string | null = null;
   try {
-    const sent = await sendBrevoMail({ to: contact.email, toName: contact.name, subject: locked.data.subject, html: `<div>${escape(locked.data.body_text).replace(/\n/g, "<br>")}</div>`, sender: { email: contact.lead_piges.sender_email, name: "Walls Brokerage" }, replyTo: { email: contact.lead_piges.sender_email, name: "Walls Brokerage" } });
+    const sent = await sendBrevoMail({ to: contact.email, toName: contact.name, subject: locked.data.subject, html: `<div>${escape(locked.data.body_text).replace(/\n/g, "<br>")}</div>`, sender: { email: identity.email, name: identity.name }, replyTo: { email: identity.email, name: identity.name }, tags: identity.tags });
     state = "accepted"; messageId = sent.messageId;
   } catch (e) {
     state = e instanceof BrevoSendError && e.status >= 400 && e.status < 500 && e.status !== 408 ? "rejected" : "uncertain";

@@ -50,6 +50,7 @@ export async function sendBrevoMail(params: {
   /** Expéditeur spécifique (domaine wallsbroker.com authentifié dans Brevo). */
   sender?: { email: string; name: string } | null;
   replyTo?: { email: string; name: string } | null;
+  tags?: string[] | null;
 }): Promise<BrevoResult> {
   const lovableApiKey = process.env["LOVABLE_API_KEY"];
   const brevoApiKey = process.env["BREVO_API_KEY"];
@@ -63,6 +64,7 @@ export async function sendBrevoMail(params: {
     replyTo: params.replyTo ?? { email: REPLY_TO, name: FROM_NAME },
     subject: params.subject,
     htmlContent: params.html,
+    ...(params.tags?.length ? { tags: params.tags } : {}),
   };
 
   const files =

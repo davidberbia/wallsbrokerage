@@ -1,5 +1,5 @@
-import { expect, it } from "vitest";
-import { brevoEventPatch, canSendPige, replyReferences } from "./pige-brevo";
+import { describe, expect, it } from "vitest";
+import { brevoEventPatch, canSendPige, pigeSender, replyReferences } from "./pige-brevo";
 it("never resends claimed or uncertain messages", () => {
   expect(canSendPige("prepared", null)).toBe(true);
   for (const state of ["sending", "accepted", "uncertain", "rejected"]) expect(canSendPige(state, null)).toBe(false);
@@ -16,4 +16,13 @@ it("only opening events establish a signalled reading", () => {
 it("matches reply references exactly rather than by subject", () => {
   expect(replyReferences([{ name: "In-Reply-To", value: "<abc@brevo>" }], "<abc@brevo>")).toBe(true);
   expect(replyReferences([{ name: "References", value: "<prefixabc@brevo>" }], "<abc@brevo>")).toBe(false);
+});
+
+describe("expéditeur Pige", () => {
+  it("affiche le collaborateur et le tague", () => {
+    expect(pigeSender("L.Crausaz@wallsbroker.com", "Ladislas Crausaz")).toEqual({ email: "l.crausaz@wallsbroker.com", name: "Ladislas Crausaz | Walls Brokerage", tags: ["pige", "ladislas-crausaz"] });
+  });
+  it("refuse une adresse non autorisée dans Brevo", () => {
+    expect(pigeSender("autre@wallsbroker.com", "Autre")).toBeNull();
+  });
 });
