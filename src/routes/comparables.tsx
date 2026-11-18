@@ -1,6 +1,7 @@
 import { AcquisitionFields } from "@/components/AcquisitionFields";
 import { CompactRow, RecordDialog } from "@/components/CompactRow";
 import { comparableMetric } from "@/lib/comparable-metrics";
+import { COMPARABLE_CLASSES, normalizeAssetClass } from "@/lib/comparable-classes";
 import { Label } from "@/components/ui/label";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -159,7 +160,7 @@ function ComparablesPage() {
   });
   const sortFr = (a: string, b: string) => a.localeCompare(b, "fr");
   const uniq = (l: (string | null)[]) => [...new Set(l.filter(Boolean) as string[])].sort(sortFr);
-  const classOpts = uniq((facets ?? []).map((f) => f.asset_class));
+  const classOpts: string[] = [...COMPARABLE_CLASSES];
   const cityOpts = uniq((facets ?? []).filter((f) => !fClass || f.asset_class === fClass).map((f) => f.city));
   const streetOpts = fCity
     ? uniq((facets ?? []).filter((f) => f.city === fCity && (!fClass || f.asset_class === fClass)).map((f) => f.street))
@@ -331,7 +332,7 @@ function ComparablesPage() {
           const d = c.dateSignature ? new Date(c.dateSignature) : null;
           return {
             kind: c.kind === "prix" ? "vente" : "location",
-            asset_class: c.typeActif || null,
+            asset_class: normalizeAssetClass(c.typeActif),
             enseigne: c.enseigne || null,
             postal_code: c.codePostal || null,
             city: c.ville || null,
@@ -517,16 +518,36 @@ function ComparablesPage() {
               return (
                 <div key={c.key} className="min-w-0 space-y-1">
                   <Label htmlFor={`comparable-${c.key}`}>{c.label}</Label>
-                  <Input
-                    id={`comparable-${c.key}`}
-                    key={`${detail.id}-${c.key}-${val}`}
-                    type={c.key === "deal_date" ? "date" : "text"}
-                    defaultValue={val}
-                    readOnly={!isBroker}
-                    onBlur={(e) => {
-                      if (isBroker) void save(detail, c.key, e.target.value);
-                    }}
-                  />
+                  {c.key === "asset_class" ? (
+                    <select
+                      id={`comparable-${c.key}`}
+                      key={`${detail.id}-${c.key}-${val}`}
+                      defaultValue={val}
+                      disabled={!isBroker}
+                      onChange={(e) => {
+                        if (isBroker) void save(detail, c.key, e.target.value);
+                      }}
+                      className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground disabled:opacity-50"
+                    >
+                      <option value="">—</option>
+                      {COMPARABLE_CLASSES.map((cl) => (
+                        <option key={cl} value={cl}>
+                          {cl}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <Input
+                      id={`comparable-${c.key}`}
+                      key={`${detail.id}-${c.key}-${val}`}
+                      type={c.key === "deal_date" ? "date" : "text"}
+                      defaultValue={val}
+                      readOnly={!isBroker}
+                      onBlur={(e) => {
+                        if (isBroker) void save(detail, c.key, e.target.value);
+                      }}
+                    />
+                  )}
                 </div>
               );
             })}

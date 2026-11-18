@@ -309,6 +309,13 @@
       "when": 1794963724625,
       "tag": "0043_comparables_geo_stage",
       "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1794964764523,
+      "tag": "0044_comparables_six_classes",
+      "breakpoints": true
     }
   ]
 }
