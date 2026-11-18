@@ -47,6 +47,7 @@ import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
 import { Route as ApiPublicCatalogueRouteImport } from './routes/api/public/catalogue'
 import { Route as ApiPublicNasIngestRouteImport } from './routes/api/public/nas-ingest'
+import { Route as ApiOauthLinkedinReturnRouteImport } from './routes/api/oauth/linkedin/return'
 import { Route as ApiPublicCronAiscanTickRouteImport } from './routes/api/public/cron/aiscan-tick'
 import { Route as ApiPublicCronAttachmentsRetryRouteImport } from './routes/api/public/cron/attachments-retry'
 import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
@@ -54,6 +55,7 @@ import { Route as ApiPublicCronDailyRouteImport } from './routes/api/public/cron
 import { Route as ApiPublicCronDailyDigestRouteImport } from './routes/api/public/cron/daily-digest'
 import { Route as ApiPublicCronEmailTickRouteImport } from './routes/api/public/cron/email-tick'
 import { Route as ApiPublicCronExtractionsRouteImport } from './routes/api/public/cron/extractions'
+import { Route as ApiPublicCronLinkedinTickRouteImport } from './routes/api/public/cron/linkedin-tick'
 import { Route as ApiPublicCronMailscanTickRouteImport } from './routes/api/public/cron/mailscan-tick'
 import { Route as ApiPublicCronMailsyncTickRouteImport } from './routes/api/public/cron/mailsync-tick'
 import { Route as ApiPublicCronTargetsCatchupRouteImport } from './routes/api/public/cron/targets-catchup'
@@ -250,6 +252,11 @@ const ApiPublicNasIngestRoute = ApiPublicNasIngestRouteImport.update({
   path: '/api/public/nas-ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOauthLinkedinReturnRoute = ApiOauthLinkedinReturnRouteImport.update({
+  id: '/api/oauth/linkedin/return',
+  path: '/api/oauth/linkedin/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronAiscanTickRoute = ApiPublicCronAiscanTickRouteImport.update({
   id: '/api/public/cron/aiscan-tick',
   path: '/api/public/cron/aiscan-tick',
@@ -286,6 +293,12 @@ const ApiPublicCronExtractionsRoute =
   ApiPublicCronExtractionsRouteImport.update({
     id: '/api/public/cron/extractions',
     path: '/api/public/cron/extractions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicCronLinkedinTickRoute =
+  ApiPublicCronLinkedinTickRouteImport.update({
+    id: '/api/public/cron/linkedin-tick',
+    path: '/api/public/cron/linkedin-tick',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicCronMailscanTickRoute =
@@ -357,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/nas-ingest': typeof ApiPublicNasIngestRoute
+  '/api/oauth/linkedin/return': typeof ApiOauthLinkedinReturnRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/attachments-retry': typeof ApiPublicCronAttachmentsRetryRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -364,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/extractions': typeof ApiPublicCronExtractionsRoute
+  '/api/public/cron/linkedin-tick': typeof ApiPublicCronLinkedinTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
@@ -409,6 +424,7 @@ export interface FileRoutesByTo {
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/nas-ingest': typeof ApiPublicNasIngestRoute
+  '/api/oauth/linkedin/return': typeof ApiOauthLinkedinReturnRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/attachments-retry': typeof ApiPublicCronAttachmentsRetryRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -416,6 +432,7 @@ export interface FileRoutesByTo {
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/extractions': typeof ApiPublicCronExtractionsRoute
+  '/api/public/cron/linkedin-tick': typeof ApiPublicCronLinkedinTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
@@ -462,6 +479,7 @@ export interface FileRoutesById {
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
   '/api/public/nas-ingest': typeof ApiPublicNasIngestRoute
+  '/api/oauth/linkedin/return': typeof ApiOauthLinkedinReturnRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/attachments-retry': typeof ApiPublicCronAttachmentsRetryRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -469,6 +487,7 @@ export interface FileRoutesById {
   '/api/public/cron/daily-digest': typeof ApiPublicCronDailyDigestRoute
   '/api/public/cron/email-tick': typeof ApiPublicCronEmailTickRoute
   '/api/public/cron/extractions': typeof ApiPublicCronExtractionsRoute
+  '/api/public/cron/linkedin-tick': typeof ApiPublicCronLinkedinTickRoute
   '/api/public/cron/mailscan-tick': typeof ApiPublicCronMailscanTickRoute
   '/api/public/cron/mailsync-tick': typeof ApiPublicCronMailsyncTickRoute
   '/api/public/cron/targets-catchup': typeof ApiPublicCronTargetsCatchupRoute
@@ -516,6 +535,7 @@ export interface FileRouteTypes {
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/nas-ingest'
+    | '/api/oauth/linkedin/return'
     | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/attachments-retry'
     | '/api/public/cron/cfnews-tick'
@@ -523,6 +543,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily-digest'
     | '/api/public/cron/email-tick'
     | '/api/public/cron/extractions'
+    | '/api/public/cron/linkedin-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
     | '/api/public/cron/targets-catchup'
@@ -568,6 +589,7 @@ export interface FileRouteTypes {
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/nas-ingest'
+    | '/api/oauth/linkedin/return'
     | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/attachments-retry'
     | '/api/public/cron/cfnews-tick'
@@ -575,6 +597,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily-digest'
     | '/api/public/cron/email-tick'
     | '/api/public/cron/extractions'
+    | '/api/public/cron/linkedin-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
     | '/api/public/cron/targets-catchup'
@@ -620,6 +643,7 @@ export interface FileRouteTypes {
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
     | '/api/public/nas-ingest'
+    | '/api/oauth/linkedin/return'
     | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/attachments-retry'
     | '/api/public/cron/cfnews-tick'
@@ -627,6 +651,7 @@ export interface FileRouteTypes {
     | '/api/public/cron/daily-digest'
     | '/api/public/cron/email-tick'
     | '/api/public/cron/extractions'
+    | '/api/public/cron/linkedin-tick'
     | '/api/public/cron/mailscan-tick'
     | '/api/public/cron/mailsync-tick'
     | '/api/public/cron/targets-catchup'
@@ -673,6 +698,7 @@ export interface RootRouteChildren {
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCatalogueRoute: typeof ApiPublicCatalogueRoute
   ApiPublicNasIngestRoute: typeof ApiPublicNasIngestRoute
+  ApiOauthLinkedinReturnRoute: typeof ApiOauthLinkedinReturnRoute
   ApiPublicCronAiscanTickRoute: typeof ApiPublicCronAiscanTickRoute
   ApiPublicCronAttachmentsRetryRoute: typeof ApiPublicCronAttachmentsRetryRoute
   ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
@@ -680,6 +706,7 @@ export interface RootRouteChildren {
   ApiPublicCronDailyDigestRoute: typeof ApiPublicCronDailyDigestRoute
   ApiPublicCronEmailTickRoute: typeof ApiPublicCronEmailTickRoute
   ApiPublicCronExtractionsRoute: typeof ApiPublicCronExtractionsRoute
+  ApiPublicCronLinkedinTickRoute: typeof ApiPublicCronLinkedinTickRoute
   ApiPublicCronMailscanTickRoute: typeof ApiPublicCronMailscanTickRoute
   ApiPublicCronMailsyncTickRoute: typeof ApiPublicCronMailsyncTickRoute
   ApiPublicCronTargetsCatchupRoute: typeof ApiPublicCronTargetsCatchupRoute
@@ -955,6 +982,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicNasIngestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/oauth/linkedin/return': {
+      id: '/api/oauth/linkedin/return'
+      path: '/api/oauth/linkedin/return'
+      fullPath: '/api/oauth/linkedin/return'
+      preLoaderRoute: typeof ApiOauthLinkedinReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/aiscan-tick': {
       id: '/api/public/cron/aiscan-tick'
       path: '/api/public/cron/aiscan-tick'
@@ -1002,6 +1036,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/cron/extractions'
       fullPath: '/api/public/cron/extractions'
       preLoaderRoute: typeof ApiPublicCronExtractionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cron/linkedin-tick': {
+      id: '/api/public/cron/linkedin-tick'
+      path: '/api/public/cron/linkedin-tick'
+      fullPath: '/api/public/cron/linkedin-tick'
+      preLoaderRoute: typeof ApiPublicCronLinkedinTickRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/cron/mailscan-tick': {
@@ -1081,6 +1122,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCatalogueRoute: ApiPublicCatalogueRoute,
   ApiPublicNasIngestRoute: ApiPublicNasIngestRoute,
+  ApiOauthLinkedinReturnRoute: ApiOauthLinkedinReturnRoute,
   ApiPublicCronAiscanTickRoute: ApiPublicCronAiscanTickRoute,
   ApiPublicCronAttachmentsRetryRoute: ApiPublicCronAttachmentsRetryRoute,
   ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,
@@ -1088,6 +1130,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronDailyDigestRoute: ApiPublicCronDailyDigestRoute,
   ApiPublicCronEmailTickRoute: ApiPublicCronEmailTickRoute,
   ApiPublicCronExtractionsRoute: ApiPublicCronExtractionsRoute,
+  ApiPublicCronLinkedinTickRoute: ApiPublicCronLinkedinTickRoute,
   ApiPublicCronMailscanTickRoute: ApiPublicCronMailscanTickRoute,
   ApiPublicCronMailsyncTickRoute: ApiPublicCronMailsyncTickRoute,
   ApiPublicCronTargetsCatchupRoute: ApiPublicCronTargetsCatchupRoute,

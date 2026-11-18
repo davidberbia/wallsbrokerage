@@ -261,6 +261,33 @@ export type Database = {
         }
         Relationships: []
       }
+      app_user_connections: {
+        Row: {
+          connection_key_ciphertext: string
+          connector_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          connection_key_ciphertext: string
+          connector_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          connection_key_ciphertext?: string
+          connector_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       arbitrage_requests: {
         Row: {
           address: string | null
@@ -2145,11 +2172,33 @@ export type Database = {
         }
         Relationships: []
       }
+      linkedin_job_state: {
+        Row: {
+          id: boolean
+          lease_until: string | null
+          paused_reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          lease_until?: string | null
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          lease_until?: string | null
+          paused_reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       linkedin_posts: {
         Row: {
           body: string
           chart: Json | null
           created_at: string
+          error: string | null
           id: string
           kind: string
           published_at: string | null
@@ -2161,6 +2210,7 @@ export type Database = {
           body?: string
           chart?: Json | null
           created_at?: string
+          error?: string | null
           id?: string
           kind: string
           published_at?: string | null
@@ -2172,6 +2222,7 @@ export type Database = {
           body?: string
           chart?: Json | null
           created_at?: string
+          error?: string | null
           id?: string
           kind?: string
           published_at?: string | null
@@ -2186,6 +2237,8 @@ export type Database = {
           auto_publish: boolean
           invites_per_day: number
           market_day: number
+          next_invite_at: string | null
+          reconnect_required: boolean
           specialty: string
           updated_at: string
           user_id: string
@@ -2194,6 +2247,8 @@ export type Database = {
           auto_publish?: boolean
           invites_per_day?: number
           market_day?: number
+          next_invite_at?: string | null
+          reconnect_required?: boolean
           specialty?: string
           updated_at?: string
           user_id: string
@@ -2202,6 +2257,8 @@ export type Database = {
           auto_publish?: boolean
           invites_per_day?: number
           market_day?: number
+          next_invite_at?: string | null
+          reconnect_required?: boolean
           specialty?: string
           updated_at?: string
           user_id?: string
