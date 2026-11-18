@@ -1,5 +1,13 @@
 # Roadmap
 
+## Leads — 18 novembre, validation reçue
+- [x] Renommage Leads, filtres À traiter/Qualifiés/Sans suite, contact/promouvoir/archiver et revue plein écran mobile ; archivage/réouverture et Suivant vérifiés au toucher.
+- [x] Transfert sécurisé et journalisé, classe obligatoire contrôlée en base et au toucher.
+- [x] Déclencheur corrigé de Cible vers Prospection, attente des pièces jointes avant recherche, résultats structurés sourcés et champs vides seulement ; enquête réelle Pavillon Opéra terminée et 4 sources relues dans la fiche.
+- [x] 26 tests ciblés réussis, compilation correcte, écrans mobile/ordinateur sans débordement ; aucune publication.
+- [ ] Activation automatique à la réception : attend publication explicitement demandée et activation du schedule existant (deployment_ready=false).
+- [ ] Transfert réel vers un collègue : impossible à tester, seul David dispose actuellement d’un compte actif ; aucun compte ni accès créé sans demande.
+
 ## Filtre Année — 18 novembre, plan validé
 - [x] Année du dossier serveur synchronisée depuis les rattachements NAS et filtre mobile ajouté ; 9 tests réussis, filtre Sans année testé au toucher avec les 67 fiches accessibles ; aucun dossier NAS encore enregistré pour vérifier une année réelle. Aucune publication.
 

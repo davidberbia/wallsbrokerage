@@ -16,9 +16,11 @@ export const queueExtractions = createServerFn({method:"POST"}).middleware([requ
 export const queueTargetResearch = createServerFn({method:"POST"}).middleware([requireStaffAuth])
   .inputValidator(d=>z.object({id:z.string().uuid()}).parse(d))
   .handler(async ({data,context})=>{
-    const {data:target}=await context.supabase.from("deals").select("id,stage,owner_id").eq("id",data.id).maybeSingle();
-    if(!target || target.stage!=="Prospection")throw new Error("Actif à relancer introuvable.");
-    const {error}=await context.supabase.from("extraction_jobs").upsert({owner_id:target.owner_id || context.userId,target_id:data.id,kind:"research",status:"pending",error:null},{onConflict:"owner_id,kind,target_id"});
+    const {data:target}=await context.supabase.from("deals").select("id,stage,owner_id,lead_status").eq("id",data.id).maybeSingle();
+    if(!target || target.stage!=="Prospection" || target.lead_status === "archived")throw new Error("Lead introuvable ou classé sans suite.");
+    const {data:existing}=await context.supabase.from("extraction_jobs").select("status").eq("target_id",data.id).eq("kind","research").maybeSingle();
+    if (existing?.status === "running" || existing?.status === "pending") return {ok:true};
+    const {error}=await context.supabase.from("extraction_jobs").upsert({owner_id:target.owner_id || context.userId,target_id:data.id,kind:"research",status:"pending",error:null,next_run_at:new Date().toISOString()},{onConflict:"owner_id,kind,target_id"});
     if(error)throw new Error(error.message);
     const {error:wake}=await context.supabase.rpc("wake_extractions");if(wake)throw new Error("Recherche enregistrée ; démarrage automatique indisponible.");
     return {ok:true};

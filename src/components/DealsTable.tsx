@@ -2,6 +2,7 @@ import { correspondents as thirdParties } from "@/lib/correspondents";
 import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow } from "@/components/CompactRow";
+import { LeadActions } from "@/components/LeadActions";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ import { suggestDealMerges } from "@/lib/deal-dedup.functions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MergePicker } from "@/components/MergePicker";
 import { assetKindLabel, shortClassLabel, locationLabel } from "@/lib/taxonomy";
+import { ASSET_CLASS_GROUPS } from "@/lib/taxonomy";
 import { cityKey, mergeDealFields, type MergeGroup } from "@/lib/deal-merge";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -91,6 +93,9 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const thisYear = new Date().getFullYear();
   const [year, setYear] = useState(thisYear);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [leadView, setLeadView] = useState("new");
+  const [leadSearch, setLeadSearch] = useState("");
+  const [review, setReview] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [mergeFor, setMergeFor] = useState<Deal | null>(null);
   const [mergePick, setMergePick] = useState<string[]>([]);
@@ -106,6 +111,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     fee: "",
     surface: "",
     rent: "",
+    assetClass: "",
   });
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -148,10 +154,11 @@ export function DealsTable({ mode }: { mode: Mode }) {
     return [...ys].sort((a, b) => b - a);
   }, [all, thisYear]);
 
+  const leadRows = all.filter((d) => d.stage === TARGET_STAGE && inVintage(d, year));
   const rows = all.filter(
     (d) =>
       (mode === "targets" ? d.stage === TARGET_STAGE : d.stage !== TARGET_STAGE && !ASSET_STAGES.includes(d.stage)) &&
-      inVintage(d, year),
+      inVintage(d, year) && (mode !== "targets" || ((d.lead_status ?? "new") === leadView && [d.name,d.address,d.company,d.contact_email].filter(Boolean).join(" ").toLocaleLowerCase("fr").includes(leadSearch.toLocaleLowerCase("fr")))),
   ).sort((a, b) => Number(a.stage === "Perdu") - Number(b.stage === "Perdu"));
   const lostRows = rows.filter((d) => d.stage === "Perdu");
   const firstLost = rows.findIndex((d) => d.stage === "Perdu");
@@ -208,7 +215,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
       else if (mode === "targets" && v.stage !== TARGET_STAGE)
         toast.success(`Basculé dans « Suivi des affaires » (${v.stage})`);
       if (mode === "pipeline" && v.stage === TARGET_STAGE)
-        toast.success("Renvoyé dans « À relancer »");
+        toast.success("Renvoyé dans « Leads »");
     },
     onError: (e: Error) => toast.error(e.message),
     onSettled: refresh,
@@ -304,10 +311,18 @@ export function DealsTable({ mode }: { mode: Mode }) {
     mutationFn: async () => {
       const name = draft.name.trim();
       if (!name) throw new Error("Donnez un nom au dossier.");
+      if (draft.stage !== TARGET_STAGE && !draft.assetClass) throw new Error("Choisissez une classe d’actif.");
+      let assetId: string | null = null;
+      if (draft.assetClass) {
+        const { data: asset, error } = await supabase.from("assets").insert({ title: name, owner_id: user?.id ?? null, asset_class: draft.assetClass, status: "prospection", price: parseNum(draft.price), surface: parseNum(draft.surface), rent: parseNum(draft.rent) }).select("id").single();
+        if (error) throw error;
+        assetId = asset.id;
+      }
       const { data, error } = await supabase
         .from("deals")
         .insert({
           name,
+          asset_id: assetId,
           owner_id: user?.id ?? null,
           name_key: nameKey(name),
           stage: draft.stage,
@@ -333,6 +348,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
         fee: "",
         surface: "",
         rent: "",
+        assetClass: "",
       });
       setCreateOpen(false);
       refresh();
@@ -413,7 +429,11 @@ export function DealsTable({ mode }: { mode: Mode }) {
     }
   };
 
-  const title = mode === "targets" ? "À relancer" : "Suivi des affaires";
+  const title = mode === "targets" ? "Leads" : "Suivi des affaires";
+  const promote = (d: Deal) => {
+    if (!classOf(d)) { toast.error("Choisissez d’abord la classe d’actif"); setOpenId(d.id); return; }
+    move.mutate({id:d.id,stage:"Avis de valeur"});
+  };
 
   return (
     <div className="space-y-4">
@@ -422,7 +442,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <h1 className="font-display text-2xl font-semibold">{title}</h1>
           <p className="text-sm text-muted-foreground">
             {mode === "targets"
-              ? "Opportunités détectées automatiquement (emails, pièces jointes, liens) ou saisies. Changez le statut pour la faire basculer dans « Suivi des affaires »."
+              ? `${leadRows.filter((d) => d.lead_status === "new").length} à traiter`
               : "Pondération : Avis de valeur 10 % · Disponible 20 % · Offre 30 % · LOI acceptée 50 % · Promesse 75 % · Vendu 100 %."}
           </p>
         </div>
@@ -452,6 +472,14 @@ export function DealsTable({ mode }: { mode: Mode }) {
           </Button>
         </div>
       </div>
+
+      {mode === "targets" && <div className="space-y-3">
+        <Input aria-label="Rechercher un lead" placeholder="Rechercher un lead…" value={leadSearch} onChange={(e) => setLeadSearch(e.target.value)} />
+        <div className="flex flex-wrap items-center gap-2">
+          {([["new", "À traiter"], ["qualified", "Qualifiés"], ["archived", "Sans suite"]] as const).map(([value, label]) => <Button key={value} variant={leadView === value ? "default" : "outline"} className="min-h-11" onClick={() => setLeadView(value)}>{label} · {leadRows.filter((d) => d.lead_status === value).length}</Button>)}
+          <Button variant="outline" className="min-h-11" disabled={!rows.length} onClick={() => { setReview(true); setOpenId(rows[0]?.id ?? null); }}>Traiter les leads</Button>
+        </div>
+      </div>}
 
       {(agents.data?.length ?? 0) > 1 && (
         <select
@@ -590,6 +618,14 @@ export function DealsTable({ mode }: { mode: Mode }) {
       <div className={"overflow-hidden border-y border-border" + (mode === "pipeline" && !isMobile && rows.length ? " hidden" : "")}>
         {rows.map((d, i) => (
           <Fragment key={d.id}>
+          {mode === "targets" ? <div className="border-b border-border bg-card px-3 py-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
+            <Button variant="ghost" className="h-auto min-h-11 w-full min-w-0 flex-col items-start justify-start whitespace-normal px-0 text-left sm:flex-1" onClick={() => setOpenId(d.id)} aria-label={`Ouvrir ${d.name}`}>
+              <span className="w-full break-words font-semibold">{d.name}</span>
+              <span className="w-full text-sm font-semibold">{[assetOf(d)?.city || d.address, d.amount ? eur(d.amount) : null].filter(Boolean).join(" · ")}</span>
+              <span className="w-full break-words text-xs font-normal text-muted-foreground">{shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "Classe à préciser"} · {d.contact_email || mailsOf(d.id)[0] || d.source || "Saisie manuelle"}</span>
+            </Button>
+            <div className="mt-1 flex shrink-0 justify-end sm:mt-0"><LeadActions id={d.id} name={d.name} owner={d.owner_id} email={d.contact_email || mailsOf(d.id)[0]} phone={d.contact_phone} archived={d.lead_status === "archived"} onPromote={() => promote(d)} /></div>
+          </div> : <>
           {i === firstLost && (
             <div className="border-t-4 border-border bg-muted px-3 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
               Dossiers perdus ({lostRows.length})
@@ -597,17 +633,11 @@ export function DealsTable({ mode }: { mode: Mode }) {
           )}
           <CompactRow
             title={d.name}
-            subtitle={mode === "pipeline" ? [d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ") : [assetKindLabel(assetOf(d)?.asset_class, assetOf(d)?.asset_subclass) || "Classe à préciser", d.surface ? m2(d.surface) : "", d.amount ? `Prix ${eur(d.amount)}` : ""].filter(Boolean).join(" · ")}
-            summary={mode === "targets" ? [shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || null, locationLabel(classOf(d), assetOf(d)?.city, assetOf(d)?.address || d.address), mailsOf(d.id)[0] && `✉ ${mailsOf(d.id)[0]}`].filter(Boolean).join(" · ") : `Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
+            subtitle={[d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ")}
+            summary={`Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
             trailing={
-              mode === "targets" && canEdit ? (
-                <>
-                  <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={() => { setMergeFor(d); setMergePick([]); }}>
-                    <Merge className="size-4" />
-                  </Button>
-                </>
-              ) : canEdit ? (
+              canEdit ? (
                 <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={() => { setMergeFor(d); setMergePick([]); }}>
                   <Merge className="size-4" />
                 </Button>
@@ -626,6 +656,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
                 : undefined
             }
           />
+          </>}
           </Fragment>
         ))}
         {!rows.length && (
@@ -651,6 +682,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
             <DialogTitle>Nouveau dossier</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
+            <div className="sm:col-span-2"><Label>Classe d’actif</Label><Select value={draft.assetClass || "none"} onValueChange={(v) => setDraft({...draft,assetClass:v === "none" ? "" : v})}><SelectTrigger aria-label="Classe du nouveau dossier"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="none">À préciser</SelectItem>{ASSET_CLASS_GROUPS.flatMap(([,list]) => list).map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
             <div className="sm:col-span-2">
               <Label htmlFor="deal-name">Nom</Label>
               <Input
@@ -749,12 +781,13 @@ export function DealsTable({ mode }: { mode: Mode }) {
         </DialogContent>
       </Dialog>
 
-      <Sheet open={!!openId} onOpenChange={(o) => !o && setOpenId(null)}>
+      <Sheet open={!!openId} onOpenChange={(o) => { if (!o) { setOpenId(null); setReview(false); } }}>
         <SheetContent
           side={isMobile ? "bottom" : "right"}
-          className="w-full overflow-y-auto sm:max-w-xl max-md:max-h-[90vh]"
+          className={mode === "targets" ? "h-dvh max-h-dvh w-full overflow-y-auto sm:max-w-2xl" : "w-full overflow-y-auto sm:max-w-xl max-md:max-h-[90vh]"}
         >
-          {openId && <DealDetail id={openId} onClose={() => setOpenId(null)} />}
+          {review && <div className="sticky top-0 z-10 mb-4 flex items-center justify-between border-b border-border bg-background py-2 pr-10"><span className="text-sm">{rows.findIndex((d) => d.id === openId) + 1} / {rows.length}</span><Button variant="outline" onClick={() => { const i = rows.findIndex((d) => d.id === openId); const next = rows[i + 1]; if (next) setOpenId(next.id); else { setOpenId(null); setReview(false); } }}>Suivant</Button></div>}
+          {openId && <DealDetail key={openId} id={openId} onClose={() => { const i = rows.findIndex((d) => d.id === openId); const next = review ? rows[i + 1] : null; setOpenId(next?.id ?? null); if (!next) setReview(false); }} />}
         </SheetContent>
       </Sheet>
     </div>

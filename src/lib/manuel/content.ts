@@ -105,17 +105,18 @@ export const MANUAL_TABS: ManualTab[] = [
   },
   {
     slug: "cibles",
-    label: "À relancer",
+    label: "Leads",
     routes: ["/cibles"],
     intro: "Les opportunités repérées (étape Prospection) à transformer en affaires.",
     narration:
-      "À relancer regroupe les opportunités repérées, à l'étape Prospection : elles viennent de vos mails, de pièces jointes, de liens analysés ou de votre saisie. Ouvrez une ligne pour la qualifier ; le bouton Rechercher les informations publiques complète la fiche. Dès que vous passez l'opportunité à une autre étape, elle rejoint le Suivi des affaires.",
+      "Leads regroupe les opportunités à l'étape Prospection. À traiter, Qualifiés et Sans suite permettent de les trier. Traiter les leads ouvre la revue plein écran ; Suivant passe au dossier suivant. Les icônes permettent de contacter, transférer à un collègue, transformer en affaire ou classer sans suite. L’enquête analyse les pièces jointes puis recherche des faits publics sourcés, sans remplacer vos données. Une classe d’actif est obligatoire pour changer de statut.",
     marks: ["Import Excel", "Nouveau dossier"],
     sections: [
       { id: "principe", title: "À quoi sert cet onglet", body: ["Les opportunités à l'étape « Prospection » sont rangées ici, sans les montants financiers du pipeline."] },
       { id: "origine", title: "D'où viennent les opportunités", body: ["Elles proviennent des mails et pièces jointes analysés, des liens partagés dans Extractions, d'un import Excel ou d'une saisie avec « Nouveau dossier ». Les mails ne créent que des lignes en Prospection : rien n'est modifié automatiquement dans vos affaires actives."] },
       { id: "qualifier", title: "Qualifier et relancer", body: ["Ouvrez la ligne, complétez la fiche et utilisez « Rechercher les informations publiques » pour trouver les éléments utiles sur la société."] },
-      { id: "transformer", title: "Transformer en affaire", body: ["Changez l'étape (par exemple Avis de valeur) et enregistrez : l'opportunité quitte « À relancer » et apparaît dans le Suivi des affaires."] },
+      { id: "transformer", title: "Transformer en affaire", body: ["Choisissez une classe d’actif puis changez l'étape et enregistrez : le lead rejoint le Suivi des affaires. La flèche de la liste permet de le passer directement en Avis de valeur si sa classe est renseignée."] },
+      { id: "transferer", title: "Transférer et classer", body: ["Transférer permet de choisir un collègue : le lead et son actif lui sont attribués, sans ouvrir les autres dossiers de ce collègue. Un actif déjà lié à une autre affaire ou à un mandat ne peut pas être transféré. Sans suite conserve le lead sans nouvelle enquête automatique ; Réouvrir le remet à traiter."] },
     ],
   },
   {
@@ -144,7 +145,7 @@ export const MANUAL_TABS: ManualTab[] = [
       "Extractions analyse un lien pour vous : article de presse, vidéo YouTube, Instagram ou TikTok. Collez l'adresse, ajoutez une remarque si besoin, puis touchez Analyser le lien. Le CRM en tire les contacts, l'actualité et une opportunité à relancer. Sur téléphone, vous pouvez aussi partager un lien directement vers Wallsbroker.",
     marks: ["https://…", "Remarque (facultatif)", "Analyser le lien"],
     sections: [
-      { id: "principe", title: "À quoi sert cet onglet", body: ["Extractions transforme un article ou une vidéo en informations utiles : contacts, actualité de la société et opportunité, rangée dans « À relancer »."] },
+      { id: "principe", title: "À quoi sert cet onglet", body: ["Extractions transforme un article ou une vidéo en informations utiles : contacts, actualité de la société et opportunité, rangée dans « Leads »."] },
       { id: "analyser", title: "Analyser un lien", body: ["Collez l'adresse dans le champ « https://… », ajoutez une « Remarque (facultatif) », puis « Analyser le lien ». Pendant le traitement, « Analyse en cours… » s'affiche."] },
       { id: "historique", title: "Historique et relance", body: ["Les analyses précédentes restent listées avec leur résultat. « Relancer l'analyse » recommence une analyse ; vous pouvez modifier le titre et la remarque puis « Enregistrer »."] },
       { id: "telephone", title: "Depuis votre téléphone", body: ["Depuis une application (navigateur, YouTube…), utilisez Partager puis Wallsbroker : le lien arrive directement ici."] },

@@ -1234,6 +1234,8 @@ export type Database = {
           fee_pct: number | null
           id: string
           last_activity_at: string | null
+          lead_research: Json | null
+          lead_status: string
           name: string
           name_key: string | null
           nego1: string | null
@@ -1272,6 +1274,8 @@ export type Database = {
           fee_pct?: number | null
           id?: string
           last_activity_at?: string | null
+          lead_research?: Json | null
+          lead_status?: string
           name: string
           name_key?: string | null
           nego1?: string | null
@@ -1310,6 +1314,8 @@ export type Database = {
           fee_pct?: number | null
           id?: string
           last_activity_at?: string | null
+          lead_research?: Json | null
+          lead_status?: string
           name?: string
           name_key?: string | null
           nego1?: string | null
@@ -1859,6 +1865,41 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      lead_transfers: {
+        Row: {
+          created_at: string
+          deal_id: string | null
+          from_owner: string | null
+          id: string
+          to_owner: string
+          transferred_by: string
+        }
+        Insert: {
+          created_at?: string
+          deal_id?: string | null
+          from_owner?: string | null
+          id?: string
+          to_owner: string
+          transferred_by: string
+        }
+        Update: {
+          created_at?: string
+          deal_id?: string | null
+          from_owner?: string | null
+          id?: string
+          to_owner?: string
+          transferred_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_transfers_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mail_attachment_jobs: {
         Row: {
@@ -2893,6 +2934,7 @@ export type Database = {
       can_see_deal: { Args: { _owner: string }; Returns: boolean }
       can_see_owner: { Args: { _owner: string }; Returns: boolean }
       cfnews_scrape_schedule: { Args: { _on: boolean }; Returns: undefined }
+      claim_attachment_lease: { Args: never; Returns: boolean }
       claim_extraction_job: {
         Args: never
         Returns: {
@@ -2916,6 +2958,7 @@ export type Database = {
         }
       }
       claim_investor_profile: { Args: never; Returns: string }
+      claim_lead_research: { Args: { _id: string }; Returns: boolean }
       claim_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
@@ -2998,6 +3041,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_lead_recipients: {
+        Args: never
+        Returns: {
+          name: string
+          user_id: string
+        }[]
+      }
       list_mandate_agents: {
         Args: never
         Returns: {
@@ -3028,6 +3078,10 @@ export type Database = {
       sleep_extractions_if_empty: { Args: never; Returns: undefined }
       start_email_pump: { Args: never; Returns: undefined }
       targets_catchup_unschedule: { Args: never; Returns: undefined }
+      transfer_lead: {
+        Args: { _deal_id: string; _recipient: string }
+        Returns: undefined
+      }
       trigger_automation: { Args: { path: string }; Returns: undefined }
       wake_extractions: { Args: never; Returns: undefined }
     }

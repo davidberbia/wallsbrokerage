@@ -203,7 +203,9 @@ export async function runAttachments(mode: "tick" | "retry" = "tick"): Promise<R
   const { data: ctl } = await admin.from("attachment_control").select("*").eq("id", true).maybeSingle();
   if (ctl?.paused_reason) return { pj_pause: ctl.paused_reason.slice(0, 120) };
   if (ctl?.lease_until && new Date(ctl.lease_until).getTime() > Date.now()) return { pj: "occupé" };
-  await admin.from("attachment_control").update({ lease_until: new Date(Date.now() + 10 * 60_000).toISOString() }).eq("id", true);
+  const { data: claimed, error: claimError } = await admin.rpc("claim_attachment_lease");
+  if (claimError) throw new Error(claimError.message);
+  if (!claimed) return { pj: "occupé ou en pause" };
   let done = 0;
   let queued = 0;
   try {

@@ -21,6 +21,19 @@ export async function processExtraction() {
   try {
     let result: {summary?:string;suggestion?:string;facts?:unknown[]}|null;
     if(job.kind==="research") {
+      const { data: target } = await admin.from("deals").select("asset_id,stage,lead_status").eq("id",job.target_id || "").maybeSingle();
+      if (!target || target.stage !== "Prospection" || target.lead_status === "archived") {
+        await admin.from("extraction_jobs").update({status:"done",result:{summary:"Lead quitté ou classé sans suite"},lease_until:null}).eq("id",job.id);
+        return {processed:1};
+      }
+      const { count: unlisted } = await admin.from("mail_messages").select("id",{count:"exact",head:true}).eq("deal_id",job.target_id || "").eq("folder","inbox").is("attachments_listed_at",null);
+      const { count: waiting } = target.asset_id ? await admin.from("mail_attachment_jobs").select("id",{count:"exact",head:true}).eq("asset_id",target.asset_id).eq("status","pending") : {count:0};
+      if (unlisted || waiting) {
+        const { data: control } = await admin.from("attachment_control").select("paused_reason").eq("id",true).maybeSingle();
+        if (control?.paused_reason) throw new Error(`Pièces jointes en pause : ${control.paused_reason}`);
+        await admin.from("extraction_jobs").update({status:"pending",next_run_at:new Date(Date.now()+120000).toISOString(),lease_until:null}).eq("id",job.id);
+        return {processed:0};
+      }
       result=await researchDeal(admin,job.target_id || "",job.owner_id);
     }else{
       if(!(job.result as {robots_checked?:boolean}|null)?.robots_checked){
@@ -40,7 +53,7 @@ export async function processExtraction() {
     await admin.from("extraction_jobs").update({status:"done",result:JSON.parse(JSON.stringify(result)),lease_until:null,error:null}).eq("id",job.id).eq("status","running");
   }catch(e){
     const message=e instanceof Error?e.message:"Échec de l'extraction";
-    const paused=/plafond|\[40[123]\]|permission|denied/i.test(message);
+    const paused=/plafond|\[40[123]\]|permission|denied|en pause/i.test(message);
     await admin.from("extraction_jobs").update({status:paused?"paused":"failed",error:message.slice(0,1000),lease_until:null}).eq("id",job.id).eq("status","running");
     if(paused)await admin.from("extraction_control").update({paused_reason:message.slice(0,1000)}).eq("id",true);
   }finally{

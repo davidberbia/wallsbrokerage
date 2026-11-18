@@ -47,7 +47,7 @@ const CONTACT_ITEMS = [
 ] as const;
 
 const NAV_ITEMS = [
-  { to: "/cibles", label: "À relancer", icon: Crosshair, admin: false },
+  { to: "/cibles", label: "Leads", icon: Crosshair, admin: false },
   { to: "/actifs", label: "Actifs", icon: Building2, admin: false },
   { to: "/mandats", label: "Mandats", icon: FileSignature, admin: false },
   { to: "/presentation", label: "Teasers", icon: Presentation, admin: false },

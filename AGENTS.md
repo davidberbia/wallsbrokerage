@@ -32,3 +32,5 @@
 
 - Asset families mirror the NAS INVESTISSEMENT folders (assets.family via asset_family()); detailed asset_class is kept underneath, and every asset with a city and price or rent upserts one comparable (comparables.asset_id) by trigger. Why: server nomenclature in the CRM without losing matching detail, and every asset feeds the comparables base.
 - Asset year filtering uses assets.nas_year synchronized by a nas_folders trigger across creation and manual reassignment; missing or conflicting folder years stay null. Why: one authoritative synchronization path avoids using file or CRM timestamps.
+- Lead transfers use a staff-only atomic database function checking visibility, recipient membership and exclusive asset ownership; transfers never expose unrelated colleague records. Why: ordinary owner-scoped RLS cannot reassign a lead safely by itself.
+- Leads keep their existing /cibles URL, use lead_status for triage and require a linked asset class before changing stage; research waits for attachment processing and only applies confirmed URL-sourced facts to empty fields. Why: preserve links, avoid premature guesses and make the investigation auditable.

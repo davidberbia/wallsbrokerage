@@ -5,9 +5,9 @@ import { DealsTable } from "@/components/DealsTable";
 export const Route = createFileRoute("/cibles")({
   head: () => ({
     meta: [
-      { title: "À relancer — Walls Brokerage CRM" },
-      { name: "description", content: "Actifs à relancer et informations publiques utiles à la prise de contact." },
-      { property: "og:title", content: "À relancer — Walls Brokerage CRM" },
+      { title: "Leads — Walls Brokerage CRM" },
+      { name: "description", content: "Qualification des leads immobiliers, enquête documentée et transfert aux collègues Walls Brokerage." },
+      { property: "og:title", content: "Leads — Walls Brokerage CRM" },
       { property: "og:description", content: "Opportunités détectées automatiquement dans les emails, pièces jointes et liens." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

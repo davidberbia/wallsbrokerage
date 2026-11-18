@@ -1,5 +1,5 @@
 import { useServerFn } from "@tanstack/react-start";
-import { queueTargetResearch } from "@/lib/extraction.functions";
+import { investigateLead } from "@/lib/leads.functions";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -18,6 +18,8 @@ import { correspondents, byDomain } from "@/lib/correspondents";
 import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { CopyEmail } from "@/components/CopyEmail";
 import { ASSET_CLASS_GROUPS } from "@/lib/taxonomy";
+import { LeadActions } from "@/components/LeadActions";
+import { canChangeLeadStage, leadResearchSchema } from "@/lib/lead-policy";
 
 const STAGES = [TARGET_STAGE, ...STAGE_NAMES];
 type Deal = Tables<"deals">;
@@ -84,7 +86,16 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
     const { data } = await supabase.storage.from("brochures").createSignedUrl(path, 600);
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
   };
-  const research=useServerFn(queueTargetResearch);
+  const research=useServerFn(investigateLead);
+  const jobs = useQuery({
+    queryKey: ["lead-jobs", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("extraction_jobs").select("status,error").eq("target_id", id).eq("kind", "research").maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: (query) => ["pending", "running"].includes(query.state.data?.status ?? "") ? 15000 : false,
+  });
   const [researchBusy,setResearchBusy]=useState(false);
   const [form, setForm] = useState<(Partial<Deal> & { address?: string | null }) | null>(null);
   const current = form ?? deal.data ?? null;
@@ -103,6 +114,10 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
   const save = async () => {
     const dirtyAsset = assetClass !== null || Object.keys(hotel).length > 0;
     if (!form && !dirtyAsset) return;
+    if (!canChangeLeadStage(deal.data?.stage ?? "", current?.stage ?? "", assetClass ?? dossier.data?.asset?.asset_class)) {
+      toast.error("Choisissez une classe d’actif avant de changer le statut");
+      return;
+    }
     let assetId = current?.asset_id ?? null;
     const assetPatch: Record<string, unknown> = { ...hotel, ...(assetClass !== null ? { asset_class: assetClass || null } : {}) };
     if (dirtyAsset) {
@@ -241,6 +256,16 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
       <SheetHeader>
         <SheetTitle>{current.name}</SheetTitle>
       </SheetHeader>
+      {current.stage === "Prospection" && <div className="flex flex-wrap items-center justify-between gap-2">
+        <LeadActions id={id} name={current.name ?? "Lead"} owner={current.owner_id} email={current.contact_email} phone={current.contact_phone} archived={current.lead_status === "archived"} onPromote={() => {
+          if (!canChangeLeadStage("Prospection", "Avis de valeur", assetClass ?? dossier.data?.asset?.asset_class)) { toast.error("Choisissez d’abord la classe d’actif"); document.getElementById("lead-class")?.focus(); return; }
+          set({ stage: "Avis de valeur" });
+        }} />
+        <Button variant="outline" onClick={async () => {
+          const { error } = await supabase.from("deals").update({ lead_status: current.lead_status === "qualified" ? "new" : "qualified" }).eq("id", id);
+          if (error) toast.error(error.message); else { refresh(); setForm(null); }
+        }}>{current.lead_status === "qualified" ? "À traiter" : "Qualifier"}</Button>
+      </div>}
       {(() => {
         // Interlocuteur principal : l'expéditeur du premier mail reçu (celui qui a envoyé le dossier).
         const ordered = [...(mails.data ?? [])].sort((x, y) => (x.received_at ?? "").localeCompare(y.received_at ?? ""));
@@ -255,7 +280,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         }
         if (!groups.length) return null;
         return (
-          <section className="space-y-1 rounded-sm border border-border bg-muted/40 p-3">
+          <section className="max-h-44 space-y-1 overflow-y-auto border-y border-border py-3">
             <h3 className="text-xs font-semibold uppercase text-muted-foreground">Interlocuteur</h3>
             {sender && (
               <div className="text-sm font-semibold">
@@ -280,7 +305,7 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         <div className="sm:col-span-2">
           <Label>Classe d'actif</Label>
           <Select value={(assetClass ?? dossier.data?.asset?.asset_class) || "none"} onValueChange={(v) => setAssetClass(v === "none" ? "" : v)}>
-            <SelectTrigger><SelectValue placeholder="À préciser" /></SelectTrigger>
+            <SelectTrigger id="lead-class"><SelectValue placeholder="À préciser" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">À préciser</SelectItem>
               {ASSET_CLASS_GROUPS.map(([g, list]) => list.map((c) => <SelectItem key={c} value={c}>{g === c ? c : `${g} — ${c}`}</SelectItem>))}
@@ -289,7 +314,10 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         </div>
         <div>
           <Label>Étape</Label>
-          <Select value={current.stage ?? "Prospection"} onValueChange={(v) => set({ stage: v })}>
+          <Select value={current.stage ?? "Prospection"} onValueChange={(v) => {
+            if (!canChangeLeadStage(deal.data?.stage ?? "", v, assetClass ?? dossier.data?.asset?.asset_class)) { toast.error("Choisissez d’abord la classe d’actif"); document.getElementById("lead-class")?.focus(); return; }
+            set({ stage: v });
+          }}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -467,7 +495,18 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           <Textarea rows={6} value={current.notes ?? ""} onChange={(e) => set({ notes: e.target.value })} />
         </div>
       </div>
-      {current.stage === "Prospection" && <Button variant="outline" disabled={researchBusy} onClick={async()=>{setResearchBusy(true);try{await research({data:{id:id}});toast.success("Recherche lancée : la fiche se complète d\u2019ici quelques minutes");}catch(e){toast.error(e instanceof Error ? e.message : "Échec de la recherche");}finally{setResearchBusy(false);}}}>Compléter les informations via IA</Button>}
+      {current.stage === "Prospection" && <section className="space-y-2 border-t border-border pt-4">
+        <h3 className="text-sm font-semibold">Enquête</h3>
+        {jobs.data && <p className="text-sm text-muted-foreground">{({ pending: "En attente", running: "Enquête en cours", done: "Enquête terminée", failed: "Enquête interrompue", paused: "Enquête en pause" } as Record<string,string>)[jobs.data.status] ?? jobs.data.status}</p>}
+        {jobs.data?.error && <p className="break-words text-sm text-destructive">{jobs.data.error}</p>}
+        <Button variant="outline" disabled={researchBusy || jobs.data?.status === "running"} onClick={async()=>{setResearchBusy(true);try{await research({data:{id:id}});refresh();void qc.invalidateQueries({queryKey:["lead-jobs",id]});void qc.invalidateQueries({queryKey:["deal-dossier"]});toast.success("Enquête terminée");}catch(e){toast.error(e instanceof Error ? e.message : "Échec de la recherche");}finally{setResearchBusy(false);}}}>{researchBusy ? "Enquête en cours…" : "Compléter les informations via IA"}</Button>
+        {(() => {
+          const parsed = leadResearchSchema.safeParse(current.lead_research);
+          if (!parsed.success) return null;
+          const labels: Record<string,string> = { identified:"Bien identifié",address:"Adresse",city:"Ville",postal_code:"Code postal",keys_count:"Nombre de clés",hotel_category:"Catégorie",owner_company:"Propriétaire",owner_siren:"SIREN",contact_email:"E-mail public",contact_phone:"Téléphone public",contact_name:"Contact",asset_class:"Classe d’actif",price:"Prix",rent:"Loyer",surface:"Surface" };
+          return <div className="space-y-3">{parsed.data.facts.map((f,i) => <div key={i} className="border-b border-border pb-2 text-sm"><span className="font-medium">{labels[f.field] || f.field} : </span><span className="break-words">{f.value === null ? "Non identifié" : String(f.value)}</span><a className="mt-1 block text-xs text-primary underline" href={f.source} target="_blank" rel="noreferrer">{f.certainty} · Source</a></div>)}{parsed.data.related_companies.length > 0 && <h4 className="text-sm font-semibold">Sociétés et liens identifiés</h4>}{parsed.data.related_companies.map((c,i) => <p key={i} className="text-sm"><a className="text-primary underline" href={c.source} target="_blank" rel="noreferrer">{c.name}</a>{c.role ? ` · ${c.role}` : ""}</p>)}</div>;
+        })()}
+      </section>}
       {(current.suggestion || current.enrichment) && (
         <section className="space-y-1 rounded-sm border border-border bg-muted/40 p-3 text-sm">
           {current.suggestion && (
@@ -654,11 +693,11 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
           <section className="space-y-2 rounded-sm border border-border p-3">
             <h3 className="text-xs font-semibold uppercase text-muted-foreground">Dossier ({dossier.data.docs.length})</h3>
             {facts.length > 0 && <p className="text-sm">{facts.join(" · ")}</p>}
-            {dossier.data.docs.map((d) => (
-              <button key={d.id} type="button" onClick={() => openDoc(d.path)} className="flex w-full items-center gap-2 py-1 text-left text-sm underline-offset-2 hover:underline">
+            <div className="max-h-64 overflow-y-auto">{dossier.data.docs.map((d) => (
+              <Button key={d.id} variant="ghost" type="button" onClick={() => openDoc(d.path)} className="h-auto min-h-11 w-full justify-start whitespace-normal text-left text-sm">
                 <ExternalLink className="h-4 w-4 shrink-0" /> <span className="break-all">{d.name}</span>
-              </button>
-            ))}
+              </Button>
+            ))}</div>
           </section>
         );
       })()}
