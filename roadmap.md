@@ -176,3 +176,6 @@
 
 ## Serveur NAS — 18 novembre
 - [x] Clé privée, onglet Paramètres, programme Windows (actifs + comparables) ; essai réel réussi puis nettoyé. Premier envoi réel à lancer par David.
+- [ ] Enregistrement auto des champs de la fiche lead (blur/Tab/Entrée)
+- [ ] Enquête IA : toute la fiche + texte des pièces jointes
+- [ ] Doublons de leads par référence (75_0027)

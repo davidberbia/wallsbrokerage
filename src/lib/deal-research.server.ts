@@ -46,13 +46,29 @@ export async function researchDeal(admin: Admin, dealId: string, ownerId: string
     if (na) { await admin.from("deals").update({ asset_id: na.id }).eq("id", dealId); deal.asset_id = na.id; }
   }
   if (deal.asset_id) asset = (await admin.from("assets").select("*").eq("id", deal.asset_id).maybeSingle()).data as Record<string, unknown> | null;
-  const { data: mails } = await admin.from("mail_messages").select("subject,preview").eq("deal_id", dealId).order("received_at").limit(5);
-  const brief = {
-    nom: deal.name, adresse: deal.address, societe: deal.company, description: deal.notes,
-    actif: asset && { classe: asset["asset_class"], ville: asset["city"], adresse: asset["address"], cles: asset["keys_count"], categorie: asset["hotel_category"], description: asset["description"] },
-    mails: (mails ?? []).map((m) => `${m.subject ?? ""} — ${m.preview ?? ""}`),
-  };
-  const raw = await callGeminiSearch({ task: "enrichissement", system: SYSTEM, prompt: JSON.stringify(brief) });
+  const { data: mails } = await admin.from("mail_messages").select("subject,preview,from_name,from_email").eq("deal_id", dealId).order("received_at").limit(10);
+  // Toute la fiche (champs non vides) : rien de ce que l'agent a saisi ne doit être ignoré.
+  const filled = (o: Record<string, unknown> | null) => Object.fromEntries(Object.entries(o ?? {}).filter(([k, v]) => v != null && String(v).trim() !== "" && !/(^id$|_id$|_at$|autofill|lead_research|embedding)/.test(k)));
+  const brief = { fiche_lead: filled(deal as Record<string, unknown>), fiche_actif: filled(asset), mails: (mails ?? []).map((m) => `${m.from_name ?? m.from_email ?? ""} — ${m.subject ?? ""} — ${m.preview ?? ""}`) };
+  // Pièces jointes lisibles (PDF, images) : jointes à la recherche, plafonnées pour limiter le coût.
+  const files: { mimeType: string; base64: string }[] = [];
+  if (deal.asset_id) {
+    const { data: docs } = await admin.from("asset_documents").select("name,path").eq("asset_id", deal.asset_id).order("sort_order").limit(10);
+    let total = 0;
+    for (const d of docs ?? []) {
+      const ext = (d.name.split(".").pop() ?? "").toLowerCase();
+      const mime = ext === "pdf" ? "application/pdf" : ext === "png" ? "image/png" : ["jpg", "jpeg"].includes(ext) ? "image/jpeg" : ext === "webp" ? "image/webp" : null;
+      if (!mime || !d.path || files.length >= 4) continue;
+      const dl = await admin.storage.from("brochures").download(d.path);
+      if (dl.error || !dl.data) continue;
+      const bytes = new Uint8Array(await dl.data.arrayBuffer());
+      if (total + bytes.length > 15_000_000) continue;
+      total += bytes.length;
+      let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+      files.push({ mimeType: mime, base64: btoa(bin) });
+    }
+  }
+  const raw = await callGeminiSearch({ task: "enrichissement", system: SYSTEM, prompt: `${files.length ? `Lis d'abord attentivement les ${files.length} pièce(s) jointe(s) (teaser, plaquette) : elles contiennent souvent l'identité du bien. Compile-les avec la fiche avant toute recherche web.\n\n` : ""}${JSON.stringify(brief)}`, files });
   const parsed = leadResearchSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Résultat de recherche non vérifiable : aucun champ modifié.");
   const verified = parsed.data;

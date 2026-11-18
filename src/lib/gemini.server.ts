@@ -176,7 +176,7 @@ async function logUsage(task: string, u: { promptTokenCount?: number; candidates
 }
 
 /** Recherche web ancrée Google Search ; réponse JSON (analysée depuis le texte). */
-export async function callGeminiSearch(opts: { task: string; system: string; prompt: string }): Promise<{ summary?: string; suggestion?: string } | null> {
+export async function callGeminiSearch(opts: { task: string; system: string; prompt: string; files?: { mimeType: string; base64: string }[] }): Promise<{ summary?: string; suggestion?: string } | null> {
   const key = process.env["GEMINI_API_KEY"];
   if (!key) throw new Error("Clé Gemini absente.");
   if ((await monthSpent()) >= MONTHLY_BUDGET_EUR) throw new BudgetReachedError();
@@ -185,7 +185,7 @@ export async function callGeminiSearch(opts: { task: string; system: string; pro
     headers: { "Content-Type": "application/json", "x-goog-api-key": key },
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: opts.system }] },
-      contents: [{ role: "user", parts: [{ text: opts.prompt }] }],
+      contents: [{ role: "user", parts: [...(opts.files ?? []).map((f) => ({ inlineData: { mimeType: f.mimeType, data: f.base64 } })), { text: opts.prompt }] }],
       tools: [{ google_search: {} }],
       generationConfig: { thinkingConfig: { thinkingLevel: "low" } },
     }),

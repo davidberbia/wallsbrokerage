@@ -2,7 +2,7 @@ import { Completion } from "@/components/Completion";
 import { useCompletion } from "@/hooks/useCompletion";
 import { useServerFn } from "@tanstack/react-start";
 import { investigateLead } from "@/lib/leads.functions";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ExternalLink, Trash2 } from "lucide-react";
@@ -82,7 +82,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
       const aid = deal.data?.asset_id;
       if (!aid) return { asset: null, docs: [] };
       const [a, docs] = await Promise.all([
-        supabase.from("assets").select("city,address,postal_code,surface,price,rent,yield_pct,keys_count,revenue,revenue_n1,revenue_n2,ebe,ebe_n1,ebe_n2,hotel_category,asset_class,autofill_sources").eq("id", aid).single(),
+        supabase.from("assets").select("city,address,postal_code,surface,price,rent,yield_pct,keys_count,revenue,revenue_n1,revenue_n2,ebe,ebe_n1,ebe_n2,hotel_category,asset_class,occupant,autofill_sources").eq("id", aid).single(),
         supabase.from("asset_documents").select("id,name,path").eq("asset_id", aid).order("sort_order"),
       ]);
       return { asset: a.data, docs: docs.data ?? [] };
@@ -118,9 +118,13 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
     qc.invalidateQueries({ queryKey: ["deal-mails", id] });
   };
 
-  const save = async () => {
+  const saving = useRef(false);
+  const save = async (close = true) => {
+    if (saving.current) return;
     const dirtyAsset = assetClass !== null || Object.keys(hotel).length > 0;
-    if (!form && !dirtyAsset) return;
+    if (!form && !dirtyAsset) { if (close) onClose(); return; }
+    saving.current = true;
+    try {
     if (deal.data?.stage === "Prospection" && current?.stage === "Disponible" && (!fill.loaded || !fill.get(current.asset_id, undefined, current).ready)) {
       toast.error("Complétez les éléments minimum pour la brochure");
       return;
@@ -175,14 +179,13 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
       toast.error(error.message);
       return;
     }
-    setForm(null);
-    setAssetClass(null);
-    setHotel({});
+    if (close) { setForm(null); setAssetClass(null); setHotel({}); }
     qc.invalidateQueries({ queryKey: ["deal-assets"] });
     qc.invalidateQueries({ queryKey: ["deal-dossier"] });
-    toast.success("Dossier enregistré");
+    if (close) toast.success("Dossier enregistré");
     refresh();
-    onClose();
+    if (close) onClose();
+    } finally { saving.current = false; }
   };
 
   const addContact = async () => {
@@ -314,7 +317,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
       })()}
 
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-2" onBlur={(e) => { if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) void save(false); }} onKeyDown={(e) => { if (e.key === "Enter" && e.target instanceof HTMLInputElement) { e.preventDefault(); e.target.blur(); } }}>
         <div className="sm:col-span-2">
           <Label>Nom</Label>
           <Input value={current.name ?? ""} onChange={(e) => set({ name: e.target.value })} />
@@ -542,7 +545,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
         <Button variant="outline" onClick={remove}>
           <Trash2 className="h-4 w-4" /> Supprimer
         </Button>
-        <Button onClick={save} disabled={!form && assetClass === null && !Object.keys(hotel).length}>
+        <Button onClick={() => void save()} disabled={!form && assetClass === null && !Object.keys(hotel).length}>
           Enregistrer
         </Button>
       </div>
