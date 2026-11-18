@@ -414,6 +414,13 @@
       "when": 1795005834380,
       "tag": "0058_deal_research_failed",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1795010908321,
+      "tag": "0059_attachments_follow_mail",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { authorizeCron, getAdmin } from "@/lib/automation.server";
 import { BudgetReachedError, MAX_BYTES, MIN_BYTES, analyseAttachment, geminiStatus, graphGet, sha256 } from "@/lib/aiscan.server";
 import { callGeminiJson } from "@/lib/gemini.server";
-import { TARGETS_SYSTEM, saveTargets, type RawFee, type RawTarget } from "@/lib/targets.server";
+import { TARGETS_SYSTEM, saveTargets, linkTargetMail, type RawFee, type RawTarget } from "@/lib/targets.server";
 
 const TIME_BUDGET_MS = 150 * 1000;
 const LEASE_MS = 4 * 60 * 1000;
@@ -101,7 +101,7 @@ export const Route = createFileRoute("/api/public/cron/targets-catchup")({
                 }
               }
               const saved = await saveTargets(admin, found.targets!, found.fees!, m.folder === "sentitems" ? "email envoyé" : "email", date);
-              if (saved.ids.length) await admin.from("mail_messages").update({ deal_id: (saved.ids[0] as string) }).eq("id", m.id).is("deal_id", null);
+              if (saved.ids.length) await linkTargetMail(admin, saved.ids, { id: m.id });
               await admin.from("mail_messages").update({ targets_checked_at: new Date().toISOString() }).eq("id", m.id);
               s.mails++;
               s.targets += saved.targets;

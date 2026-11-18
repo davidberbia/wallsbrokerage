@@ -3,7 +3,7 @@
 import { getAdmin } from "@/lib/automation.server";
 import { classifyAddress, companyFromDomain, graphGet } from "@/lib/mailscan.server";
 import { BudgetReachedError, callGeminiFileJson, callGeminiJson } from "@/lib/gemini.server";
-import { TARGETS_RULES, saveTargets, type RawFee, type RawTarget } from "@/lib/targets.server";
+import { TARGETS_RULES, saveTargets, linkTargetMail, type RawFee, type RawTarget } from "@/lib/targets.server";
 
 type Admin = Awaited<ReturnType<typeof getAdmin>>;
 
@@ -226,6 +226,7 @@ export async function saveExtraction(
     news = nRows.length;
   }
   const t = await saveTargets(admin, ex.targets ?? [], ex.fees ?? [], opts.source ?? "email", date);
+  if (t.ids.length) await linkTargetMail(admin, t.ids, { graph_id: graphId });
   return { contacts, comparables, news, targets: t.targets, fees: t.fees };
 }
 

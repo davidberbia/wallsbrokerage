@@ -87,3 +87,22 @@ export async function enrichTarget(dealId:string):Promise<void> {
   if(!t || t.stage!=="Prospection" || !t.owner_id)return;
   const {error}=await admin.from("extraction_jobs").upsert({owner_id:t.owner_id,kind:"research",target_id:dealId},{onConflict:"owner_id,kind,target_id",ignoreDuplicates:true});if(error)throw error;
 }
+
+/** Rattache le mail source aux leads créés et enregistre l'interlocuteur (destinataire si mail envoyé). */
+export async function linkTargetMail(admin: Admin, dealIds: string[], mail: { id?: string; graph_id?: string }): Promise<void> {
+  if (!dealIds.length || (!mail.id && !mail.graph_id)) return;
+  let q = admin.from("mail_messages").select("id, folder, from_email, from_name, participants, to_display, deal_id");
+  q = mail.id ? q.eq("id", mail.id) : q.eq("graph_id", mail.graph_id!);
+  const { data: m } = await q.maybeSingle();
+  if (!m) return;
+  const first = dealIds[0]!;
+  if (!m.deal_id) await admin.from("mail_messages").update({ deal_id: first }).eq("id", m.id).is("deal_id", null);
+  const own = (e: string) => /@wallsbroker(age)?\.com$/i.test(e);
+  const emails = m.folder === "sentitems"
+    ? (m.participants ?? []).map((e: string) => e.toLowerCase().trim()).filter((e: string) => e && !own(e))
+    : [String(m.from_email ?? "").toLowerCase().trim()].filter((e) => e && !own(e));
+  const name = m.folder === "sentitems" ? (emails.length === 1 ? m.to_display : null) : m.from_name;
+  for (const email of emails.slice(0, 3)) {
+    await admin.from("deal_contacts").upsert({ deal_id: first, email, name: name || null }, { onConflict: "deal_id,email", ignoreDuplicates: true });
+  }
+}
