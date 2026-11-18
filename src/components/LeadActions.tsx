@@ -34,7 +34,7 @@ export function LeadActions({ id, name, email, phone, owner, archived, onPromote
   return <>
     <div className="flex shrink-0 items-center gap-0.5">
       <Button variant="ghost" size="icon" className="size-11" title="Transformer en affaire" aria-label={`Transformer ${name} en affaire`} onClick={onPromote}><ArrowUpRight className="size-4" /></Button>
-      {email ? <Button asChild variant="ghost" size="icon" className="size-11" title="Contacter" aria-label={`Contacter ${name}`}><a href={`mailto:${email}`}><Mail className="size-4" /></a></Button> : phone ? <Button asChild variant="ghost" size="icon" className="size-11" title="Appeler" aria-label={`Appeler ${name}`}><a href={`tel:${phone}`}><Phone className="size-4" /></a></Button> : null}
+      {email ? <Button asChild variant="ghost" size="icon" className="size-11" title="Contacter" aria-label={`Contacter ${name}`}><a href={`mailto:${email}?subject=${encodeURIComponent(`Votre dossier : ${name}`)}`}><Mail className="size-4" /></a></Button> : phone ? <Button asChild variant="ghost" size="icon" className="size-11" title="Appeler" aria-label={`Appeler ${name}`}><a href={`tel:${phone}`}><Phone className="size-4" /></a></Button> : null}
       <Button variant="ghost" size="icon" className="size-11" title="Transférer" aria-label={`Transférer ${name}`} onClick={() => setOpen(true)}><Forward className="size-4" /></Button>
       <Button variant="ghost" size="icon" className="size-11" disabled={busy} title={archived ? "Réouvrir" : "Sans suite"} aria-label={`${archived ? "Réouvrir" : "Classer sans suite"} ${name}`} onClick={() => void archive()}>{archived ? <RotateCcw className="size-4" /> : <Archive className="size-4" />}</Button>
     </div>
