@@ -2369,6 +2369,114 @@ export type Database = {
         }
         Relationships: []
       }
+      nas_files: {
+        Row: {
+          asset_id: string | null
+          category: string | null
+          created_at: string
+          folder_id: string | null
+          id: string
+          mode: string
+          rel_path: string
+          sha256: string
+          size_bytes: number | null
+          status: string
+          storage_path: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          category?: string | null
+          created_at?: string
+          folder_id?: string | null
+          id?: string
+          mode?: string
+          rel_path: string
+          sha256: string
+          size_bytes?: number | null
+          status?: string
+          storage_path?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          category?: string | null
+          created_at?: string
+          folder_id?: string | null
+          id?: string
+          mode?: string
+          rel_path?: string
+          sha256?: string
+          size_bytes?: number | null
+          status?: string
+          storage_path?: string | null
+        }
+        Relationships: []
+      }
+      nas_folders: {
+        Row: {
+          asset_id: string | null
+          candidates: Json
+          city: string | null
+          created_at: string
+          folder_path: string
+          id: string
+          label: string
+          status: string
+          updated_at: string
+          year: string | null
+        }
+        Insert: {
+          asset_id?: string | null
+          candidates?: Json
+          city?: string | null
+          created_at?: string
+          folder_path: string
+          id?: string
+          label: string
+          status?: string
+          updated_at?: string
+          year?: string | null
+        }
+        Update: {
+          asset_id?: string | null
+          candidates?: Json
+          city?: string | null
+          created_at?: string
+          folder_path?: string
+          id?: string
+          label?: string
+          status?: string
+          updated_at?: string
+          year?: string | null
+        }
+        Relationships: []
+      }
+      nas_ingest_keys: {
+        Row: {
+          created_at: string
+          id: string
+          key_hash: string
+          key_hint: string
+          last_used_at: string | null
+          revoked: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_hash: string
+          key_hint: string
+          last_used_at?: string | null
+          revoked?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_hash?: string
+          key_hint?: string
+          last_used_at?: string | null
+          revoked?: boolean
+        }
+        Relationships: []
+      }
       news_items: {
         Row: {
           company: string

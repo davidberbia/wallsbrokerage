@@ -45,6 +45,7 @@ import { Route as PartageTokenRouteImport } from './routes/partage.$token'
 import { Route as SyntheseTokenRouteImport } from './routes/synthese.$token'
 import { Route as ApiPublicBrevoEventsRouteImport } from './routes/api/public/brevo-events'
 import { Route as ApiPublicCatalogueRouteImport } from './routes/api/public/catalogue'
+import { Route as ApiPublicNasIngestRouteImport } from './routes/api/public/nas-ingest'
 import { Route as ApiPublicCronAiscanTickRouteImport } from './routes/api/public/cron/aiscan-tick'
 import { Route as ApiPublicCronAttachmentsRetryRouteImport } from './routes/api/public/cron/attachments-retry'
 import { Route as ApiPublicCronCfnewsTickRouteImport } from './routes/api/public/cron/cfnews-tick'
@@ -238,6 +239,11 @@ const ApiPublicCatalogueRoute = ApiPublicCatalogueRouteImport.update({
   path: '/api/public/catalogue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicNasIngestRoute = ApiPublicNasIngestRouteImport.update({
+  id: '/api/public/nas-ingest',
+  path: '/api/public/nas-ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronAiscanTickRoute = ApiPublicCronAiscanTickRouteImport.update({
   id: '/api/public/cron/aiscan-tick',
   path: '/api/public/cron/aiscan-tick',
@@ -343,6 +349,7 @@ export interface FileRoutesByFullPath {
   '/manuel/': typeof ManuelIndexRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
+  '/api/public/nas-ingest': typeof ApiPublicNasIngestRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/attachments-retry': typeof ApiPublicCronAttachmentsRetryRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -393,6 +400,7 @@ export interface FileRoutesByTo {
   '/manuel': typeof ManuelIndexRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
+  '/api/public/nas-ingest': typeof ApiPublicNasIngestRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/attachments-retry': typeof ApiPublicCronAttachmentsRetryRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -444,6 +452,7 @@ export interface FileRoutesById {
   '/manuel/': typeof ManuelIndexRoute
   '/api/public/brevo-events': typeof ApiPublicBrevoEventsRoute
   '/api/public/catalogue': typeof ApiPublicCatalogueRoute
+  '/api/public/nas-ingest': typeof ApiPublicNasIngestRoute
   '/api/public/cron/aiscan-tick': typeof ApiPublicCronAiscanTickRoute
   '/api/public/cron/attachments-retry': typeof ApiPublicCronAttachmentsRetryRoute
   '/api/public/cron/cfnews-tick': typeof ApiPublicCronCfnewsTickRoute
@@ -496,6 +505,7 @@ export interface FileRouteTypes {
     | '/manuel/'
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
+    | '/api/public/nas-ingest'
     | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/attachments-retry'
     | '/api/public/cron/cfnews-tick'
@@ -546,6 +556,7 @@ export interface FileRouteTypes {
     | '/manuel'
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
+    | '/api/public/nas-ingest'
     | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/attachments-retry'
     | '/api/public/cron/cfnews-tick'
@@ -596,6 +607,7 @@ export interface FileRouteTypes {
     | '/manuel/'
     | '/api/public/brevo-events'
     | '/api/public/catalogue'
+    | '/api/public/nas-ingest'
     | '/api/public/cron/aiscan-tick'
     | '/api/public/cron/attachments-retry'
     | '/api/public/cron/cfnews-tick'
@@ -647,6 +659,7 @@ export interface RootRouteChildren {
   ManuelIndexRoute: typeof ManuelIndexRoute
   ApiPublicBrevoEventsRoute: typeof ApiPublicBrevoEventsRoute
   ApiPublicCatalogueRoute: typeof ApiPublicCatalogueRoute
+  ApiPublicNasIngestRoute: typeof ApiPublicNasIngestRoute
   ApiPublicCronAiscanTickRoute: typeof ApiPublicCronAiscanTickRoute
   ApiPublicCronAttachmentsRetryRoute: typeof ApiPublicCronAttachmentsRetryRoute
   ApiPublicCronCfnewsTickRoute: typeof ApiPublicCronCfnewsTickRoute
@@ -915,6 +928,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCatalogueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/nas-ingest': {
+      id: '/api/public/nas-ingest'
+      path: '/api/public/nas-ingest'
+      fullPath: '/api/public/nas-ingest'
+      preLoaderRoute: typeof ApiPublicNasIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/aiscan-tick': {
       id: '/api/public/cron/aiscan-tick'
       path: '/api/public/cron/aiscan-tick'
@@ -1039,6 +1059,7 @@ const rootRouteChildren: RootRouteChildren = {
   ManuelIndexRoute: ManuelIndexRoute,
   ApiPublicBrevoEventsRoute: ApiPublicBrevoEventsRoute,
   ApiPublicCatalogueRoute: ApiPublicCatalogueRoute,
+  ApiPublicNasIngestRoute: ApiPublicNasIngestRoute,
   ApiPublicCronAiscanTickRoute: ApiPublicCronAiscanTickRoute,
   ApiPublicCronAttachmentsRetryRoute: ApiPublicCronAttachmentsRetryRoute,
   ApiPublicCronCfnewsTickRoute: ApiPublicCronCfnewsTickRoute,
