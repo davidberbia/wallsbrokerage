@@ -127,23 +127,46 @@ function ComparablesPage() {
   const [search, setSearch] = useState("");
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
+  const [fClass, setFClass] = useState("");
+  const [fCity, setFCity] = useState("");
+  const [fStreet, setFStreet] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["comparables"],
+    queryKey: ["comparables", kind, fClass, fCity, fStreet],
     queryFn: async () => {
-      const { data, error } = await supabase.from("comparables").select("*").limit(5000);
+      let q = supabase.from("comparables").select("*");
+      q = kind === "location" ? q.eq("kind", "location") : q.neq("kind", "location");
+      if (fClass) q = q.eq("asset_class", fClass);
+      if (fCity) q = q.eq("city", fCity);
+      if (fStreet) q = q.eq("street", fStreet);
+      const { data, error } = await q.order("deal_date", { ascending: false, nullsFirst: false }).limit(500);
       if (error) throw error;
       return data as Row[];
     },
   });
+
+  const { data: facets } = useQuery({
+    queryKey: ["comparable-facets"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("comparable_facets");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const sortFr = (a: string, b: string) => a.localeCompare(b, "fr");
+  const uniq = (l: (string | null)[]) => [...new Set(l.filter(Boolean) as string[])].sort(sortFr);
+  const classOpts = uniq((facets ?? []).map((f) => f.asset_class));
+  const cityOpts = uniq((facets ?? []).filter((f) => !fClass || f.asset_class === fClass).map((f) => f.city));
+  const streetOpts = fCity
+    ? uniq((facets ?? []).filter((f) => f.city === fCity && (!fClass || f.asset_class === fClass)).map((f) => f.street))
+    : [];
 
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
     const lo = num(min),
       hi = num(max);
     return (data ?? [])
-      .filter((c) => (c.kind === "location" ? "location" : "vente") === kind)
       .filter((c) => {
         if (!q) return true;
         const cp = (c.postal_code ?? "").trim();
@@ -340,7 +363,7 @@ function ComparablesPage() {
         <div>
           <h1 className="font-display text-2xl">Comparables</h1>
           <p className="text-sm text-muted-foreground">
-            Même configuration que le Générateur de brochures. {rows.length} résultat(s).
+            Même configuration que le Générateur de brochures. {rows.length}{rows.length >= 500 ? "+ (affinez les filtres)" : ""} résultat(s).
           </p>
         </div>
         {isBroker && (
@@ -380,6 +403,27 @@ function ComparablesPage() {
           >
             {k === "location" ? "Comparables locatifs" : "Comparables de prix"}
           </Button>
+        ))}
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-3">
+        {[
+          { v: fClass, set: (x: string) => { setFClass(x); setFCity(""); setFStreet(""); }, opts: classOpts, ph: "Toutes typologies" },
+          { v: fCity, set: (x: string) => { setFCity(x); setFStreet(""); }, opts: cityOpts, ph: "Toutes villes" },
+          { v: fStreet, set: setFStreet, opts: streetOpts, ph: fCity ? "Toutes rues" : "Rue (choisir une ville)" },
+        ].map((f, i) => (
+          <select
+            key={i}
+            value={f.v}
+            disabled={i === 2 && !fCity}
+            onChange={(e) => f.set(e.target.value)}
+            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground disabled:opacity-50"
+          >
+            <option value="">{f.ph}</option>
+            {f.opts.map((o) => (
+              <option key={o} value={o}>{o}</option>
+            ))}
+          </select>
         ))}
       </div>
 

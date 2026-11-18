@@ -1579,7 +1579,8 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
     const token = await waitForToken();
     if (!token) return null;
     try {
-      const remote = await loadSharedComparables();
+      const cur = latestDataRef.current;
+      const remote = await loadSharedComparables({ data: { adresse: cur.adresse, ville: cur.ville, codePostal: cur.codePostal, typeBien: cur.typeBien, envType: cur.envType } });
       const { merged } = mergeUniqueComparables(remote || [], local);
       await pushSharedComparables({ data: { items: merged } });
       return merged;
