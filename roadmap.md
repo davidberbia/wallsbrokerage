@@ -188,6 +188,8 @@
 - [x] Notoriété LinkedIn (v1 : brouillons à la demande, publication par copier-ouvrir) — reste : connexion LinkedIn officielle pour publication auto + préparation planifiée
 
 ## Notoriété LinkedIn automatique — 18 novembre, plan en attente
-- [ ] Planning mensuel auto, validation puis option tout automatique, connexion LinkedIn par collaborateur
-- [ ] Actifs alternés lundi/mardi, spécialité alternée jeudi/vendredi
-- [ ] Invitations 10/jour max, attente aléatoire 50 min–2 h, sans message personnalisé
+- [x] Planning mensuel auto, validation puis option tout automatique, connexion LinkedIn par collaborateur (code prêt)
+- [ ] Lier l’application LinkedIn de l’entreprise au CRM (en cours côté David)
+- [ ] Activer la tâche horaire LinkedIn : attend la publication autorisée
+- [x] Actifs alternés lundi/mardi, spécialité alternée jeudi/vendredi
+- [x] Invitations 10/jour max, attente aléatoire 50 min–2 h, sans message personnalisé
