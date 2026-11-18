@@ -1219,6 +1219,7 @@ export type Database = {
         Row: {
           address: string | null
           amount: number | null
+          archive_reason: string | null
           asset_id: string | null
           buyer: string | null
           carry_over: boolean
@@ -1259,6 +1260,7 @@ export type Database = {
         Insert: {
           address?: string | null
           amount?: number | null
+          archive_reason?: string | null
           asset_id?: string | null
           buyer?: string | null
           carry_over?: boolean
@@ -1299,6 +1301,7 @@ export type Database = {
         Update: {
           address?: string | null
           amount?: number | null
+          archive_reason?: string | null
           asset_id?: string | null
           buyer?: string | null
           carry_over?: boolean

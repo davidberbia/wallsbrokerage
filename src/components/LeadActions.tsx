@@ -6,12 +6,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { leadRecipients, transferLead } from "@/lib/leads.functions";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PigeButton } from "./Pige";
 
-export function LeadActions({ id, name, email, phone, owner, archived, onPromote, full = false, ready = true }: {
-  id: string; name: string; email?: string | null | undefined; phone?: string | null | undefined; owner?: string | null | undefined; archived?: boolean; onPromote: () => void; full?: boolean; ready?: boolean;
+export function LeadActions({ id, name, email, phone, owner, archived, onPromote, full = false, ready = true, onArchived }: {
+  id: string; name: string; email?: string | null | undefined; phone?: string | null | undefined; owner?: string | null | undefined; archived?: boolean; onPromote: () => void; full?: boolean; ready?: boolean; onArchived?: () => void;
 }) {
   const qc = useQueryClient();
   const getRecipients = useServerFn(leadRecipients);
@@ -19,6 +20,8 @@ export function LeadActions({ id, name, email, phone, owner, archived, onPromote
   const [open, setOpen] = useState(false);
   const [recipient, setRecipient] = useState("");
   const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const [reason, setReason] = useState("");
   const recipients = useQuery({ queryKey: ["lead-recipients"], queryFn: () => getRecipients(), enabled: open });
   const refresh = () => {
     for (const key of ["deals", "deal", "assets", "deal-assets", "nav-counts", "lead-jobs"]) void qc.invalidateQueries({ queryKey: [key] });
@@ -26,9 +29,10 @@ export function LeadActions({ id, name, email, phone, owner, archived, onPromote
   const archive = async () => {
     setBusy(true);
     try {
-      const { error } = await supabase.from("deals").update({ lead_status: archived ? "new" : "archived" }).eq("id", id).eq("stage", "Prospection");
+      const { error } = await supabase.from("deals").update(archived ? { lead_status: "new", archive_reason: null } : { lead_status: "archived", archive_reason: reason.trim() || null }).eq("id", id).eq("stage", "Prospection");
       if (error) throw error;
       refresh(); toast.success(archived ? "Lead réouvert" : "Classé sans suite");
+      if (!archived) { setConfirm(false); setReason(""); onArchived?.(); }
     } catch (e) { toast.error(e instanceof Error ? e.message : "Classement impossible"); }
     finally { setBusy(false); }
   };
@@ -38,8 +42,19 @@ export function LeadActions({ id, name, email, phone, owner, archived, onPromote
       {email ? <Button asChild variant="ghost" size="icon" className="size-11" title="Contacter" aria-label={`Contacter ${name}`}><a href={`mailto:${email}?subject=${encodeURIComponent(`Votre dossier : ${name}`)}`}><Mail className="size-4" /></a></Button> : phone ? <Button asChild variant="ghost" size="icon" className="size-11" title="Appeler" aria-label={`Appeler ${name}`}><a href={`tel:${phone}`}><Phone className="size-4" /></a></Button> : null}
       <Button variant={full ? "outline" : "ghost"} size={full ? "default" : "icon"} className={full ? "min-h-11" : "size-11"} title="Transférer" aria-label={`Transférer ${name}`} onClick={() => setOpen(true)}><Forward className="size-4" />{full && "Transférer"}</Button>
       {full && !archived && <PigeButton id={id} />}
-      <Button variant="outline" size={full ? "default" : "icon"} className={full ? "min-h-11 border-destructive text-destructive" : "size-11 border-destructive text-destructive"} disabled={busy} title={archived ? "Réouvrir" : "Sans suite"} aria-label={`${archived ? "Réouvrir" : "Classer sans suite"} ${name}`} onClick={() => void archive()}>{archived ? <RotateCcw className="size-4" /> : <Archive className="size-4" />}{full && (archived ? "Réouvrir" : "Sans suite")}</Button>
+      <Button variant="outline" size={full ? "default" : "icon"} className={full ? "min-h-11 border-destructive text-destructive" : "size-11 border-destructive text-destructive"} disabled={busy} title={archived ? "Réouvrir" : "Sans suite"} aria-label={`${archived ? "Réouvrir" : "Classer sans suite"} ${name}`} onClick={() => archived ? void archive() : setConfirm(true)}>{archived ? <RotateCcw className="size-4" /> : <Archive className="size-4" />}{full && (archived ? "Réouvrir" : "Sans suite")}</Button>
     </div>
+    <Dialog open={confirm} onOpenChange={setConfirm}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Classer sans suite ?</DialogTitle></DialogHeader>
+        <p className="break-words text-sm">{name}</p>
+        <label className="text-sm" htmlFor={`reason-${id}`}>Raison : <span className="text-muted-foreground">(facultatif)</span></label>
+        <div className="flex gap-2">
+          <Input id={`reason-${id}`} value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void archive(); }} className="min-h-11" />
+          <Button className="min-h-11 shrink-0" variant="destructive" disabled={busy} onClick={() => void archive()}>Confirmer</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader><DialogTitle>Transférer à un collègue</DialogTitle></DialogHeader>
