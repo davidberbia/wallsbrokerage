@@ -1,5 +1,12 @@
 # Roadmap
 
+## Traitement rapide des Leads — 18 novembre, approuvé
+- [x] Pop-up central 1100 px sur ordinateur, plein écran mobile, actions Actif dispo/Sans suite/demande de pièces, filtres Attente de docs/A rappeler vérifiés au toucher.
+- [x] Préparation Outlook, confirmation explicite d’envoi, historique, identification des pièces adaptées ; préparation réelle enregistrée et relue après rechargement, demande d’essai supprimée sans envoi.
+- [x] Règle trois jours calendaires, jamais le week-end (heure de Paris), report au lundi ; arrêt sur retour et claims atomiques anti-doublons testés. Traitement réutilise les passages Outlook existants (toutes les deux heures de jour et minuit), pas d’envoi garanti à l’heure exacte.
+- [x] 19 tests réussis, compilation correcte, mobile au toucher et pop-up chargé sur ordinateur vérifiés ; aucune publication ni mail réel envoyé.
+- [ ] Activation et vérification de la relance Outlook réelle : attend publication explicitement autorisée puis activation de lead_followup_control ; aucun schedule existant modifié. Les essais d’envoi et de réception réels attendent une autorisation d’envoi spécifique.
+
 ## Leads — 18 novembre, validation reçue
 - [x] Renommage Leads, filtres À traiter/Qualifiés/Sans suite, contact/promouvoir/archiver et revue plein écran mobile ; archivage/réouverture et Suivant vérifiés au toucher.
 - [x] Transfert sécurisé et journalisé, classe obligatoire contrôlée en base et au toucher.

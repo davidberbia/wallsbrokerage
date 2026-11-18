@@ -1866,6 +1866,86 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_document_requests: {
+        Row: {
+          body_text: string
+          conversation_id: string | null
+          created_at: string
+          created_by: string
+          deal_id: string
+          due_at: string | null
+          error: string | null
+          id: string
+          missing_items: Json
+          received_at: string | null
+          reminded_at: string | null
+          sender_email: string
+          sent_at: string | null
+          status: string
+          subject: string
+          to_email: string
+        }
+        Insert: {
+          body_text: string
+          conversation_id?: string | null
+          created_at?: string
+          created_by: string
+          deal_id: string
+          due_at?: string | null
+          error?: string | null
+          id?: string
+          missing_items?: Json
+          received_at?: string | null
+          reminded_at?: string | null
+          sender_email: string
+          sent_at?: string | null
+          status?: string
+          subject: string
+          to_email: string
+        }
+        Update: {
+          body_text?: string
+          conversation_id?: string | null
+          created_at?: string
+          created_by?: string
+          deal_id?: string
+          due_at?: string | null
+          error?: string | null
+          id?: string
+          missing_items?: Json
+          received_at?: string | null
+          reminded_at?: string | null
+          sender_email?: string
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          to_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_document_requests_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_followup_control: {
+        Row: {
+          enabled: boolean
+          id: boolean
+        }
+        Insert: {
+          enabled?: boolean
+          id?: boolean
+        }
+        Update: {
+          enabled?: boolean
+          id?: boolean
+        }
+        Relationships: []
+      }
       lead_transfers: {
         Row: {
           created_at: string
@@ -2958,6 +3038,7 @@ export type Database = {
         }
       }
       claim_investor_profile: { Args: never; Returns: string }
+      claim_lead_document_reminder: { Args: { _id: string }; Returns: boolean }
       claim_lead_research: { Args: { _id: string }; Returns: boolean }
       claim_role: {
         Args: never
@@ -2971,6 +3052,10 @@ export type Database = {
           n: number
           street: string
         }[]
+      }
+      confirm_lead_document_request: {
+        Args: { _due: string; _id: string }
+        Returns: undefined
       }
       deal_touch_activity: { Args: { _deal: string }; Returns: undefined }
       directory_to_prospect: {

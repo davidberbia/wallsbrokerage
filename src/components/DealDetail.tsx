@@ -19,6 +19,7 @@ import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { CopyEmail } from "@/components/CopyEmail";
 import { ASSET_CLASS_GROUPS } from "@/lib/taxonomy";
 import { LeadActions } from "@/components/LeadActions";
+import { LeadDocumentRequest } from "@/components/LeadDocumentRequest";
 import { canChangeLeadStage, leadResearchSchema } from "@/lib/lead-policy";
 
 const STAGES = [TARGET_STAGE, ...STAGE_NAMES];
@@ -257,15 +258,21 @@ export function DealDetail({ id, onClose }: { id: string; onClose: () => void })
         <SheetTitle>{current.name}</SheetTitle>
       </SheetHeader>
       {current.stage === "Prospection" && <div className="flex flex-wrap items-center justify-between gap-2">
-        <LeadActions id={id} name={current.name ?? "Lead"} owner={current.owner_id} email={current.contact_email} phone={current.contact_phone} archived={current.lead_status === "archived"} onPromote={() => {
-          if (!canChangeLeadStage("Prospection", "Avis de valeur", assetClass ?? dossier.data?.asset?.asset_class)) { toast.error("Choisissez d’abord la classe d’actif"); document.getElementById("lead-class")?.focus(); return; }
-          set({ stage: "Avis de valeur" });
+        <LeadActions full id={id} name={current.name ?? "Lead"} owner={current.owner_id} email={current.contact_email} phone={current.contact_phone} archived={current.lead_status === "archived"} onPromote={() => {
+          if (!canChangeLeadStage("Prospection", "Disponible", dossier.data?.asset?.asset_class)) { toast.error("Enregistrez d’abord la classe d’actif"); document.getElementById("lead-class")?.focus(); return; }
+          void (async () => {
+            const { error } = await supabase.from("deals").update({ stage: "Disponible", last_activity_at: new Date().toISOString() }).eq("id", id).eq("stage", "Prospection");
+            if (error) { toast.error(error.message); return; }
+            for (const key of ["assets", "deal-assets", "lead-document-requests"]) void qc.invalidateQueries({ queryKey: [key] });
+            refresh(); toast.success("Transformé en Actif dispo"); onClose();
+          })();
         }} />
         <Button variant="outline" onClick={async () => {
           const { error } = await supabase.from("deals").update({ lead_status: current.lead_status === "qualified" ? "new" : "qualified" }).eq("id", id);
           if (error) toast.error(error.message); else { refresh(); setForm(null); }
         }}>{current.lead_status === "qualified" ? "À traiter" : "Qualifier"}</Button>
       </div>}
+      {current.stage === "Prospection" && current.lead_status !== "archived" && <LeadDocumentRequest id={id} />}
       {(() => {
         // Interlocuteur principal : l'expéditeur du premier mail reçu (celui qui a envoyé le dossier).
         const ordered = [...(mails.data ?? [])].sort((x, y) => (x.received_at ?? "").localeCompare(y.received_at ?? ""));

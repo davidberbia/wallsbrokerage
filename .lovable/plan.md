@@ -13,15 +13,16 @@
 - Objet : « Votre dossier : [nom du lead] — Éléments complémentaires » ; corps avec salutation, liste des éléments manquants et formule de politesse.
 - L’ouverture d’Outlook sera enregistrée comme **préparation**, pas comme envoi. La fiche proposera **« Confirmer l’envoi »** après envoi dans Outlook, pour dater la demande et passer en attente de documents.
 
-## Relance à quatre jours
-- À partir de l’envoi confirmé, prévoir **une relance automatique après quatre jours**, seulement si aucun retour concernant ce dossier n’a été reçu ; pas une simple proposition de relance manuelle.
+## Relance à trois jours, hors week-end
+- À partir de l’envoi confirmé, prévoir **une relance automatique après trois jours calendaires**, seulement si aucun retour concernant ce dossier n’a été reçu ; pas une simple proposition de relance manuelle.
+- **Aucune relance le samedi ou le dimanche**, selon l’heure de Paris ; si l’échéance tombe le week-end, reporter au lundi.
 - Rechercher le retour dans le fil et les messages correspondants ; ne pas considérer un autre mail du même expéditeur comme une réponse à ce dossier.
 - Envoyer via la connexion Outlook professionnelle existante et journaliser le résultat ; après acceptation de l’envoi par Outlook, passer à **« A rappeler »**.
 - Objet : « [Relancé auto] Votre dossier : [nom du lead] ». **La couleur d’un objet de mail n’est pas contrôlable** ; la mention sera rouge dans le suivi du CRM et dans le corps du message.
 - Éviter les doublons et arrêter les relances lorsqu’un retour arrive, que le lead est archivé ou qu’il devient un actif disponible.
 
 ## Vérifications et limites
-- Tester les quatre jours, l’arrêt sur réponse et la prévention des doublons ; vérifier les filtres et le pop-up au toucher sur téléphone et sur ordinateur.
+- Tester les trois jours, le report au lundi, l’interdiction de relance le week-end, l’arrêt sur réponse et la prévention des doublons ; vérifier les filtres et le pop-up au toucher sur téléphone et sur ordinateur.
 - Ne pas envoyer de mail réel à un contact pour les essais sans autorisation spécifique.
 - **Aucune publication** ; l’envoi automatique sera activé après déploiement autorisé. Les filtres et actions seront vérifiables dans l’aperçu auparavant.
 

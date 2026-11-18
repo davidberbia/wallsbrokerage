@@ -3,6 +3,7 @@ import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow } from "@/components/CompactRow";
 import { LeadActions } from "@/components/LeadActions";
+import { leadViewStatus, type LeadRequest } from "@/lib/lead-documents";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -96,6 +97,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const [leadView, setLeadView] = useState("new");
   const [leadSearch, setLeadSearch] = useState("");
   const [review, setReview] = useState(false);
+  const [reviewIds, setReviewIds] = useState<string[]>([]);
   const [createOpen, setCreateOpen] = useState(false);
   const [mergeFor, setMergeFor] = useState<Deal | null>(null);
   const [mergePick, setMergePick] = useState<string[]>([]);
@@ -154,11 +156,22 @@ export function DealsTable({ mode }: { mode: Mode }) {
     return [...ys].sort((a, b) => b - a);
   }, [all, thisYear]);
 
+  const requests = useQuery({
+    queryKey: ["lead-document-requests"], enabled: mode === "targets",
+    queryFn: async () => {
+      const { data, error } = await supabase.from("lead_document_requests").select("*").order("created_at", { ascending: false }).limit(5000);
+      if (error) throw error;
+      const latest = new Map<string, LeadRequest>();
+      for (const r of data ?? []) if (!latest.has(r.deal_id)) latest.set(r.deal_id, r);
+      return latest;
+    },
+  });
+  const statusOf = (d: Deal) => leadViewStatus(d.lead_status ?? "new", requests.data?.get(d.id));
   const leadRows = all.filter((d) => d.stage === TARGET_STAGE && inVintage(d, year));
   const rows = all.filter(
     (d) =>
       (mode === "targets" ? d.stage === TARGET_STAGE : d.stage !== TARGET_STAGE && !ASSET_STAGES.includes(d.stage)) &&
-      inVintage(d, year) && (mode !== "targets" || ((d.lead_status ?? "new") === leadView && [d.name,d.address,d.company,d.contact_email].filter(Boolean).join(" ").toLocaleLowerCase("fr").includes(leadSearch.toLocaleLowerCase("fr")))),
+      inVintage(d, year) && (mode !== "targets" || (statusOf(d) === leadView && [d.name,d.address,d.company,d.contact_email].filter(Boolean).join(" ").toLocaleLowerCase("fr").includes(leadSearch.toLocaleLowerCase("fr")))),
   ).sort((a, b) => Number(a.stage === "Perdu") - Number(b.stage === "Perdu"));
   const lostRows = rows.filter((d) => d.stage === "Perdu");
   const firstLost = rows.findIndex((d) => d.stage === "Perdu");
@@ -432,8 +445,16 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const title = mode === "targets" ? "Leads" : "Suivi des affaires";
   const promote = (d: Deal) => {
     if (!classOf(d)) { toast.error("Choisissez d’abord la classe d’actif"); setOpenId(d.id); return; }
-    move.mutate({id:d.id,stage:"Avis de valeur"});
+    move.mutate({id:d.id,stage:"Disponible"});
   };
+  const closeDetail = () => { setOpenId(null); setReview(false); setReviewIds([]); };
+  const nextDetail = () => {
+    const index = reviewIds.indexOf(openId ?? "");
+    const next = reviewIds.slice(index + 1).find(id => all.some(d => d.id === id && d.stage === TARGET_STAGE && d.lead_status !== "archived"));
+    if (next) setOpenId(next); else closeDetail();
+  };
+  const detail = openId ? <DealDetail key={openId} id={openId} onClose={review ? nextDetail : closeDetail} /> : null;
+  const reviewNav = review && <div className="sticky top-0 z-10 mb-4 flex min-h-11 items-center justify-between border-b border-border bg-background py-2 pr-10"><span className="text-sm">{reviewIds.indexOf(openId ?? "") + 1} / {reviewIds.length}</span><Button variant="outline" className="min-h-11" onClick={nextDetail}>Suivant</Button></div>;
 
   return (
     <div className="space-y-4">
@@ -476,8 +497,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
       {mode === "targets" && <div className="space-y-3">
         <Input aria-label="Rechercher un lead" placeholder="Rechercher un lead…" value={leadSearch} onChange={(e) => setLeadSearch(e.target.value)} />
         <div className="flex flex-wrap items-center gap-2">
-          {([["new", "À traiter"], ["qualified", "Qualifiés"], ["archived", "Sans suite"]] as const).map(([value, label]) => <Button key={value} variant={leadView === value ? "default" : "outline"} className="min-h-11" onClick={() => setLeadView(value)}>{label} · {leadRows.filter((d) => d.lead_status === value).length}</Button>)}
-          <Button variant="outline" className="min-h-11" disabled={!rows.length} onClick={() => { setReview(true); setOpenId(rows[0]?.id ?? null); }}>Traiter les leads</Button>
+          {([["new", "À traiter"], ["qualified", "Qualifiés"], ["waiting", "Attente de docs"], ["recall", "A rappeler"], ["archived", "Sans suite"]] as const).map(([value, label]) => <Button key={value} variant={leadView === value ? "default" : "outline"} aria-pressed={leadView === value} className={`min-h-11 ${value === "waiting" && leadView !== value ? "text-warning" : value === "recall" && leadView !== value ? "text-destructive" : ""}`} onClick={() => setLeadView(value)}>{label} · {leadRows.filter((d) => statusOf(d) === value).length}</Button>)}
+          <Button variant="outline" className="min-h-11" disabled={!rows.length} onClick={() => { setReviewIds(rows.map(d => d.id)); setReview(true); setOpenId(rows[0]?.id ?? null); }}>Traitement rapide</Button>
         </div>
       </div>}
 
@@ -623,6 +644,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
               <span className="w-full break-words font-semibold">{d.name}</span>
               <span className="w-full text-sm font-semibold">{[assetOf(d)?.city || d.address, d.amount ? eur(d.amount) : null].filter(Boolean).join(" · ")}</span>
               <span className="w-full break-words text-xs font-normal text-muted-foreground">{shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "Classe à préciser"} · {d.contact_email || mailsOf(d.id)[0] || d.source || "Saisie manuelle"}</span>
+              {statusOf(d) === "waiting" && <span className="text-xs font-semibold text-warning">En attente de documents</span>}
+              {statusOf(d) === "recall" && <span className="text-xs font-semibold text-destructive">A rappeler · {requests.data?.get(d.id)?.status === "reminded" ? "Relancé auto" : "Envoi à vérifier"}</span>}
             </Button>
             <div className="mt-1 flex shrink-0 justify-end sm:mt-0"><LeadActions id={d.id} name={d.name} owner={d.owner_id} email={d.contact_email || mailsOf(d.id)[0]} phone={d.contact_phone} archived={d.lead_status === "archived"} onPromote={() => promote(d)} /></div>
           </div> : <>
@@ -781,15 +804,19 @@ export function DealsTable({ mode }: { mode: Mode }) {
         </DialogContent>
       </Dialog>
 
-      <Sheet open={!!openId} onOpenChange={(o) => { if (!o) { setOpenId(null); setReview(false); } }}>
+      {mode === "targets" ? <Dialog open={!!openId} onOpenChange={o => { if (!o) closeDetail(); }}>
+        <DialogContent aria-describedby={undefined} className="max-sm:inset-0 flex h-dvh max-h-dvh flex-col gap-0 overflow-hidden sm:h-[90dvh] sm:max-h-[90dvh] sm:w-[min(1100px,calc(100vw-48px))] sm:max-w-none">
+          <DialogHeader className="shrink-0 pb-3 pr-10"><DialogTitle>Traitement rapide</DialogTitle></DialogHeader>
+          {reviewNav}<div className="min-h-0 flex-1 overflow-y-auto">{detail}</div>
+        </DialogContent>
+      </Dialog> : <Sheet open={!!openId} onOpenChange={(o) => { if (!o) closeDetail(); }}>
         <SheetContent
           side={isMobile ? "bottom" : "right"}
-          className={mode === "targets" ? "h-dvh max-h-dvh w-full overflow-y-auto sm:max-w-2xl" : "w-full overflow-y-auto sm:max-w-xl max-md:max-h-[90vh]"}
+          className="w-full overflow-y-auto sm:max-w-xl max-md:max-h-[90vh]"
         >
-          {review && <div className="sticky top-0 z-10 mb-4 flex items-center justify-between border-b border-border bg-background py-2 pr-10"><span className="text-sm">{rows.findIndex((d) => d.id === openId) + 1} / {rows.length}</span><Button variant="outline" onClick={() => { const i = rows.findIndex((d) => d.id === openId); const next = rows[i + 1]; if (next) setOpenId(next.id); else { setOpenId(null); setReview(false); } }}>Suivant</Button></div>}
-          {openId && <DealDetail key={openId} id={openId} onClose={() => { const i = rows.findIndex((d) => d.id === openId); const next = review ? rows[i + 1] : null; setOpenId(next?.id ?? null); if (!next) setReview(false); }} />}
+          {detail}
         </SheetContent>
-      </Sheet>
+      </Sheet>}
     </div>
   );
 }

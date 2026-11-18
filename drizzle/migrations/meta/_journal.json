@@ -344,6 +344,13 @@
       "when": 1794975071519,
       "tag": "0048_lead_manual_research_lease",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1794977718180,
+      "tag": "0049_lead_document_followups",
+      "breakpoints": true
     }
   ]
 }

@@ -7,6 +7,7 @@ import { PERSONAL_EMAIL_DOMAINS } from "@/lib/email-domains";
 import { runSourcing } from "@/lib/sourcing.server";
 import { runDocRequests } from "@/lib/docrequests.server";
 import { runAttachments } from "@/lib/attachments.server";
+import { runLeadFollowups } from "@/lib/lead-followups.server";
 
 // Synchronisation continue des emails (reçus + envoyés) depuis le 1er janvier 2026,
 // via les requêtes delta de Microsoft Graph. Rattache chaque email à un dossier.
@@ -233,6 +234,8 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
         } catch (e) {
           report["pj_erreur"] = (e instanceof Error ? e.message : String(e)).slice(0, 200);
         }
+        try { Object.assign(report, await runLeadFollowups()); }
+        catch (e) { report["lead_relance_erreur"] = (e instanceof Error ? e.message : String(e)).slice(0, 200); }
         return Response.json({ ok: true, ...report });
       },
     },
