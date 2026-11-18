@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Archive, ArrowUpRight, Forward, Mail, Phone, RotateCcw } from "lucide-react";
+import { Archive, Clock, ArrowUpRight, Forward, Mail, Phone, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { leadRecipients, transferLead } from "@/lib/leads.functions";
@@ -29,11 +29,21 @@ export function LeadActions({ id, name, email, phone, owner, archived, onPromote
   const archive = async () => {
     setBusy(true);
     try {
-      const { error } = await supabase.from("deals").update(archived ? { lead_status: "new", archive_reason: null } : { lead_status: "archived", archive_reason: reason.trim() || null }).eq("id", id).eq("stage", "Prospection");
+      const { error } = await supabase.from("deals").update(archived ? { lead_status: "new", archive_reason: null, snooze_until: null } : { lead_status: "archived", archive_reason: reason.trim() || null }).eq("id", id).eq("stage", "Prospection");
       if (error) throw error;
       refresh(); toast.success(archived ? "Lead réouvert" : "Classé sans suite");
       if (!archived) { setConfirm(false); setReason(""); onArchived?.(); }
     } catch (e) { toast.error(e instanceof Error ? e.message : "Classement impossible"); }
+    finally { setBusy(false); }
+  };
+  const later = async () => {
+    setBusy(true);
+    try {
+      const until = new Date(); until.setHours(0, 0, 0, 0); until.setDate(until.getDate() + 7);
+      const { error } = await supabase.from("deals").update({ snooze_until: until.toISOString() }).eq("id", id).eq("stage", "Prospection");
+      if (error) throw error;
+      refresh(); toast.success("Rappel dans 7 jours"); onArchived?.();
+    } catch (e) { toast.error(e instanceof Error ? e.message : "Report impossible"); }
     finally { setBusy(false); }
   };
   return <>
@@ -42,6 +52,7 @@ export function LeadActions({ id, name, email, phone, owner, archived, onPromote
       {email ? <Button asChild variant="ghost" size="icon" className="size-11" title="Contacter" aria-label={`Contacter ${name}`}><a href={`mailto:${email}?subject=${encodeURIComponent(`Votre dossier : ${name}`)}`}><Mail className="size-4" /></a></Button> : phone ? <Button asChild variant="ghost" size="icon" className="size-11" title="Appeler" aria-label={`Appeler ${name}`}><a href={`tel:${phone}`}><Phone className="size-4" /></a></Button> : null}
       <Button variant={full ? "outline" : "ghost"} size={full ? "default" : "icon"} className={full ? "min-h-11" : "size-11"} title="Transférer" aria-label={`Transférer ${name}`} onClick={() => setOpen(true)}><Forward className="size-4" />{full && "Transférer"}</Button>
       {full && !archived && <PigeButton id={id} />}
+      {full && !archived && <Button variant="outline" className="h-auto min-h-11 flex-col gap-0 py-1" disabled={busy} onClick={() => void later()}><span className="flex items-center gap-2"><Clock className="size-4" />Plus tard</span><span className="text-[10px] font-normal text-muted-foreground">rappel dans 7 jours</span></Button>}
       <Button variant="outline" size={full ? "default" : "icon"} className={full ? "min-h-11 border-destructive text-destructive" : "size-11 border-destructive text-destructive"} disabled={busy} title={archived ? "Réouvrir" : "Sans suite"} aria-label={`${archived ? "Réouvrir" : "Classer sans suite"} ${name}`} onClick={() => archived ? void archive() : setConfirm(true)}>{archived ? <RotateCcw className="size-4" /> : <Archive className="size-4" />}{full && (archived ? "Réouvrir" : "Sans suite")}</Button>
     </div>
     <Dialog open={confirm} onOpenChange={setConfirm}>

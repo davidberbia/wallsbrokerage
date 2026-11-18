@@ -1249,6 +1249,7 @@ export type Database = {
           probability: number | null
           rent: number | null
           seller: string | null
+          snooze_until: string | null
           sort_order: number
           source: string | null
           stage: string
@@ -1290,6 +1291,7 @@ export type Database = {
           probability?: number | null
           rent?: number | null
           seller?: string | null
+          snooze_until?: string | null
           sort_order?: number
           source?: string | null
           stage?: string
@@ -1331,6 +1333,7 @@ export type Database = {
           probability?: number | null
           rent?: number | null
           seller?: string | null
+          snooze_until?: string | null
           sort_order?: number
           source?: string | null
           stage?: string

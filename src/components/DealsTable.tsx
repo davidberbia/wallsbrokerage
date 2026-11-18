@@ -183,6 +183,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     if (d.lead_status === "archived") return "archived";
     const p = piges.data?.find(p => p.deal_id === d.id && p.started_at);
     if (pigeActive(p)) return "pige";
+    if (d.snooze_until && new Date(d.snooze_until).getTime() > Date.now()) return "later";
     const request = requests.data?.get(d.id);
     if (p && (!request || request.created_at < (p.started_at ?? p.created_at))) return "new";
     return leadViewStatus(d.lead_status ?? "new", requests.data?.get(d.id));
@@ -524,7 +525,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
       {mode === "targets" && <div className="space-y-3">
         <Input aria-label="Rechercher un lead" placeholder="Rechercher un lead…" value={leadSearch} onChange={(e) => setLeadSearch(e.target.value)} />
         <div className="flex flex-wrap items-center gap-2">
-          {([["new", "À traiter"], ["waiting", "Attente de docs"], ["recall", "A rappeler"], ["pige", "Pige"], ["archived", "Sans suite"]] as const).map(([value, label]) => <Button key={value} variant={leadView === value ? "default" : "outline"} aria-pressed={leadView === value} className={`min-h-11 ${value === "waiting" && leadView !== value ? "text-warning" : value === "recall" && leadView !== value ? "text-destructive" : ""}`} onClick={() => setLeadView(value)}>{label} · {leadRows.filter((d) => statusOf(d) === value).length}</Button>)}
+          {([["new", "À traiter"], ["waiting", "Attente de docs"], ["recall", "A rappeler"], ["pige", "Pige"], ["later", "Plus tard"], ["archived", "Sans suite"]] as const).map(([value, label]) => <Button key={value} variant={leadView === value ? "default" : "outline"} aria-pressed={leadView === value} className={`min-h-11 ${value === "waiting" && leadView !== value ? "text-warning" : value === "recall" && leadView !== value ? "text-destructive" : ""}`} onClick={() => setLeadView(value)}>{label} · {leadRows.filter((d) => statusOf(d) === value).length}</Button>)}
           <Button variant="blue" className="min-h-11" disabled={requests.isLoading || !rows.some(d => eligible(d.id))} onClick={() => { const ids = rows.filter(d => eligible(d.id)).map(d => d.id); setReviewIds(ids); setReview(true); setOpenId(ids[0] ?? null); }}>Traitement rapide</Button>
         </div>
       </div>}
