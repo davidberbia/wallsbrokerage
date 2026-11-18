@@ -10,7 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { INVESTOR_STATUS } from "@/lib/taxonomy";
+import { INVESTOR_STATUS, STRATEGIES } from "@/lib/taxonomy";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useLists } from "@/lib/lists";
 import type { Investor } from "@/lib/types";
 
@@ -140,6 +141,9 @@ export function InvestorForm({
           <div className="grid gap-4 sm:grid-cols-2">{([ ["budget_min","Budget minimum (€)"], ["budget_max","Budget maximum (€)"] ] as const).map(([key,label]) => <Field key={key} label={label}><Input type="number" min={0} value={draft[key] ?? ""} onChange={e => set({[key]:e.target.value ? Number(e.target.value) : null})} /></Field>)}</div>
           <ResidentialFields buyer value={draft.residential_criteria ?? {}} onChange={v => set({residential_criteria:v})} />
         </>}
+        {!onStrategyClick && draft.investor_profile !== "Acheteur habitation" && <Field label="Stratégie">
+          <div className="grid grid-cols-2 gap-x-3">{STRATEGIES.map(v => <label key={v} className="flex min-h-11 items-center gap-3 text-sm"><Checkbox checked={(draft.strategies ?? []).includes(v)} onCheckedChange={c => set({ strategies: c ? [...(draft.strategies ?? []), v] : (draft.strategies ?? []).filter(x => x !== v) })} />{v}</label>)}</div>
+        </Field>}
         <Field label="Notes">
           <Textarea
             rows={3}
