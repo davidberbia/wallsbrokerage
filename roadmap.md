@@ -1,5 +1,11 @@
 # Roadmap
 
+## Pige via Brevo — 18 novembre, validation attendue
+- [ ] Remplacer uniquement les ouvertures Outlook de Pige par une validation puis un envoi personnalisé via Brevo.
+- [ ] Enregistrer les résultats d’envoi et les événements Brevo par message, sans doublons en cas d’incertitude.
+- [ ] Conserver les réponses dans la boîte professionnelle, le marketing report et le retour après sept jours.
+- [ ] Vérifier sans envoi réel ni publication ; essai réel uniquement sur autorisation spécifique.
+
 ## Demandes de documents et Pige — 18 novembre, plan approuvé
 - [x] Adresse de la fiche ou de l’actif liée ajoutée à l’objet des nouvelles demandes ; relance conserve l’objet enregistré ; trois lignes libres à cocher et ajout de lignes vérifiés au toucher.
 - [x] Transférer textuel et Pige avant Sans suite dans Traitement rapide ; filtres du bien préremplis, investisseurs sélectionnables sans sélection automatique.
