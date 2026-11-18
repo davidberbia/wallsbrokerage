@@ -4,7 +4,7 @@
 - [ ] Boutons bleu/orange fixes, Sans suite encadré, Retour et exclusion des leads en attente du traitement rapide jusqu’à A rappeler.
 - [ ] Supprimer le bouton Qualifier et le filtre Qualifiés sans perdre les leads existants.
 - [ ] Proposer Actif disponible lorsque photo principale, prix ou loyer adapté, surface, état locatif et honoraires sont renseignés.
-- [ ] Afficher un taux de remplissage de la fiche pendant tout le parcours ; tester les critères et les écrans au toucher.
+- [ ] Afficher un taux de remplissage pendant tout le parcours : cinq éléments minimum à 10 % chacun, plans 10 %, reportage photo 10 %, bail 10 %, mandat 20 % ; tester les critères et les écrans au toucher.
 
 ## Traitement rapide des Leads — 18 novembre, approuvé
 - [x] Pop-up central 1100 px sur ordinateur, plein écran mobile, actions Actif dispo/Sans suite/demande de pièces, filtres Attente de docs/A rappeler vérifiés au toucher.

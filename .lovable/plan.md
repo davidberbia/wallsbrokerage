@@ -28,14 +28,24 @@
 
 ## Taux de remplissage pendant tout le parcours
 - Afficher un pourcentage compact dans les listes et les fiches, des Leads aux Actifs puis aux Affaires.
-- Proposition de calcul : **20 % par élément renseigné parmi les cinq critères ci-dessus**, soit 100 % lorsque le minimum nécessaire à la brochure est atteint.
+- Calcul sur **100 %** :
+  - Photo principale : **10 %**.
+  - Prix de vente ou loyer de location : **10 %**.
+  - Surface : **10 %**.
+  - État locatif : **10 %**.
+  - Honoraires : **10 %**.
+  - Plans : **10 %**.
+  - Reportage photo : **10 %**, distinct de la seule photo principale.
+  - Bail : **10 %**.
+  - Mandat : **20 %**.
+- Proposer « Actif disponible » dès que les **cinq éléments minimum** sont présents : ils représentent 50 %, mais un total de 50 % obtenu avec d’autres éléments ne suffit pas. Les documents complémentaires portent ensuite le remplissage jusqu’à 100 %.
 - Afficher le détail des éléments présents et manquants dans la fiche.
 - Actualiser le taux après saisie, réception de documents ou pré-remplissage ; conserver le même calcul à chaque étape, sans inventer d’informations.
 
 ## Vérifications
 - Vérifier les couleurs fixes, les boutons et la navigation sur ordinateur et au toucher sur téléphone.
 - Tester la sortie immédiate d’un lead en attente, son exclusion après réouverture et son retour à l’état « A rappeler ».
-- Tester chaque critère de remplissage, la distinction vente/location, la visibilité des anciens leads qualifiés et la proposition à 100 %.
+- Tester les neuf pondérations, le total de 100 %, la distinction vente/location, la visibilité des anciens leads qualifiés et la proposition uniquement lorsque les cinq éléments minimum sont présents.
 - Ne modifier ni les textes des mails ni les règles de relance existantes : trois jours, jamais le week-end.
 - Aucune publication ni aucun mail réel envoyé pour les essais.
 
