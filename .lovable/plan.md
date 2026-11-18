@@ -8,7 +8,7 @@
   - le jour choisi : le point marché avec graphique.
 - Onglet Posts : la liste du mois, il relit, corrige, coche « Valider ». Un post validé part seul à sa date (9 h).
 - **Mode tout automatique** (option) : les posts partent à leur date sans validation.
-- **Invitations** : maximum 10 par jour (réglage verrouillé), du plus récent au plus ancien. Après chaque invitation cochée, la suivante n'apparaît qu'après une attente aléatoire entre 50 min et 2 h (compte à rebours affiché). Toujours un clic de sa part : LinkedIn interdit l'envoi automatique d'invitations et bannit les comptes.
+- **Invitations** : maximum 10 par jour (réglage verrouillé), du plus récent au plus ancien. Après chaque invitation cochée, la suivante n'apparaît qu'après une attente aléatoire entre 50 min et 2 h (compte à rebours affiché). Invitation envoyée **sans message personnalisé** (le message est payant chez LinkedIn). Toujours un clic de sa part : LinkedIn interdit l'envoi automatique d'invitations et bannit les comptes.
 
 ## Conditions et limites
 - La connexion LinkedIn nécessite une application LinkedIn de l'entreprise (créée une fois par un administrateur sur linkedin.com/developers) ; je vous guiderai.
