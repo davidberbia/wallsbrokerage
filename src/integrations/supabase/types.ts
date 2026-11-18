@@ -385,6 +385,7 @@ export type Database = {
           ebe: number | null
           ebe_n1: number | null
           ebe_n2: number | null
+          family: string | null
           fee_mode: string | null
           fee_payer: string | null
           fee_value: number | null
@@ -439,6 +440,7 @@ export type Database = {
           ebe?: number | null
           ebe_n1?: number | null
           ebe_n2?: number | null
+          family?: string | null
           fee_mode?: string | null
           fee_payer?: string | null
           fee_value?: number | null
@@ -493,6 +495,7 @@ export type Database = {
           ebe?: number | null
           ebe_n1?: number | null
           ebe_n2?: number | null
+          family?: string | null
           fee_mode?: string | null
           fee_payer?: string | null
           fee_value?: number | null
@@ -1010,6 +1013,7 @@ export type Database = {
           acquisition_details: Json
           address: string | null
           asset_class: string | null
+          asset_id: string | null
           city: string | null
           citycode: string | null
           created_at: string
@@ -1039,6 +1043,7 @@ export type Database = {
           acquisition_details?: Json
           address?: string | null
           asset_class?: string | null
+          asset_id?: string | null
           city?: string | null
           citycode?: string | null
           created_at?: string
@@ -1068,6 +1073,7 @@ export type Database = {
           acquisition_details?: Json
           address?: string | null
           asset_class?: string | null
+          asset_id?: string | null
           city?: string | null
           citycode?: string | null
           created_at?: string
@@ -1093,7 +1099,15 @@ export type Database = {
           weighted_surface?: number | null
           yield_pct?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "comparables_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       comparables_geo_stage: {
         Row: {
@@ -2872,6 +2886,7 @@ export type Database = {
     Functions: {
       aiscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       aiscan_stop_internal: { Args: never; Returns: undefined }
+      asset_family: { Args: { _cls: string }; Returns: string }
       can_see_deal: { Args: { _owner: string }; Returns: boolean }
       can_see_owner: { Args: { _owner: string }; Returns: boolean }
       cfnews_scrape_schedule: { Args: { _on: boolean }; Returns: undefined }
@@ -2932,6 +2947,7 @@ export type Database = {
           acquisition_details: Json
           address: string | null
           asset_class: string | null
+          asset_id: string | null
           city: string | null
           citycode: string | null
           created_at: string
