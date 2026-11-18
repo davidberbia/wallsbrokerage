@@ -471,7 +471,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const closeDetail = () => { setOpenId(null); setReview(false); setReviewIds([]); };
   const openChain = (id: string) => {
     const ids = rows.filter(d => eligible(d.id)).map(d => d.id);
-    if (!ids.includes(id)) ids.unshift(id);
+    if (!ids.includes(id)) { setReview(false); setReviewIds([]); setOpenId(id); return; }
     setReviewIds(ids);
     setReview(true);
     setOpenId(id);
