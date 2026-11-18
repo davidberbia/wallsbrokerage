@@ -123,6 +123,7 @@ function MyProfilePage() {
       };
       const payload = { ...investorPayload(finalizedDraft), user_id: user.id };
       let investorId = profile.data?.investor.id;
+      const isNew = !investorId;
       if (investorId) {
         const { error } = await supabase.from("investors").update(payload).eq("id", investorId);
         if (error) throw error;
@@ -145,7 +146,7 @@ function MyProfilePage() {
       const { error: insertError } = await supabase.from("investor_criteria").insert(rows);
       if (insertError) throw insertError;
       try {
-        await sendConfirmation({ data: { profileId: investorId } });
+        await sendConfirmation({ data: { profileId: investorId, isNew } });
         toast.success("Profil enregistré. Un email de confirmation vous a été envoyé.");
       } catch {
         toast.warning("Profil enregistré, mais l’email de confirmation n’a pas pu être envoyé.");

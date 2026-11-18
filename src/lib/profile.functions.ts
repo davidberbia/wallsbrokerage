@@ -4,11 +4,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const sendProfileConfirmation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ profileId: z.string().uuid() }).parse(input))
+  .inputValidator((input) => z.object({ profileId: z.string().uuid(), isNew: z.boolean().optional() }).parse(input))
   .handler(async ({ data, context }) => {
     const { data: profile, error } = await context.supabase
       .from("investors")
-      .select("id, email, first_name, full_name")
+      .select("id, email, first_name, full_name, company, phone, job_title, asset_classes, regions, strategies")
       .eq("id", data.profileId)
       .eq("user_id", context.userId)
       .single();
@@ -23,6 +23,18 @@ export const sendProfileConfirmation = createServerFn({ method: "POST" })
       subject: "Bienvenue dans la communauté d’investisseurs Wallsbroker",
       html: `<p>Bonjour ${escapeHtml(name)},</p><p>Bienvenue dans la communauté d’investisseurs de Wallsbroker !</p><p>Vos critères ont été correctement enregistrés.</p><p>Si vous souhaitez les modifier, connectez-vous à votre compte sur <a href="https://www.wallsbrokerage.com">www.wallsbrokerage.com</a>.</p><p>L’équipe Wallsbroker<br><a href="https://www.wallsbroker.com">www.wallsbroker.com</a></p>`,
     });
+    if (data.isNew) {
+      const p = profile as Record<string, unknown>;
+      const list = (v: unknown) => (Array.isArray(v) ? v.join(", ") : "—");
+      try {
+        await sendBrevoMail({
+          to: "d.berbia@wallsbroker.com",
+          toName: "David Berbia",
+          subject: `Nouvel investisseur inscrit : ${profile.full_name}${p.company ? ` (${p.company})` : ""}`,
+          html: `<p>Un nouvel investisseur vient de s’inscrire dans le CRM.</p><p><b>${escapeHtml(profile.full_name)}</b><br>${escapeHtml(String(p.company ?? "—"))} · ${escapeHtml(String(p.job_title ?? "—"))}<br>${escapeHtml(profile.email)} · ${escapeHtml(String(p.phone ?? "—"))}</p><p>Classes : ${escapeHtml(list(p.asset_classes))}<br>Zones : ${escapeHtml(list(p.regions))}<br>Stratégies : ${escapeHtml(list(p.strategies))}</p><p><a href="https://www.wallsbrokerage.com/matching">Ouvrir le CRM</a></p>`,
+        });
+      } catch (e) { console.error("Alerte admin inscription", e); }
+    }
     return { sent: true };
   });
 

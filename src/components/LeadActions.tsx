@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Archive, Clock, ArrowUp, Forward, Mail, Phone, RotateCcw } from "lucide-react";
+import { Archive, Clock, ArrowUp, Merge, Forward, Mail, Phone, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { leadRecipients, transferLead } from "@/lib/leads.functions";
@@ -11,8 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PigeButton } from "./Pige";
 
-export function LeadActions({ id, name, email, phone, owner, archived, onPromote, full = false, onArchived }: {
-  id: string; name: string; email?: string | null | undefined; phone?: string | null | undefined; owner?: string | null | undefined; archived?: boolean; onPromote: () => void; full?: boolean; onArchived?: () => void;
+export function LeadActions({ id, name, email, phone, owner, archived, onPromote, full = false, onArchived, onMerge }: {
+  id: string; name: string; email?: string | null | undefined; phone?: string | null | undefined; owner?: string | null | undefined; archived?: boolean; onPromote: () => void; full?: boolean; onArchived?: () => void; onMerge?: () => void;
 }) {
   const qc = useQueryClient();
   const getRecipients = useServerFn(leadRecipients);
@@ -50,6 +50,7 @@ export function LeadActions({ id, name, email, phone, owner, archived, onPromote
     <div className={full ? "flex w-full flex-wrap items-center gap-2" : "flex shrink-0 items-center gap-1"}>
       {!archived && <Button variant={full ? "default" : "outline"} size={full ? "default" : "icon"} className={full ? "h-auto min-h-11 flex-col gap-0 py-1" : "size-11"} title="Upgrade : Actif dispo" aria-label={`Transformer ${name} en Actif dispo`} onClick={onPromote}>{full ? <><span className="flex items-center gap-2"><ArrowUp className="size-4 shrink-0" />Upgrade</span><span className="text-[10px] font-normal opacity-80">Actif dispo</span></> : <ArrowUp className="size-4" />}</Button>}
       {email ? <Button asChild variant="outline" size="icon" className="size-11" title="Contacter" aria-label={`Contacter ${name}`}><a href={`mailto:${email}?subject=${encodeURIComponent(`Votre dossier : ${name}`)}`}><Mail className="size-4" /></a></Button> : phone ? <Button asChild variant="outline" size="icon" className="size-11" title="Appeler" aria-label={`Appeler ${name}`}><a href={`tel:${phone}`}><Phone className="size-4" /></a></Button> : null}
+      {onMerge && <Button variant="outline" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${name}`} onClick={onMerge}><Merge className="size-4" /></Button>}
       <Button variant="outline" size={full ? "default" : "icon"} className={full ? "min-h-11" : "size-11"} title="Transférer" aria-label={`Transférer ${name}`} onClick={() => setOpen(true)}><Forward className="size-4" />{full && "Transférer"}</Button>
       {full && !archived && <PigeButton id={id} />}
       {full && !archived && <Button variant="outline" className="h-auto min-h-11 flex-col gap-0 py-1" disabled={busy} onClick={() => void later()}><span className="flex items-center gap-2"><Clock className="size-4" />Plus tard</span><span className="text-[10px] font-normal text-muted-foreground">rappel dans 7 jours</span></Button>}
