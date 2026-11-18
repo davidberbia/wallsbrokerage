@@ -1,6 +1,6 @@
 // Cibles (opportunités entrantes) et honoraires détectés par l'IA → tableau des dossiers.
 import { getAdmin } from "@/lib/automation.server";
-import { nameKey, nameTokens, sameDeal } from "@/lib/deal-stages";
+import { isGenericDealName, nameKey, nameTokens, sameDeal } from "@/lib/deal-stages";
 
 type Admin = Awaited<ReturnType<typeof getAdmin>>;
 
@@ -73,7 +73,7 @@ export async function saveTargets(
   let created=0;const ids:string[]=[];
   for(const t of targets.slice(0,15)) {
     const name=String(t.name ?? "").trim().slice(0,200);const key=nameKey(name);
-    if(key.length<3 || BAD_NAME.test(name))continue;
+    if(key.length<3 || BAD_NAME.test(name) || isGenericDealName(name))continue;
     const {data:existing}=await admin.from("deals").select("id").eq("name_key",key).eq("stage","Prospection").eq("owner_id",ownerId).maybeSingle();
     if(existing){ids.push(existing.id);continue;}
     const {data,error}=await admin.from("deals").insert({name,name_key:key,stage:"Prospection",owner_id:ownerId,source,notes:[t.origin,t.asset_class,t.excerpt].filter(Boolean).join("\n").slice(0,2000),vintage:yearOf(date),surface:num(t.surface),rent:num(t.rent),amount:num(t.price),address:[t.address,t.city].filter(Boolean).join(", ").slice(0,300) || null}).select("id").single();

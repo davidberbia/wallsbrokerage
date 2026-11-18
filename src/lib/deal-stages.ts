@@ -100,3 +100,10 @@ export function suiviTotals(rows: SuiviLike[]) {
   }
   return t;
 }
+
+/** Nom trop vague pour identifier un dossier (« Hôtel », « Immeuble 3* »…). */
+const GENERIC_WORDS = /^(hotels?|immeubles?|commerces?|bureaux?|locaux|local|entrepots?|terrains?|residences?|appartements?|maisons?|murs?|boutiques?|restaurants?|ehpad|parking|produit|bien|biens|opportunite|investissement|vente|cession|domaine|batiment|ensemble)$/;
+export function isGenericDealName(name: string): boolean {
+  const key = nameKey(name).replace(/[0-9]+/g, "").replace(/etoiles?/g, "");
+  return key.length < 3 || GENERIC_WORDS.test(key);
+}
