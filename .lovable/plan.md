@@ -4,11 +4,16 @@
 - Remplacer « Traiter les leads » par **« Traitement rapide »**.
 - Afficher un grand pop-up **central**, jamais un panneau latéral ; plein écran sur téléphone, avec navigation « Suivant ».
 - Conserver les filtres existants et ajouter **« Attente de docs »** et **« A rappeler »**, avec leurs compteurs.
+- Donner au bouton « Traitement rapide » un fond bleu permanent.
+- Ajouter « Retour » à côté de « Suivant », désactivé sur le premier lead.
+- Exclure les leads en attente du traitement rapide dès la confirmation d’envoi ; ils ne réintègrent cette file qu’à l’état « A rappeler ». Le filtre « Attente de docs » reste consultable hors traitement rapide.
 - Afficher l’état « En attente de documents » en orange sur les leads concernés et « A rappeler » en rouge.
 
 ## Actions du pop-up
 - **Transformer en Actif dispo** : déplacer le dossier dans les actifs disponibles, avec contrôle de la classe d’actif obligatoire ; ne pas le transformer en affaire d’estimation.
 - **Sans suite** : archiver le lead, sans relance ultérieure.
+- Encadrer « Sans suite » avec un bouton visible ; réduire la largeur de « Demander les éléments manquants » et lui donner un fond orange permanent, adapté au téléphone.
+- Conserver « Qualifier » : ce bouton classe le lead dans « Qualifiés », sans le transformer en actif disponible.
 - **Demander les éléments manquants** : vérifier les données et documents déjà présents, adapter les pièces nécessaires au type et à l’occupation du bien, puis préparer un mail dans Outlook professionnel. Liste possible : plans, bail, état locatif, décompte de charges, taxe foncière, photos, prix, surface, loyer et caractéristiques hôtelières lorsque pertinentes. Ne pas demander systématiquement des pièces inapplicables.
 - Objet : « Votre dossier : [nom du lead] — Éléments complémentaires » ; corps avec salutation, liste des éléments manquants et formule de politesse.
 - L’ouverture d’Outlook sera enregistrée comme **préparation**, pas comme envoi. La fiche proposera **« Confirmer l’envoi »** après envoi dans Outlook, pour dater la demande et passer en attente de documents.
