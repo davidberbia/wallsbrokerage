@@ -628,7 +628,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
                       </td>
                     </tr>
                   )}
-                  <tr onClick={() => mode === "targets" ? openChain(d.id) : setOpenId(d.id)} className="cursor-pointer border-t border-border hover:bg-accent">
+                  <tr onClick={() => setOpenId(d.id)} className="cursor-pointer border-t border-border hover:bg-accent">
                     <td className="px-2 py-2 font-medium">{d.name}{fill.loaded && <Completion value={fill.get(d.asset_id, undefined, d)} />}</td>
                     <td className="px-2 py-2">{d.nego1}</td>
                     <td className="px-2 py-2">{d.nego2}</td>
