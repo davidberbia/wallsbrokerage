@@ -5,6 +5,8 @@
 - [ ] Dans Traitement rapide, remplacer le pictogramme de transfert par un bouton Transférer et insérer Pige avant Sans suite.
 - [ ] Ouvrir la sélection d’investisseurs avec les critères du lead préremplis et permettre la sélection des destinataires.
 - [ ] Préparer dans Outlook un message individuel avec prénom, objet du bien, texte demandé et signature, sans envoi automatique ni pièces jointes automatiques.
+- [ ] Après envoi confirmé, passer le lead en Pige et conserver l’historique par investisseur : contacté, réception, lecture et réponse uniquement sur preuves disponibles.
+- [ ] Après sept jours, remettre le dossier dans les Leads avec un marketing report factuel pour décider de la suite ; préciser les limites de suivi des mails envoyés depuis Outlook.
 - [ ] Vérifier le parcours au toucher sur téléphone, sans envoi réel ni publication.
 
 ## Ajustements Leads et complétion — 18 novembre, plan approuvé
