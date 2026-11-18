@@ -2195,6 +2195,7 @@ export type Database = {
       }
       linkedin_posts: {
         Row: {
+          asset_ids: string[]
           body: string
           chart: Json | null
           created_at: string
@@ -2208,6 +2209,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          asset_ids?: string[]
           body?: string
           chart?: Json | null
           created_at?: string
@@ -2221,6 +2223,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          asset_ids?: string[]
           body?: string
           chart?: Json | null
           created_at?: string

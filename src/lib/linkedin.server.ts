@@ -21,17 +21,18 @@ export async function linkedinBudgetLeft(admin: Admin): Promise<boolean> {
 }
 
 /** Rédige le texte d'un post pour un collaborateur (lecture limitée à ses propres données). */
-export async function writePost(admin: Admin, userId: string, kind: PostKind): Promise<{ body: string; chart: Chart | null } | { error: string }> {
+export async function writePost(admin: Admin, userId: string, kind: PostKind, assetIds: string[] = []): Promise<{ body: string; chart: Chart | null } | { error: string }> {
   if (!(await linkedinBudgetLeft(admin))) return { error: `Plafond LinkedIn de ${LINKEDIN_BUDGET_EUR} € atteint ce mois-ci.` };
   const { data: s } = await admin.from("linkedin_settings").select("specialty").eq("user_id", userId).maybeSingle();
   const specialty = s?.specialty?.trim() || "immobilier d'investissement";
   const g = await import("@/lib/gemini.server");
   try {
     if (kind === "actifs") {
+      if (assetIds.length < 1 || assetIds.length > 3) return { error: "Choisissez 1 à 3 actifs dans le portefeuille." };
       const { data: assets } = await admin.from("assets").select("asset_class, asset_subclass, surface, postal_code, city, price")
-        .eq("owner_id", userId).eq("status", "disponible").order("updated_at", { ascending: false }).limit(30);
-      const lines = (assets ?? []).map(anonymizeAsset).filter(Boolean).slice(0, 3) as string[];
-      if (lines.length === 0) return { error: "Aucun actif disponible avec type et prix pour ce post." };
+        .eq("owner_id", userId).in("id", assetIds);
+      const lines = (assets ?? []).map(anonymizeAsset).filter(Boolean) as string[];
+      if (lines.length === 0) return { error: "Les actifs choisis n'ont pas de type ou de prix." };
       const body = await g.callGemini({ task: "linkedin", system: STYLE, turns: [{ role: "user", text: `Rédige un post court de début de semaine présentant ces actifs à vendre, en reprenant chaque ligne telle quelle en liste, avec une accroche et un appel à me contacter en message privé :\n${lines.map((l) => `- ${l}`).join("\n")}` }] });
       return { body, chart: null };
     }

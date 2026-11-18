@@ -38,17 +38,19 @@ export const Route = createFileRoute("/api/public/cron/linkedin-tick")({
 
           // Rédaction bornée des emplacements vides, les plus proches d'abord.
           if (await linkedinBudgetLeft(admin)) {
-            const { data: empty } = await admin.from("linkedin_posts").select("id, user_id, kind").eq("body", "").eq("status", "brouillon")
+            const { data: empty } = await admin.from("linkedin_posts").select("id, user_id, kind, asset_ids").eq("body", "").eq("status", "brouillon")
               .gte("scheduled_for", date).order("scheduled_for").limit(WRITE_BATCH);
             for (const p of empty ?? []) {
-              const r = await writePost(admin, p.user_id, p.kind as "actifs" | "specialite" | "marche");
+              // Actifs : rédigés seulement après le choix dans le portefeuille.
+              if (p.kind === "actifs" && !(p.asset_ids ?? []).length) continue;
+              const r = await writePost(admin, p.user_id, p.kind as "actifs" | "specialite" | "marche", p.asset_ids ?? []);
               if ("error" in r) {
                 await admin.from("linkedin_posts").update({ error: r.error }).eq("id", p.id);
                 if (r.error.includes("Plafond")) break;
                 continue;
               }
               await admin.from("linkedin_posts").update({ body: r.body.trim(), chart: r.chart, error: null }).eq("id", p.id);
-              await makePostImage(admin, p.user_id, p.id, p.kind as "actifs" | "specialite" | "marche", r.body, r.chart);
+              if (p.kind !== "actifs") await makePostImage(admin, p.user_id, p.id, p.kind as "actifs" | "specialite" | "marche", r.body, r.chart);
               written++;
             }
           }

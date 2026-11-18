@@ -86,3 +86,12 @@ export function inviteQueue<T extends { id: string; created_at: string }>(contac
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .slice(0, Math.min(perDay, INVITES_MAX_PER_DAY));
 }
+
+/** Couleur de l'onglet LinkedIn : rouge sans post préparé à venir, orange s'il reste une semaine ou moins. */
+export function pipelineLevel(preparedDates: string[], today: string): "ok" | "orange" | "rouge" {
+  const future = preparedDates.filter((d) => d >= today).sort();
+  if (future.length === 0) return "rouge";
+  const limit = new Date(`${today}T12:00:00Z`);
+  limit.setUTCDate(limit.getUTCDate() + 7);
+  return future[future.length - 1]! <= limit.toISOString().slice(0, 10) ? "orange" : "ok";
+}

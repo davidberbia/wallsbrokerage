@@ -6,24 +6,31 @@ import { requireStaffAuth } from "@/lib/staff-middleware";
 /** Rédige (ou réécrit) un post. Sans postId : nouveau brouillon du jour. */
 export const generateLinkedinPost = createServerFn({ method: "POST" })
   .middleware([requireStaffAuth])
-  .inputValidator((d: { kind: "actifs" | "specialite" | "marche"; postId?: string }) =>
-    z.object({ kind: z.enum(["actifs", "specialite", "marche"]), postId: z.string().uuid().optional() }).parse(d))
+  .inputValidator((d: { kind: "actifs" | "specialite" | "marche"; postId?: string; assetIds?: string[] }) =>
+    z.object({ kind: z.enum(["actifs", "specialite", "marche"]), postId: z.string().uuid().optional(), assetIds: z.array(z.string().uuid()).min(1).max(3).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { getAdmin } = await import("@/lib/automation.server");
     const { writePost } = await import("@/lib/linkedin.server");
-    const r = await writePost(await getAdmin(), userId, data.kind);
+    let assetIds = data.assetIds ?? [];
+    if (data.kind === "actifs" && !data.assetIds && data.postId) {
+      const { data: cur } = await supabase.from("linkedin_posts").select("asset_ids").eq("id", data.postId).eq("user_id", userId).maybeSingle();
+      assetIds = cur?.asset_ids ?? [];
+    }
+    const r = await writePost(await getAdmin(), userId, data.kind, assetIds);
     if ("error" in r) return { error: r.error };
     if (!r.body.trim()) return { error: "L'IA n'a rien renvoyé." };
     let id = data.postId;
     if (id) {
-      const { error } = await supabase.from("linkedin_posts").update({ body: r.body.trim(), chart: r.chart, error: null }).eq("id", id).eq("user_id", userId);
+      const { error } = await supabase.from("linkedin_posts").update({ body: r.body.trim(), chart: r.chart, error: null, asset_ids: assetIds }).eq("id", id).eq("user_id", userId);
       if (error) return { error: error.message };
     } else {
-      const { data: row, error } = await supabase.from("linkedin_posts").insert({ user_id: userId, kind: data.kind, body: r.body.trim(), chart: r.chart }).select("id").single();
+      const { data: row, error } = await supabase.from("linkedin_posts").insert({ user_id: userId, kind: data.kind, body: r.body.trim(), chart: r.chart, asset_ids: assetIds }).select("id").single();
       if (error) return { error: error.message };
       id = row.id;
     }
+    // Actifs : l'image n'est créée qu'à la demande du collaborateur.
+    if (data.kind === "actifs") return { id, imageError: null };
     const { makePostImage } = await import("@/lib/linkedin.server");
     const img = await makePostImage(await getAdmin(), userId, id, data.kind, r.body, r.chart);
     return { id, imageError: "error" in img ? img.error : null };

@@ -37,3 +37,10 @@ describe("linkedin", () => {
     expect(canInviteNow(3, new Date(2026, 10, 16, 9).toISOString(), mon)).toBe(true);
   });
 });
+
+import { pipelineLevel } from "./linkedin";
+describe("pipelineLevel", () => {
+  it("rouge sans aucun post préparé à venir", () => expect(pipelineLevel(["2026-11-10"], "2026-11-19")).toBe("rouge"));
+  it("orange s'il ne reste qu'une semaine", () => expect(pipelineLevel(["2026-11-20", "2026-11-26"], "2026-11-19")).toBe("orange"));
+  it("normal au-delà d'une semaine", () => expect(pipelineLevel(["2026-11-20", "2026-11-27"], "2026-11-19")).toBe("ok"));
+});

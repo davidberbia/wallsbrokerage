@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useLinkedinPipeline } from "@/hooks/useLinkedinPipeline";
 import { useNavCounts } from "@/hooks/useNavCounts";
 import { AssistantBar } from "@/components/AssistantBar";
 import { HelpButton } from "@/components/manuel/HelpButton";
@@ -89,6 +90,8 @@ export function AppLayout({
     to === "/investisseurs" && isStaff ? isContactsPage : pathname === to || ((to === "/formation" || to === "/manuel") && pathname.startsWith(`${to}/`));
   const counts = useNavCounts(!!session && isStaff).data;
   useAutoRender(!!session && isStaff);
+  const liLevel = useLinkedinPipeline(!!session && isStaff).data;
+  const liTone = (to: string) => (to !== "/notoriete" ? "" : liLevel === "rouge" ? "!text-destructive font-semibold" : liLevel === "orange" ? "!text-warning font-semibold" : "");
   const badge = (to: string) => {
     const n = counts?.[to];
     return n == null ? null : (
@@ -149,6 +152,7 @@ export function AppLayout({
                   active
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60",
+                  liTone(item.to),
                 )}
               >
                 <item.icon className="size-4 shrink-0" />
@@ -200,6 +204,7 @@ export function AppLayout({
                         active
                           ? "bg-sidebar-accent text-sidebar-accent-foreground"
                           : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60",
+                        liTone(item.to),
                       )}
                     >
                       <item.icon className="size-5" />

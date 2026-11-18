@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, Download, ExternalLink, ImagePlus, Plus, RefreshCw, Sparkles, Trash2, X } from "lucide-react";
+import { Briefcase, Check, Download, ExternalLink, ImagePlus, Plus, RefreshCw, Sparkles, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppLayout } from "@/components/AppLayout";
@@ -11,10 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { completeLinkedinConnect, disconnectLinkedin, generateLinkedinPost, linkedinStatus, regenerateLinkedinImage, planLinkedinMonth, startLinkedinConnect } from "@/lib/linkedin.functions";
-import { canInviteNow, inviteQueue, inviteWaitMinutes, INVITES_MAX_PER_DAY, kindForDate, KIND_LABEL, type PostKind } from "@/lib/linkedin";
+import { anonymizeAsset, canInviteNow, inviteQueue, inviteWaitMinutes, INVITES_MAX_PER_DAY, kindForDate, KIND_LABEL, type PostKind } from "@/lib/linkedin";
 
 export const Route = createFileRoute("/notoriete")({
   head: () => ({
@@ -97,9 +99,54 @@ function PostImage({ p, onChange }: { p: Post; onChange: () => void }) {
   );
 }
 
-type Post = { id: string; user_id: string; image_path: string | null; kind: string; body: string; chart: unknown; status: string; created_at: string; scheduled_for: string; error: string | null };
+type PickAsset = { id: string; title: string; city: string | null; asset_class: string | null; asset_subclass: string | null; surface: number | null; postal_code: string | null; price: number | null };
 
-function PostCard({ p, onChange, onWrite, writing }: { p: Post; onChange: () => void; onWrite?: () => void; writing?: boolean }) {
+/** Choix de 1 à 3 actifs du portefeuille du collaborateur. */
+function AssetPicker({ open, initial, onClose, onPick }: { open: boolean; initial: string[]; onClose: () => void; onPick: (ids: string[]) => void }) {
+  const { user } = useAuth();
+  const [sel, setSel] = useState<string[]>(initial);
+  const [q, setQ] = useState("");
+  useEffect(() => { if (open) { setSel(initial); setQ(""); } }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const list = useQuery({
+    queryKey: ["li-portfolio", user?.id], enabled: open && !!user,
+    queryFn: async () => ((await supabase.from("assets").select("id, title, city, asset_class, asset_subclass, surface, postal_code, price").eq("owner_id", user!.id).eq("status", "disponible").order("updated_at", { ascending: false }).limit(300)).data ?? []) as PickAsset[],
+  });
+  const needle = q.trim().toLowerCase();
+  const rows = (list.data ?? []).filter((a) => !needle || `${a.title} ${a.city ?? ""}`.toLowerCase().includes(needle));
+  const toggle = (id: string) => setSel((s) => (s.includes(id) ? s.filter((x) => x !== id) : s.length >= 3 ? s : [...s, id]));
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[90dvh] overflow-hidden">
+        <DialogHeader><DialogTitle>Choisir 1 à 3 actifs ({sel.length}/3)</DialogTitle></DialogHeader>
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher un nom ou une ville" />
+        <div className="max-h-[50dvh] space-y-1 overflow-y-auto">
+          {list.isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
+          {!list.isLoading && rows.length === 0 && <p className="text-sm text-muted-foreground">Aucun actif disponible.</p>}
+          {rows.map((a) => {
+            const line = anonymizeAsset(a);
+            const on = sel.includes(a.id);
+            return (
+              <label key={a.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-md border p-2 ${on ? "border-primary" : "border-border"} ${!line ? "opacity-50" : ""}`}>
+                <Checkbox checked={on} disabled={!line || (!on && sel.length >= 3)} onCheckedChange={() => toggle(a.id)} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium">{a.title}</div>
+                  <div className="truncate text-xs text-muted-foreground">{line ?? "Type ou prix manquant"}</div>
+                </div>
+              </label>
+            );
+          })}
+        </div>
+        <DialogFooter>
+          <Button disabled={sel.length === 0} onClick={() => onPick(sel)}>Rédiger avec ces actifs</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type Post = { id: string; user_id: string; asset_ids: string[]; image_path: string | null; kind: string; body: string; chart: unknown; status: string; created_at: string; scheduled_for: string; error: string | null };
+
+function PostCard({ p, onChange, onWrite, onPick, writing }: { p: Post; onChange: () => void; onWrite?: () => void; onPick?: () => void; writing?: boolean }) {
   const [text, setText] = useState(p.body);
   useEffect(() => setText(p.body), [p.body]);
   const ref = useRef<SVGSVGElement>(null);
@@ -129,8 +176,9 @@ function PostCard({ p, onChange, onWrite, writing }: { p: Post; onChange: () => 
         <p className="whitespace-pre-wrap text-sm">{p.body}</p>
       ) : !p.body ? (
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-muted-foreground">{p.error ?? "Rédaction automatique prévue."}</span>
-          {onWrite && <Button size="sm" variant="outline" disabled={writing} onClick={onWrite}><Sparkles className="mr-1 size-4" />{writing ? "Rédaction…" : "Rédiger maintenant"}</Button>}
+          <span className="text-sm text-muted-foreground">{p.kind === "actifs" ? (p.asset_ids?.length ? "Actifs choisis, rédaction automatique prévue." : "Choisissez les actifs à mettre en avant.") : p.error ?? "Rédaction automatique prévue."}</span>
+          {p.kind === "actifs" && onPick && <Button size="sm" disabled={writing} onClick={onPick}><Briefcase className="mr-1 size-4" />{writing ? "Rédaction…" : "Choisir dans le portefeuille"}</Button>}
+          {onWrite && (p.kind !== "actifs" || !!p.asset_ids?.length) && <Button size="sm" variant="outline" disabled={writing} onClick={onWrite}><Sparkles className="mr-1 size-4" />{writing ? "Rédaction…" : "Rédiger maintenant"}</Button>}
         </div>
       ) : (
         <>
@@ -142,6 +190,7 @@ function PostCard({ p, onChange, onWrite, writing }: { p: Post; onChange: () => 
               <>
                 <Button size="sm" onClick={() => save({ body: text, status: "valide", error: null })}><Check className="mr-1 size-4" />Valider</Button>
                 <Button size="sm" variant="outline" onClick={() => save({ body: text })}>Enregistrer</Button>
+                {p.kind === "actifs" && onPick && <Button size="sm" variant="outline" disabled={writing} onClick={onPick}><Briefcase className="mr-1 size-4" />Changer les actifs</Button>}
                 <Button size="sm" variant="outline" onClick={publishByHand}><ExternalLink className="mr-1 size-4" />Publier moi-même</Button>
                 <Button size="sm" variant="ghost" onClick={() => save({ status: "ignore" })}><X className="mr-1 size-4" />Ignorer</Button>
               </>
@@ -272,7 +321,19 @@ function NotorietePage() {
     await supabase.from("linkedin_sources").insert({ user_id: uid, url });
     setNewUrl(""); qc.invalidateQueries({ queryKey: ["li-sources"] });
   };
+  const [pick, setPick] = useState<{ post: Post | null } | null>(null);
+  const onPicked = async (ids: string[]) => {
+    const target = pick?.post ?? null;
+    setPick(null);
+    if (target) setWriting(target.id); else setBusy("actifs");
+    try {
+      const r = await gen({ data: target ? { kind: "actifs", postId: target.id, assetIds: ids } : { kind: "actifs", assetIds: ids } });
+      if ("error" in r && r.error) toast.error(r.error); else toast.success("Brouillon prêt — lancez l'image quand vous voulez");
+      qc.invalidateQueries({ queryKey: ["li-posts"] }); qc.invalidateQueries({ queryKey: ["li-pipeline"] });
+    } finally { setWriting(null); setBusy(null); }
+  };
   const run = async (kind: PostKind) => {
+    if (kind === "actifs") { setPick({ post: null }); return; }
     setBusy(kind);
     try {
       const r = await gen({ data: { kind } });
@@ -307,13 +368,14 @@ function NotorietePage() {
           <div className="grid gap-2 sm:grid-cols-3">
             {(["actifs", "specialite", "marche"] as PostKind[]).map((k) => (
               <Button key={k} variant={today === k ? "default" : "outline"} disabled={!!busy} onClick={() => run(k)} className="h-auto whitespace-normal py-2">
-                <Sparkles className="mr-1 size-4 shrink-0" />{busy === k ? "Rédaction…" : KIND_LABEL[k]}
+                <Sparkles className="mr-1 size-4 shrink-0" />{busy === k ? "Rédaction…" : k === "actifs" ? `${KIND_LABEL[k]} — choisir` : KIND_LABEL[k]}
               </Button>
             ))}
           </div>
           <Button variant="outline" className="w-full" onClick={async () => { const r = await plan(); toast.success(r.added ? `${r.added} posts prévus ce mois-ci` : "Mois déjà préparé"); qc.invalidateQueries({ queryKey: ["li-posts"] }); }}>Préparer le mois</Button>
           {drafts.length === 0 && <p className="text-sm text-muted-foreground">Aucun post prévu.</p>}
-          {drafts.map((p) => <PostCard key={p.id} p={p} writing={writing === p.id} onWrite={() => writeNow(p)} onChange={() => qc.invalidateQueries({ queryKey: ["li-posts"] })} />)}
+          {drafts.map((p) => <PostCard key={p.id} p={p} writing={writing === p.id} onWrite={() => writeNow(p)} onPick={() => setPick({ post: p })} onChange={() => { qc.invalidateQueries({ queryKey: ["li-posts"] }); qc.invalidateQueries({ queryKey: ["li-pipeline"] }); }} />)}
+          <AssetPicker open={!!pick} initial={pick?.post?.asset_ids ?? []} onClose={() => setPick(null)} onPick={onPicked} />
           {history.length > 0 && <h2 className="pt-2 text-sm font-semibold">Publiés</h2>}
           {(history as Post[]).map((p) => <PostCard key={p.id} p={p} onChange={() => {}} />)}
         </TabsContent>

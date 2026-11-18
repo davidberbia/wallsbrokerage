@@ -1,0 +1,1 @@
+ALTER TABLE public.linkedin_posts ADD COLUMN IF NOT EXISTS asset_ids uuid[] NOT NULL DEFAULT '{}';
