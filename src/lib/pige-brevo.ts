@@ -17,5 +17,5 @@ export function pigeSender(email: string, person: string) {
   const address = email.trim().toLowerCase();
   if (!PIGE_SENDERS.includes(address)) return null;
   const name = person.trim() ? `${person.trim()} | Walls Brokerage` : "Walls Brokerage";
-  return { email: address, name, tags: ["pige", slug(person) || slug(address.split("@")[0])] };
+  return { email: address, name, tags: ["pige", slug(person) || slug(address.split("@")[0] ?? "")] };
 }
