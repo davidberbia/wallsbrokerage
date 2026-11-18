@@ -1,24 +1,24 @@
-# Pré-remplissage 100 % automatique depuis la boîte mail
+# Aspiration du NAS Synology vers le CRM
 
-## Ce qui se passera, sans aucune intervention
-1. Quand un mail est rattaché à un dossier ou à un actif, ses pièces jointes sont récupérées automatiquement depuis Outlook et rangées dans l'actif (Baux, Images, Plans, racine). Les doublons (même fichier déjà présent) sont ignorés.
-2. Chaque document est lu automatiquement : bail, avenant, état locatif, taxe foncière, décompte de charges, mandat, brochure, teaser, Kbis, Excel…
-3. La fiche se remplit seule : adresse, code postal, ville, surface, loyer, prix, parkings, rendement, taxe foncière, charges, WALB, WALT, dates de baux, état locatif lot par lot. Une valeur déjà saisie n'est jamais écrasée.
-4. Images : les photos jointes, celles contenues dans les présentations PDF et les plans PDF transformés en images sont ajoutées à l'actif et disponibles dans le générateur de brochures, sans doublon.
-5. La photo principale est choisie seule s'il n'y en a pas : photo en largeur, la plus nette.
-6. Un petit encart « Rempli automatiquement depuis : bail.pdf, TF 2025.pdf… » apparaît sur la fiche pour savoir d'où vient chaque information.
+## Ce que vous aurez
+Un seul programme à lancer depuis un ordinateur branché sur le même réseau que le NAS, avec deux modes :
+- **Actifs** : parcourt `Investissement / Année / Ville / Actif`, rattache chaque dossier à la fiche actif existante (ou la crée), range photos, plans et documents dans le dossier documentaire.
+- **Comparables** : lit les fichiers Excel et alimente la base Comparables (6 classes, pondération 65 %, sans doublon).
 
-## Fréquence et coût
-- Traitement en tâche de fond, par petits lots, à la suite de l'analyse des mails déjà en place (pas de nouveau passage en continu à vide).
-- Chaque document n'est lu qu'une seule fois, jamais relu.
-- Lecture par Gemini, dans votre plafond de 50 €/mois ; si le plafond est atteint, tout se met en pause et reprend le mois suivant.
-- Les fichiers de plus de 20 Mo et les signatures/logos de mail sont ignorés.
+Les baux, états locatifs et brochures remontés en mode Actifs alimentent aussi automatiquement les Comparables (lecture par règles, zéro crédit IA).
 
-## Point à valider
-- Cela consomme des crédits IA à chaque nouveau document reçu (dans le plafond de 50 €/mois). Confirmez-vous ?
+## Fonctionnement
+1. Paramètres > nouvel onglet « Serveur NAS » : génération d'une clé privée (vous seul, super admin), affichage de la dernière synchronisation et du nombre de fichiers reçus.
+2. Le programme envoie 10 fichiers en parallèle, saute ce qui est déjà monté (empreinte du fichier), reprend où il s'est arrêté après une coupure.
+3. Rattachement : ville + adresse/nom du dossier comparés aux fiches existantes ; en cas de doute, la fiche n'est pas fusionnée et le dossier apparaît dans une liste « À rattacher » pour que vous choisissiez.
+4. Photo principale : jamais remplacée si elle existe déjà ; aucun champ rempli n'est écrasé.
+
+## Limites
+- Volume : les fichiers sont stockés dans le CRM ; au-delà de quelques dizaines de Go, le stockage peut devenir payant.
+- Le PC doit rester allumé pendant le premier envoi.
 
 ## Détails techniques
-- Nouvelle file `mail_attachment_jobs` (unique par message + pièce jointe), verrou global et lots bornés, comme les extractions existantes.
-- Récupération Graph `/messages/{id}/attachments`, stockage dans le bucket des documents d'actif, hash SHA-256 pour dédoublonner.
-- Extraction structurée Gemini réutilisant `asset-extract`, fusion « champs vides uniquement ».
-- Images de PDF : conversion des pages plan/photo en JPEG côté serveur compatible Worker (pdf.js) ; si impossible pour un fichier, il reste en PDF sans bloquer la file.
+- Point d'entrée `/api/public/nas-ingest` vérifiant la clé (hash en base), envoi direct vers le stockage par URL signée.
+- Tables `nas_ingest_keys`, `nas_files` (hash SHA-256 unique, chemin, actif lié, statut).
+- Script Python autonome (dépendance `requests`, `openpyxl`), mode `--actifs` / `--comparables`, journal local de reprise.
+- Lecture des PDF/Word des actifs pour les comparables par règles (regex), comme pour l'existant.
