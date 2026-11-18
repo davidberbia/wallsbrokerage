@@ -40,7 +40,13 @@ const FAMILY_CLASS: Record<string, string> = { "Bureaux": "Bureaux", "Centres co
 async function resolveFolder(f: { folder_path: string; year?: string; city: string; label: string; family?: string; country?: string }) {
   const db = await admin();
   const { data: existing } = await db.from("nas_folders").select("id, asset_id, status").eq("folder_path", f.folder_path).maybeSingle();
-  if (existing) return existing;
+  if (existing) {
+    if (f.year && /^[12][0-9]{3}$/.test(f.year)) {
+      const { error } = await db.from("nas_folders").update({ year: f.year }).eq("id", existing.id);
+      if (error) throw new Error(error.message);
+    }
+    return existing;
+  }
   const { data: assets } = await db.from("assets").select("id, title, city, address").ilike("city", f.city.trim());
   const m = matchAsset((assets ?? []) as AssetLite[], f.city, f.label);
   let asset_id: string | null = null;

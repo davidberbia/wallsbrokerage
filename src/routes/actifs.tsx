@@ -12,6 +12,7 @@ import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
 import { Merge, Folder } from "lucide-react";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
+import { assetYears, matchesAssetYear } from "@/lib/asset-year";
 import { addOneYear , feeText, feeChargeText } from "@/lib/mandate-template";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -100,6 +101,7 @@ function AssetsPage() {
   const af = useAgentFilter();
   const [search, setSearch] = useState("");
   const [family, setFamily] = useState("all");
+  const [year, setYear] = useState("all");
   const [detail, setDetail] = useState<Asset | null>(null);
   const [editing, setEditing] = useState<Draft | null>(null);
   const [newFiles, setNewFiles] = useState<File[]>([]);
@@ -324,7 +326,9 @@ function AssetsPage() {
     onSettled: () => { void qc.invalidateQueries({ queryKey: ["assets"] }); void qc.invalidateQueries({ queryKey: ["deals"] }); },
   });
 
-  const filtered = (data ?? []).filter((asset) => af.keep((asset as { owner_id?: string | null }).owner_id) && matchesAssetSearch(asset, search) && (family === "all" || ((asset as { family?: string | null }).family ?? familyOf(asset.asset_class)) === family));
+  const visible = (data ?? []).filter((asset) => af.keep((asset as { owner_id?: string | null }).owner_id));
+  const years = assetYears(visible);
+  const filtered = visible.filter((asset) => matchesAssetYear(asset, year) && matchesAssetSearch(asset, search) && (family === "all" || ((asset as { family?: string | null }).family ?? familyOf(asset.asset_class)) === family));
 
   return (
     <div className="space-y-6">
@@ -338,6 +342,14 @@ function AssetsPage() {
           <SelectContent>
             <SelectItem value="all">Toutes familles</SelectItem>
             {ASSET_FAMILIES.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={year} onValueChange={setYear}>
+          <SelectTrigger className="w-[10rem]" aria-label="Année"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes années</SelectItem>
+            {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+            <SelectItem value="none">Sans année</SelectItem>
           </SelectContent>
         </Select></div>
         </div>
@@ -1326,6 +1338,7 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
       <RecordFacts
         facts={[
           ["Mandat / Référence", asset.reference],
+          ["Année du dossier serveur", asset.nas_year == null ? null : String(asset.nas_year)],
           ["Type", [asset.asset_class, asset.asset_subclass].filter(Boolean).join(" · ") || null],
           ...((asset.is_portfolio ? (asset.portfolio_lots ?? []) : []).map((l, i) => [`Bien ${i + 1}`, [[l.address, l.postal_code, l.city].filter(Boolean).join(" "), l.asset_class, l.surface ? `${l.surface} m²` : "", l.tenant, l.rent ? formatEUR(l.rent) : ""].filter(Boolean).join(" · ")] as [string, string | null])),
           ["Transaction", asset.transaction_type],

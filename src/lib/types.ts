@@ -44,6 +44,7 @@ export type Investor = {
 };
 
 export type Asset = {
+  nas_year?: number | null;
   autofill_sources?: unknown;
   residential_details?: Record<string, string | number | boolean | null>;
   publish_on_site?: boolean;

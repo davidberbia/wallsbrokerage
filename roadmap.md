@@ -1,5 +1,8 @@
 # Roadmap
 
+## Filtre Année — 18 novembre, plan validé
+- [x] Année du dossier serveur synchronisée depuis les rattachements NAS et filtre mobile ajouté ; 9 tests réussis, filtre Sans année testé au toucher avec les 67 fiches accessibles ; aucun dossier NAS encore enregistré pour vérifier une année réelle. Aucune publication.
+
 ## Honoraires perdus — 17 novembre, validation reçue
 - [x] Retirer la remise à zéro au passage en Perdu : 7 tests réussis ; dossier temporaire de 12 500 € passé en Perdu au toucher, enregistré puis relu avec montant conservé et total perdu à 12 500 € ; dossier de test supprimé, sans publication.
 

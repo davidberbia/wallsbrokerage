@@ -399,6 +399,7 @@ export type Database = {
           mandate_exclusive: boolean | null
           mandate_start: string | null
           mandate_type: string | null
+          nas_year: number | null
           outdoor_surface: number | null
           owner_details: Json
           owner_email: string | null
@@ -454,6 +455,7 @@ export type Database = {
           mandate_exclusive?: boolean | null
           mandate_start?: string | null
           mandate_type?: string | null
+          nas_year?: number | null
           outdoor_surface?: number | null
           owner_details?: Json
           owner_email?: string | null
@@ -509,6 +511,7 @@ export type Database = {
           mandate_exclusive?: boolean | null
           mandate_start?: string | null
           mandate_type?: string | null
+          nas_year?: number | null
           outdoor_surface?: number | null
           owner_details?: Json
           owner_email?: string | null

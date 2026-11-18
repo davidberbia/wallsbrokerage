@@ -31,3 +31,4 @@
 - NAS ingestion: a local Windows Python script (public/nas/walls_nas.zip) pushes files to /api/public/nas-ingest, authenticated by a hashed key from Paramètres; files go straight to storage via signed URLs, ambiguous folders wait in nas_folders for manual linking. Why: the CRM cannot reach the home network and large volumes must bypass the Worker.
 
 - Asset families mirror the NAS INVESTISSEMENT folders (assets.family via asset_family()); detailed asset_class is kept underneath, and every asset with a city and price or rent upserts one comparable (comparables.asset_id) by trigger. Why: server nomenclature in the CRM without losing matching detail, and every asset feeds the comparables base.
+- Asset year filtering uses assets.nas_year synchronized by a nas_folders trigger across creation and manual reassignment; missing or conflicting folder years stay null. Why: one authoritative synchronization path avoids using file or CRM timestamps.
