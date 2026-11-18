@@ -1,5 +1,12 @@
 # Roadmap
 
+## Demandes de documents et Pige — 18 novembre, validation du plan attendue
+- [ ] Ajouter l’adresse du bien dans l’objet des demandes et des lignes libres à cocher.
+- [ ] Dans Traitement rapide, remplacer le pictogramme de transfert par un bouton Transférer et insérer Pige avant Sans suite.
+- [ ] Ouvrir la sélection d’investisseurs avec les critères du lead préremplis et permettre la sélection des destinataires.
+- [ ] Préparer dans Outlook un message individuel avec prénom, objet du bien, texte demandé et signature, sans envoi automatique ni pièces jointes automatiques.
+- [ ] Vérifier le parcours au toucher sur téléphone, sans envoi réel ni publication.
+
 ## Ajustements Leads et complétion — 18 novembre, plan approuvé
 - [x] Boutons bleu/orange fixes, Sans suite encadré, Retour/Suivant vérifiés au toucher ; confirmation d’une demande temporaire ferme la file vide, attente toujours exclue après rechargement, données de test nettoyées sans mail envoyé.
 - [x] Bouton Qualifier et filtre Qualifiés supprimés ; anciens qualifiés inclus dans À traiter sans modification des données.
