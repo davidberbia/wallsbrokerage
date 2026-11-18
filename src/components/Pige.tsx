@@ -43,15 +43,27 @@ function PigeEditor({ id }: { id: string }) {
   const [criteria, setCriteria] = useState<Criteria>({ price: null, yield_pct: null, asset_class: null, strategy: null, region: null });
   const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch] = useState("");
+  const [manual, setManual] = useState({ first: "", last: "", email: "" });
+  const addManual = async () => {
+    const first = manual.first.trim(), last = manual.last.trim(), email = manual.email.trim().toLowerCase();
+    if (!first || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255 || first.length > 100 || last.length > 100) { toast.error("Prénom et e-mail valides requis"); return; }
+    const existing = (investors.data ?? []).find(i => i.email?.toLowerCase() === email);
+    if (existing) { setSelected(old => old.includes(existing.id) ? old : [...old, existing.id]); setManual({ first: "", last: "", email: "" }); toast.success("Déjà présent : sélectionné"); return; }
+    const { data: row, error } = await supabase.from("investors").insert({ first_name: first, full_name: [first, last].filter(Boolean).join(" "), email }).select("id").single();
+    if (error) { toast.error(error.message); return; }
+    await qc.invalidateQueries({ queryKey: ["pige-investors"] });
+    setSelected(old => [...old, row.id]); setManual({ first: "", last: "", email: "" }); toast.success("Destinataire ajouté");
+  };
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(false);
   useEffect(() => { const a = data.data?.asset; if (a) setCriteria({ price: a.price, yield_pct: a.yield_pct ?? null, asset_class: a.asset_class ?? null, strategy: a.strategy ?? null, region: a.region ?? null }); }, [data.data?.asset]);
   const results = useMemo(() => {
     const q = search.trim().toLowerCase();
     const all = (investors.data ?? []).filter(i => i.email);
-    if (q) return all.filter(i => [i.company, i.full_name, i.first_name, i.email].some(v => v?.toLowerCase().includes(q)));
-    return all.filter(i => matchInvestor(i, criteria).misses.length === 0);
-  }, [investors.data, criteria, search]);
+    const picked = all.filter(i => selected.includes(i.id));
+    const found = q ? all.filter(i => [i.company, i.full_name, i.first_name, i.email].some(v => v?.toLowerCase().includes(q))) : all.filter(i => matchInvestor(i, criteria).misses.length === 0);
+    return [...picked.filter(i => !found.includes(i)), ...found];
+  }, [investors.data, criteria, search, selected]);
   if (data.error || investors.error) return <p className="text-destructive">{data.error?.message || investors.error?.message}</p>;
   if (!data.data || !investors.data) return <p>Chargement…</p>;
   const cycle = data.data.cycles.find(c => !c.completed_at && (!c.due_at || new Date(c.due_at) > new Date()));
@@ -61,6 +73,7 @@ function PigeEditor({ id }: { id: string }) {
       <div className="grid gap-3 sm:grid-cols-2">{([['asset_class', "Type de bien", ASSET_CLASSES], ['region', "Région", REGIONS], ['strategy', "Stratégie", STRATEGIES]] as const).map(([key, label, options]) => <div key={key}><p className="mb-1 text-sm">{label}</p><Select value={criteria[key] || "all"} onValueChange={v => setCriteria(c => ({ ...c, [key]: v === "all" ? null : v }))}><SelectTrigger aria-label={label}><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Tous</SelectItem>{[...new Set([...options, ...(criteria[key] ? [criteria[key]] : [])])].map(v => <SelectItem key={v} value={v}>{v}</SelectItem>)}</SelectContent></Select></div>)}
       {([['price', "Prix (€)"], ['yield_pct', "Rendement (%)"]] as const).map(([key, label]) => <label key={key} className="text-sm">{label}<Input type="number" min="0" value={criteria[key] ?? ""} onChange={e => setCriteria(c => ({ ...c, [key]: e.target.value ? Number(e.target.value) : null }))} /></label>)}</div>
       <Input type="search" className="min-h-11" placeholder="Rechercher un investisseur (nom, société, e-mail)" aria-label="Rechercher un investisseur" value={search} onChange={e => setSearch(e.target.value)} />
+      <div className="rounded-md border border-border p-3"><p className="mb-2 text-sm font-semibold">Ajouter un destinataire</p><div className="grid gap-2 sm:grid-cols-[1fr_1fr_1.5fr_auto]"><Input className="min-h-11" placeholder="Prénom" aria-label="Prénom" maxLength={100} value={manual.first} onChange={e => setManual(m => ({ ...m, first: e.target.value }))} /><Input className="min-h-11" placeholder="Nom" aria-label="Nom" maxLength={100} value={manual.last} onChange={e => setManual(m => ({ ...m, last: e.target.value }))} /><Input className="min-h-11" type="email" placeholder="E-mail" aria-label="E-mail" maxLength={255} value={manual.email} onChange={e => setManual(m => ({ ...m, email: e.target.value }))} /><Button variant="outline" className="min-h-11" onClick={addManual}>Ajouter</Button></div></div>
       <p className="text-sm">{results.length} investisseurs · {selected.length} sélectionnés</p>
       <div className="max-h-80 overflow-y-auto divide-y divide-border">{results.map(i => { const ok = canSelectInvestor(i as Investor & { email_bounced_at?: string | null }); return <div key={i.id} className="flex min-h-14 items-center gap-3 py-2"><Checkbox disabled={!ok} aria-label={`Interroger ${i.company || i.full_name}`} checked={ok && selected.includes(i.id)} onCheckedChange={checked => setSelected(old => checked ? [...old, i.id] : old.filter(v => v !== i.id))} /><span className={`min-w-0 flex-1 break-words text-sm ${ok ? "" : "text-destructive"}`}><strong>{i.company || i.full_name}</strong><span className="block">{contactName(i.first_name, i.full_name)} · {i.email}</span>{!ok && <span className="block text-xs font-semibold">E-mail en erreur — corrigez la fiche</span>}</span><Button variant="ghost" size="sm" className="min-h-11 shrink-0" aria-label={`Modifier ${i.company || i.full_name}`} onClick={() => setEditing({ ...i })}><Pencil className="size-4" />Modifier</Button><Button variant="ghost" size="sm" className="min-h-11 shrink-0 text-destructive" aria-label={`Supprimer ${i.company || i.full_name}`} onClick={() => setRemoving(i)}><Trash2 className="size-4" />Supprimer</Button></div>; })}</div>
       <Dialog open={removing !== null} onOpenChange={o => !o && setRemoving(null)}><DialogContent><DialogHeader><DialogTitle>Supprimer définitivement ?</DialogTitle></DialogHeader><p className="break-words">{removing?.company || removing?.full_name} · {removing?.email}</p><Button variant="destructive" className="min-h-11" onClick={async () => { if (!removing) return; const { error } = await supabase.from("investors").delete().eq("id", removing.id); if (error) { toast.error(error.message); return; } setSelected(old => old.filter(v => v !== removing.id)); setRemoving(null); await qc.invalidateQueries({ queryKey: ["pige-investors"] }); await qc.invalidateQueries({ queryKey: ["investors"] }); toast.success("Investisseur supprimé"); }}>Supprimer</Button></DialogContent></Dialog>
