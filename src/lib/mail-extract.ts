@@ -59,5 +59,5 @@ export function isEmptyExtraction(e: MailExtraction): boolean {
 const normAddr = (a: string) => a.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
 export function dedupeAddresses(list: string[]): string[] {
   const keys = list.map(normAddr);
-  return list.filter((_, i) => !keys.some((k, j) => j !== i && (k === keys[i] ? j < i : k.startsWith(keys[i]))));
+  return list.filter((_, i) => !keys.some((k, j) => j !== i && (k === keys[i] ? j < i : k.startsWith(keys[i] ?? ""))));
 }
