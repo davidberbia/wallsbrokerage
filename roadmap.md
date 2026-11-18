@@ -132,3 +132,6 @@
 ## Pré-remplissage automatique depuis la boîte mail (validé 17/11)
 - [x] Pièces jointes des mails rattachés → actif, lecture auto, fiche remplie (champs vides seulement)
 - [x] Images/plans PDF → images ; plans nommés par niveau (Plan rez-de-chaussée, Plan 1er étage…), plans de masse séparés
+
+## Serveur NAS — 18 novembre
+- [x] Clé privée, onglet Paramètres, programme Windows (actifs + comparables) ; essai réel réussi puis nettoyé. Premier envoi réel à lancer par David.
