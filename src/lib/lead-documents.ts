@@ -60,11 +60,29 @@ export function missingLeadItems(asset: MissingAsset, names: string[], evidence:
   return missing;
 }
 
-export function documentMail(name: string, items: string[], reminder = false, address?: string | null) {
+export const DEFAULT_LEAD_QUESTIONS = ["L’actif est-il toujours à vendre ?", "Le prix est-il négociable ?", "Êtes-vous en direct vendeur ?"];
+const GENERIC = /^(contact|info|infos|hello|bonjour|admin|accueil|commercial|direction|gestion|immo|immobilier|agence|office|mail|noreply|no-reply|vente|ventes|transaction|transactions|service|support|secretariat|team|equipe|reservation|booking|sales)$/;
+const cap = (w: string) => w.charAt(0).toLocaleUpperCase("fr") + w.slice(1).toLocaleLowerCase("fr");
+/** Prénom probable : nom de la fiche, sinon partie avant @ si elle ressemble à un prénom. */
+export function guessFirstName(name?: string | null, email?: string | null) {
+  const fromName = (name ?? "").trim().split(/\s+/)[0] ?? "";
+  if (/^[\p{L}][\p{L}'-]{1,}$/u.test(fromName) && fromName !== fromName.toLocaleUpperCase("fr")) return cap(fromName);
+  const local = (email ?? "").split("@")[0]?.toLowerCase() ?? "";
+  const first = local.split(/[._-]/)[0] ?? "";
+  if (!/^[a-zà-ÿ]{3,}$/.test(first) || GENERIC.test(first) || /\d/.test(local)) return "";
+  return cap(first);
+}
+export function documentMail(name: string, items: string[], reminder = false, address?: string | null, firstName = "", signature = "") {
   const dossier = [name, address?.trim()].filter(Boolean).join(" — ");
   return {
     subject: reminder ? `[Relancé auto] Votre dossier : ${dossier}` : `Votre dossier : ${dossier} — Éléments complémentaires`,
-    body: `Bonjour,\n\n${reminder ? "Je me permets de vous relancer concernant les éléments complémentaires demandés pour votre dossier" : "Afin de poursuivre l’étude de votre dossier"} « ${name} », pourriez-vous me transmettre les éléments suivants ?\n\n${items.map(item => `• ${item}`).join("\n")}\n\nJe vous remercie par avance pour votre retour.\n\nBien cordialement,`,
+    body: `Bonjour${firstName.trim() ? ` ${firstName.trim()}` : ""},\n\n${reminder ? "Je me permets de vous relancer concernant les éléments complémentaires demandés pour votre dossier" : "Afin de poursuivre l’étude de votre dossier"} « ${name} », pourriez-vous me transmettre les éléments suivants ?\n\n${items.map(item => `• ${item}`).join("\n")}\n\nJe vous remercie par avance pour votre retour.\n\nBien cordialement,${signature.trim() ? `\n\n${signature.trim()}` : ""}`,
   };
+}
+/** Reprend prénom et signature d'une demande déjà envoyée (pour la relance). */
+export function mailParts(body: string) {
+  const greet = /^Bonjour ([^,\n]+),/.exec(body)?.[1] ?? "";
+  const sig = body.split("Bien cordialement,")[1]?.trim() ?? "";
+  return { firstName: greet, signature: sig };
 }
 export function inQuickReview(status: string, request?: Pick<LeadRequest, "status">) { return ["new", "recall"].includes(leadViewStatus(status, request)); }

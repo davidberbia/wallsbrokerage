@@ -1,7 +1,7 @@
 import { getAdmin, escapeHtml } from "./automation.server";
 import { graphGet } from "./mailscan.server";
 import { sendNew } from "./graph-send.server";
-import { canRemind, documentMail, parisWeekend } from "./lead-documents";
+import { canRemind, documentMail, mailParts, parisWeekend } from "./lead-documents";
 
 type Message = { id: string; subject?: string; conversationId?: string; receivedDateTime?: string; toRecipients?: { emailAddress?: { address?: string } }[]; internetMessageHeaders?: { name: string; value: string }[] };
 const sameEmail = (a?: string, b?: string) => a?.trim().toLowerCase() === b?.trim().toLowerCase();
@@ -53,7 +53,8 @@ export async function runLeadFollowups() {
     if (!claimed) continue;
     try {
       const items = Array.isArray(r.missing_items) ? r.missing_items.filter((i): i is string => typeof i === "string") : [];
-      const mail = documentMail(deal.name, items, true);
+      const parts = mailParts(r.body_text ?? "");
+      const mail = documentMail(deal.name, items, true, null, parts.firstName, parts.signature);
       mail.subject = `[Relancé auto] ${r.subject.replace(/^\[Relancé auto\]\s*/i, "")}`;
       await sendNew(r.to_email, mail.subject, `<p style="color:#b42318">Relancé auto</p><p>${escapeHtml(mail.body).replace(/\n/g, "<br>")}</p>`);
       const { error: e } = await admin.from("lead_document_requests").update({ status: "reminded", reminded_at: new Date().toISOString(), conversation_id: confirmed.conversationId, error: null }).eq("id", r.id).eq("status", "sending");

@@ -41,3 +41,17 @@ describe("Lead document reminders", () => {
     expect(missingLeadItems({ asset_class: "Restaurant", price: 100, surface: 10 }, ["plan.pdf", "photo.jpg"], "")).toEqual([]);
   });
 });
+import { guessFirstName, documentMail, mailParts } from "./lead-documents";
+describe("prénom reconstitué", () => {
+  it("bernard@ donne Bernard", () => expect(guessFirstName(null, "bernard@groupwinimmo.fr")).toBe("Bernard"));
+  it("jean.dupont@ donne Jean", () => expect(guessFirstName("", "jean.dupont@x.fr")).toBe("Jean"));
+  it("adresses génériques ou initiales : pas de prénom", () => {
+    expect(guessFirstName(null, "contact@x.fr")).toBe("");
+    expect(guessFirstName(null, "a.dupont@x.fr")).toBe("");
+  });
+  it("la relance reprend prénom et signature", () => {
+    const m = documentMail("Dossier", ["Plans"], false, null, "Bernard", "David Berbia\nWallsbroker");
+    expect(m.body.startsWith("Bonjour Bernard,")).toBe(true);
+    expect(mailParts(m.body)).toEqual({ firstName: "Bernard", signature: "David Berbia\nWallsbroker" });
+  });
+});

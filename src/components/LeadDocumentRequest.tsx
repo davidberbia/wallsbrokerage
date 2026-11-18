@@ -7,6 +7,7 @@ import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Input } from "./ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { DEFAULT_LEAD_QUESTIONS } from "@/lib/lead-documents";
 import { leadDocumentOverview, prepareLeadDocumentRequest, confirmLeadDocumentRequest } from "@/lib/lead-documents.functions";
 
 export function LeadDocumentRequest({ id, onWaiting }: { id: string; onWaiting?: (() => void) | undefined }) {
@@ -18,7 +19,7 @@ export function LeadDocumentRequest({ id, onWaiting }: { id: string; onWaiting?:
   const data = useQuery({ queryKey: ["lead-documents", id], queryFn: () => overview({ data: { id } }) });
   const [expanded, setExpanded] = useState(false);
   const [items, setItems] = useState<string[]>([]);
-  const [extras, setExtras] = useState([{ checked: false, text: "" }, { checked: false, text: "" }, { checked: false, text: "" }]);
+  const [extras, setExtras] = useState(DEFAULT_LEAD_QUESTIONS.map(text => ({ checked: true, text })));
   const selectedItems = [...new Set([...items, ...extras.filter(e => e.checked).map(e => e.text.trim())].filter(Boolean))];
   const [busy, setBusy] = useState(false);
   useEffect(() => { if (data.data) setItems(data.data.missing); }, [data.data]);
