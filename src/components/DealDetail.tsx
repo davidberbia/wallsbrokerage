@@ -329,6 +329,10 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
             </SelectContent>
           </Select>
         </div>
+        <div className="sm:col-span-2">
+          <Label>Occupant</Label>
+          <Input placeholder="Nom de l'hôtel, enseigne, locataire…" value={String(("occupant" in hotel ? hotel["occupant"] : (dossier.data?.asset as Record<string, unknown> | undefined)?.["occupant"]) ?? "")} onChange={(e) => setHotel({ ...hotel, occupant: e.target.value.trim() ? e.target.value : null })} />
+        </div>
         <div>
           <Label>Étape</Label>
           <Select value={current.stage ?? "Prospection"} onValueChange={(v) => {

@@ -88,7 +88,7 @@ export async function researchDeal(admin: Admin, dealId: string, ownerId: string
   if (asset) {
     const { data: fresh } = await admin.from("assets").select("*").eq("id", asset["id"] as string).maybeSingle();
     if (fresh) {
-      const patch = mergeAutofill(fresh as never, f, "Recherche IA sourcée", "body");
+      const patch = mergeAutofill(fresh as never, { ...f, occupant: f.identified ?? null }, "Recherche IA sourcée", "body");
       if (Object.keys(patch).length) { const { error } = await admin.from("assets").update(patch as never).eq("id", fresh.id); if (error) throw error; }
       const report = dealPatchFromAsset(deal, { ...fresh, ...patch });
       if (Object.keys(report).length) { const { error } = await admin.from("deals").update(report as never).eq("id", dealId).eq("stage", "Prospection").eq("owner_id", ownerId); if (error) throw error; }

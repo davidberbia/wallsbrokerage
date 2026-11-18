@@ -794,6 +794,9 @@ function AssetForm({
             <Field label="Ville">
               <Input value={draft.city ?? ""} onChange={(e) => set({ city: e.target.value })} />
             </Field>
+            <Field label="Occupant">
+              <Input placeholder="Nom de l'hôtel, enseigne, locataire…" value={draft.occupant ?? ""} onChange={(e) => set({ occupant: e.target.value || null })} />
+            </Field>
             <Field label="Région">
               <Choice options={REGIONS} value={draft.region ?? ""} onChange={(v) => set({ region: v })} />
             </Field>
