@@ -152,6 +152,7 @@ function PresentationPage() {
             codePostal: asset.postal_code ?? "",
             loyerAnnuel: fr(asset.rent),
             typeVente: asset.transaction_type ?? "",
+            descriptionActif: asset.description ?? "",
             ...(asset.is_portfolio && Array.isArray(asset.portfolio_lots) && asset.portfolio_lots.length
               ? {
                   locataires: (asset.portfolio_lots as { address?: string; city?: string; tenant?: string; surface?: number | null; rent?: number | null }[]).map((l) => ({
@@ -176,10 +177,11 @@ function PresentationPage() {
     const bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     const stamp = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, "");
-    const name = `${filename.replace(/\.pptx$/i, "")}_${stamp}.pptx`;
+    const ext = /\.pdf$/i.test(filename) ? "pdf" : "pptx";
+    const name = `${filename.replace(/\.(pptx|pdf)$/i, "")}_${stamp}.${ext}`;
     const path = `assets/${assetId}/${crypto.randomUUID()}-${safeFileName(name)}`;
     const { error } = await supabase.storage.from("brochures").upload(path, new Blob([bytes]), {
-      contentType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      contentType: ext === "pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     });
     if (error) throw error;
     const { count } = await supabase
