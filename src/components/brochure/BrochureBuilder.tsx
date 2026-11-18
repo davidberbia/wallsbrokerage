@@ -63,7 +63,7 @@ function downloadBase64(base64: string, filename: string) {
   const len = bin.length;
   const bytes = new Uint8Array(len);
   for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
-  const blob = new Blob([bytes], { type: "application/vnd.openxmlformats-officedocument.presentationml.presentation" });
+  const blob = new Blob([bytes], { type: /\.pdf$/i.test(filename) ? "application/pdf" : "application/vnd.openxmlformats-officedocument.presentationml.presentation" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -2155,7 +2155,7 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
     setData(next);
   };
 
-  const onGenerate = async () => {
+  const onGenerate = async (format: "pptx" | "pdf" = "pptx") => {
     const all = buildFullAssets().map((asset) => ({
       ...asset,
       locataires: normalizeRentalRowsForCalculations(asset.locataires),
@@ -2196,7 +2196,17 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
       const dept = (first.codePostal || "").slice(0, 2);
       const local = dept ? payload.comparables.filter((c) => (c.codePostal || "").startsWith(dept)) : [];
       if (local.length) payload.comparables = local;
-      const res = await gen({ data: payload });
+      let res: { base64: string; filename: string };
+      if (format === "pdf") {
+        const { renderBrochurePdf } = await import("@/lib/brochure-pdf");
+        const bytes = await renderBrochurePdf(payload);
+        let bin = "";
+        for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+        const base = (first.nomSite || first.adresse || "brochure").replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_|_$/g, "");
+        res = { base64: btoa(bin), filename: `Brochure_${base}.pdf` };
+      } else {
+        res = await gen({ data: payload });
+      }
       downloadBase64(res.base64, res.filename);
       if (onGenerated) {
         try { await onGenerated(res.base64, res.filename); } catch (e) { console.warn("Enregistrement de la brochure échoué", e); }
@@ -2455,11 +2465,19 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
             Effacer
           </Button>
           <Button
-            onClick={onGenerate}
+            onClick={() => onGenerate("pdf")}
             disabled={busy}
             className="h-9 px-4 rounded-md bg-primary hover:bg-primary disabled:opacity-50 text-primary-foreground font-semibold text-xs shadow-lg"
           >
-            {busy ? "Génération…" : "Générer PPTX"}
+            {busy ? "Génération…" : "Générer PDF"}
+          </Button>
+          <Button
+            onClick={() => onGenerate("pptx")}
+            disabled={busy}
+            variant="outline"
+            className="h-9 px-3 rounded-md disabled:opacity-50 font-semibold text-xs"
+          >
+            PPTX
           </Button>
           {isAdmin && (
             <Button
@@ -3270,11 +3288,19 @@ export function BrochureBuilder({ seed, onGenerated }: { seed?: Partial<Brochure
 
             <div className="flex flex-wrap justify-end gap-3 pt-4 pb-12">
               <Button
-                onClick={onGenerate}
+                onClick={() => onGenerate("pptx")}
+                disabled={busy}
+                variant="outline"
+                className="px-6 py-3 rounded-md disabled:opacity-50 font-semibold"
+              >
+                Version PPTX
+              </Button>
+              <Button
+                onClick={() => onGenerate("pdf")}
                 disabled={busy}
                 className="px-6 py-3 rounded-md bg-primary hover:bg-primary disabled:opacity-50 text-primary-foreground font-semibold shadow-lg"
               >
-                {busy ? "Génération en cours…" : "📥 Générer & télécharger la brochure PPTX"}
+                {busy ? "Génération en cours…" : "📥 Générer la brochure PDF"}
               </Button>
             </div>
           </>

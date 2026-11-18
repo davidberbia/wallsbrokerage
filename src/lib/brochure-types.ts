@@ -110,6 +110,8 @@ export type BrochureData = {
   /** Dossier de stockage des documents du bien. */
   docFolder?: string;
   nbParkings: string;
+  /** Description de l’actif reprise de la fiche CRM (page Présentation du PDF). */
+  descriptionActif?: string;
 
   // Réglages carte Google Maps (pin déplaçable + zoom)
   mapsSettings?: {
