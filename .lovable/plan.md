@@ -12,15 +12,34 @@
 - Les réintégrer uniquement lorsqu’ils passent à **« A rappeler »**.
 - Conserver leur consultation dans le filtre « Attente de docs », hors traitement rapide.
 
-## À quoi sert « Qualifier » ?
-Il classe le lead dans le filtre **« Qualifiés »**, sans le transformer en actif disponible et sans demander de documents. Aucun changement de ce bouton dans cette proposition.
+## Supprimer « Qualifiés »
+- Supprimer le bouton « Qualifier » et le filtre « Qualifiés ».
+- Rendre les leads déjà qualifiés visibles dans « À traiter », sans perdre leurs informations ni modifier leurs états d’attente ou de rappel.
+
+## Proposition « Actif disponible »
+- Proposer le passage en **Actif disponible** lorsque les cinq éléments minimum pour la brochure sont présents :
+  1. Une photo principale sélectionnée.
+  2. Un prix pour une vente, ou un loyer pour une location ; le type d’opération doit être renseigné.
+  3. Une surface.
+  4. Un état locatif renseigné ou une pièce jointe identifiée comme état locatif.
+  5. Des honoraires renseignés, en montant ou en pourcentage.
+- Afficher ce qui manque tant que ces conditions ne sont pas remplies, plutôt que proposer un passage prématuré.
+- Le passage reste une décision manuelle : aucune transformation automatique. Conserver le contrôle existant de la classe d’actif.
+
+## Taux de remplissage pendant tout le parcours
+- Afficher un pourcentage compact dans les listes et les fiches, des Leads aux Actifs puis aux Affaires.
+- Proposition de calcul : **20 % par élément renseigné parmi les cinq critères ci-dessus**, soit 100 % lorsque le minimum nécessaire à la brochure est atteint.
+- Afficher le détail des éléments présents et manquants dans la fiche.
+- Actualiser le taux après saisie, réception de documents ou pré-remplissage ; conserver le même calcul à chaque étape, sans inventer d’informations.
 
 ## Vérifications
 - Vérifier les couleurs fixes, les boutons et la navigation sur ordinateur et au toucher sur téléphone.
 - Tester la sortie immédiate d’un lead en attente, son exclusion après réouverture et son retour à l’état « A rappeler ».
+- Tester chaque critère de remplissage, la distinction vente/location, la visibilité des anciens leads qualifiés et la proposition à 100 %.
 - Ne modifier ni les textes des mails ni les règles de relance existantes : trois jours, jamais le week-end.
 - Aucune publication ni aucun mail réel envoyé pour les essais.
 
 ## Réalisation technique
-- Limiter les modifications aux boutons et à la sélection/navigation des leads dans le traitement rapide.
-- Ajouter des tests ciblés sur l’exclusion des leads en attente et la réintégration des leads à rappeler.
+- Centraliser le calcul du remplissage et de l’éligibilité à la brochure pour garder des résultats identiques dans les listes et les fiches.
+- Réutiliser les données et documents liés à l’actif ; ne modifier ni les moteurs d’export ni la lecture Gemini en cours.
+- Ajouter des tests ciblés sur les règles de remplissage et la sélection des leads dans le traitement rapide.
