@@ -12,3 +12,13 @@ export function pigeMail(asset: { title: string; asset_class?: string | null; ci
   const offer = rental ? `serait à louer${asset.rent ? ` pour un loyer annuel de ${money(asset.rent)}` : ""}` : `serait à vendre${asset.price ? ` au prix de ${money(asset.price)}` : ""}`;
   return { subject: subjectFor(asset), body: `Bonjour${firstName.trim() ? ` ${firstName.trim()}` : ""},\n\nUn confrère m’indique qu’un ${type}${details ? ` ${details}` : ""} ${offer}.\n\nEst-ce que ce dossier pourrait t’intéresser ?\n\nDans l’affirmative, n’hésite pas à revenir vers moi pour approfondir le sujet.\n\nBien à toi,\n\n${signature}` };
 }
+export const FIRST_NAME_TAG = "[Prénom]";
+/** Remplace [Prénom] ; sans prénom, « Bonjour [Prénom], » devient « Bonjour, ». */
+export function personalizePige(text: string, firstName: string | null | undefined) {
+  const first = (firstName ?? "").trim();
+  return first ? text.split(FIRST_NAME_TAG).join(first) : text.replace(/ ?\[Prénom\]/g, "");
+}
+/** Retrouve le modèle commun à partir d'un message préparé (première ligne « Bonjour X, »). */
+export function pigeTemplate(body: string) {
+  return body.replace(/^Bonjour[^,\n]*,/, `Bonjour ${FIRST_NAME_TAG},`);
+}

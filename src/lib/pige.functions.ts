@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireStaffAuth } from "./staff-middleware";
-import { pigeMail } from "./pige";
+import { pigeMail, personalizePige } from "./pige";
 const input = (d: unknown) => z.object({ id: z.string().uuid() }).parse(d);
 export const pigeOverview = createServerFn({ method: "GET" }).middleware([requireStaffAuth]).inputValidator(input).handler(async ({ data, context }) => {
   const { data: deal, error } = await context.supabase.from("deals").select("*").eq("id", data.id).single();
@@ -51,7 +51,37 @@ export const preparePige = createServerFn({ method: "POST" }).middleware([requir
     }
     return { ok: true };
   });
-export const sendPigeBrevo = createServerFn({ method: "POST" }).middleware([requireStaffAuth]).inputValidator(input).handler(async ({ data, context }) => {
+type Ctx = { supabase: any; userId: string };
+export const sendPigeBrevo = createServerFn({ method: "POST" }).middleware([requireStaffAuth]).inputValidator(input).handler(async ({ data, context }) => sendOne(context as Ctx, data.id));
+export const sendPigeAll = createServerFn({ method: "POST" }).middleware([requireStaffAuth])
+  .inputValidator((d: unknown) => z.object({ pige: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase.from("lead_pige_contacts").select("id").eq("pige_id", data.pige).eq("send_state", "prepared").is("sent_at", null);
+    if (error) throw new Error(error.message);
+    let sent = 0, failed = 0;
+    for (const r of rows ?? []) { try { await sendOne(context as Ctx, r.id); sent++; } catch { failed++; } }
+    const { data: after } = await context.supabase.from("lead_pige_contacts").select("send_state").eq("pige_id", data.pige);
+    const count = (s: string) => (after ?? []).filter(x => x.send_state === s).length;
+    return { sent, failed, rejected: count("rejected"), uncertain: count("uncertain") + count("sending") };
+  });
+export const applyPigeTemplate = createServerFn({ method: "POST" }).middleware([requireStaffAuth])
+  .inputValidator((d: unknown) => z.object({ pige: z.string().uuid(), subject: z.string().trim().min(1).max(500), body: z.string().trim().min(1).max(10000) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase.from("lead_pige_contacts").select("id,investor_id").eq("pige_id", data.pige).eq("send_state", "prepared").is("sent_at", null);
+    if (error) throw new Error(error.message);
+    const ids = (rows ?? []).map(r => r.investor_id).filter(Boolean) as string[];
+    const inv = ids.length ? await context.supabase.from("investors").select("id,first_name").in("id", ids) : { data: [], error: null };
+    if (inv.error) throw new Error(inv.error.message);
+    const first = new Map((inv.data ?? []).map(i => [i.id, i.first_name]));
+    for (const r of rows ?? []) {
+      const f = r.investor_id ? first.get(r.investor_id) : null;
+      const res = await context.supabase.rpc("update_pige_message", { _id: r.id, _subject: personalizePige(data.subject, f), _body: personalizePige(data.body, f) });
+      if (res.error) throw new Error(res.error.message);
+    }
+    return { count: rows?.length ?? 0 };
+  });
+async function sendOne(context: Ctx, id: string) {
+  const data = { id };
   const result = await context.supabase.from("lead_pige_contacts").select("*,lead_piges!inner(created_by,sender_email)").eq("id", data.id).single();
   if (result.error) throw new Error(result.error.message);
   const contact = result.data;
@@ -91,7 +121,7 @@ export const sendPigeBrevo = createServerFn({ method: "POST" }).middleware([requ
   if (finished.error) throw new Error("Résultat à vérifier dans Brevo : aucun nouvel essai automatique.");
   if (failure) throw new Error(failure);
   return { ok: true };
-});
+}
 export const updatePigeMessage = createServerFn({ method: "POST" }).middleware([requireStaffAuth])
   .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), subject: z.string().trim().min(1).max(500), body: z.string().trim().min(1).max(10000) }).parse(d))
   .handler(async ({ data, context }) => {

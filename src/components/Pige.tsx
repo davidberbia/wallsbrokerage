@@ -6,8 +6,8 @@ import { Target, Mail, Pencil } from "lucide-react";
 import { InvestorForm, investorPayload, type InvestorDraft } from "@/components/InvestorForm";
 import { canSelectInvestor } from "@/lib/pige-brevo";
 import { supabase } from "@/integrations/supabase/client";
-import { pigeOverview, preparePige, sendPigeBrevo, updatePigeMessage } from "@/lib/pige.functions";
-import { pigeActive } from "@/lib/pige";
+import { pigeOverview, preparePige, sendPigeAll, applyPigeTemplate } from "@/lib/pige.functions";
+import { pigeActive, pigeTemplate, FIRST_NAME_TAG } from "@/lib/pige";
 import { matchInvestor, type Criteria, type Investor } from "@/lib/types";
 import { ASSET_CLASSES, REGIONS, STRATEGIES } from "@/lib/taxonomy";
 import { useAuth } from "@/hooks/useAuth";
@@ -64,26 +64,26 @@ function PigeEditor({ id }: { id: string }) {
 }
 type Cycle = Awaited<ReturnType<typeof pigeOverview>>['cycles'][number];
 function PigeMessages({ id, cycle }: { id: string; cycle: Cycle }) {
-  const [index, setIndex] = useState(0);
-  const contact = cycle.lead_pige_contacts[index];
-  if (!contact) return null;
-  return <div className="space-y-3"><p>{index + 1} / {cycle.lead_pige_contacts.length}</p><PreparedMessage key={contact.id} id={id} cycle={cycle} contact={contact} /><div className="flex gap-2"><Button variant="outline" disabled={!index} onClick={() => setIndex(v => v - 1)}>Retour</Button><Button variant="outline" disabled={index === cycle.lead_pige_contacts.length - 1} onClick={() => setIndex(v => v + 1)}>Suivant</Button></div></div>;
-}
-function PreparedMessage({ id, cycle, contact }: { id: string; cycle: Cycle; contact: Cycle['lead_pige_contacts'][number] }) {
-  const { user } = useAuth(); const qc = useQueryClient(); const send = useServerFn(sendPigeBrevo);
-  const update = useServerFn(updatePigeMessage);
-  const [subject, setSubject] = useState(contact.subject);
-  const [body, setBody] = useState(contact.body_text);
+  const { user } = useAuth(); const qc = useQueryClient();
+  const apply = useServerFn(applyPigeTemplate); const sendAll = useServerFn(sendPigeAll);
+  const contacts = cycle.lead_pige_contacts;
+  const pending = contacts.filter(c => !c.sent_at && c.send_state === "prepared");
+  const first = pending[0] ?? contacts[0];
+  const [subject, setSubject] = useState(first?.subject ?? "");
+  const [body, setBody] = useState(first ? pigeTemplate(first.body_text) : "");
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);
-  const editable = !contact.sent_at && contact.send_state === "prepared" && cycle.created_by === user?.id;
-  return <div className="space-y-3"><p className="break-words">{contact.name} · {contact.email}</p><Input aria-label="Objet de la Pige" value={subject} readOnly={!editable} onChange={e => setSubject(e.target.value)} /><Textarea aria-label="Message de la Pige" value={body} readOnly={!editable} onChange={e => setBody(e.target.value)} className="min-h-72" />
-    {editable && <><Button className="min-h-11" disabled={busy || !subject.trim() || !body.trim()} onClick={async () => { setBusy(true); try { await update({ data: { id: contact.id, subject, body } }); await qc.invalidateQueries({ queryKey: ["pige", id] }); setConfirming(true); } catch (e) { toast.error(e instanceof Error ? e.message : "Préparation impossible"); } finally { setBusy(false); } }}><Mail className="size-4" />Envoyer via Brevo</Button><Dialog open={confirming} onOpenChange={setConfirming}><DialogContent><DialogHeader><DialogTitle>Confirmer l’envoi</DialogTitle></DialogHeader><p className="break-words">{contact.name} · {contact.email}</p><p className="break-words text-sm">{subject}</p><Button disabled={busy} onClick={async () => { setBusy(true); try { await send({ data: { id: contact.id } }); toast.success("Envoi accepté par Brevo — dossier en Pige"); } catch (e) { toast.error(e instanceof Error ? e.message : "Envoi à vérifier"); } finally { for (const key of ["pige", "lead-piges", "deals"]) await qc.invalidateQueries({ queryKey: [key] }); setConfirming(false); setBusy(false); } }}>Confirmer et envoyer</Button></DialogContent></Dialog></>}
-    {contact.send_state === "sending" && <p className="text-warning">Envoi en cours ou à vérifier — aucun nouvel essai</p>}
-    {contact.send_state === "uncertain" && <p className="text-warning">Résultat à vérifier dans Brevo — aucun nouvel essai</p>}
-    {contact.send_state === "rejected" && <p className="text-destructive">Envoi refusé par Brevo</p>}
-    {contact.send_error && <p className="break-words text-sm text-destructive">{contact.send_error}</p>}
-    {contact.sent_at && <p className="text-sm">Contacté le {new Date(contact.sent_at).toLocaleString("fr-FR")}</p>}
+  const editable = pending.length > 0 && cycle.created_by === user?.id;
+  const state = (c: Cycle['lead_pige_contacts'][number]) => c.sent_at ? "Envoyé" : c.send_state === "rejected" ? "Refusé" : c.send_state === "uncertain" || c.send_state === "sending" ? "À vérifier" : "À envoyer";
+  return <div className="space-y-3">
+    <details className="rounded-md border border-border p-2"><summary className="min-h-11 cursor-pointer py-2 font-semibold">{contacts.length} destinataires · {pending.length} à envoyer</summary><ul className="divide-y divide-border text-sm">{contacts.map(c => <li key={c.id} className="flex justify-between gap-2 py-2"><span className="min-w-0 break-words">{c.name} · {c.email}</span><span className={c.send_state === "rejected" ? "text-destructive" : c.sent_at ? "text-success" : "text-muted-foreground"}>{state(c)}</span></li>)}</ul></details>
+    {editable ? <>
+      <p className="text-xs text-muted-foreground">Un seul message pour tous : {FIRST_NAME_TAG} sera remplacé par le prénom de chacun.</p>
+      <Input aria-label="Objet de la Pige" value={subject} onChange={e => setSubject(e.target.value)} />
+      <Textarea aria-label="Message de la Pige" value={body} onChange={e => setBody(e.target.value)} className="min-h-72" />
+      <Button className="min-h-11" disabled={busy || !subject.trim() || !body.trim()} onClick={async () => { setBusy(true); try { await apply({ data: { pige: cycle.id, subject, body } }); await qc.invalidateQueries({ queryKey: ["pige", id] }); setConfirming(true); } catch (e) { toast.error(e instanceof Error ? e.message : "Préparation impossible"); } finally { setBusy(false); } }}><Mail className="size-4" />Envoyer à {pending.length} investisseur{pending.length > 1 ? "s" : ""} via Brevo</Button>
+    </> : <p className="text-sm">Tous les messages ont été traités.</p>}
+    <Dialog open={confirming} onOpenChange={setConfirming}><DialogContent><DialogHeader><DialogTitle>Confirmer l’envoi</DialogTitle></DialogHeader><p>{pending.length} mails individuels</p><p className="break-words text-sm">{subject}</p><Button className="min-h-11" disabled={busy} onClick={async () => { setBusy(true); try { const r = await sendAll({ data: { pige: cycle.id } }); toast.success(`${r.sent} envoyé(s)${r.rejected ? ` · ${r.rejected} refusé(s)` : ""}${r.uncertain ? ` · ${r.uncertain} à vérifier` : ""}`); await qc.invalidateQueries({ queryKey: ["pige", id] }); setConfirming(false); } catch (e) { toast.error(e instanceof Error ? e.message : "Envoi impossible"); } finally { setBusy(false); } }}>Confirmer et envoyer</Button></DialogContent></Dialog>
   </div>;
 }
 export function PigeHistory({ id }: { id: string }) {

@@ -12,3 +12,15 @@ describe("Pige lifecycle", () => {
     expect(pigeActive({ started_at: null, due_at: null, completed_at: null })).toBe(false);
   });
 });
+import { personalizePige, pigeTemplate } from "./pige";
+describe("mail commun de Pige", () => {
+  it("remplace [Prénom] par le prénom de l'investisseur", () => {
+    expect(personalizePige("Bonjour [Prénom],\n\nTexte", "Adrien")).toBe("Bonjour Adrien,\n\nTexte");
+  });
+  it("sans prénom, donne « Bonjour, »", () => {
+    expect(personalizePige("Bonjour [Prénom],", null)).toBe("Bonjour,");
+  });
+  it("reconstruit le modèle depuis un message préparé", () => {
+    expect(pigeTemplate("Bonjour Adrien,\n\nX")).toBe("Bonjour [Prénom],\n\nX");
+  });
+});
