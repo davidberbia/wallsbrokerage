@@ -19,9 +19,9 @@ import { canInviteNow, inviteQueue, inviteWaitMinutes, INVITES_MAX_PER_DAY, kind
 export const Route = createFileRoute("/notoriete")({
   head: () => ({
     meta: [
-      { title: "Notoriété LinkedIn — Wallsbrokerage CRM" },
+      { title: "LinkedIn — Wallsbrokerage CRM" },
       { name: "description", content: "Posts LinkedIn préparés par l'IA et invitations quotidiennes." },
-      { property: "og:title", content: "Notoriété LinkedIn — Wallsbrokerage CRM" },
+      { property: "og:title", content: "LinkedIn — Wallsbrokerage CRM" },
       { property: "og:description", content: "Actifs anonymisés, articles et point marché mensuel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -280,7 +280,7 @@ function NotorietePage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-4">
-      <h1 className="font-display text-2xl font-semibold">Notoriété LinkedIn</h1>
+      <h1 className="font-display text-2xl font-semibold">LinkedIn</h1>
       {today && <p className="text-sm text-muted-foreground">Aujourd'hui : {KIND_LABEL[today]}</p>}
       <Tabs defaultValue="posts">
         <TabsList className="w-full">

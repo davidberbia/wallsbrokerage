@@ -58,7 +58,7 @@ const NAV_ITEMS = [
   { to: "/investisseurs", label: "Contacts", icon: BookUser, admin: false },
   { to: "/partager", label: "Extractions", icon: Link2, admin: false },
   { to: "/comparables", label: "Comparables", icon: Scale, admin: false },
-  { to: "/notoriete", label: "Notoriété LinkedIn", icon: Megaphone, admin: false },
+  { to: "/notoriete", label: "LinkedIn", icon: Megaphone, admin: false },
   { to: "/mon-contrat", label: "Mon contrat", icon: FileSignature, admin: false },
   { to: "/manuel", label: "Manuel du CRM", icon: LifeBuoy, admin: false },
   { to: "/formation", label: "Formation immo", icon: GraduationCap, admin: false },
