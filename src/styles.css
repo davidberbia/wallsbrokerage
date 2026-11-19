@@ -228,6 +228,22 @@
   color: oklch(0.98 0 0);
 }
 
+/* Ligne de liste : sur téléphone le titre prend une ligne entière,
+   les chiffres et les boutons se partagent la ligne du dessous. */
+@utility row-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title title"
+    "metrics actions";
+  align-items: center;
+
+  @media (min-width: 64rem) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "title metrics actions";
+  }
+}
+
 @keyframes jarvis-spin {
   to { transform: rotate(360deg); }
 }

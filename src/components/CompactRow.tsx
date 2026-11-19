@@ -3,10 +3,49 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+export type RowColumn = { value: ReactNode; width: string };
+
+const COLUMN_WIDTH = "6.75rem";
+
+export function CompactRowHeader({ title, subtitle, columns = [] }: { title: string; subtitle?: string; columns?: string[] }) {
+  return (
+    <div
+      data-compact-row-header
+      className="row-grid h-9 min-w-0 gap-1 border-b border-border bg-muted/40 px-1 sm:gap-2 sm:px-3"
+    >
+      <div className="flex min-w-0 items-center gap-2 [grid-area:title] sm:gap-6">
+        <span className="min-w-0 flex-1 basis-0 truncate text-xs font-semibold text-muted-foreground">{title}</span>
+        {subtitle && (
+          <span className="hidden min-w-0 flex-1 basis-0 truncate text-xs font-semibold text-muted-foreground md:block">
+            {subtitle}
+          </span>
+        )}
+      </div>
+      {columns.length > 0 && (
+        <span className="hidden min-w-0 items-center justify-end gap-2 [grid-area:metrics] lg:flex lg:w-96">
+          {columns.map((label, i) => (
+            <span
+              key={label}
+              className={`shrink-0 text-right text-xs font-semibold text-muted-foreground ${i > 0 ? "border-l border-border pl-2" : ""}`}
+              style={{ width: COLUMN_WIDTH }}
+            >
+              {label}
+            </span>
+          ))}
+        </span>
+      )}
+      <div className="flex w-[188px] min-w-0 shrink-0 items-center justify-end gap-1 pr-2 text-xs font-semibold text-muted-foreground [grid-area:actions]">
+        Actions
+      </div>
+    </div>
+  );
+}
+
 export function CompactRow({
   title,
   subtitle,
   summary,
+  columns,
   leading,
   trailing,
   onOpen,
@@ -17,6 +56,7 @@ export function CompactRow({
   title: string;
   subtitle?: string | null;
   summary?: ReactNode;
+  columns?: RowColumn[];
   leading?: ReactNode;
   trailing?: ReactNode;
   onOpen: () => void;
@@ -27,17 +67,18 @@ export function CompactRow({
   return (
     <div
       data-compact-row
-      className={`flex h-14 min-w-0 items-center gap-1 border-b border-border ${tone === "success" ? "bg-success/15" : tone === "danger" ? "bg-destructive/15" : "bg-card"} px-1 last:border-b-0 sm:gap-2 sm:px-3`}
+      className={`row-grid h-14 min-w-0 gap-1 border-b border-border ${tone === "success" ? "bg-success/15" : tone === "danger" ? "bg-destructive/15" : "bg-card"} px-1 last:border-b-0 sm:gap-2 sm:px-3`}
     >
       {leading && <div className="flex shrink-0 items-center justify-center">{leading}</div>}
       <Button
         variant="ghost"
-        className="h-full min-w-0 flex-1 flex-col items-start justify-center sm:flex-row sm:items-center sm:justify-start overflow-hidden rounded-none px-2 text-left font-normal"
+        className="h-9 min-w-0 max-w-full flex-col items-start justify-center gap-1 overflow-hidden rounded-none pr-[196px] text-left font-normal [grid-area:title] max-lg:pl-2 lg:px-2 sm:flex-row sm:items-center sm:justify-start sm:gap-6"
+        style={{ minWidth: 0 }}
         onClick={onOpen}
         aria-label={`Ouvrir ${title}`}
       >
         <span
-          className="min-w-0 flex-1 basis-0 truncate font-medium"
+          className="min-w-0 max-w-full flex-1 basis-0 truncate font-medium"
           title={[title, subtitle].filter(Boolean).join(" · ")}
         >
           {title}
@@ -47,10 +88,24 @@ export function CompactRow({
             {subtitle}
           </span>
         )}
-        {summary && (
+        {columns && columns.length > 0 ? null : summary ? (
           <span className="max-w-full truncate text-xs text-muted-foreground lg:w-80 lg:shrink-0 lg:text-right">{summary}</span>
-        )}
+        ) : null}
       </Button>
+      {columns && columns.length > 0 && (
+        <span className="hidden min-w-0 items-center justify-end gap-2 [grid-area:metrics] lg:flex lg:w-96">
+          {columns.map((col, i) => (
+            <span
+              key={i}
+              className={`shrink-0 truncate text-right text-xs text-muted-foreground ${i > 0 ? "border-l border-border pl-2 max-lg:border-l-0 max-lg:pl-0" : ""}`}
+              style={{ width: col.width }}
+            >
+              {col.value}
+            </span>
+          ))}
+        </span>
+      )}
+      <div className="flex min-w-0 shrink-0 items-center justify-end gap-1 [grid-area:actions]">
       {trailing && <div className="flex shrink-0 items-center gap-1">{trailing}</div>}
       {onEdit && (
         <Button
@@ -78,6 +133,7 @@ export function CompactRow({
           <Trash2 className="size-4" />
         </Button>
       )}
+      </div>
     </div>
   );
 }

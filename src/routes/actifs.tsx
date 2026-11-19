@@ -12,7 +12,7 @@ import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { MergePicker } from "@/components/MergePicker";
 import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
 import { Merge, Folder, ArrowDown } from "lucide-react";
-import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
+import { CompactRow, CompactRowHeader, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { matchesAssetSearch } from "@/lib/list-search";
 import { assetYears, matchesAssetYear } from "@/lib/asset-year";
 import { addOneYear , feeText, feeChargeText } from "@/lib/mandate-template";
@@ -457,12 +457,17 @@ function AssetsPage() {
         </p>
       )}
       <div className="overflow-hidden border-y border-border">
+        <CompactRowHeader title="Intitulé" subtitle="Adresse" columns={["Surface", "Prix", "Remplissage"]} />
         {filtered.map((asset) => (
           <CompactRow
             key={asset.id}
             title={[asset.city, asset.title].filter(Boolean).join(" · ")}
             subtitle={[asset.address, asset.asset_class, asset.status].filter(Boolean).join(" · ")}
-            summary={`${asset.surface ?? "—"} m² · ${formatEUR(asset.price ?? asset.rent)}${fill.loaded ? ` · Remplissage ${fill.get(asset.id, asset).percent} %` : ""}`}
+            columns={[
+              { value: `${asset.surface ?? "—"} m²`, width: "6.75rem" },
+              { value: formatEUR(asset.price ?? asset.rent), width: "6.75rem" },
+              { value: fill.loaded ? `${fill.get(asset.id, asset).percent} %` : "—", width: "6.75rem" },
+            ]}
             onOpen={() => setDetail(asset)}
             onEdit={canEdit ? () => openEditor(asset) : undefined}
             onDelete={canEdit ? () => remove.mutate(asset.id) : undefined}
