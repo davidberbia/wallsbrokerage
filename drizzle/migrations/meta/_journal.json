@@ -519,6 +519,13 @@
       "when": 1795109326428,
       "tag": "0073_transfer_asset",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1795112899283,
+      "tag": "0074_lead_downgrade_hides_asset",
+      "breakpoints": true
     }
   ]
 }
