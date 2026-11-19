@@ -596,40 +596,37 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <table className="w-full text-sm">
             <thead className="bg-muted text-left text-xs text-muted-foreground">
               <tr>
-                {["Site", "Négo 1", "Négo 2", "Vendeur", "Acquéreur", "Nature", "Surface", "Prix/Loyer", "Statut", "Encaissé", "Fact. reste à enc.", "En cours", "Pondéré", "Annulé", ""].map((h) => (
-                  <th key={h} className="whitespace-nowrap px-2 py-2 font-medium">{h}</th>
+                {([["Site", "left"], ["Vendeur", "left"], ["Acquéreur", "left"], ["Nature", "left"], ["Surface (m²)", "right"], ["Prix/Loyer (€)", "right"], ["Statut", "center"], ["Prévisionnel (€)", "right"], ["Pondéré (€)", "right"], ["Encaissé (€)", "right"], ["", "left"]] as const).map(([h, al]) => (
+                  <th key={h} className={`whitespace-nowrap px-2 py-2 font-medium text-${al}`}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {rows.map((d, i) => {
-                const col = suiviColumn(d);
                 const fee = dealFee(d);
-                const cell = (c: string) => (col === c ? eur(fee) : "");
+                const lost = d.stage === "Perdu";
+                const num = (v: number) => (v ? new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(v) : "");
+                const price = Number(d.amount ?? d.rent) || 0;
                 return (
                   <Fragment key={d.id}>
                   {i === firstLost && (
                     <tr className="border-t-4 border-border bg-muted">
-                      <td colSpan={15} className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                      <td colSpan={11} className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
                         Dossiers perdus ({lostRows.length})
                       </td>
                     </tr>
                   )}
                   <tr onClick={() => setOpenId(d.id)} className="cursor-pointer border-t border-border hover:bg-accent">
-                    <td className="px-2 py-2 font-medium">{d.name}{fill.loaded && <Completion value={fill.get(d.asset_id, undefined, d)} />}</td>
-                    <td className="px-2 py-2">{d.nego1}</td>
-                    <td className="px-2 py-2">{d.nego2}</td>
+                    <td className="px-2 py-2 font-medium">{d.name}</td>
                     <td className="px-2 py-2">{d.seller}</td>
                     <td className="px-2 py-2">{d.buyer}</td>
                     <td className="px-2 py-2">{d.operation_nature}</td>
-                    <td className="whitespace-nowrap px-2 py-2 font-mono">{d.surface ? m2(d.surface) : ""}</td>
-                    <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(d.amount ?? d.rent) === "—" ? "" : eur(d.amount ?? d.rent)}</td>
-                    <td className="whitespace-nowrap px-2 py-2">{d.stage}</td>
-                    <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("encaisse")}</td>
-                    <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("facture")}</td>
-                    <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("encours")}</td>
-                    <td className="whitespace-nowrap px-2 py-2 font-mono">{col === "encours" ? eur(weightedFee(d)) : ""}</td>
-                    <td className="whitespace-nowrap px-2 py-2 font-mono">{cell("annule")}</td>
+                    <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{num(Number(d.surface) || 0)}</td>
+                    <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{num(price)}</td>
+                    <td className="whitespace-nowrap px-2 py-2 text-center">{d.stage === "Promesse" ? "PROM" : d.stage}</td>
+                    <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{num(fee)}</td>
+                    <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{lost ? "" : num(weightedFee(d))}</td>
+                    <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{!lost && d.paid_at ? num(fee) : ""}</td>
                     <td className="px-1 py-1">{canEdit && (
                       <Button variant="ghost" size="icon" className="size-9" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={(e) => { e.stopPropagation(); setMergeFor(d); }}>
                         <Merge className="size-4" />
@@ -640,17 +637,15 @@ export function DealsTable({ mode }: { mode: Mode }) {
                 );
               })}
               <tr className="border-t-2 border-border bg-muted font-semibold">
-                <td className="px-2 py-2" colSpan={9}>TOTAL</td>
-                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.encaisse)}</td>
-                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.facture)}</td>
-                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.encours)}</td>
-                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.pondere - suivi.encaisse - suivi.facture)}</td>
-                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(suivi.annule)}</td>
+                <td className="px-2 py-2" colSpan={7}>TOTAL</td>
+                <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{eur(suivi.reel)}</td>
+                <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{eur(suivi.pondere)}</td>
+                <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{eur(suivi.encaisse)}</td>
                 <td />
               </tr>
               <tr className="border-t border-border bg-muted font-semibold">
-                <td className="px-2 py-2" colSpan={13}>Total des honoraires perdus</td>
-                <td className="whitespace-nowrap px-2 py-2 font-mono">{eur(lostFee)}</td>
+                <td className="px-2 py-2" colSpan={9}>Total des honoraires perdus</td>
+                <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{eur(lostFee)}</td>
                 <td />
               </tr>
             </tbody>
