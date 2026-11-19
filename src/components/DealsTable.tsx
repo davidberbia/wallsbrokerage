@@ -567,9 +567,9 @@ export function DealsTable({ mode }: { mode: Mode }) {
 
       {mode === "pipeline" && (
         <div className="grid auto-rows-fr grid-cols-3 gap-2">
-          <label className="rounded-sm border border-border bg-card p-3">
+          <label className="rounded-sm border border-border bg-card p-3 text-center">
             <div className="text-xs text-muted-foreground">Objectif {year}</div>
-            <div className="mt-1 flex h-9 items-center gap-1">
+            <div className="mt-1 flex h-9 items-center justify-center gap-1">
               <Input
                 key={`${year}-${goal}`}
                 inputMode="decimal"
@@ -588,9 +588,9 @@ export function DealsTable({ mode }: { mode: Mode }) {
             ["Réalisé / objectif", pct(suivi.encaisse + suivi.facture), ""],
             ["Annulé", keur(suivi.annule), ""],
           ].map(([k, v]) => (
-            <div key={k} className="rounded-sm border border-border bg-card p-3">
+            <div key={k} className="rounded-sm border border-border bg-card p-3 text-center">
               <div className="text-xs text-muted-foreground">{k}</div>
-              <div className="mt-1 flex h-9 items-center whitespace-nowrap font-mono text-base font-semibold">{v}</div>
+              <div className="mt-1 flex h-9 items-center justify-center whitespace-nowrap font-mono text-base font-semibold">{v}</div>
             </div>
           ))}
         </div>
