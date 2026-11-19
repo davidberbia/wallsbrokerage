@@ -45,7 +45,7 @@ async function prepareContract(id:string,db:any){
     files["word/document.xml"]=strToU8(justifyLongParagraphs(splitLineBreaks(fillDocumentXml(strFromU8(doc),contractValues(fields,`${agent.first_name} ${agent.last_name}`)))));
     const docx=zipSync(files);let bin="";for(let i=0;i<docx.length;i+=0x8000)bin+=String.fromCharCode(...docx.subarray(i,i+0x8000));
     const {getDsAccess}=await import("@/lib/docusign.server");const ds=await getDsAccess();const H={Authorization:`Bearer ${ds.token}`,"Content-Type":"application/json"};
-    const tab=(a:string)=>({signHereTabs:[{anchorString:a,anchorXOffset:"-48",anchorYOffset:"-16",anchorUnits:"pixels",anchorIgnoreIfNotPresent:"false"}],initialHereTabs:[{anchorString:a.replace("\\sig","\\ini"),anchorXOffset:"-14",anchorYOffset:"-12",anchorUnits:"pixels",anchorIgnoreIfNotPresent:"true"}]});
+    const tab=(a:string)=>({signHereTabs:[{anchorString:a,anchorXOffset:"-25",anchorYOffset:"6",anchorUnits:"pixels",scaleValue:"1.5",anchorIgnoreIfNotPresent:"false"}],initialHereTabs:[{anchorString:a.replace("\\sig","\\ini"),anchorXOffset:"-6",anchorYOffset:"22",anchorUnits:"pixels",anchorIgnoreIfNotPresent:"true"}]});
     const wbSigner={email:ds.email || "d.berbia@wallsbroker.com",name:"David Berbia",recipientId:"1",routingOrder:"1",tabs:tab("\\sigwb\\")};
     const agentSigner={email:agent.email,name:`${agent.first_name} ${agent.last_name}`,recipientId:"2",routingOrder:"2",tabs:tab("\\sigag\\")};
     // Même enveloppe tant que personne n'a signé : on remplace seulement le document (aucun crédit DocuSign de plus).
