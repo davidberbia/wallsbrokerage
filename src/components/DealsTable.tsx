@@ -564,11 +564,9 @@ export function DealsTable({ mode }: { mode: Mode }) {
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
             ["Encaissé", eur(suivi.encaisse), ""],
-            ["Facturé reste à encaisser", eur(suivi.facture), ""],
-            ["En cours (non pondéré)", eur(suivi.encours), ""],
+            ["Prévisionnel", eur(suivi.encours), ""],
             ["Annulé", eur(suivi.annule), ""],
-            ["Global au réel", eur(suivi.reel), goal > 0 ? pct(suivi.reel) : ""],
-            ["Global pondéré", eur(suivi.pondere), goal > 0 ? pct(suivi.pondere) : ""],
+            ["Pondéré", eur(suivi.pondere), goal > 0 ? pct(suivi.pondere) : ""],
             ["Réalisé / objectif", pct(suivi.encaisse + suivi.facture), ""],
           ].map(([k, v, p]) => (
             <div key={k} className="rounded-sm border border-border bg-card p-3">
