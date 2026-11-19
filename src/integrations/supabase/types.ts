@@ -2726,6 +2726,7 @@ export type Database = {
           envelope_id: string | null
           expires_at: string | null
           id: string
+          notified_at: string | null
           number: number
           number_suffix: string
           signature_status: string | null
@@ -2746,6 +2747,7 @@ export type Database = {
           envelope_id?: string | null
           expires_at?: string | null
           id?: string
+          notified_at?: string | null
           number?: number
           number_suffix?: string
           signature_status?: string | null
@@ -2766,6 +2768,7 @@ export type Database = {
           envelope_id?: string | null
           expires_at?: string | null
           id?: string
+          notified_at?: string | null
           number?: number
           number_suffix?: string
           signature_status?: string | null
@@ -2788,7 +2791,7 @@ export type Database = {
           {
             foreignKeyName: "mandates_asset_id_fkey"
             columns: ["asset_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "assets"
             referencedColumns: ["id"]
           },

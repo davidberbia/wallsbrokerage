@@ -151,6 +151,7 @@ function MandatesPage() {
   const [detailId, setDetailId] = useState<string | null>(null);
   const detail = rows.find((r) => r.id === detailId);
   const [target, setTarget] = useState<(typeof rows)[number] | null>(null);
+  const [renewing, setRenewing] = useState(false);
   const refresh = useServerFn(refreshMandateSignatures);
   const [syncing, setSyncing] = useState(false);
   const sync = async (quiet = false) => {
@@ -290,17 +291,39 @@ function MandatesPage() {
             </Select>
             <Button
               variant="outline"
+              disabled={renewing}
               onClick={() => {
-                if (detail.sig && !confirm(detail.sig === "completed" ? "Ce mandat est déjà signé. Préparer un nouveau mandat à signer ?" : "Le mandat en cours de signature sera annulé et remplacé. Continuer ?")) return;
                 if (detail.assetId && (!detail.fees || !detail.feeCharge)) {
                   toast.error("Renseignez les honoraires et qui les paie avant l'envoi en signature.");
                   return;
                 }
+                // Mandat signé : on crée un nouveau mandat (nouveau numéro), l'ancien reste intact au registre.
+                if (detail.sig === "completed") {
+                  if (!confirm("Ce mandat est déjà signé. Un nouveau mandat avec un nouveau numéro sera créé, l'ancien restera au registre. Continuer ?")) return;
+                  void (async () => {
+                    setRenewing(true);
+                    try {
+                      const { data: created, error } = await supabase.from("mandates")
+                        .insert({ asset_id: detail.assetId, asset_title: detail.title, agent_id: detail.agentId })
+                        .select("id, number, number_suffix").single();
+                      if (error) throw error;
+                      setTarget({ ...detail, id: created.id, number: created.number, label: `${created.number}${created.number_suffix ? ` ${created.number_suffix}` : ""}`, sig: null, status: "brouillon", start: "—" });
+                      setDetailId(null);
+                      void qc.invalidateQueries({ queryKey: ["mandates"] });
+                    } catch (e) {
+                      toast.error((e as Error).message);
+                    }
+                    setRenewing(false);
+                  })();
+                  return;
+                }
+                // Mandat non signé : même numéro conservé, l'enveloppe en cours sera annulée chez DocuSign.
+                if (detail.sig && detail.sig !== "prêt à envoyer" && !confirm("Le mandat en cours de signature sera annulé et remplacé (même numéro). Continuer ?")) return;
                 setTarget(detail);
                 setDetailId(null);
               }}
             >
-              <PenLine className="size-4" /> {detail.sig && detail.sig !== "prêt à envoyer" ? "Renvoyer un nouveau mandat" : "Envoyer en signature"}
+              <PenLine className="size-4" /> {renewing ? "Création…" : detail.sig === "completed" ? "Nouveau mandat (nouveau numéro)" : detail.sig && detail.sig !== "prêt à envoyer" ? "Renvoyer un nouveau mandat" : "Envoyer en signature"}
             </Button>
           </>
         )}

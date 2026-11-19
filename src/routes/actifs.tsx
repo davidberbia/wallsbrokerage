@@ -1293,13 +1293,17 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
   const qc = useQueryClient();
   const createMandate = useMutation({
     mutationFn: async () => {
-      let { data: m } = await supabase.from("mandates").select("number, number_suffix").eq("asset_id", asset.id).maybeSingle();
-      if (!m) {
+      // Dernier mandat de l'actif : on le réutilise (même numéro) sauf s'il est signé —
+      // dans ce cas on crée un nouveau mandat avec un nouveau numéro, l'ancien reste au registre.
+      const { data: latest } = await supabase.from("mandates").select("number, number_suffix, status")
+        .eq("asset_id", asset.id).order("number", { ascending: false }).limit(1).maybeSingle();
+      let m = latest;
+      if (!m || m.status === "signé") {
         const { data: me } = await supabase.auth.getUser();
         const { data: agent } = await supabase.from("commercial_agents").select("id").eq("user_id", me.user?.id ?? "").maybeSingle();
         const { data: inserted, error } = await supabase.from("mandates")
           .insert({ asset_id: asset.id, asset_title: asset.title, agent_id: agent?.id ?? null })
-          .select("number, number_suffix").single();
+          .select("number, number_suffix, status").single();
         if (error) throw error;
         m = inserted;
       }

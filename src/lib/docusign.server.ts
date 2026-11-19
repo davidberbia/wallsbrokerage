@@ -58,15 +58,15 @@ export async function getDsAccess() {
   return { api: `${row.base_uri}/restapi/v2.1/accounts/${row.account_id}`, token, email: row.account_email };
 }
 
-/** Met à jour les mandats envoyés selon DocuSign (signé ⇒ date de signature). */
+/** Met à jour les mandats envoyés selon DocuSign (signé ⇒ date de signature + notification au collaborateur). */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function syncMandateSignatures(db: any) {
-  const { data: rows } = await db.from("mandates").select("id, envelope_id, signature_status")
+  const { data: rows } = await db.from("mandates").select("id, envelope_id, signature_status, number, asset_title, agent_id, notified_at")
     .not("envelope_id", "is", null).not("signature_status", "in", '("completed","prêt à envoyer","voided","declined")');
   if (!rows?.length) return { updated: 0 };
   const ds = await getDsAccess();
   let updated = 0;
-  for (const row of rows as { id: string; envelope_id: string; signature_status: string }[]) {
+  for (const row of rows as { id: string; envelope_id: string; signature_status: string; number: number; asset_title: string | null; agent_id: string | null; notified_at: string | null }[]) {
     const r = await fetch(`${ds.api}/envelopes/${row.envelope_id}`, { headers: { Authorization: `Bearer ${ds.token}` } });
     if (!r.ok) continue;
     const e = (await r.json()) as { status: string; completedDateTime?: string };
@@ -75,6 +75,29 @@ export async function syncMandateSignatures(db: any) {
     if (e.status === "completed") { patch.status = "signé"; patch.signed_at = e.completedDateTime || new Date().toISOString(); }
     await db.from("mandates").update(patch).eq("id", row.id);
     updated++;
+    if (e.status === "completed" && !row.notified_at) await notifyMandateSigned(row);
   }
   return { updated };
+}
+
+/** Prévient le collaborateur affecté quand toutes les parties ont signé (une seule fois). */
+async function notifyMandateSigned(row: { id: string; number: number; asset_title: string | null; agent_id: string | null }) {
+  try {
+    const admin = await getAdmin();
+    if (!row.agent_id) return;
+    const { data: agent } = await admin.from("commercial_agents").select("first_name, last_name, email").eq("id", row.agent_id).maybeSingle();
+    if (!agent?.email) return;
+    const { sendBrevoMail } = await import("@/lib/brevo.server");
+    const name = `${agent.first_name} ${agent.last_name}`.trim();
+    await sendBrevoMail({
+      to: agent.email,
+      toName: name,
+      subject: `Mandat n° ${row.number} signé par toutes les parties`,
+      html: `<p>Bonjour ${agent.first_name},</p><p>Le mandat n° <strong>${row.number}</strong>${row.asset_title ? ` (${row.asset_title})` : ""} a été signé par toutes les parties.</p><p>Il est disponible dans l'onglet <a href="https://wallsbrokerage.com/mandats">Mandats du CRM</a>.</p>`,
+      tags: ["mandat-signe"],
+    });
+    await admin.from("mandates").update({ notified_at: new Date().toISOString() }).eq("id", row.id);
+  } catch (err) {
+    console.error(`Notification mandat ${row.number} échouée:`, err);
+  }
 }

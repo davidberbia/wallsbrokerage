@@ -86,6 +86,8 @@ export const prepareMandateSignature = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: m, error } = await context.supabase.from("mandates").select("id, number, envelope_id, signature_status").eq("id", data.mandateId).maybeSingle();
     if (error || !m) throw new Error("Mandat introuvable");
+    // Un mandat signé n'est jamais modifié : on crée un nouveau mandat (nouveau numéro) depuis la fiche de l'actif.
+    if (m.signature_status === "completed") throw new Error("Ce mandat est déjà signé par toutes les parties : créez un nouveau mandat depuis la fiche de l'actif.");
     const { getDsAccess } = await import("@/lib/docusign.server");
     const { ANCHOR_MANDANT, ANCHOR_MANDATAIRE, ANCHOR_INIT_MANDANT, ANCHOR_INIT_MANDATAIRE } = await import("@/lib/mandate-template");
     const ds = await getDsAccess();
