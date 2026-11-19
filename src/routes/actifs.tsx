@@ -94,7 +94,7 @@ export const Route = createFileRoute("/actifs")({
   ),
 });
 
-type Draft = Partial<Asset> & { title: string };
+type Draft = Partial<Asset> & { title: string; nas_year?: number | null; nas_year_manual?: boolean };
 const emptyDraft: Draft = { title: "", status: "disponible" };
 
 function AssetsPage() {
@@ -194,6 +194,7 @@ function AssetsPage() {
         fee_payer: draft.fee_payer ?? null,
         mandate_start: draft.mandate_start || null,
         mandate_end: draft.mandate_end || null,
+        ...(draft.nas_year_manual ? { nas_year: draft.nas_year ?? null, nas_year_manual: draft.nas_year != null } : {}),
       };
       let assetId = draft.id ?? null;
       if (assetId) {
@@ -277,6 +278,7 @@ function AssetsPage() {
     onSuccess: (assetId) => {
       qc.invalidateQueries({ queryKey: ["record-completion"] });
       qc.invalidateQueries({ queryKey: ["assets"] });
+      qc.invalidateQueries({ queryKey: ["nav-counts"] });
       qc.invalidateQueries({ queryKey: ["asset-documents", assetId] });
       qc.invalidateQueries({ queryKey: ["asset-photos", assetId] });
       qc.invalidateQueries({ queryKey: ["asset-plans", assetId] });
@@ -686,6 +688,17 @@ function AssetForm({
         <div className="grid gap-4">
           <Field label="Intitulé *">
             <Input required value={draft.title} onChange={(e) => set({ title: e.target.value })} />
+          </Field>
+          <Field label="Année du dossier">
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={2000}
+              max={2100}
+              placeholder={`Sans année (compte en ${new Date().getFullYear()})`}
+              value={draft.nas_year ?? ""}
+              onChange={(e) => set({ nas_year: e.target.value ? Number(e.target.value) : null, nas_year_manual: true })}
+            />
           </Field>
           <Field label="Type de bien *">
             <ClassChoice
@@ -1378,7 +1391,7 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
       <RecordFacts
         facts={[
           ["Mandat / Référence", asset.reference],
-          ["Année du dossier serveur", asset.nas_year == null ? null : String(asset.nas_year)],
+          ["Année du dossier", asset.nas_year == null ? null : String(asset.nas_year)],
           ["Type", [asset.asset_class, asset.asset_subclass].filter(Boolean).join(" · ") || null],
           ...((asset.is_portfolio ? (asset.portfolio_lots ?? []) : []).map((l, i) => [`Bien ${i + 1}`, [[l.address, l.postal_code, l.city].filter(Boolean).join(" "), l.asset_class, l.surface ? `${l.surface} m²` : "", l.tenant, l.rent ? formatEUR(l.rent) : ""].filter(Boolean).join(" · ")] as [string, string | null])),
           ["Transaction", asset.transaction_type],
