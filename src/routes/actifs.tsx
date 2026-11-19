@@ -1499,9 +1499,9 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
       />
       {(() => {
         const all = docs.data ?? [];
-        const open = (path: string) => void openDocument(path).catch(() => toast.error("Document introuvable"));
+        const open = (path: string, name?: string) => void openDocument(path, name).catch(() => toast.error("Document introuvable"));
         const btn = (d: { id: string; path: string; name: string }) => (
-          <Button key={d.id} variant="outline" className="w-full min-w-0 justify-start" onClick={() => open(d.path)}>
+          <Button key={d.id} variant="outline" className="w-full min-w-0 justify-start" onClick={() => open(d.path, d.name)}>
             <ExternalLink className="size-4 shrink-0" />
             <span className="truncate">{d.name}</span>
           </Button>

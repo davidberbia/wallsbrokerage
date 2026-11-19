@@ -1,3 +1,4 @@
+import { openDocument } from "@/lib/documents";
 import { Completion } from "@/components/Completion";
 import { useCompletion } from "@/hooks/useCompletion";
 import { useServerFn } from "@tanstack/react-start";
@@ -90,10 +91,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
       return { asset: a.data, docs: docs.data ?? [] };
     },
   });
-  const openDoc = async (path: string) => {
-    const { data } = await supabase.storage.from("brochures").createSignedUrl(path, 600);
-    if (data?.signedUrl) window.open(data.signedUrl, "_blank");
-  };
+  const openDoc = (path: string, name?: string) => void openDocument(path, name).catch(() => toast.error("Document introuvable"));
   const research=useServerFn(investigateLead);
   const reviewAssetFn = useServerFn(reviewAsset);
   const jobs = useQuery({
@@ -732,7 +730,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
             <h3 className="text-xs font-semibold uppercase text-muted-foreground">Dossier ({dossier.data.docs.length})</h3>
             {facts.length > 0 && <p className="text-sm">{facts.join(" · ")}</p>}
             <div className="max-h-64 overflow-y-auto">{dossier.data.docs.map((d) => (
-              <Button key={d.id} variant="ghost" type="button" onClick={() => openDoc(d.path)} className="h-auto min-h-11 w-full justify-start whitespace-normal text-left text-sm">
+              <Button key={d.id} variant="ghost" type="button" onClick={() => openDoc(d.path, d.name)} className="h-auto min-h-11 w-full justify-start whitespace-normal text-left text-sm">
                 <ExternalLink className="h-4 w-4 shrink-0" /> <span className="break-all">{d.name}</span>
               </Button>
             ))}</div>

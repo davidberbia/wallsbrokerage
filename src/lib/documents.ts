@@ -44,12 +44,19 @@ export async function uploadDocument(prefix: string, file: File): Promise<Queued
 }
 
 /** Ouvre un document stocké (lien signé) ou une URL externe. */
-export async function openDocument(value: string) {
-  if (/^https?:\/\//.test(value)) {
-    window.open(value, "_blank", "noreferrer");
-    return;
+/** Ouvre la visionneuse intégrée (DocViewer) ; le téléchargement se fait depuis celle-ci. */
+export async function openDocument(value: string, name?: string) {
+  let url = value;
+  let download: string | null = null;
+  const label = name || decodeURIComponent((value.split("?")[0] ?? "").split("/").pop() || "Document");
+  if (!/^https?:\/\//.test(value)) {
+    const [view, dl] = await Promise.all([
+      supabase.storage.from("brochures").createSignedUrl(value, 1800),
+      supabase.storage.from("brochures").createSignedUrl(value, 1800, { download: label }),
+    ]);
+    if (view.error || !view.data) throw new Error("Document introuvable");
+    url = view.data.signedUrl;
+    download = dl.data?.signedUrl ?? null;
   }
-  const { data, error } = await supabase.storage.from("brochures").createSignedUrl(value, 600);
-  if (error || !data) throw new Error("Document introuvable");
-  window.open(data.signedUrl, "_blank", "noreferrer");
+  window.dispatchEvent(new CustomEvent("doc-viewer", { detail: { url, download: download ?? url, name: label } }));
 }
