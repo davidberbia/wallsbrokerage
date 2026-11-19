@@ -568,15 +568,15 @@ export function DealsTable({ mode }: { mode: Mode }) {
       {mode === "pipeline" && (
         <div className="grid auto-rows-fr grid-cols-3 gap-2">
           <label className="rounded-sm border border-border bg-card p-3">
-            <span className="text-xs text-muted-foreground">Objectif {year}</span>
-            <div className="mt-1 flex items-center gap-1">
+            <div className="text-xs text-muted-foreground">Objectif {year}</div>
+            <div className="mt-1 flex h-9 items-center gap-1">
               <Input
                 key={`${year}-${goal}`}
                 inputMode="decimal"
                 defaultValue={goal ? String(Math.round(goal / 1000)) : ""}
                 disabled={!canEdit}
                 onBlur={(e) => void saveGoal(String((parseNum(e.target.value) ?? 0) * 1000))}
-                className="h-9 min-w-0 font-mono text-base font-semibold"
+                className="h-9 w-16 min-w-0 px-2 text-center font-mono text-base font-semibold"
               />
               <span className="font-mono text-base font-semibold">k€</span>
             </div>
