@@ -40,7 +40,7 @@ export const sendMandateForSignature = createServerFn({ method: "POST" })
     const ds = await getDsAccess();
     const ext = data.fileName.split(".").pop()?.toLowerCase() || "pdf";
     const signers = [
-      { email: data.ownerEmail, name: data.ownerName, recipientId: "1", routingOrder: "1" },
+      { email: data.ownerEmail, name: data.ownerName, recipientId: "1", routingOrder: "2" },
       { email: ds.email || "d.berbia@wallsbroker.com", name: "David Berbia", recipientId: "2", routingOrder: "1" },
     ];
     const r = await fetch(`${ds.api}/envelopes`, {
@@ -105,7 +105,7 @@ export const prepareMandateSignature = createServerFn({ method: "POST" })
         emailSubject: `Mandat n° ${m.number} — signature`,
         documents: [{ documentBase64: btoa(bin), name: `Mandat ${m.number}.html`, fileExtension: "html", documentId: "1" }],
         recipients: { signers: [
-          { email: data.mandantEmail, name: data.mandantName, recipientId: "1", routingOrder: "1", roleName: "Mandant", tabs: anchorTab(ANCHOR_MANDANT, ANCHOR_INIT_MANDANT) },
+          { email: data.mandantEmail, name: data.mandantName, recipientId: "1", routingOrder: "2", roleName: "Mandant", tabs: anchorTab(ANCHOR_MANDANT, ANCHOR_INIT_MANDANT) },
           { email: ds.email || "d.berbia@wallsbroker.com", name: "Wallsbroker — David Berbia", recipientId: "2", routingOrder: "1", roleName: "Mandataire", tabs: anchorTab(ANCHOR_MANDATAIRE, ANCHOR_INIT_MANDATAIRE) },
         ] },
         status: "created",
