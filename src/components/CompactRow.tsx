@@ -37,18 +37,18 @@ export function CompactRow({
         aria-label={`Ouvrir ${title}`}
       >
         <span
-          className="min-w-0 flex-1 truncate font-medium"
+          className="min-w-0 flex-1 basis-0 truncate font-medium"
           title={[title, subtitle].filter(Boolean).join(" · ")}
         >
           {title}
         </span>
         {subtitle && (
-          <span className="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground md:block">
+          <span className="hidden min-w-0 flex-1 basis-0 truncate text-left text-xs text-muted-foreground md:block">
             {subtitle}
           </span>
         )}
         {summary && (
-          <span className="max-w-full truncate text-xs text-muted-foreground lg:shrink-0">{summary}</span>
+          <span className="max-w-full truncate text-xs text-muted-foreground lg:w-80 lg:shrink-0 lg:text-right">{summary}</span>
         )}
       </Button>
       {trailing && <div className="flex shrink-0 items-center gap-1">{trailing}</div>}
