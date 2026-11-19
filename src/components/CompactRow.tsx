@@ -86,7 +86,7 @@ export function CompactRow({
         >
           {title}
         </span>
-        {subtitle && (
+        {(subtitle || city !== undefined) && (
           <span className="hidden min-w-0 flex-[1.35] basis-0 truncate text-left text-xs text-muted-foreground md:block">
             {subtitle}
           </span>

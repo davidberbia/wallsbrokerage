@@ -107,6 +107,9 @@ export function CityFilter({ f, options }: { f: F; options: string[] }) {
 export function splitAddress(address?: string | null, city?: string | null): { street: string; city: string } {
   const a = (address ?? "").trim();
   const m = a.match(/^(.*?)[,\s]+(\d{5})\s+(.+)$/);
-  if (m) return { street: (m[1] ?? "").replace(/[,\s]+$/, ""), city: city?.trim() || `${m[2]} ${m[3]}`.trim() };
-  return { street: a, city: city?.trim() ?? "" };
+  const st = m ? (m[1] ?? "").replace(/[,\s]+$/, "") : "";
+  if (m) return { street: st, city: city?.trim() || `${m[2]} ${m[3]}`.trim() };
+  const c = city?.trim() ?? "";
+  const same = (x: string) => x.toLocaleLowerCase("fr").replace(/[^a-z0-9]/g, "");
+  return { street: c && same(a) === same(c) ? "" : a, city: c };
 }
