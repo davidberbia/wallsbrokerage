@@ -16,7 +16,7 @@ export function CompactRowHeader({ title, subtitle, columns = [] }: { title: str
       <div className="flex min-w-0 items-center gap-2 [grid-area:title] sm:gap-6">
         <span className="min-w-0 flex-1 basis-0 truncate text-xs font-semibold text-muted-foreground">{title}</span>
         {subtitle && (
-          <span className="hidden min-w-0 flex-1 basis-0 truncate text-xs font-semibold text-muted-foreground md:block">
+          <span className="hidden min-w-0 flex-[1.35] basis-0 truncate text-xs font-semibold text-muted-foreground md:block">
             {subtitle}
           </span>
         )}
@@ -62,7 +62,7 @@ export function CompactRow({
   onOpen: () => void;
   onEdit?: (() => void) | undefined;
   onDelete?: (() => void) | undefined;
-  tone?: "success" | "danger";
+  tone?: "success" | "danger" | undefined;
 }) {
   return (
     <div
@@ -84,7 +84,7 @@ export function CompactRow({
           {title}
         </span>
         {subtitle && (
-          <span className="hidden min-w-0 flex-1 basis-0 truncate text-left text-xs text-muted-foreground md:block">
+          <span className="hidden min-w-0 flex-[1.35] basis-0 truncate text-left text-xs text-muted-foreground md:block">
             {subtitle}
           </span>
         )}
