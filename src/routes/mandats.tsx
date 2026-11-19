@@ -317,8 +317,8 @@ function MandatesPage() {
                   })();
                   return;
                 }
-                // Mandat non signé : même numéro conservé, l'enveloppe en cours sera annulée chez DocuSign.
-                if (detail.sig && detail.sig !== "prêt à envoyer" && !confirm("Le mandat en cours de signature sera annulé et remplacé (même numéro). Continuer ?")) return;
+                // Mandat non signé : même numéro, correction dans la même enveloppe DocuSign tant que personne n'a signé.
+                if (detail.sig && detail.sig !== "prêt à envoyer" && !confirm("Le mandat sera corrigé dans la même enveloppe DocuSign (même numéro, aucun crédit). Continuer ?")) return;
                 setTarget(detail);
                 setDetailId(null);
               }}
@@ -473,7 +473,15 @@ function SignDialog({
     setBusy(true);
     try {
       const html = templateToHtml(withSignatures(fillTemplate(tpl.body, all)), `Mandat ${target.number}`);
-      const r = await prepare({ data: { mandateId: target.id, mandantName: name, mandantEmail: email, html } });
+      const payload = { mandateId: target.id, mandantName: name, mandantEmail: email, html };
+      let r: Awaited<ReturnType<typeof prepare>>;
+      try {
+        r = await prepare({ data: payload });
+      } catch (err) {
+        if (!(err as Error).message.includes("DEJA_SIGNE_PARTIELLEMENT")) throw err;
+        if (!confirm("Une partie a déjà signé : l'enveloppe ne peut plus être corrigée. Créer une nouvelle enveloppe (1 crédit DocuSign) ?")) { setBusy(false); return; }
+        r = await prepare({ data: { ...payload, allowNewEnvelope: true } });
+      }
       const bytes = Uint8Array.from(atob(r.pdfBase64), (c) => c.charCodeAt(0));
       if (pdf) URL.revokeObjectURL(pdf);
       setPdf(URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })));
