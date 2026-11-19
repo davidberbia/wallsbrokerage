@@ -498,6 +498,13 @@
       "when": 1795100053535,
       "tag": "0070_agent_carte_t",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1795101337309,
+      "tag": "0071_mandates_open_rules",
+      "breakpoints": true
     }
   ]
 }

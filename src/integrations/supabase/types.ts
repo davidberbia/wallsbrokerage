@@ -3340,6 +3340,7 @@ export type Database = {
       aiscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       aiscan_stop_internal: { Args: never; Returns: undefined }
       asset_family: { Args: { _cls: string }; Returns: string }
+      can_open_mandate: { Args: { _agent: string }; Returns: boolean }
       can_see_deal: { Args: { _owner: string }; Returns: boolean }
       can_see_owner: { Args: { _owner: string }; Returns: boolean }
       cfnews_scrape_schedule: { Args: { _on: boolean }; Returns: undefined }
@@ -3483,6 +3484,17 @@ export type Database = {
         Returns: {
           id: string
           name: string
+        }[]
+      }
+      list_mandate_registry: {
+        Args: never
+        Returns: {
+          agent_name: string
+          can_open: boolean
+          created_at: string
+          id: string
+          number: number
+          number_suffix: string
         }[]
       }
       mail_is_digest: {

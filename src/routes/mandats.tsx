@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, PenLine, RefreshCw } from "lucide-react";
+import { Download, Lock, PenLine, RefreshCw } from "lucide-react";
 import { useMandateTemplates, downloadWord, printPdf } from "@/components/MandateTemplatesPanel";
 import { addOneYear, fillTemplate, templateFields, feeText, feeChargeText, templateToHtml, withSignatures, templateKind } from "@/lib/mandate-template";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
@@ -67,6 +67,15 @@ function MandatesPage() {
     },
   });
 
+  const { data: registry } = useQuery({
+    queryKey: ["mandates", "registry"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("list_mandate_registry");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const locked = (registry ?? []).filter((r) => !r.can_open);
   const { data: agents } = useQuery({
     queryKey: ["mandate-agents"],
     queryFn: async () => {
@@ -227,7 +236,7 @@ function MandatesPage() {
         </Button>
       </div>
       {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
-      {!isLoading && rows.length === 0 && (
+      {!isLoading && rows.length === 0 && locked.length === 0 && (
         <div className="panel p-8 text-center text-sm text-muted-foreground">
           Aucun mandat. Il est créé à l'étape « Mandat » d'un nouvel actif (n° à partir de 202193).
         </div>
@@ -248,6 +257,12 @@ function MandatesPage() {
             onEdit={() => setDetailId(r.id)}
             tone={r.sig === "completed" || r.start !== "—" ? "success" : "danger"}
           />
+        ))}
+        {locked.map((r) => (
+          <div key={r.id} className="flex min-h-11 items-center gap-3 border-b border-border px-3 py-2 text-sm text-muted-foreground">
+            <Lock className="size-4 shrink-0" />
+            <span>N° {r.number}{r.number_suffix ? ` ${r.number_suffix}` : ""} · {fmt(r.created_at)} · {r.agent_name ?? "Wallsbroker"}</span>
+          </div>
         ))}
       </div>
       <RecordDialog
