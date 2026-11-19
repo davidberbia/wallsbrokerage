@@ -34,7 +34,7 @@ const FIELDS: [string, string, string][] = [
   ["adresse", "Adresse / siège", "text"],
   ["siren", "SIREN", "text"],
   ["rsac", "N° RSAC (si inscrit)", "text"],
-  ["date_effet", "Date d'effet souhaitée", "date"],
+  ["date_effet", "Date de début (= date de signature)", "date"],
 ];
 
 const BENEFITS = [

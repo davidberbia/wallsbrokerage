@@ -22,3 +22,11 @@ describe("contrat agent", () => {
     expect(a.match(/décharge expressément WALLSBROKER/g)).toHaveLength(2);
   });
 });
+
+import { contractValues as cv2 } from "./agent-contract";
+import { test as t2, expect as e2 } from "vitest";
+t2("la date de signature reprend la date de début du contrat", () => {
+  const v = cv2({ date_effet: "2025-01-01" }, "X");
+  e2(v.date_signature).toBe("1er janvier 2025");
+  e2(v.date_effet).toBe("1er janvier 2025");
+});

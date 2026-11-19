@@ -17,10 +17,12 @@ export function missingContractFields(f: AgentContractFields): string[] {
 // L'agent s'assure seul : aucune donnée d'assurance n'est demandée.
 export const RC_CLAUSE = "L'Agent déclare être informé de l'obligation légale de disposer d'une assurance garantissant sa responsabilité civile professionnelle. Il se fait fort de la souscrire et de la maintenir à ses frais, sous sa seule et entière responsabilité, et décharge expressément WALLSBROKER de toute responsabilité ou recours à ce titre.";
 export const RSAC_CLAUSE = "L'Agent déclare être informé de l'obligation légale d'immatriculation au Registre spécial des agents commerciaux (RSAC). Il s'engage à accomplir, à ses seuls frais et sous sa seule et entière responsabilité, les formalités d'immatriculation ainsi que leur maintien pendant toute la durée du présent contrat, et décharge expressément WALLSBROKER de toute responsabilité ou recours à ce titre.";
-const fr = (iso?: string) => {
-  if (!iso) return "";
-  const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso;
+const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+export const frLong = (iso?: string) => {
+  const m = iso?.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return iso ?? "";
+  const d = Number(m[3]);
+  return `${d === 1 ? "1er" : d} ${MOIS[Number(m[2]) - 1]} ${m[1]}`;
 };
 export function contractValues(f: AgentContractFields, agentName: string, today = new Date()): Record<string, string> {
   const qa = Number(f.quote_agent ?? 0);
@@ -29,8 +31,9 @@ export function contractValues(f: AgentContractFields, agentName: string, today 
     rsac: f.rsac?.trim() || "Non applicable",
     assurance: [RC_CLAUSE, RSAC_CLAUSE].join(" "),
     quote_agent: String(qa), quote_wallsbroker: String(Math.round((100 - qa) * 100) / 100),
-    date_effet: fr(f.date_effet), lieu: f.lieu?.trim() || "Paris",
-    date_signature: today.toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" }),
+    date_effet: frLong(f.date_effet), lieu: f.lieu?.trim() || "Paris",
+    // Le début du contrat est la date de signature affichée sous les signatures.
+    date_signature: frLong(f.date_effet) || frLong(today.toISOString().slice(0, 10)),
     wb_nom: "David BERBIA PEREZ", wb_qualite: "Président",
     ag_nom: agentName, ag_qualite: f.qualite?.trim() || "Agent commercial indépendant",
   };

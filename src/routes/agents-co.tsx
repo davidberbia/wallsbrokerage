@@ -56,7 +56,7 @@ type Agent = {
 const STEPS: { title: string; fields: [keyof AgentContractFields, string, string?][] }[] = [
   { title: "Statut et société", fields: [["denomination", "Nom ou société"], ["adresse", "Adresse / siège social"], ["siren", "SIREN"], ["rsac", "RSAC (facultatif)"], ["qualite", "Qualité (ex. Agent commercial indépendant)"]] },
   { title: "Rémunération", fields: [["quote_agent", "Quote-part de l'agent (%)", "number"]] },
-  { title: "Prise d'effet", fields: [["date_effet", "Date d'effet", "date"], ["lieu", "Lieu de signature (Paris par défaut)"]] },
+  { title: "Prise d'effet", fields: [["date_effet", "Date de début (= date de signature)", "date"], ["lieu", "Lieu de signature (Paris par défaut)"]] },
 ];
 
 function AgentsPage() {
