@@ -48,6 +48,9 @@ async function prepareContract(id:string,db:any){
     const tab=(a:string)=>({signHereTabs:[{anchorString:a,anchorXOffset:"-25",anchorYOffset:"6",anchorUnits:"pixels",scaleValue:"1.5",anchorIgnoreIfNotPresent:"false"}],initialHereTabs:[{anchorString:a.replace("\\sig","\\ini"),anchorXOffset:"-10",anchorYOffset:"14",anchorUnits:"pixels",anchorIgnoreIfNotPresent:"true"}]});
     const wbSigner={email:ds.email || "d.berbia@wallsbroker.com",name:"David Berbia",recipientId:"1",routingOrder:"1",tabs:tab("\\sigwb\\")};
     const agentSigner={email:agent.email,name:`${agent.first_name} ${agent.last_name}`,recipientId:"2",routingOrder:"2",tabs:tab("\\sigag\\")};
+    const dropSignPageInitials=async(envId:string,hd:Record<string,string>)=>{for(const id of ["1","2"]){const t=await (await fetch(`${ds.api}/envelopes/${envId}/recipients/${id}/tabs`,{headers:hd})).json() as {signHereTabs?:{pageNumber:string}[];initialHereTabs?:{tabId:string;pageNumber:string}[]};
+      const pages=new Set((t.signHereTabs??[]).map(x=>x.pageNumber));const del=(t.initialHereTabs??[]).filter(x=>pages.has(x.pageNumber)).map(x=>({tabId:x.tabId}));
+      if(del.length)await fetch(`${ds.api}/envelopes/${envId}/recipients/${id}/tabs`,{method:"DELETE",headers:hd,body:JSON.stringify({initialHereTabs:del})});}};
     // Même enveloppe tant que personne n'a signé : on remplace seulement le document (aucun crédit DocuSign de plus).
     let envelopeId:string|null=null;let inProcess=false;
     if(agent.envelope_id){
@@ -75,12 +78,13 @@ async function prepareContract(id:string,db:any){
           if(del.signHereTabs.length||del.initialHereTabs.length||del.dateSignedTabs.length){const xr=await fetch(`${ds.api}/envelopes/${envelopeId}/recipients/${sg.recipientId}/tabs`,{method:"DELETE",headers:HL,body:JSON.stringify(del)});if(!xr.ok)throw new Error(`DocuSign : suppression des anciens champs refusée (${xr.status}) ${await xr.text()}`);}
           const ar=await fetch(`${ds.api}/envelopes/${envelopeId}/recipients/${sg.recipientId}/tabs`,{method:"POST",headers:HL,body:JSON.stringify(sg.tabs)});if(!ar.ok)throw new Error(`DocuSign : pose des champs refusée (${ar.status}) ${await ar.text()}`);
         }
+        await dropSignPageInitials(envelopeId,HL);
       }finally{if(inProcess)await fetch(`${ds.api}/envelopes/${envelopeId}/lock`,{method:"DELETE",headers:HL}).catch(()=>{});}
       // Enveloppe déjà partie : on renvoie l'e-mail de signature (vous d'abord).
       if(inProcess)await fetch(`${ds.api}/envelopes/${envelopeId}?resend_envelope=true`,{method:"PUT",headers:H,body:JSON.stringify({})}).catch(()=>{});
     }else{
     const r=await fetch(`${ds.api}/envelopes`,{method:"POST",headers:H,body:JSON.stringify({emailSubject:`Contrat-cadre Wallsbroker — ${agent.first_name} ${agent.last_name}`,documents:[dsDoc],recipients:{signers:[wbSigner,agentSigner]},status:"created"})});
-    if(!r.ok)throw new Error(`DocuSign : préparation refusée (${r.status}) ${await r.text()}`);envelopeId=(await r.json() as {envelopeId:string}).envelopeId;
+    if(!r.ok)throw new Error(`DocuSign : préparation refusée (${r.status}) ${await r.text()}`);envelopeId=(await r.json() as {envelopeId:string}).envelopeId;await dropSignPageInitials(envelopeId,H);
     }
     const pdf=await fetch(`${ds.api}/envelopes/${envelopeId}/documents/combined`,{headers:{Authorization:`Bearer ${ds.token}`}});if(!pdf.ok)throw new Error(`DocuSign : PDF indisponible (${pdf.status})`);
     const path=`agents/${agent.id}/contrat-prepare.pdf`;
