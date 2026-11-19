@@ -680,7 +680,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
           <CompactRow
             title={d.name}
             subtitle={[d.stage, d.seller && `V : ${d.seller}`, d.buyer && `A : ${d.buyer}`, d.operation_nature].filter(Boolean).join(" · ")}
-            summary={`Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}${fill.loaded ? ` · Remplissage ${fill.get(d.asset_id, undefined, d).percent} %` : ""}`}
+            summary={`Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
             trailing={
               canEdit ? (
