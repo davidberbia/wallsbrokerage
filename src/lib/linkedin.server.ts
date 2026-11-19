@@ -37,7 +37,14 @@ export async function writePost(admin: Admin, userId: string, kind: PostKind, as
       return { body, chart: null };
     }
     if (kind === "specialite") {
-      const body = await g.callGemini({ task: "linkedin", system: STYLE, turns: [{ role: "user", text: `Rédige un article LinkedIn (250 à 400 mots) sur un sujet utile et actuel de ma spécialité : ${specialty}. Un titre accrocheur en première ligne.` }] });
+      const { data: pub } = await admin.from("linkedin_posts").select("body").eq("user_id", userId).eq("kind", "specialite").eq("status", "publie").order("created_at", { ascending: false }).limit(15);
+      const { data: rej } = await admin.from("linkedin_settings").select("rejected_topics").eq("user_id", userId).maybeSingle();
+      const liked = (pub ?? []).map((r) => postTitle(r.body)).filter(Boolean);
+      const avoid = (rej?.rejected_topics ?? []).slice(-20);
+      let pref = "";
+      if (liked.length) pref += `\nSujets déjà publiés que j'ai aimés (inspire-toi de ces thèmes sans jamais les répéter) :\n${liked.map((t) => `- ${t}`).join("\n")}`;
+      if (avoid.length) pref += `\nSujets refusés, à éviter :\n${avoid.map((t) => `- ${t}`).join("\n")}`;
+      const body = await g.callGemini({ task: "linkedin", system: STYLE, turns: [{ role: "user", text: `Rédige un article LinkedIn (250 à 400 mots) sur un sujet utile et actuel de ma spécialité : ${specialty}. Un titre accrocheur en première ligne.${pref}` }] });
       return { body, chart: null };
     }
     const { data: src } = await admin.from("linkedin_sources").select("url").eq("user_id", userId);
@@ -146,4 +153,9 @@ export async function publishToLinkedin(userId: string, text: string, imagePath?
   if (await appUserReconnectRequired(res)) return { ok: false, reconnect: true, error: "Connexion LinkedIn à renouveler." };
   if (!res.ok) return { ok: false, error: `LinkedIn publication [${res.status}] ${(await res.text()).slice(0, 200)}` };
   return { ok: true };
+}
+
+/** Titre d'un article = sa première ligne non vide. */
+export function postTitle(body: string | null | undefined): string {
+  return (body ?? "").split("\n").map((l) => l.replace(/[*#]/g, "").trim()).find(Boolean)?.slice(0, 160) ?? "";
 }

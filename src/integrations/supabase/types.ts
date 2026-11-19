@@ -2245,6 +2245,7 @@ export type Database = {
           market_day: number
           next_invite_at: string | null
           reconnect_required: boolean
+          rejected_topics: string[]
           specialty: string
           updated_at: string
           user_id: string
@@ -2255,6 +2256,7 @@ export type Database = {
           market_day?: number
           next_invite_at?: string | null
           reconnect_required?: boolean
+          rejected_topics?: string[]
           specialty?: string
           updated_at?: string
           user_id: string
@@ -2265,6 +2267,7 @@ export type Database = {
           market_day?: number
           next_invite_at?: string | null
           reconnect_required?: boolean
+          rejected_topics?: string[]
           specialty?: string
           updated_at?: string
           user_id?: string

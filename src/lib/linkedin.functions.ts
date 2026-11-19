@@ -6,8 +6,8 @@ import { requireStaffAuth } from "@/lib/staff-middleware";
 /** Rédige (ou réécrit) un post. Sans postId : nouveau brouillon du jour. */
 export const generateLinkedinPost = createServerFn({ method: "POST" })
   .middleware([requireStaffAuth])
-  .inputValidator((d: { kind: "actifs" | "specialite" | "marche"; postId?: string; assetIds?: string[] }) =>
-    z.object({ kind: z.enum(["actifs", "specialite", "marche"]), postId: z.string().uuid().optional(), assetIds: z.array(z.string().uuid()).min(1).max(3).optional() }).parse(d))
+  .inputValidator((d: { kind: "actifs" | "specialite" | "marche"; postId?: string; assetIds?: string[]; reject?: boolean }) =>
+    z.object({ reject: z.boolean().optional(), kind: z.enum(["actifs", "specialite", "marche"]), postId: z.string().uuid().optional(), assetIds: z.array(z.string().uuid()).min(1).max(3).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { getAdmin } = await import("@/lib/automation.server");
@@ -16,6 +16,17 @@ export const generateLinkedinPost = createServerFn({ method: "POST" })
     if (data.kind === "actifs" && !data.assetIds && data.postId) {
       const { data: cur } = await supabase.from("linkedin_posts").select("asset_ids").eq("id", data.postId).eq("user_id", userId).maybeSingle();
       assetIds = cur?.asset_ids ?? [];
+    }
+    if (data.reject && data.kind === "specialite" && data.postId) {
+      const { postTitle } = await import("@/lib/linkedin.server");
+      const { data: cur } = await supabase.from("linkedin_posts").select("body").eq("id", data.postId).eq("user_id", userId).maybeSingle();
+      const t = postTitle(cur?.body);
+      if (t) {
+        const { data: st } = await supabase.from("linkedin_settings").select("rejected_topics").eq("user_id", userId).maybeSingle();
+        const list = [...(st?.rejected_topics ?? []), t].slice(-30);
+        if (st) await supabase.from("linkedin_settings").update({ rejected_topics: list }).eq("user_id", userId);
+        else await supabase.from("linkedin_settings").insert({ user_id: userId, rejected_topics: list });
+      }
     }
     const r = await writePost(await getAdmin(), userId, data.kind, assetIds);
     if ("error" in r) return { error: r.error };

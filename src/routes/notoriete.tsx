@@ -146,7 +146,7 @@ function AssetPicker({ open, initial, onClose, onPick }: { open: boolean; initia
 
 type Post = { id: string; user_id: string; asset_ids: string[]; image_path: string | null; kind: string; body: string; chart: unknown; status: string; created_at: string; scheduled_for: string; error: string | null };
 
-function PostCard({ p, onChange, onWrite, onPick, writing }: { p: Post; onChange: () => void; onWrite?: () => void; onPick?: () => void; writing?: boolean }) {
+function PostCard({ p, onChange, onWrite, onPick, onReplace, writing }: { p: Post; onChange: () => void; onWrite?: () => void; onPick?: () => void; onReplace?: () => void; writing?: boolean }) {
   const [text, setText] = useState(p.body);
   useEffect(() => setText(p.body), [p.body]);
   const ref = useRef<SVGSVGElement>(null);
@@ -191,6 +191,7 @@ function PostCard({ p, onChange, onWrite, onPick, writing }: { p: Post; onChange
                 <Button size="sm" onClick={() => save({ body: text, status: "valide", error: null })}><Check className="mr-1 size-4" />Valider</Button>
                 <Button size="sm" variant="outline" onClick={() => save({ body: text })}>Enregistrer</Button>
                 {p.kind === "actifs" && onPick && <Button size="sm" variant="outline" disabled={writing} onClick={onPick}><Briefcase className="mr-1 size-4" />Changer les actifs</Button>}
+                {p.kind === "specialite" && onReplace && <Button size="sm" variant="outline" disabled={writing} onClick={onReplace}><RefreshCw className="mr-1 size-4" />{writing ? "Rédaction…" : "Nouvel article"}</Button>}
                 <Button size="sm" variant="outline" onClick={publishByHand}><ExternalLink className="mr-1 size-4" />Publier moi-même</Button>
                 <Button size="sm" variant="ghost" onClick={() => save({ status: "ignore" })}><X className="mr-1 size-4" />Ignorer</Button>
               </>
@@ -342,10 +343,10 @@ function NotorietePage() {
     } finally { setBusy(null); }
   };
   const today = kindForDate(new Date(), day);
-  const writeNow = async (p: Post) => {
+  const writeNow = async (p: Post, reject = false) => {
     setWriting(p.id);
     try {
-      const r = await gen({ data: { kind: p.kind as PostKind, postId: p.id } });
+      const r = await gen({ data: { kind: p.kind as PostKind, postId: p.id, reject } });
       if ("error" in r && r.error) toast.error(r.error); else toast.success("Brouillon prêt");
       qc.invalidateQueries({ queryKey: ["li-posts"] });
     } finally { setWriting(null); }
@@ -374,7 +375,7 @@ function NotorietePage() {
           </div>
           <Button variant="outline" className="w-full" onClick={async () => { const r = await plan(); toast.success(r.added ? `${r.added} posts prévus ce mois-ci` : "Mois déjà préparé"); qc.invalidateQueries({ queryKey: ["li-posts"] }); }}>Préparer le mois</Button>
           {drafts.length === 0 && <p className="text-sm text-muted-foreground">Aucun post prévu.</p>}
-          {drafts.map((p) => <PostCard key={p.id} p={p} writing={writing === p.id} onWrite={() => writeNow(p)} onPick={() => setPick({ post: p })} onChange={() => { qc.invalidateQueries({ queryKey: ["li-posts"] }); qc.invalidateQueries({ queryKey: ["li-pipeline"] }); }} />)}
+          {drafts.map((p) => <PostCard key={p.id} p={p} writing={writing === p.id} onWrite={() => writeNow(p)} onReplace={() => writeNow(p, true)} onPick={() => setPick({ post: p })} onChange={() => { qc.invalidateQueries({ queryKey: ["li-posts"] }); qc.invalidateQueries({ queryKey: ["li-pipeline"] }); }} />)}
           <AssetPicker open={!!pick} initial={pick?.post?.asset_ids ?? []} onClose={() => setPick(null)} onPick={onPicked} />
           {history.length > 0 && <h2 className="pt-2 text-sm font-semibold">Publiés</h2>}
           {(history as Post[]).map((p) => <PostCard key={p.id} p={p} onChange={() => {}} />)}

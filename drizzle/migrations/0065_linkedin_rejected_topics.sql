@@ -1,0 +1,1 @@
+ALTER TABLE public.linkedin_settings ADD COLUMN IF NOT EXISTS rejected_topics text[] NOT NULL DEFAULT '{}';
