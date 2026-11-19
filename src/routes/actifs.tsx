@@ -531,10 +531,12 @@ function AssetsPage() {
                 <Merge className="size-4" />
               </Button>
               <AssetTransfer id={asset.id} name={asset.title} owner={(asset as { owner_id?: string | null }).owner_id} />
+            </>) : undefined}
+            last={canEdit && !archives ? (
               <Button variant="ghost" size="icon" className="size-11" title="Archiver" aria-label={`Archiver ${asset.title}`} onClick={() => { if (confirm(`Archiver « ${asset.title} » ?`)) archive.mutate({ id: asset.id, restore: false }); }}>
                 <Archive className="size-4" />
               </Button>
-            </>) : undefined}
+            ) : undefined}
           />
         ))}
       </div>

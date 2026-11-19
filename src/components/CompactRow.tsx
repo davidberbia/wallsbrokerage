@@ -50,6 +50,7 @@ export function CompactRow({
   columns,
   leading,
   trailing,
+  last,
   onOpen,
   onEdit,
   onDelete,
@@ -62,6 +63,8 @@ export function CompactRow({
   columns?: RowColumn[];
   leading?: ReactNode;
   trailing?: ReactNode;
+  /** Bouton affiché tout à droite, après Modifier. */
+  last?: ReactNode;
   onOpen: () => void;
   onEdit?: (() => void) | undefined;
   onDelete?: (() => void) | undefined;
@@ -139,6 +142,7 @@ export function CompactRow({
           <Trash2 className="size-4" />
         </Button>
       )}
+      {last}
       </div>
     </div>
   );
