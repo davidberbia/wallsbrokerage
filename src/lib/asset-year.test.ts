@@ -26,3 +26,10 @@ describe("countYear", () => {
     expect(countYear({ nas_year: 2025 }, 2026)).toBe(2025);
   });
 });
+
+describe("année en cours", () => {
+  it("un actif sans année apparaît dans l'année en cours", () => {
+    expect(matchesAssetYear({}, "2026", 2026)).toBe(true);
+    expect(matchesAssetYear({}, "2025", 2026)).toBe(false);
+  });
+});

@@ -4,7 +4,7 @@ import { correspondents as thirdParties } from "@/lib/correspondents";
 import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow, CompactRowHeader } from "@/components/CompactRow";
-import { ClassFilter, RangeFilter, useListFilters } from "@/components/ListFilters";
+import { ClassFilter, CityFilter, splitAddress, RangeFilter, useListFilters } from "@/components/ListFilters";
 import { LeadActions } from "@/components/LeadActions";
 import { leadViewStatus, type LeadRequest } from "@/lib/lead-documents";
 import { pigeActive } from "@/lib/pige";
@@ -197,7 +197,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
       (mode === "targets" ? d.stage === TARGET_STAGE : d.stage !== TARGET_STAGE && !ASSET_STAGES.includes(d.stage)) &&
       inVintage(d, year) && (mode !== "targets" || (statusOf(d) === leadView && [d.name,d.address,d.company,d.contact_email].filter(Boolean).join(" ").toLocaleLowerCase("fr").includes(leadSearch.toLocaleLowerCase("fr")))),
   ).sort((a, b) => Number(a.stage === "Perdu") - Number(b.stage === "Perdu"));
-  const rows = mode === "targets" ? lf.apply(rows0, (d) => ({ cls: classOf(d), surface: d.surface ?? null, price: d.amount ?? d.rent ?? null })) : rows0;
+  const rows = mode === "targets" ? lf.apply(rows0, (d) => ({ cls: classOf(d), surface: d.surface ?? null, price: d.amount ?? d.rent ?? null, city: splitAddress(assetOf(d)?.address || d.address, assetOf(d)?.city).city })) : rows0;
+  const leadCityOptions = [...new Set(rows0.map((d) => splitAddress(assetOf(d)?.address || d.address, assetOf(d)?.city).city).filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr"));
   const leadClassOptions = [...new Set(rows0.map((d) => classOf(d)).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "fr"));
   const lostRows = rows.filter((d) => d.stage === "Perdu");
   const firstLost = rows.findIndex((d) => d.stage === "Perdu");
@@ -683,15 +684,16 @@ export function DealsTable({ mode }: { mode: Mode }) {
         {rows.map((d, i) => (
           <Fragment key={d.id}>
           {mode === "targets" ? <>
-          {i === 0 && <CompactRowHeader actionsWidth={236} title={<ClassFilter f={lf} options={leadClassOptions} />} subtitle="Adresse" columns={[<RangeFilter key="s" f={lf} k="surface" label="Surface" />, <RangeFilter key="p" f={lf} k="price" label="Prix" />, "Remplissage"]} />}
+          {i === 0 && <CompactRowHeader actionsWidth={236} title={<ClassFilter f={lf} options={leadClassOptions} />} subtitle="Adresse" city={<CityFilter f={lf} options={leadCityOptions} />} widths={["6.75rem", "6.75rem", "4rem"]} columns={[<RangeFilter key="s" f={lf} k="surface" label="Surface" />, <RangeFilter key="p" f={lf} k="price" label="Prix" />, "Complet"]} />}
           <CompactRow
             title={shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "—"}
-            subtitle={[statusOf(d) === "waiting" ? "En attente de documents" : statusOf(d) === "recall" ? "À rappeler" : null, assetOf(d)?.address || d.address, assetOf(d)?.city].filter(Boolean).join(" · ")}
+            subtitle={[statusOf(d) === "waiting" ? "En attente de documents" : statusOf(d) === "recall" ? "À rappeler" : null, splitAddress(assetOf(d)?.address || d.address, assetOf(d)?.city).street].filter(Boolean).join(" · ")}
+            city={splitAddress(assetOf(d)?.address || d.address, assetOf(d)?.city).city}
             tone={statusOf(d) === "recall" ? "danger" : undefined}
             columns={[
               { value: d.surface ? m2(d.surface) : "—", width: "6.75rem" },
               { value: d.amount ? eur(d.amount) : "—", width: "6.75rem" },
-              { value: fill.loaded ? `${fill.get(d.asset_id, undefined, d).percent} %` : "—", width: "6.75rem" },
+              { value: fill.loaded ? `${fill.get(d.asset_id, undefined, d).percent} %` : "—", width: "4rem" },
             ]}
             onOpen={() => openChain(d.id)}
             trailing={<LeadActions id={d.id} name={d.name} owner={d.owner_id} email={d.contact_email || mailsOf(d.id)[0]} phone={d.contact_phone} archived={d.lead_status === "archived"} onPromote={() => promote(d)} onMerge={canEdit ? () => { setMergeFor(d); setMergePick([]); } : undefined} />}

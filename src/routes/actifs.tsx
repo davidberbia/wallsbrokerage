@@ -13,7 +13,7 @@ import { MergePicker } from "@/components/MergePicker";
 import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
 import { Merge, Folder, ArrowDown } from "lucide-react";
 import { CompactRow, CompactRowHeader, RecordDialog, RecordFacts } from "@/components/CompactRow";
-import { ClassFilter, RangeFilter, useListFilters } from "@/components/ListFilters";
+import { ClassFilter, CityFilter, splitAddress, RangeFilter, useListFilters } from "@/components/ListFilters";
 import { matchesAssetSearch } from "@/lib/list-search";
 import { assetYears, matchesAssetYear } from "@/lib/asset-year";
 import { addOneYear , feeText, feeChargeText } from "@/lib/mandate-template";
@@ -105,7 +105,7 @@ function AssetsPage() {
   const af = useAgentFilter();
   const [search, setSearch] = useState("");
   const [family, setFamily] = useState("all");
-  const [year, setYear] = useState("all");
+  const [year, setYear] = useState(String(new Date().getFullYear()));
   const [detail, setDetail] = useState<Asset | null>(null);
   const [editing, setEditing] = useState<Draft | null>(null);
   const [newFiles, setNewFiles] = useState<File[]>([]);
@@ -353,11 +353,14 @@ function AssetsPage() {
 
   const visible = (data ?? []).filter((asset) => af.keep((asset as { owner_id?: string | null }).owner_id));
   const years = assetYears(visible);
+  const thisYear = new Date().getFullYear();
+  const quickYears = [thisYear, thisYear - 1, thisYear - 2];
   const lf = useListFilters();
+  const cityOptions = [...new Set(visible.map((a) => splitAddress(a.address, a.city).city).filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr"));
   const classOptions = [...new Set(visible.map((a) => a.asset_class).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "fr"));
-  const filtered0 = visible.filter((asset) => matchesAssetYear(asset, year) && matchesAssetSearch(asset, search) && (family === "all" || ((asset as { family?: string | null }).family ?? familyOf(asset.asset_class)) === family));
+  const filtered0 = visible.filter((asset) => matchesAssetYear(asset, year, new Date().getFullYear()) && matchesAssetSearch(asset, search) && (family === "all" || ((asset as { family?: string | null }).family ?? familyOf(asset.asset_class)) === family));
 
-  const filtered = lf.apply(filtered0, (a) => ({ cls: a.asset_class, surface: a.surface, price: a.price ?? a.rent ?? null }));
+  const filtered = lf.apply(filtered0, (a) => ({ cls: a.asset_class, surface: a.surface, price: a.price ?? a.rent ?? null, city: splitAddress(a.address, a.city).city }));
 
   return (
     <div className="space-y-6">
@@ -373,14 +376,19 @@ function AssetsPage() {
             {ASSET_FAMILIES.map((f) => <SelectItem key={f} value={f}>{f}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={year} onValueChange={setYear}>
-          <SelectTrigger className="w-[10rem]" aria-label="Année"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Toutes années</SelectItem>
-            {years.map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-            <SelectItem value="none">Sans année</SelectItem>
-          </SelectContent>
-        </Select></div>
+</div>
+        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Année">
+          {quickYears.map((y) => (
+            <Button key={y} size="sm" className="min-h-11" variant={year === String(y) ? "default" : "outline"} onClick={() => setYear(String(y))}>{y}</Button>
+          ))}
+          <Select value={quickYears.map(String).includes(year) ? "" : year} onValueChange={setYear}>
+            <SelectTrigger className={`min-h-11 w-[10rem] ${quickYears.map(String).includes(year) ? "" : "border-primary"}`} aria-label="Autres années"><SelectValue placeholder="Autres années" /></SelectTrigger>
+            <SelectContent>
+              {years.filter((y) => !quickYears.includes(y)).map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+              <SelectItem value="all">Toutes années</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         </div>
         <Dialog
           open={editing !== null}
@@ -462,16 +470,17 @@ function AssetsPage() {
         </p>
       )}
       <div className="overflow-hidden border-y border-border">
-        <CompactRowHeader title={<ClassFilter f={lf} options={classOptions} />} subtitle="Adresse" columns={[<RangeFilter key="s" f={lf} k="surface" label="Surface" />, <RangeFilter key="p" f={lf} k="price" label="Prix" />, "Remplissage"]} />
+        <CompactRowHeader title={<ClassFilter f={lf} options={classOptions} />} subtitle="Adresse" city={<CityFilter f={lf} options={cityOptions} />} widths={["6.75rem", "6.75rem", "4rem"]} columns={[<RangeFilter key="s" f={lf} k="surface" label="Surface" />, <RangeFilter key="p" f={lf} k="price" label="Prix" />, "Complet"]} />
         {filtered.map((asset) => (
           <CompactRow
             key={asset.id}
             title={[asset.asset_class, asset.asset_subclass].filter(Boolean).join(" · ") || "—"}
-            subtitle={[asset.address, asset.city].filter(Boolean).join(" · ")}
+            subtitle={splitAddress(asset.address, asset.city).street}
+            city={splitAddress(asset.address, asset.city).city}
             columns={[
               { value: `${asset.surface ?? "—"} m²`, width: "6.75rem" },
               { value: formatEUR(asset.price ?? asset.rent), width: "6.75rem" },
-              { value: fill.loaded ? `${fill.get(asset.id, asset).percent} %` : "—", width: "6.75rem" },
+              { value: fill.loaded ? `${fill.get(asset.id, asset).percent} %` : "—", width: "4rem" },
             ]}
             onOpen={() => setDetail(asset)}
             onEdit={canEdit ? () => openEditor(asset) : undefined}

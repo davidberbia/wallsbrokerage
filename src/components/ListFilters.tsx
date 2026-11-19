@@ -5,10 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type Key = "class" | "surface" | "price";
-export type ListItemValues = { cls: string | null; surface: number | null; price: number | null };
+export type ListItemValues = { cls: string | null; surface: number | null; price: number | null; city?: string | null };
 
 export function useListFilters() {
   const [cls, setCls] = useState<string>("all");
+  const [city, setCity] = useState<string>("all");
   const [sort, setSort] = useState<{ key: Key; dir: 1 | -1 } | null>(null);
   const [range, setRange] = useState<Record<"surface" | "price", [string, string]>>({ surface: ["", ""], price: ["", ""] });
   const apply = <T,>(rows: T[], get: (r: T) => ListItemValues): T[] => {
@@ -21,7 +22,7 @@ export function useListFilters() {
     };
     const out = rows.filter((r) => {
       const v = get(r);
-      return (cls === "all" || (v.cls ?? "") === cls) && inRange(v.surface, range.surface) && inRange(v.price, range.price);
+      return (cls === "all" || (v.cls ?? "") === cls) && (city === "all" || (v.city ?? "") === city) && inRange(v.surface, range.surface) && inRange(v.price, range.price);
     });
     if (!sort) return out;
     return [...out].sort((x, y) => {
@@ -33,7 +34,7 @@ export function useListFilters() {
       return sort.dir * (va - vb);
     });
   };
-  return { cls, setCls, sort, setSort, range, setRange, apply };
+  return { cls, setCls, city, setCity, sort, setSort, range, setRange, apply };
 }
 type F = ReturnType<typeof useListFilters>;
 
@@ -85,4 +86,27 @@ export function RangeFilter({ f, k, label }: { f: F; k: "surface" | "price"; lab
       </PopoverContent>
     </Popover>
   );
+}
+
+export function CityFilter({ f, options }: { f: F; options: string[] }) {
+  return (
+    <Popover>
+      <Trigger label="Ville" active={f.city !== "all"} />
+      <PopoverContent align="start" className="max-h-80 w-56 overflow-y-auto p-1">
+        {["all", ...options].map((o) => (
+          <button key={o} type="button" onClick={() => f.setCity(o)} className={`block min-h-9 w-full rounded px-2 text-left text-sm hover:bg-muted ${f.city === o ? "font-semibold text-accent" : ""}`}>
+            {o === "all" ? "Toutes les villes" : o}
+          </button>
+        ))}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** Sépare « 12 rue X, 75001 Paris » en rue et ville (code postal inclus). */
+export function splitAddress(address?: string | null, city?: string | null): { street: string; city: string } {
+  const a = (address ?? "").trim();
+  const m = a.match(/^(.*?)[,\s]+(\d{5})\s+(.+)$/);
+  if (m) return { street: (m[1] ?? "").replace(/[,\s]+$/, ""), city: city?.trim() || `${m[2]} ${m[3]}`.trim() };
+  return { street: a, city: city?.trim() ?? "" };
 }

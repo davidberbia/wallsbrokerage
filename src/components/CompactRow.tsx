@@ -7,7 +7,7 @@ export type RowColumn = { value: ReactNode; width: string };
 
 const COLUMN_WIDTH = "6.75rem";
 
-export function CompactRowHeader({ title, subtitle, columns = [], actionsWidth = 188 }: { title: ReactNode; subtitle?: string; columns?: ReactNode[]; actionsWidth?: number }) {
+export function CompactRowHeader({ title, subtitle, city, columns = [], widths = [], actionsWidth = 188 }: { title: ReactNode; subtitle?: ReactNode; city?: ReactNode; columns?: ReactNode[]; widths?: string[]; actionsWidth?: number }) {
   return (
     <div
       data-compact-row-header
@@ -20,14 +20,15 @@ export function CompactRowHeader({ title, subtitle, columns = [], actionsWidth =
             {subtitle}
           </span>
         )}
+        {city && <span className="hidden min-w-0 flex-[0.8] basis-0 truncate text-xs font-semibold text-muted-foreground md:block">{city}</span>}
       </div>
       {columns.length > 0 && (
-        <span className="hidden min-w-0 items-center justify-end gap-2 [grid-area:metrics] lg:flex lg:w-96">
+        <span className="hidden min-w-0 items-center justify-end gap-2 [grid-area:metrics] lg:flex">
           {columns.map((label, i) => (
             <span
               key={i}
               className={`flex shrink-0 justify-end text-right text-xs font-semibold text-muted-foreground ${i > 0 ? "border-l border-border pl-2" : ""}`}
-              style={{ width: COLUMN_WIDTH }}
+              style={{ width: widths[i] ?? COLUMN_WIDTH }}
             >
               {label}
             </span>
@@ -44,6 +45,7 @@ export function CompactRowHeader({ title, subtitle, columns = [], actionsWidth =
 export function CompactRow({
   title,
   subtitle,
+  city,
   summary,
   columns,
   leading,
@@ -55,6 +57,7 @@ export function CompactRow({
 }: {
   title: string;
   subtitle?: string | null;
+  city?: string | null;
   summary?: ReactNode;
   columns?: RowColumn[];
   leading?: ReactNode;
@@ -79,7 +82,7 @@ export function CompactRow({
       >
         <span
           className="min-w-0 max-w-full flex-1 basis-0 truncate font-medium"
-          title={[title, subtitle].filter(Boolean).join(" · ")}
+          title={[title, subtitle, city].filter(Boolean).join(" · ")}
         >
           {title}
         </span>
@@ -88,12 +91,15 @@ export function CompactRow({
             {subtitle}
           </span>
         )}
+        {city !== undefined && (
+          <span className="hidden min-w-0 flex-[0.8] basis-0 truncate text-left text-xs text-muted-foreground md:block">{city || "—"}</span>
+        )}
         {columns && columns.length > 0 ? null : summary ? (
           <span className="max-w-full truncate text-xs text-muted-foreground lg:w-80 lg:shrink-0 lg:text-right">{summary}</span>
         ) : null}
       </Button>
       {columns && columns.length > 0 && (
-        <span className="hidden min-w-0 items-center justify-end gap-2 [grid-area:metrics] lg:flex lg:w-96">
+        <span className="hidden min-w-0 items-center justify-end gap-2 [grid-area:metrics] lg:flex">
           {columns.map((col, i) => (
             <span
               key={i}
