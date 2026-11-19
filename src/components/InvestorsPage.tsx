@@ -1,5 +1,7 @@
 import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
+import { YearFilter } from "@/components/YearFilter";
+import { matchesYear, yearsOf } from "@/lib/year-filter";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pencil, Phone, Plus, Trash2 } from "lucide-react";
@@ -75,6 +77,7 @@ export function InvestorsPage({ mode = "investor" }: { mode?: "investor" | "buye
   const [fStrategy, setFStrategy] = useState("");
   const [fBand, setFBand] = useState("");
   const [fRegion, setFRegion] = useState("");
+  const [year, setYear] = useState("all");
   const [editing, setEditing] = useState<InvestorDraft | null>(null);
   const [bands, setBands] = useState<BandsByAsset>({});
   const [assetStrategies, setAssetStrategies] = useState<StrategiesByAsset>({});
@@ -190,6 +193,7 @@ export function InvestorsPage({ mode = "investor" }: { mode?: "investor" | "buye
       : (data ?? []).filter((i) => af.keep((i as { owner_id?: string | null }).owner_id));
     const crit = (id: string) => (allCriteria ?? []).filter((c) => c.investor_id === id);
     const filteredList = list.filter((i) => {
+      if (!matchesYear((i as { created_at?: string | null }).created_at, year)) return false;
       if ((i.investor_profile === BUYER) !== buyer) return false;
       const cs = crit(i.id);
       if (fProfile && i.investor_profile !== fProfile && !cs.some((c) => c.investor_profile === fProfile)) return false;
@@ -204,7 +208,7 @@ export function InvestorsPage({ mode = "investor" }: { mode?: "investor" | "buye
         sensitivity: "base",
       }),
     );
-  }, [data, search, allCriteria, fProfile, fStrategy, fBand, fRegion, af]);
+  }, [data, search, allCriteria, fProfile, fStrategy, fBand, fRegion, af, year]);
 
   const bandOf = (investor: Investor) => {
     const detailedBands = [
@@ -226,6 +230,13 @@ export function InvestorsPage({ mode = "investor" }: { mode?: "investor" | "buye
           <p className="eyebrow">{buyer ? "Base acheteurs" : "Base investisseurs"}</p>
           <h1 className="mt-1 text-3xl">{buyer ? "Acheteurs habitation" : "Investisseurs"}</h1>
         <AgentSelect f={af} />
+        <div className="mt-2">
+          <YearFilter
+            years={yearsOf((data ?? []).map((i) => (i as { created_at?: string | null }).created_at))}
+            value={year}
+            onChange={setYear}
+          />
+        </div>
         </div>
         <div className="grid w-full grid-cols-1 gap-3 sm:ml-auto sm:flex sm:w-auto">
           <Input

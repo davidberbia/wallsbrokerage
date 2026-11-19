@@ -1,5 +1,7 @@
 import { AcquisitionFields } from "@/components/AcquisitionFields";
 import { CompactRow, RecordDialog } from "@/components/CompactRow";
+import { YearFilter } from "@/components/YearFilter";
+import { matchesYear, yearsOf } from "@/lib/year-filter";
 import { comparableMetric } from "@/lib/comparable-metrics";
 import { COMPARABLE_CLASSES, normalizeAssetClass } from "@/lib/comparable-classes";
 import { Label } from "@/components/ui/label";
@@ -133,6 +135,7 @@ function ComparablesPage() {
   const [fClass, setFClass] = useState("");
   const [fCity, setFCity] = useState("");
   const [fStreet, setFStreet] = useState("");
+  const [year, setYear] = useState("all");
   const extractFile = useServerFn(extractComparablesFromFile);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -171,6 +174,7 @@ function ComparablesPage() {
     const lo = num(min),
       hi = num(max);
     return (data ?? [])
+      .filter((c) => matchesYear(c.deal_date, year))
       .filter((c) => {
         if (!q) return true;
         const cp = (c.postal_code ?? "").trim();
@@ -185,7 +189,7 @@ function ComparablesPage() {
         return true;
       })
       .sort((a, b) => (b.deal_date ?? "").localeCompare(a.deal_date ?? ""));
-  }, [data, kind, search, min, max]);
+  }, [data, kind, search, min, max, year]);
 
   const cols = kind === "location" ? LOC_COLS : SALE_COLS;
   const refresh = () => qc.invalidateQueries({ queryKey: ["comparables"] });
@@ -420,6 +424,12 @@ function ComparablesPage() {
           </Button>
         ))}
       </div>
+
+      <YearFilter
+        years={yearsOf((data ?? []).map((c) => c.deal_date))}
+        value={year}
+        onChange={setYear}
+      />
 
       <div className="grid gap-2 sm:grid-cols-3">
         {[

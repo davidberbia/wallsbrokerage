@@ -1,6 +1,8 @@
 import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow, RecordDialog } from "@/components/CompactRow";
+import { YearFilter } from "@/components/YearFilter";
+import { matchesYear, yearsOf } from "@/lib/year-filter";
 import { Pencil } from "lucide-react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -165,6 +167,7 @@ function ProspectsPage() {
   const [companyQuery, setCompanyQuery] = useState("");
   const [nameQuery, setNameQuery] = useState("");
   const [cityQuery, setCityQuery] = useState("");
+  const [year, setYear] = useState("all");
   const [emailFilter, setEmailFilter] = useState<"tous" | "avec" | "sans">("tous");
   const [profileFilter, setProfileFilter] = useState<string>("tous");
   const [sort, setSort] = useState<"name" | "city">("name");
@@ -225,7 +228,7 @@ function ProspectsPage() {
       let q = supabase
         .from("prospect_companies")
         .select(
-          "id, owner_id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, investor_profile, converted_investor_id",
+          "id, owner_id, name, city, sector, address, asset_classes, regions, bands, strategies_by_asset, investor_profile, converted_investor_id, created_at",
         )
         .is("converted_investor_id", null)
         .limit(1000);
@@ -627,6 +630,13 @@ function ProspectsPage() {
         <p className="eyebrow">Prospection</p>
         <h1 className="mt-1 text-3xl">Prospects</h1>
         <AgentSelect f={af} />
+        <div className="mt-2">
+          <YearFilter
+            years={yearsOf((companies.data ?? []).map((c) => (c as { created_at?: string | null }).created_at))}
+            value={year}
+            onChange={setYear}
+          />
+        </div>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
           Recherchez une société ou un collaborateur, cochez les destinataires, puis envoyez-leur un
           actif avec le même process que pour les investisseurs.
@@ -781,7 +791,7 @@ function ProspectsPage() {
             Aucune société. Importez un fichier CSV pour alimenter la base.
           </p>
         )}
-        {(companies.data ?? []).filter((c) => af.keep((c as { owner_id?: string | null }).owner_id)).map((company) => {
+        {(companies.data ?? []).filter((c) => af.keep((c as { owner_id?: string | null }).owner_id) && matchesYear((c as { created_at?: string | null }).created_at, year)).map((company) => {
           const isOpen = open === company.id;
           return (
             <div key={company.id}>

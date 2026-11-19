@@ -1,4 +1,6 @@
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
+import { YearFilter } from "@/components/YearFilter";
+import { matchesYear, yearsOf } from "@/lib/year-filter";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -53,13 +55,14 @@ const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString("fr-FR") :
 
 function MandatesPage() {
   const qc = useQueryClient();
+  const [year, setYear] = useState("all");
   const { data, isLoading } = useQuery({
     queryKey: ["mandates"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("mandates")
         .select(
-          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, assets(title, city, address, postal_code, owner_name, owner_email, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, fee_mode, fee_value, fee_payer, mandate_start, mandate_end, asset_class, asset_subclass, surface, weighted_surface, outdoor_surface, parking_count, is_portfolio, portfolio_lots, price, rent, residential_details)",
+          "id, asset_id, number, number_suffix, status, asset_title, signature_status, agent_id, address, signed_at, expires_at, start_date, created_at, assets(title, city, address, postal_code, owner_name, owner_email, owner_kind, owner_details, mandate_exclusive, mandate_type, transaction_type, fee_mode, fee_value, fee_payer, mandate_start, mandate_end, asset_class, asset_subclass, surface, weighted_surface, outdoor_surface, parking_count, is_portfolio, portfolio_lots, price, rent, residential_details)",
         )
         .order("number", { ascending: false });
       if (error) throw error;
@@ -101,6 +104,7 @@ function MandatesPage() {
       a?.mandate_end && new Date(a.mandate_end).getTime() < Date.now() && m.status !== "signé";
     return {
       id: m.id,
+      dateKey: m.signed_at ?? m.start_date ?? m.created_at,
       number: m.number,
       label: `${m.number}${m.number_suffix ? ` ${m.number_suffix}` : ""}`,
       title: a?.title ?? m.asset_title ?? "—",
@@ -144,6 +148,9 @@ function MandatesPage() {
       },
     };
   });
+
+  const shown = rows.filter((r) => matchesYear(r.dateKey, year));
+  const shownLocked = locked.filter((r) => matchesYear(r.created_at, year));
 
   const setStatus = async (id: string, status: string) => {
     const { error } = await supabase
@@ -217,6 +224,13 @@ function MandatesPage() {
         <div>
           <p className="eyebrow">Registre</p>
           <h1 className="mt-1 text-3xl">Mandats</h1>
+          <div className="mt-3">
+            <YearFilter
+              years={yearsOf([...rows.map((r) => r.dateKey), ...locked.map((r) => r.created_at)])}
+              value={year}
+              onChange={setYear}
+            />
+          </div>
         </div>
         <Button
           variant="outline"
@@ -242,7 +256,7 @@ function MandatesPage() {
         </div>
       )}
       <div className="overflow-hidden border-y border-border">
-        {rows.map((r) => (
+        {shown.map((r) => (
           <CompactRow
             key={r.id}
             title={`N° ${r.label} · ${r.street}${r.town ? `, ${r.town}` : ""}`}
@@ -258,7 +272,7 @@ function MandatesPage() {
             tone={r.sig === "completed" || r.start !== "—" ? "success" : "danger"}
           />
         ))}
-        {locked.map((r) => (
+        {shownLocked.map((r) => (
           <div key={r.id} className="flex min-h-11 items-center gap-3 border-b border-border px-3 py-2 text-sm text-muted-foreground">
             <Lock className="size-4 shrink-0" />
             <span>N° {r.number}{r.number_suffix ? ` ${r.number_suffix}` : ""} · {fmt(r.created_at)} · {r.agent_name ?? "Wallsbroker"}</span>

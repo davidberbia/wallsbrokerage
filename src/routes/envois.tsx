@@ -1,5 +1,7 @@
 import { AgentSelect, useAgentFilter } from "@/components/AgentFilter";
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
+import { YearFilter } from "@/components/YearFilter";
+import { matchesYear, yearsOf } from "@/lib/year-filter";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -135,6 +137,7 @@ const ALL = "__all__";
 function SendsPage() {
   const [detail, setDetail] = useState<MergedRow | null>(null);
   const [assetId, setAssetId] = useState<string>(ALL);
+  const [year, setYear] = useState("all");
   const [resending, setResending] = useState<string | null>(null);
 
   const af = useAgentFilter();
@@ -167,7 +170,7 @@ function SendsPage() {
   });
 
   const rows = mergeRows(
-    (sends.data ?? []).filter((r) => af.keep((r as { owner_id?: string | null }).owner_id) && (assetId === ALL || r.asset_id === assetId)),
+    (sends.data ?? []).filter((r) => af.keep((r as { owner_id?: string | null }).owner_id) && (assetId === ALL || r.asset_id === assetId) && matchesYear(r.sent_at, year)),
   );
   const opened = rows.filter((r) => r.opened_at).length;
   const asset = (assets.data ?? []).find((a) => a.id === assetId) ?? null;
@@ -311,6 +314,14 @@ function SendsPage() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="w-full min-w-0 flex-1 space-y-2">
+          <Label>Année</Label>
+          <YearFilter
+            years={yearsOf((sends.data ?? []).map((r) => r.sent_at))}
+            value={year}
+            onChange={setYear}
+          />
         </div>
         <Button className="min-h-11 w-full sm:w-auto" variant="outline" onClick={generateReport}>
           <FileDown className="size-4" /> Générer Marketing Report

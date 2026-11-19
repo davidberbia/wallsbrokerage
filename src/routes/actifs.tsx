@@ -15,6 +15,7 @@ import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
 import { Merge, Folder, ArrowDown, ArrowUp } from "lucide-react";
 import { AssetTransfer } from "@/components/AssetTransfer";
 import { CompactRow, CompactRowHeader, RecordDialog, RecordFacts } from "@/components/CompactRow";
+import { YearFilter } from "@/components/YearFilter";
 import { ClassFilter, CityFilter, splitAddress, RangeFilter, useListFilters } from "@/components/ListFilters";
 import { matchesAssetSearch } from "@/lib/list-search";
 import { assetYears, matchesAssetYear } from "@/lib/asset-year";
@@ -389,8 +390,6 @@ function AssetsPage() {
     return sold === vendus && af.keep((asset as { owner_id?: string | null }).owner_id);
   });
   const years = assetYears(visible);
-  const thisYear = new Date().getFullYear();
-  const quickYears = [thisYear, thisYear - 1, thisYear - 2];
   const lf = useListFilters();
   const cityOptions = [...new Set(visible.map((a) => splitAddress(a.address, a.city).city).filter(Boolean))].sort((a, b) => a.localeCompare(b, "fr"));
   const classOptions = [...new Set(visible.map((a) => a.asset_class).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "fr"));
@@ -419,18 +418,7 @@ function AssetsPage() {
           </SelectContent>
         </Select>
 </div>
-        <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Année">
-          {quickYears.map((y) => (
-            <Button key={y} size="sm" className="min-h-11" variant={year === String(y) ? "default" : "outline"} onClick={() => setYear(String(y))}>{y}</Button>
-          ))}
-          <Select value={quickYears.map(String).includes(year) ? "" : year} onValueChange={setYear}>
-            <SelectTrigger className={`min-h-11 w-[10rem] ${quickYears.map(String).includes(year) ? "" : "border-primary"}`} aria-label="Autres années"><SelectValue placeholder="Autres années" /></SelectTrigger>
-            <SelectContent>
-              {years.filter((y) => !quickYears.includes(y)).map((y) => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
-              <SelectItem value="all">Toutes années</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <div className="mt-2"><YearFilter years={years} value={year} onChange={setYear} /></div>
         </div>
         <Dialog
           open={editing !== null}

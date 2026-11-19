@@ -1,4 +1,6 @@
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
+import { YearFilter } from "@/components/YearFilter";
+import { matchesYear, yearsOf } from "@/lib/year-filter";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -31,6 +33,7 @@ const EMPTY = { full_name: "", company: "", email: "", phone: "", job_title: "",
 export function DirectoryPage({ kind }: { kind: Kind }) {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [year, setYear] = useState("all");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -53,13 +56,14 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
 
   const rows = useMemo(() => {
     const q = search.toLowerCase().trim();
-    if (!q) return data;
-    return data.filter((r) =>
+    const byYear = data.filter((r) => matchesYear((r as { created_at?: string | null }).created_at, year));
+    if (!q) return byYear;
+    return byYear.filter((r) =>
       [r.full_name, r.company, r.email, r.phone, r.job_title].some((v) =>
         v?.toLowerCase().includes(q),
       ),
     );
-  }, [data, search]);
+  }, [data, search, year]);
 
   const refresh = () => {
     void qc.invalidateQueries({ queryKey: ["directory"] });
@@ -149,6 +153,12 @@ export function DirectoryPage({ kind }: { kind: Kind }) {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="w-full sm:w-80"
+      />
+
+      <YearFilter
+        years={yearsOf(data.map((r) => (r as { created_at?: string | null }).created_at))}
+        value={year}
+        onChange={setYear}
       />
 
       {isLoading && <p className="text-sm text-muted-foreground">Chargement…</p>}
