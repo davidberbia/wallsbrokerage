@@ -2,6 +2,7 @@
 import { callGeminiPartsJson } from "./gemini.server";
 import { mergeAutofill, type AutofillFields } from "./autofill";
 import { ASSET_CLASSES, REGIONS, STRATEGIES } from "./taxonomy";
+import { unzipSync, strFromU8 } from "fflate";
 
 type Admin = Awaited<ReturnType<typeof import("./automation.server").getAdmin>>;
 
@@ -47,16 +48,31 @@ async function loadDocParts(admin: Admin, assetId: string) {
   const sorted = [...(docs ?? [])].sort((a, b) => Number(!/\.pdf$/i.test(a.name)) - Number(!/\.pdf$/i.test(b.name)));
   const parts: Record<string, unknown>[] = [];
   let total = 0;
+  let files = 0;
   for (const d of sorted) {
-    const mime = MIME[(d.name.split(".").pop() ?? "").toLowerCase()];
-    if (!mime || !d.path || parts.length >= MAX_FILES) continue;
+    if (files >= MAX_FILES || !d.path || /^~\$|thumbs\.db$/i.test(d.name)) continue;
+    const ext = (d.name.split(".").pop() ?? "").toLowerCase();
+    const mime = MIME[ext];
+    const office = ext === "pptx" || ext === "docx";
+    if (!mime && !office) continue;
     const dl = await admin.storage.from("brochures").download(d.path);
     if (dl.error || !dl.data) continue;
     const bytes = new Uint8Array(await dl.data.arrayBuffer());
+    if (office) {
+      // PowerPoint / Word : seul le texte des diapositives est lu (Gemini ne lit pas ces formats).
+      try {
+        const zip = unzipSync(bytes, { filter: (f) => /^(ppt\/slides\/slide\d+|word\/document)\.xml$/.test(f.name) });
+        const text = Object.keys(zip).sort((a, b) => Number(a.match(/\d+/)?.[0] ?? 0) - Number(b.match(/\d+/)?.[0] ?? 0))
+          .map((k) => strFromU8(zip[k]!).replace(/<\/a:p>|<\/w:p>/g, "\n").replace(/<[^>]+>/g, " ").replace(/[ \t]+/g, " ")).join("\n").slice(0, 60000);
+        if (text.trim()) { parts.push({ text: `Document : ${d.name}` }, { text }); files++; }
+      } catch { /* fichier illisible : ignoré */ }
+      continue;
+    }
     if (total + bytes.length > MAX_BYTES) continue;
     total += bytes.length;
     let bin = ""; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
     parts.push({ text: `Document : ${d.name}` }, { inlineData: { mimeType: mime, data: btoa(bin) } });
+    files++;
   }
   return parts;
 }
@@ -70,12 +86,12 @@ export async function reviewAssetAddress(admin: Admin, assetId: string) {
   const raw = await callGeminiPartsJson<Record<string, unknown>>({
     task: "relecture-actif",
     system: ADDR_SYSTEM,
-    parts: [...parts, { text: `Donne l'adresse du bien en JSON : {"address":"numéro et nom de rue seulement, sans code postal ni ville, ou null","postal_code":"5 chiffres ou null","city":"nom de la commune ou null"}` }],
+    parts: [...parts, { text: `Donne l'adresse du bien en JSON : {"address":"numéro et nom de rue seulement, sans code postal ni ville, ou null","postal_code":"code postal tel qu'écrit, ou null","city":"nom de la commune (jamais un nom d'agence, de vendeur ou de portefeuille), ou null"}` }],
   });
   const clean = (v: unknown) => (typeof v === "string" && v.trim() && !/^null$/i.test(v.trim()) ? v.trim() : null);
   const address = clean(raw?.["address"]);
   const pc = clean(raw?.["postal_code"]);
-  const postal_code = pc && /^\d{5}$/.test(pc) ? pc : null;
+  const postal_code = pc && /^[\d][\d -]{2,9}$/.test(pc) ? pc : null;
   const city = clean(raw?.["city"]);
   const patch: { address?: string; postal_code?: string; city?: string } = {};
   if (address) patch.address = address;
