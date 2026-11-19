@@ -118,6 +118,7 @@ function AgentContract() {
               <Input type={type} className="min-h-11" value={fields[k] ?? ""} onChange={(e) => { const v = e.target.value; setDraft({ ...fields, [k]: v }); if (k === "siren") void autoSiren(v, (r) => setDraft((p) => fillEmpty(p ?? {}, { denomination: r.company_name, adresse: r.address }))); }} />
             </label>
           ))}
+          <p className="text-xs text-muted-foreground">Pas encore inscrit au RSAC ? Le contrat mentionne votre engagement de vous immatriculer à vos frais.</p>
           <p className="text-sm text-muted-foreground">Votre quote-part : {fields["quote_agent"] ? `${fields["quote_agent"]} %` : "à définir par Wallsbroker"}</p>
           <div className="grid gap-2 sm:flex">
             <Button variant="outline" className="min-h-11" disabled={busy || !draft} onClick={() => run(() => save({ data: { fields } }), "Enregistré")}>Enregistrer</Button>

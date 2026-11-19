@@ -16,6 +16,7 @@ export function missingContractFields(f: AgentContractFields): string[] {
 }
 // L'agent s'assure seul : aucune donnée d'assurance n'est demandée.
 export const RC_CLAUSE = "L'Agent déclare être informé de l'obligation légale de disposer d'une assurance garantissant sa responsabilité civile professionnelle. Il se fait fort de la souscrire et de la maintenir à ses frais, sous sa seule et entière responsabilité, et décharge expressément WALLSBROKER de toute responsabilité ou recours à ce titre.";
+export const RSAC_CLAUSE = "L'Agent déclare être informé de l'obligation légale d'immatriculation au Registre spécial des agents commerciaux (RSAC). Il s'engage à accomplir, à ses seuls frais et sous sa seule et entière responsabilité, les formalités d'immatriculation ainsi que leur maintien pendant toute la durée du présent contrat, et décharge expressément WALLSBROKER de toute responsabilité ou recours à ce titre.";
 const fr = (iso?: string) => {
   if (!iso) return "";
   const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -26,7 +27,7 @@ export function contractValues(f: AgentContractFields, agentName: string, today 
   return {
     denomination: f.denomination ?? "", adresse: f.adresse ?? "", siren: f.siren ?? "",
     rsac: f.rsac?.trim() || "Non applicable",
-    assurance: RC_CLAUSE,
+    assurance: [RC_CLAUSE, RSAC_CLAUSE].join(" "),
     quote_agent: String(qa), quote_wallsbroker: String(Math.round((100 - qa) * 100) / 100),
     date_effet: fr(f.date_effet), lieu: f.lieu?.trim() || "Paris",
     date_signature: today.toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" }),

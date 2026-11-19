@@ -23,7 +23,7 @@ Droits : agent/courtier et administrateur peuvent modifier et supprimer ; lecteu
 
 [comparables] « Comparables locatifs », « Comparables de prix », recherche département/code postal/ville, bornes min/max (surface en locatif, prix en vente), « Importer (Générateur) » (fichier JSON, dédoublonnage), « Ajouter », fiche : date, type, enseigne, adresse, surfaces réelle/pondérée, loyer annuel, loyers au m², prix, prix au m², rendement, acquisition, source, notes ; enregistrement à la sortie du champ ; lecture seule pour les lecteurs ; partagés par toute l'équipe.
 
-[mon-contrat] Agent : nom/société, adresse/siège, SIREN, RSAC, assureur RC pro, numéro et échéance RC pro, date d'effet ; « Enregistrer », « Générer et signer mon contrat », « Voir et télécharger (PDF) » ; statut en attente ou signé par les deux parties ; non modifiable par l'agent. Administrateur : vue Contrats avec choix de l'agent.
+[mon-contrat] Agent : nom/société, adresse/siège, SIREN, N° RSAC (si inscrit), date d'effet ; « Enregistrer », « Générer et signer mon contrat », « Voir et télécharger (PDF) » ; statut en attente ou signé par les deux parties ; non modifiable par l'agent. Le contrat comporte une clause par laquelle l'agent souscrit lui-même son assurance RC professionnelle et s'engage à son immatriculation au RSAC à ses frais, Wallsbroker étant déchargée de ces deux points. Administrateur : vue Contrats avec choix de l'agent.
 
 [formation] Modules avec durée et progression, « x / y modules validés · validation à 80 % », « Petit point mémoire », « Questionnaire final », « Encore n réponse(s) », « Valider mes réponses », « Module validé, bravo ! », « Retour aux modules », « Recommencer » ; meilleur score et tentatives conservés.
 

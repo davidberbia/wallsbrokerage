@@ -176,7 +176,7 @@ export const MANUAL_TABS: ManualTab[] = [
     marks: ["Mon contrat"],
     sections: [
       { id: "principe", title: "À quoi sert cet onglet", body: ["Chaque agent y retrouve son contrat de collaboration, consultable et téléchargeable à tout moment, mais non modifiable."] },
-      { id: "infos", title: "Compléter vos informations", body: ["Renseignez nom ou société, adresse ou siège, SIREN, RSAC, assureur, numéro et échéance de la RC professionnelle, date d'effet, puis « Enregistrer »."] },
+      { id: "infos", title: "Compléter vos informations", body: ["Renseignez nom ou société, adresse ou siège, SIREN, numéro RSAC si vous êtes déjà inscrit, date d'effet, puis « Enregistrer ».", "Le contrat précise que vous souscrivez vous-même votre assurance professionnelle et que vous accomplissez vous-même, à vos frais, votre immatriculation au RSAC."] },
       { id: "signer", title: "Signer en ligne", body: ["« Générer et signer mon contrat » prépare le contrat et l'envoie pour signature électronique DocuSign. Le statut indique s'il attend une signature ou s'il est signé par les deux parties."] },
       { id: "telecharger", title: "Télécharger", body: ["« Voir et télécharger (PDF) » apparaît dès que le document est disponible."] },
     ],
