@@ -39,3 +39,14 @@ const xmlEsc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").rep
 export function fillDocumentXml(xml: string, values: Record<string, string>): string {
   return xml.replace(/\{\{(\w+)\}\}/g, (all, k: string) => (k in values ? xmlEsc(values[k] ?? "") : all));
 }
+// Justifie les paragraphes de plus de deux lignes (~180 caractères), le reste est inchangé.
+export function justifyLongParagraphs(xml: string, minChars = 180): string {
+  return xml.replace(/<w:p(?=[\s>])[^>]*>[\s\S]*?<\/w:p>/g, (p) => {
+    const text = (p.match(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g) ?? []).map((t) => t.replace(/<[^>]+>/g, "")).join("");
+    if (text.length < minChars) return p;
+    if (/<w:pPr>[\s\S]*?<w:jc\s/.test(p)) return p.replace(/<w:jc\s+w:val="[^"]*"\s*\/>/, '<w:jc w:val="both"/>');
+    if (/<w:pPr\s*\/>/.test(p)) return p.replace(/<w:pPr\s*\/>/, '<w:pPr><w:jc w:val="both"/></w:pPr>');
+    if (/<w:pPr>/.test(p)) return p.replace(/<\/w:pPr>/, '<w:jc w:val="both"/></w:pPr>');
+    return p.replace(/^(<w:p[^>]*>)/, '$1<w:pPr><w:jc w:val="both"/></w:pPr>');
+  });
+}
