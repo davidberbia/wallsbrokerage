@@ -20,3 +20,15 @@ export const reviewAsset = createServerFn({ method: "POST" })
     const { reviewAssetDocs } = await import("@/lib/asset-review.server");
     return reviewAssetDocs(await getAdmin(), assetId);
   });
+
+/** Relecture des adresses (adresse, code postal, ville) d'après les pièces jointes. */
+export const reviewAssetAddressFn = createServerFn({ method: "POST" })
+  .middleware([requireStaffAuth])
+  .inputValidator((d) => z.object({ assetId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: visible } = await context.supabase.from("assets").select("id").eq("id", data.assetId).maybeSingle();
+    if (!visible) throw new Error("Actif inaccessible");
+    const { getAdmin } = await import("@/lib/automation.server");
+    const { reviewAssetAddress } = await import("@/lib/asset-review.server");
+    return reviewAssetAddress(await getAdmin(), data.assetId);
+  });
