@@ -512,6 +512,13 @@
       "when": 1795106153379,
       "tag": "0072_agent_shares",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1795109326428,
+      "tag": "0073_transfer_asset",
+      "breakpoints": true
     }
   ]
 }

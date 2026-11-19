@@ -3525,6 +3525,10 @@ export type Database = {
       sleep_extractions_if_empty: { Args: never; Returns: undefined }
       start_email_pump: { Args: never; Returns: undefined }
       targets_catchup_unschedule: { Args: never; Returns: undefined }
+      transfer_asset: {
+        Args: { _asset_id: string; _recipient: string }
+        Returns: undefined
+      }
       transfer_lead: {
         Args: { _deal_id: string; _recipient: string }
         Returns: undefined

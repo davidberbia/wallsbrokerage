@@ -12,7 +12,7 @@ import { pigeActive } from "@/lib/pige";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { FileSpreadsheet, Merge, Plus, Sparkles } from "lucide-react";
+import { ArrowDown, FileSpreadsheet, Merge, Plus, Sparkles } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { suggestDealMerges } from "@/lib/deal-dedup.functions";
 import { reviewAsset } from "@/lib/asset-review.functions";
@@ -632,11 +632,14 @@ export function DealsTable({ mode }: { mode: Mode }) {
                     <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{num(fee)}</td>
                     <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{lost ? "" : num(weightedFee(d))}</td>
                     <td className="whitespace-nowrap px-2 py-2 text-right font-mono">{!lost && d.paid_at ? num(fee) : ""}</td>
-                    <td className="px-1 py-1">{canEdit && (
+                    <td className="whitespace-nowrap px-1 py-1">{canEdit && (<>
+                      <Button variant="ghost" size="icon" className="size-9" title="Downgrade : Actif" aria-label={`Renvoyer ${d.name} dans les Actifs`} onClick={(e) => { e.stopPropagation(); if (confirm(`Renvoyer « ${d.name} » dans les Actifs ?`)) move.mutate({ id: d.id, stage: "Disponible" }); }}>
+                        <ArrowDown className="size-4" />
+                      </Button>
                       <Button variant="ghost" size="icon" className="size-9" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={(e) => { e.stopPropagation(); setMergeFor(d); }}>
                         <Merge className="size-4" />
                       </Button>
-                    )}</td>
+                    </>)}</td>
                   </tr>
                   </Fragment>
                 );
@@ -688,11 +691,14 @@ export function DealsTable({ mode }: { mode: Mode }) {
             summary={`Honoraires ${eur(dealFee(d))} · Pondéré ${eur(weightedFee(d))}`}
             onOpen={() => setOpenId(d.id)}
             trailing={
-              canEdit ? (
+              canEdit ? (<>
+                <Button variant="outline" size="icon" className="size-11" title="Downgrade : Actif" aria-label={`Renvoyer ${d.name} dans les Actifs`} onClick={() => { if (confirm(`Renvoyer « ${d.name} » dans les Actifs ?`)) move.mutate({ id: d.id, stage: "Disponible" }); }}>
+                  <ArrowDown className="size-4" />
+                </Button>
                 <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={() => { setMergeFor(d); setMergePick([]); }}>
                   <Merge className="size-4" />
                 </Button>
-              ) : undefined
+              </>) : undefined
             }
             onEdit={canEdit ? () => setOpenId(d.id) : undefined}
             onDelete={

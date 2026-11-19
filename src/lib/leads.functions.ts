@@ -43,3 +43,10 @@ export const investigateLead = createServerFn({ method: "POST" }).middleware([re
       throw new Error(message);
     } finally { await admin.from("extraction_control").update({ lease_until: null }).eq("id", true); }
   });
+export const transferAsset = createServerFn({ method: "POST" }).middleware([requireStaffAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid(), recipient: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("transfer_asset", { _asset_id: data.id, _recipient: data.recipient });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
