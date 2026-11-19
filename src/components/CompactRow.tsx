@@ -7,14 +7,14 @@ export type RowColumn = { value: ReactNode; width: string };
 
 const COLUMN_WIDTH = "6.75rem";
 
-export function CompactRowHeader({ title, subtitle, columns = [] }: { title: string; subtitle?: string; columns?: string[] }) {
+export function CompactRowHeader({ title, subtitle, columns = [], actionsWidth = 188 }: { title: ReactNode; subtitle?: string; columns?: ReactNode[]; actionsWidth?: number }) {
   return (
     <div
       data-compact-row-header
       className="row-grid h-9 min-w-0 gap-1 border-b border-border bg-muted/40 px-1 sm:gap-2 sm:px-3"
     >
       <div className="flex min-w-0 items-center gap-2 [grid-area:title] sm:gap-6">
-        <span className="min-w-0 flex-1 basis-0 truncate text-xs font-semibold text-muted-foreground">{title}</span>
+        <span className="min-w-0 flex-1 basis-0 text-xs font-semibold text-muted-foreground">{title}</span>
         {subtitle && (
           <span className="hidden min-w-0 flex-[1.35] basis-0 truncate text-xs font-semibold text-muted-foreground md:block">
             {subtitle}
@@ -25,8 +25,8 @@ export function CompactRowHeader({ title, subtitle, columns = [] }: { title: str
         <span className="hidden min-w-0 items-center justify-end gap-2 [grid-area:metrics] lg:flex lg:w-96">
           {columns.map((label, i) => (
             <span
-              key={label}
-              className={`shrink-0 text-right text-xs font-semibold text-muted-foreground ${i > 0 ? "border-l border-border pl-2" : ""}`}
+              key={i}
+              className={`flex shrink-0 justify-end text-right text-xs font-semibold text-muted-foreground ${i > 0 ? "border-l border-border pl-2" : ""}`}
               style={{ width: COLUMN_WIDTH }}
             >
               {label}
@@ -34,7 +34,7 @@ export function CompactRowHeader({ title, subtitle, columns = [] }: { title: str
           ))}
         </span>
       )}
-      <div className="flex w-[188px] min-w-0 shrink-0 items-center justify-end gap-1 pr-2 text-xs font-semibold text-muted-foreground [grid-area:actions]">
+      <div className="flex min-w-0 shrink-0 items-center justify-end gap-1 pr-2 text-xs font-semibold text-muted-foreground [grid-area:actions]" style={{ width: actionsWidth }}>
         Actions
       </div>
     </div>

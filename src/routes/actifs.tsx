@@ -13,6 +13,7 @@ import { MergePicker } from "@/components/MergePicker";
 import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
 import { Merge, Folder, ArrowDown } from "lucide-react";
 import { CompactRow, CompactRowHeader, RecordDialog, RecordFacts } from "@/components/CompactRow";
+import { ClassFilter, RangeFilter, useListFilters } from "@/components/ListFilters";
 import { matchesAssetSearch } from "@/lib/list-search";
 import { assetYears, matchesAssetYear } from "@/lib/asset-year";
 import { addOneYear , feeText, feeChargeText } from "@/lib/mandate-template";
@@ -352,7 +353,11 @@ function AssetsPage() {
 
   const visible = (data ?? []).filter((asset) => af.keep((asset as { owner_id?: string | null }).owner_id));
   const years = assetYears(visible);
-  const filtered = visible.filter((asset) => matchesAssetYear(asset, year) && matchesAssetSearch(asset, search) && (family === "all" || ((asset as { family?: string | null }).family ?? familyOf(asset.asset_class)) === family));
+  const lf = useListFilters();
+  const classOptions = [...new Set(visible.map((a) => a.asset_class).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "fr"));
+  const filtered0 = visible.filter((asset) => matchesAssetYear(asset, year) && matchesAssetSearch(asset, search) && (family === "all" || ((asset as { family?: string | null }).family ?? familyOf(asset.asset_class)) === family));
+
+  const filtered = lf.apply(filtered0, (a) => ({ cls: a.asset_class, surface: a.surface, price: a.price ?? a.rent ?? null }));
 
   return (
     <div className="space-y-6">
@@ -457,12 +462,12 @@ function AssetsPage() {
         </p>
       )}
       <div className="overflow-hidden border-y border-border">
-        <CompactRowHeader title="Intitulé" subtitle="Adresse" columns={["Surface", "Prix", "Remplissage"]} />
+        <CompactRowHeader title={<ClassFilter f={lf} options={classOptions} />} subtitle="Adresse" columns={[<RangeFilter key="s" f={lf} k="surface" label="Surface" />, <RangeFilter key="p" f={lf} k="price" label="Prix" />, "Remplissage"]} />
         {filtered.map((asset) => (
           <CompactRow
             key={asset.id}
-            title={[asset.city, asset.title].filter(Boolean).join(" · ")}
-            subtitle={[asset.address, asset.asset_class, asset.status].filter(Boolean).join(" · ")}
+            title={[asset.asset_class, asset.asset_subclass].filter(Boolean).join(" · ") || "—"}
+            subtitle={[asset.address, asset.city].filter(Boolean).join(" · ")}
             columns={[
               { value: `${asset.surface ?? "—"} m²`, width: "6.75rem" },
               { value: formatEUR(asset.price ?? asset.rent), width: "6.75rem" },

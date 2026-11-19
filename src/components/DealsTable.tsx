@@ -4,6 +4,7 @@ import { correspondents as thirdParties } from "@/lib/correspondents";
 import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { useAuth } from "@/hooks/useAuth";
 import { CompactRow, CompactRowHeader } from "@/components/CompactRow";
+import { ClassFilter, RangeFilter, useListFilters } from "@/components/ListFilters";
 import { LeadActions } from "@/components/LeadActions";
 import { leadViewStatus, type LeadRequest } from "@/lib/lead-documents";
 import { pigeActive } from "@/lib/pige";
@@ -189,12 +190,15 @@ export function DealsTable({ mode }: { mode: Mode }) {
     if (p && (!request || request.created_at < (p.started_at ?? p.created_at))) return "new";
     return leadViewStatus(d.lead_status ?? "new", requests.data?.get(d.id));
   };
+  const lf = useListFilters();
   const leadRows = all.filter((d) => d.stage === TARGET_STAGE && inVintage(d, year));
-  const rows = all.filter(
+  const rows0 = all.filter(
     (d) =>
       (mode === "targets" ? d.stage === TARGET_STAGE : d.stage !== TARGET_STAGE && !ASSET_STAGES.includes(d.stage)) &&
       inVintage(d, year) && (mode !== "targets" || (statusOf(d) === leadView && [d.name,d.address,d.company,d.contact_email].filter(Boolean).join(" ").toLocaleLowerCase("fr").includes(leadSearch.toLocaleLowerCase("fr")))),
   ).sort((a, b) => Number(a.stage === "Perdu") - Number(b.stage === "Perdu"));
+  const rows = mode === "targets" ? lf.apply(rows0, (d) => ({ cls: classOf(d), surface: d.surface ?? null, price: d.amount ?? d.rent ?? null })) : rows0;
+  const leadClassOptions = [...new Set(rows0.map((d) => classOf(d)).filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b, "fr"));
   const lostRows = rows.filter((d) => d.stage === "Perdu");
   const firstLost = rows.findIndex((d) => d.stage === "Perdu");
   const lostFee = lostRows.reduce((s, d) => s + dealFee(d), 0);
@@ -679,13 +683,13 @@ export function DealsTable({ mode }: { mode: Mode }) {
         {rows.map((d, i) => (
           <Fragment key={d.id}>
           {mode === "targets" ? <>
-          {i === 0 && <CompactRowHeader title="Intitulé" subtitle="Adresse" columns={["Classe", "Prix", "Remplissage"]} />}
+          {i === 0 && <CompactRowHeader actionsWidth={236} title={<ClassFilter f={lf} options={leadClassOptions} />} subtitle="Adresse" columns={[<RangeFilter key="s" f={lf} k="surface" label="Surface" />, <RangeFilter key="p" f={lf} k="price" label="Prix" />, "Remplissage"]} />}
           <CompactRow
-            title={d.name}
+            title={shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "—"}
             subtitle={[statusOf(d) === "waiting" ? "En attente de documents" : statusOf(d) === "recall" ? "À rappeler" : null, assetOf(d)?.address || d.address, assetOf(d)?.city].filter(Boolean).join(" · ")}
             tone={statusOf(d) === "recall" ? "danger" : undefined}
             columns={[
-              { value: shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "—", width: "6.75rem" },
+              { value: d.surface ? m2(d.surface) : "—", width: "6.75rem" },
               { value: d.amount ? eur(d.amount) : "—", width: "6.75rem" },
               { value: fill.loaded ? `${fill.get(d.asset_id, undefined, d).percent} %` : "—", width: "6.75rem" },
             ]}
