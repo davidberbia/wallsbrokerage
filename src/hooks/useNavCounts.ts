@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ASSET_STAGES, TARGET_STAGE, inVintage } from "@/lib/deal-stages";
 import { leadViewStatus } from "@/lib/lead-documents";
 import { pigeActive } from "@/lib/pige";
+import { countYear } from "@/lib/asset-year";
 
 type Counts = Record<string, number>;
 
@@ -22,7 +23,10 @@ export function useNavCounts(enabled: boolean) {
       const [inv, pro, act, dos, comp, env, cont, cib, brk, dir, not] = await Promise.all([
         count("investors"),
         count("prospect_companies"),
-        count("assets", (q) => q.neq("status", "prospection")),
+        (async () => {
+          const { data } = await (supabase as any).from("assets").select("nas_year").neq("status", "prospection").limit(10000);
+          return (data ?? []) as { nas_year: number | null }[];
+        })(),
         // Mêmes lignes que le tableau « Suivi des affaires » : hors Prospection et hors
         // étapes Actifs, année en cours (reports automatiques inclus).
         (async () => {
@@ -63,10 +67,12 @@ export function useNavCounts(enabled: boolean) {
         count("directory_contacts", (q) => q.eq("kind", "utile")),
         count("directory_contacts", (q) => q.eq("kind", "notary")),
       ]);
+      const y = new Date().getFullYear();
       return {
+        "/actifs:prev": act.filter((a) => countYear(a, y) === y - 1).length,
         "/investisseurs": inv,
         "/prospects": pro,
-        "/actifs": act,
+        "/actifs": act.filter((a) => countYear(a, y) === y).length,
         "/dossiers": dos,
         "/comparables": comp,
         "/envois": env,

@@ -94,6 +94,18 @@ export function AppLayout({
   const liTone = (to: string) => (to !== "/notoriete" ? "" : liLevel === "rouge" ? "!text-destructive font-semibold" : liLevel === "orange" ? "!text-warning font-semibold" : "");
   const badge = (to: string) => {
     const n = counts?.[to];
+    if (n != null && to === "/actifs") {
+      const y = new Date().getFullYear();
+      const prev = counts?.["/actifs:prev"] ?? 0;
+      return (
+        <span className="ml-auto grid grid-cols-2 gap-x-1 text-center font-mono text-[10px] leading-4">
+          <span className="text-[9px] font-semibold text-accent">{y}</span>
+          <span className="text-[9px] font-semibold text-accent">{y - 1}</span>
+          <span className="rounded-sm border border-border px-1 text-sidebar-foreground/70">{n.toLocaleString("fr-FR")}</span>
+          <span className="rounded-sm border border-border px-1 text-sidebar-foreground/70">{prev.toLocaleString("fr-FR")}</span>
+        </span>
+      );
+    }
     return n == null ? null : (
       <span className="ml-auto rounded-sm border border-border px-1.5 font-mono text-[10px] leading-4 text-sidebar-foreground/70">
         {n.toLocaleString("fr-FR")}

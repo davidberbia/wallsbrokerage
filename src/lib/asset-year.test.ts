@@ -17,3 +17,12 @@ describe("année du dossier serveur", () => {
     expect(assetYears([{ nas_year: 2023 }, { nas_year: 2026 }, { nas_year: 2023 }, {}])).toEqual([2026, 2023]);
   });
 });
+import { countYear } from "./asset-year";
+describe("countYear", () => {
+  it("compte un actif sans année dans l'année en cours", () => {
+    expect(countYear({ nas_year: null }, 2026)).toBe(2026);
+  });
+  it("garde l'année attribuée", () => {
+    expect(countYear({ nas_year: 2025 }, 2026)).toBe(2025);
+  });
+});

@@ -9,3 +9,7 @@ export function matchesAssetYear(asset: WithNasYear, filter: string): boolean {
   if (filter === "none") return asset.nas_year == null;
   return asset.nas_year != null && String(asset.nas_year) === filter;
 }
+/** Année de comptage : un actif sans année de dossier compte dans l'année en cours. */
+export function countYear(asset: WithNasYear, currentYear: number): number {
+  return asset.nas_year ?? currentYear;
+}
