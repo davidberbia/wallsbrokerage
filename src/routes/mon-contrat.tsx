@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { autoSiren, fillEmpty } from "@/lib/siren-autofill";
 import { useAuth } from "@/hooks/useAuth";
 import { Download } from "lucide-react";
 import { AppLayout } from "@/components/AppLayout";
@@ -116,7 +117,7 @@ function AgentContract() {
           {FIELDS.map(([k, label, type]) => (
             <label key={k} className="block space-y-1 text-sm">
               <span>{label}</span>
-              <Input type={type} className="min-h-11" value={fields[k] ?? ""} onChange={(e) => setDraft({ ...fields, [k]: e.target.value })} />
+              <Input type={type} className="min-h-11" value={fields[k] ?? ""} onChange={(e) => { const v = e.target.value; setDraft({ ...fields, [k]: v }); if (k === "siren") void autoSiren(v, (r) => setDraft((p) => fillEmpty(p ?? {}, { denomination: r.company_name, adresse: r.address }))); }} />
             </label>
           ))}
           <p className="text-sm text-muted-foreground">Votre quote-part : {fields["quote_agent"] ? `${fields["quote_agent"]} %` : "à définir par Wallsbroker"}</p>

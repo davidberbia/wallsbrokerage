@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
+import { autoSiren, fillEmpty } from "@/lib/siren-autofill";
 import { supabase } from "@/integrations/supabase/client";
 import { missingContractFields, type AgentContractFields } from "@/lib/agent-contract";
 import {
@@ -176,7 +177,7 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
           {STEPS[step]!.fields.map(([k, l, t]) => (
             <div key={k} className="space-y-1">
               <Label>{l}</Label>
-              <Input className="min-h-11" type={t ?? "text"} value={fields[k] ?? ""} onChange={(e) => setFields({ ...fields, [k]: e.target.value })} />
+              <Input className="min-h-11" type={t ?? "text"} value={fields[k] ?? ""} onChange={(e) => { const v = e.target.value; setFields({ ...fields, [k]: v }); if (k === "siren") void autoSiren(v, (r) => setFields((p) => fillEmpty(p, { denomination: r.company_name, adresse: r.address } as Partial<Record<keyof AgentContractFields, string>>))); }} />
             </div>
           ))}
           {step === 2 && fields.quote_agent && <p className="text-sm text-muted-foreground">Wallsbroker conserve {100 - Number(fields.quote_agent)} %.</p>}

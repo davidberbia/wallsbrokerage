@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HelpCircle, FileSignature } from "lucide-react";
 import { lookupSiren } from "@/lib/siren.functions";
+import { autoSiren, fillEmpty } from "@/lib/siren-autofill";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { MergePicker } from "@/components/MergePicker";
 import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
@@ -1289,7 +1290,7 @@ function OwnerFields({ draft, set }: { draft: Draft; set: (p: Partial<Draft>) =>
         <>
           <Field label="SIREN *">
             <div className="flex gap-2">
-              <Input required inputMode="numeric" pattern="[0-9 ]{9,11}" value={d.siren ?? ""} onChange={(e) => setD({ siren: e.target.value })} />
+              <Input required inputMode="numeric" pattern="[0-9 ]{9,11}" value={d.siren ?? ""} onChange={(e) => { const v = e.target.value; const next = { ...d, siren: v }; setD({ siren: v }); void autoSiren(v, (r) => set({ owner_name: draft.owner_name?.trim() ? draft.owner_name : r.company_name, owner_details: fillEmpty(next, r) })); }} />
               <Button type="button" variant="outline" className="min-h-11 shrink-0" disabled={loading} onClick={fetchSiren}>
                 {loading ? <Loader2 className="size-4 animate-spin" /> : "Rechercher"}
               </Button>

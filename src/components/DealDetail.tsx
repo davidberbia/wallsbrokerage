@@ -22,6 +22,7 @@ import { useSelfEmails } from "@/hooks/useSelfEmails";
 import { CopyEmail } from "@/components/CopyEmail";
 import { ASSET_CLASS_GROUPS } from "@/lib/taxonomy";
 import { LeadActions } from "@/components/LeadActions";
+import { autoSiren } from "@/lib/siren-autofill";
 import { LeadDocumentRequest } from "@/components/LeadDocumentRequest";
 import { PigeHistory } from "@/components/Pige";
 import { canChangeLeadStage, leadResearchSchema } from "@/lib/lead-policy";
@@ -408,7 +409,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
         </div>
         <div>
           <Label>SIREN du propriétaire</Label>
-          <Input inputMode="numeric" value={current.owner_siren ?? ""} onChange={(e) => set({ owner_siren: e.target.value || null })} />
+          <Input inputMode="numeric" value={current.owner_siren ?? ""} onChange={(e) => { const v = e.target.value; set({ owner_siren: v || null }); if (!current.company?.trim()) void autoSiren(v, (r) => set({ owner_siren: v, company: r.company_name })); }} />
         </div>
         <div>
           <Label>Contact</Label>
