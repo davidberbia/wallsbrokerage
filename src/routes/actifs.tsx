@@ -506,7 +506,7 @@ function AssetsPage() {
         {filtered.map((asset) => (
           <CompactRow
             key={asset.id}
-            title={[asset.asset_class, asset.asset_subclass].filter(Boolean).join(" · ") || "—"}
+            title={asset.is_portfolio ? asset.title : [asset.asset_class, asset.asset_subclass].filter(Boolean).join(" · ") || "—"}
             subtitle={splitAddress(asset.address, asset.city).street}
             city={splitAddress(asset.address, asset.city).city}
             columns={[

@@ -141,7 +141,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const dealAssets = useQuery({
     queryKey: ["deal-assets"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("assets").select("id,asset_class,asset_subclass,city,address,occupant").limit(5000);
+      const { data, error } = await supabase.from("assets").select("id,asset_class,asset_subclass,city,address,occupant,is_portfolio,title").limit(5000);
       if (error) throw error;
       return new Map((data ?? []).map((a) => [a.id, a]));
     },
@@ -667,7 +667,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
           {mode === "targets" ? <>
           {i === 0 && <CompactRowHeader actionsWidth={236} title={<ClassFilter f={lf} options={leadClassOptions} />} subtitle="Adresse" city={<CityFilter f={lf} options={leadCityOptions} />} widths={["6.75rem", "6.75rem", "4rem"]} columns={[<RangeFilter key="s" f={lf} k="surface" label="Surface" />, <RangeFilter key="p" f={lf} k="price" label="Prix" />, "Complet"]} />}
           <CompactRow
-            title={shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "—"}
+            title={assetOf(d)?.is_portfolio ? d.name : shortClassLabel(classOf(d), assetOf(d)?.asset_subclass) || "—"}
             subtitle={[statusOf(d) === "waiting" ? "En attente de documents" : statusOf(d) === "recall" ? "À rappeler" : null, splitAddress(assetOf(d)?.address || d.address, assetOf(d)?.city).street].filter(Boolean).join(" · ")}
             city={splitAddress(assetOf(d)?.address || d.address, assetOf(d)?.city).city}
             tone={statusOf(d) === "recall" ? "danger" : undefined}
