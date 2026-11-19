@@ -16,7 +16,21 @@ export function DocViewer() {
   const ext = (doc?.name.split(".").pop() || doc?.url.split("?")[0]?.split(".").pop() || "").toLowerCase();
   const isImg = /^(png|jpe?g|webp|gif|bmp|svg|avif)$/.test(ext);
   const isOffice = /^(docx?|xlsx?|pptx?)$/.test(ext);
-  const src = isOffice ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(doc?.url ?? "")}` : doc?.url;
+  const isPdf = ext === "pdf";
+  // PDF : relu en local avec le bon type, sinon un fichier mal étiqueté s'affiche en blanc.
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!doc || !isPdf) return;
+    let url: string | null = null; let off = false;
+    setPdfUrl(null);
+    fetch(doc.url).then((r) => r.arrayBuffer()).then((b) => {
+      if (off) return;
+      url = URL.createObjectURL(new Blob([b], { type: "application/pdf" }));
+      setPdfUrl(url);
+    }).catch(() => !off && setPdfUrl(doc.url));
+    return () => { off = true; if (url) URL.revokeObjectURL(url); };
+  }, [doc, isPdf]);
+  const src = isPdf ? pdfUrl ?? undefined : isOffice ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(doc?.url ?? "")}` : doc?.url;
   return (
     <Dialog open={!!doc} onOpenChange={(o) => !o && setDoc(null)}>
       <DialogContent className="flex h-[92dvh] w-[96vw] max-w-5xl flex-col gap-2 p-3">
@@ -26,6 +40,7 @@ export function DocViewer() {
         </DialogHeader>
         {doc && (isImg
           ? <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto bg-muted"><img src={doc.url} alt={doc.name} className="max-h-full max-w-full object-contain" /></div>
+          : isPdf && !pdfUrl ? <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">Chargement…</div>
           : <iframe key={doc.url} src={src} title={doc.name} className="min-h-0 w-full flex-1 border border-border bg-background" />)}
       </DialogContent>
     </Dialog>

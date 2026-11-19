@@ -86,7 +86,7 @@ export async function reviewAssetAddress(admin: Admin, assetId: string) {
   const got = await callGeminiPartsJson<Record<string, unknown> | Record<string, unknown>[]>({
     task: "relecture-actif",
     system: ADDR_SYSTEM,
-    parts: [...parts, { text: `Si le dossier porte sur plusieurs sites (portefeuille), donne l'adresse du premier site cité. Donne l'adresse du bien en JSON : {"address":"numéro et nom de rue seulement, sans code postal ni ville, ou null","postal_code":"code postal tel qu'écrit, ou null","city":"nom de la commune (jamais un nom d'agence, de vendeur ou de portefeuille), ou null"}` }],
+    parts: [...parts, { text: `Si le dossier porte sur plusieurs sites (portefeuille), réponds address="PORTEFEUILLE", postal_code=null, city="PORTEFEUILLE". Donne l'adresse du bien en JSON : {"address":"numéro et nom de rue seulement, sans code postal ni ville, ou null","postal_code":"code postal tel qu'écrit, ou null","city":"nom de la commune (jamais un nom d'agence, de vendeur ou de portefeuille), ou null"}` }],
   });
   // Gemini renvoie parfois un tableau d'un seul objet : on prend le premier.
   const raw = Array.isArray(got) ? got[0] : got;
