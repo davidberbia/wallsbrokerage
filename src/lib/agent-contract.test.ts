@@ -16,7 +16,7 @@ describe("contrat agent", () => {
     expect(contractValues({}, "A B")["assurance"]).toContain("décharge expressément WALLSBROKER");
   });
   it("engage l'agent à son immatriculation RSAC et décharge Wallsbroker", () => {
-    const a = contractValues({}, "A B")["assurance"];
+    const a = contractValues({}, "A B")["assurance"] ?? "";
     expect(a).toContain("Registre spécial des agents commerciaux (RSAC)");
     expect(a).toContain("à ses seuls frais");
     expect(a.match(/décharge expressément WALLSBROKER/g)).toHaveLength(2);
