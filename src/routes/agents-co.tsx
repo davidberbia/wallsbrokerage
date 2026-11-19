@@ -146,8 +146,8 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
   const [fields, setFields] = useState<AgentContractFields>((agent.contract_fields ?? {}) as AgentContractFields);
   const [email, setEmail] = useState(agent.email ?? "");
   const [phone, setPhone] = useState(agent.phone ?? "");
-  const locked = !!agent.signature_status && agent.signature_status !== "prêt à envoyer" && !["declined", "voided"].includes(agent.signature_status);
-  const [step, setStep] = useState(locked || agent.signature_status === "prêt à envoyer" ? STEPS.length : 0);
+  const locked = !!agent.signature_status && !["prêt à envoyer", "sent", "delivered", "declined", "voided"].includes(agent.signature_status);
+  const [step, setStep] = useState(locked || agent.signature_status ? STEPS.length : 0);
   const [busy, setBusy] = useState(false);
   const run = async (fn: () => Promise<unknown>, ok?: string) => {
     setBusy(true);
@@ -204,8 +204,8 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
           {missing.length > 0 && !locked && <p className="text-sm text-destructive">À compléter : {missing.join(", ")}</p>}
           {!locked && (
             <Button variant="outline" className="min-h-11 w-full" disabled={busy || missing.length > 0}
-              onClick={() => run(() => prepare({ data: { id: agent.id } }), "Contrat préparé — rien n'a été envoyé")}>
-              Préparer le contrat
+              onClick={() => run(() => prepare({ data: { id: agent.id } }), agent.envelope_id ? "Contrat régénéré dans la même enveloppe" : "Contrat préparé — rien n'a été envoyé")}>
+              {agent.envelope_id ? <><RefreshCw className="size-4" />Régénérer le contrat</> : "Préparer le contrat"}
             </Button>
           )}
           {(agent.signed_contract_path || agent.contract_path) && (

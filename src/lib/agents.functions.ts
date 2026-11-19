@@ -34,7 +34,7 @@ export const saveAgentContractFields = createServerFn({method:"POST"}).middlewar
 async function prepareContract(id:string,db:any){
     const {data:agent}=await db.from("commercial_agents").select("*").eq("id",id).maybeSingle();if(!agent)throw new Error("Agent introuvable");
     if(agent.has_carte_t)throw new Error("Carte T : aucun contrat requis.");
-    if(agent.envelope_id && agent.signature_status && !["created","prêt à envoyer","voided","declined"].includes(agent.signature_status))throw new Error("Contrat déjà envoyé : il ne peut plus être modifié.");
+    
     const {missingContractFields,contractValues,fillDocumentXml,justifyLongParagraphs,splitLineBreaks}=await import("@/lib/agent-contract");
     const fields=(agent.contract_fields ?? {}) as Record<string,string>;const missing=missingContractFields(fields);
     if(missing.length)throw new Error(`À compléter : ${missing.join(", ")}`);
@@ -45,14 +45,47 @@ async function prepareContract(id:string,db:any){
     files["word/document.xml"]=strToU8(justifyLongParagraphs(splitLineBreaks(fillDocumentXml(strFromU8(doc),contractValues(fields,`${agent.first_name} ${agent.last_name}`)))));
     const docx=zipSync(files);let bin="";for(let i=0;i<docx.length;i+=0x8000)bin+=String.fromCharCode(...docx.subarray(i,i+0x8000));
     const {getDsAccess}=await import("@/lib/docusign.server");const ds=await getDsAccess();const H={Authorization:`Bearer ${ds.token}`,"Content-Type":"application/json"};
-    if(agent.envelope_id && agent.signature_status==="prêt à envoyer")await fetch(`${ds.api}/folders/recyclebin`,{method:"PUT",headers:H,body:JSON.stringify({envelopeIds:[agent.envelope_id]})});
     const tab=(a:string)=>({signHereTabs:[{anchorString:a,anchorXOffset:"-48",anchorYOffset:"-16",anchorUnits:"pixels",anchorIgnoreIfNotPresent:"false"}],initialHereTabs:[{anchorString:a.replace("\\sig","\\ini"),anchorXOffset:"-14",anchorYOffset:"-12",anchorUnits:"pixels",anchorIgnoreIfNotPresent:"true"}]});
-    const r=await fetch(`${ds.api}/envelopes`,{method:"POST",headers:H,body:JSON.stringify({emailSubject:`Contrat-cadre Wallsbroker — ${agent.first_name} ${agent.last_name}`,documents:[{documentBase64:btoa(bin),name:`Contrat-cadre ${agent.first_name} ${agent.last_name}.docx`,fileExtension:"docx",documentId:"1"}],recipients:{signers:[{email:ds.email || "d.berbia@wallsbroker.com",name:"David Berbia",recipientId:"1",routingOrder:"1",tabs:tab("\\sigwb\\")},{email:agent.email,name:`${agent.first_name} ${agent.last_name}`,recipientId:"2",routingOrder:"2",tabs:tab("\\sigag\\")}]},status:"created"})});
-    if(!r.ok)throw new Error(`DocuSign : préparation refusée (${r.status}) ${await r.text()}`);const env=await r.json() as {envelopeId:string};
-    const pdf=await fetch(`${ds.api}/envelopes/${env.envelopeId}/documents/combined`,{headers:{Authorization:`Bearer ${ds.token}`}});if(!pdf.ok)throw new Error(`DocuSign : PDF indisponible (${pdf.status})`);
+    const wbSigner={email:ds.email || "d.berbia@wallsbroker.com",name:"David Berbia",recipientId:"1",routingOrder:"1",tabs:tab("\\sigwb\\")};
+    const agentSigner={email:agent.email,name:`${agent.first_name} ${agent.last_name}`,recipientId:"2",routingOrder:"2",tabs:tab("\\sigag\\")};
+    // Même enveloppe tant que personne n'a signé : on remplace seulement le document (aucun crédit DocuSign de plus).
+    let envelopeId:string|null=null;let inProcess=false;
+    if(agent.envelope_id){
+      const er=await fetch(`${ds.api}/envelopes/${agent.envelope_id}?include=recipients`,{headers:H});
+      if(er.ok){const e=await er.json() as {status:string;recipients?:{signers?:{status:string}[]}};
+        const anySigned=(e.recipients?.signers??[]).some(x=>["completed","signed"].includes(x.status));
+        if(e.status==="completed"||anySigned)throw new Error("Contrat déjà signé par au moins une partie : il ne peut plus être corrigé.");
+        if(["created","sent","delivered","correct"].includes(e.status)){envelopeId=agent.envelope_id;inProcess=e.status!=="created";}}
+    }
+    const dsDoc={documentBase64:btoa(bin),name:`Contrat-cadre ${agent.first_name} ${agent.last_name}.docx`,fileExtension:"docx",documentId:"1"};
+    if(envelopeId){
+      let HL:Record<string,string>=H;
+      if(inProcess){const lr=await fetch(`${ds.api}/envelopes/${envelopeId}/lock`,{method:"POST",headers:H,body:JSON.stringify({lockDurationInSeconds:"300",lockType:"edit"})});
+        if(!lr.ok)throw new Error(`DocuSign : enveloppe verrouillée (${lr.status}) ${await lr.text()}`);const {lockToken}=await lr.json() as {lockToken:string};
+        HL={...H,"X-DocuSign-Edit":JSON.stringify({LockToken:lockToken,LockDurationInSeconds:"300"})};}
+      try{
+        const dr=await fetch(`${ds.api}/envelopes/${envelopeId}/documents`,{method:"PUT",headers:HL,body:JSON.stringify({documents:[dsDoc]})});const dt=await dr.text();
+        if(!dr.ok||dt.includes("errorDetails"))throw new Error(`DocuSign : remplacement du document refusé (${dr.status}) ${dt}`);
+        const ur=await fetch(`${ds.api}/envelopes/${envelopeId}/recipients`,{method:"PUT",headers:HL,body:JSON.stringify({signers:[{recipientId:"2",email:agent.email,name:agentSigner.name}]})});
+        if(!ur.ok)throw new Error(`DocuSign : mise à jour de l'agent refusée (${ur.status}) ${await ur.text()}`);
+        for(const sg of [wbSigner,agentSigner]){
+          const tr=await fetch(`${ds.api}/envelopes/${envelopeId}/recipients/${sg.recipientId}/tabs`,{headers:HL});if(!tr.ok)throw new Error(`DocuSign : lecture des champs impossible (${tr.status})`);
+          const t=await tr.json() as {signHereTabs?:{tabId:string}[];initialHereTabs?:{tabId:string}[];dateSignedTabs?:{tabId:string}[]};
+          const del={signHereTabs:(t.signHereTabs??[]).map(x=>({tabId:x.tabId})),initialHereTabs:(t.initialHereTabs??[]).map(x=>({tabId:x.tabId})),dateSignedTabs:(t.dateSignedTabs??[]).map(x=>({tabId:x.tabId}))};
+          if(del.signHereTabs.length||del.initialHereTabs.length||del.dateSignedTabs.length){const xr=await fetch(`${ds.api}/envelopes/${envelopeId}/recipients/${sg.recipientId}/tabs`,{method:"DELETE",headers:HL,body:JSON.stringify(del)});if(!xr.ok)throw new Error(`DocuSign : suppression des anciens champs refusée (${xr.status}) ${await xr.text()}`);}
+          const ar=await fetch(`${ds.api}/envelopes/${envelopeId}/recipients/${sg.recipientId}/tabs`,{method:"POST",headers:HL,body:JSON.stringify(sg.tabs)});if(!ar.ok)throw new Error(`DocuSign : pose des champs refusée (${ar.status}) ${await ar.text()}`);
+        }
+      }finally{if(inProcess)await fetch(`${ds.api}/envelopes/${envelopeId}/lock`,{method:"DELETE",headers:HL}).catch(()=>{});}
+      // Enveloppe déjà partie : on renvoie l'e-mail de signature (vous d'abord).
+      if(inProcess)await fetch(`${ds.api}/envelopes/${envelopeId}?resend_envelope=true`,{method:"PUT",headers:H,body:JSON.stringify({})}).catch(()=>{});
+    }else{
+    const r=await fetch(`${ds.api}/envelopes`,{method:"POST",headers:H,body:JSON.stringify({emailSubject:`Contrat-cadre Wallsbroker — ${agent.first_name} ${agent.last_name}`,documents:[dsDoc],recipients:{signers:[wbSigner,agentSigner]},status:"created"})});
+    if(!r.ok)throw new Error(`DocuSign : préparation refusée (${r.status}) ${await r.text()}`);envelopeId=(await r.json() as {envelopeId:string}).envelopeId;
+    }
+    const pdf=await fetch(`${ds.api}/envelopes/${envelopeId}/documents/combined`,{headers:{Authorization:`Bearer ${ds.token}`}});if(!pdf.ok)throw new Error(`DocuSign : PDF indisponible (${pdf.status})`);
     const path=`agents/${agent.id}/contrat-prepare.pdf`;
     const {error:upError}=await db.storage.from("agent-contracts").upload(path,await pdf.arrayBuffer(),{contentType:"application/pdf",upsert:true});if(upError)throw upError;
-    const {error}=await db.from("commercial_agents").update({contract_path:path,envelope_id:env.envelopeId,signature_status:"prêt à envoyer"}).eq("id",agent.id);if(error)throw error;
+    const {error}=await db.from("commercial_agents").update({contract_path:path,envelope_id:envelopeId,signature_status:inProcess?agent.signature_status:"prêt à envoyer"}).eq("id",agent.id);if(error)throw error;
     return {ok:true};
   }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
