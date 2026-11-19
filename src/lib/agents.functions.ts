@@ -35,14 +35,14 @@ async function prepareContract(id:string,db:any){
     const {data:agent}=await db.from("commercial_agents").select("*").eq("id",id).maybeSingle();if(!agent)throw new Error("Agent introuvable");
     if(agent.has_carte_t)throw new Error("Carte T : aucun contrat requis.");
     if(agent.envelope_id && agent.signature_status && !["created","prêt à envoyer","voided","declined"].includes(agent.signature_status))throw new Error("Contrat déjà envoyé : il ne peut plus être modifié.");
-    const {missingContractFields,contractValues,fillDocumentXml,justifyLongParagraphs}=await import("@/lib/agent-contract");
+    const {missingContractFields,contractValues,fillDocumentXml,justifyLongParagraphs,splitLineBreaks}=await import("@/lib/agent-contract");
     const fields=(agent.contract_fields ?? {}) as Record<string,string>;const missing=missingContractFields(fields);
     if(missing.length)throw new Error(`À compléter : ${missing.join(", ")}`);
     if(!agent.email)throw new Error("À compléter : email");
     const {data:tpl,error:tplError}=await db.storage.from("agent-contracts").download("templates/contrat-cadre.docx");if(tplError || !tpl)throw new Error("Modèle de contrat introuvable");
     const {unzipSync,zipSync,strFromU8,strToU8}=await import("fflate");
     const files=unzipSync(new Uint8Array(await tpl.arrayBuffer()));const doc=files["word/document.xml"];if(!doc)throw new Error("Modèle invalide");
-    files["word/document.xml"]=strToU8(justifyLongParagraphs(fillDocumentXml(strFromU8(doc),contractValues(fields,`${agent.first_name} ${agent.last_name}`))));
+    files["word/document.xml"]=strToU8(justifyLongParagraphs(splitLineBreaks(fillDocumentXml(strFromU8(doc),contractValues(fields,`${agent.first_name} ${agent.last_name}`)))));
     const docx=zipSync(files);let bin="";for(let i=0;i<docx.length;i+=0x8000)bin+=String.fromCharCode(...docx.subarray(i,i+0x8000));
     const {getDsAccess}=await import("@/lib/docusign.server");const ds=await getDsAccess();const H={Authorization:`Bearer ${ds.token}`,"Content-Type":"application/json"};
     if(agent.envelope_id && agent.signature_status==="prêt à envoyer")await fetch(`${ds.api}/folders/recyclebin`,{method:"PUT",headers:H,body:JSON.stringify({envelopeIds:[agent.envelope_id]})});

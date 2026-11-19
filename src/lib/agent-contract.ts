@@ -50,3 +50,17 @@ export function justifyLongParagraphs(xml: string, minChars = 180): string {
     return p.replace(/^(<w:p[^>]*>)/, '$1<w:pPr><w:jc w:val="both"/></w:pPr>');
   });
 }
+// Transforme chaque retour à la ligne manuel en vrai paragraphe : une ligne courte ne s'étire plus.
+export function splitLineBreaks(xml: string): string {
+  return xml.replace(/<w:p(?=[\s>])([^>]*)>([\s\S]*?)<\/w:p>/g, (p, attrs: string, body: string) => {
+    if (!/<w:br\/>/.test(body)) return p;
+    const ppr = body.match(/^\s*<w:pPr>[\s\S]*?<\/w:pPr>/)?.[0] ?? "";
+    const pprClean = ppr.replace(/<w:rPr>[\s\S]*?<\/w:rPr>/, "");
+    const out = body.replace(/<w:r(?=[\s>])[^>]*>[\s\S]*?<\/w:r>/g, (r) => {
+      if (!/<w:br\/>/.test(r)) return r;
+      const rpr = r.match(/<w:rPr>[\s\S]*?<\/w:rPr>/)?.[0] ?? "";
+      return r.replace(/<w:br\/>/g, `</w:r></w:p><w:p${attrs}>${pprClean}<w:r>${rpr}`);
+    });
+    return `<w:p${attrs}>${out}</w:p>`;
+  });
+}
