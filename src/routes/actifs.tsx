@@ -1357,6 +1357,13 @@ function AssetDetails({ asset, onEdit }: { asset: Asset; onEdit: () => void }) {
           </Link>
         </Button>
         <ShareDialog assetId={asset.id} />
+        {asset.reference && (
+          <Button variant="outline" asChild>
+            <Link to="/mandats" search={{ sign: asset.id }}>
+              <FileSignature className="size-4" /> Mandat / renvoyer
+            </Link>
+          </Button>
+        )}
         {!asset.reference && (
           <Button variant="outline" disabled={createMandate.isPending} onClick={() => createMandate.mutate()}>
             <FileSignature className="size-4" /> Créer le mandat

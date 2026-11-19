@@ -239,6 +239,8 @@ export const Route = createFileRoute("/api/public/cron/mailsync-tick")({
         catch (e) { report["lead_relance_erreur"] = (e instanceof Error ? e.message : String(e)).slice(0, 200); }
         try { Object.assign(report, await runPigeSync()); }
         catch (e) { report["pige_erreur"] = (e instanceof Error ? e.message : String(e)).slice(0, 200); }
+        try { const { syncMandateSignatures } = await import("@/lib/docusign.server"); Object.assign(report, { mandats_maj: (await syncMandateSignatures(await getAdmin())).updated }); }
+        catch (e) { report["mandats_erreur"] = (e instanceof Error ? e.message : String(e)).slice(0, 200); }
         return Response.json({ ok: true, ...report });
       },
     },

@@ -1,7 +1,7 @@
 import { CompactRow, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Download, PenLine, RefreshCw } from "lucide-react";
 import { useMandateTemplates, downloadWord, printPdf } from "@/components/MandateTemplatesPanel";
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 
 export const Route = createFileRoute("/mandats")({
+  validateSearch: (s: Record<string, unknown>): { sign?: string } => (typeof s["sign"] === "string" ? { sign: s["sign"] } : {}),
   head: () => ({
     meta: [
       { title: "Registre des mandats — Wallsbrokerage CRM" },
@@ -152,17 +153,31 @@ function MandatesPage() {
   const [target, setTarget] = useState<(typeof rows)[number] | null>(null);
   const refresh = useServerFn(refreshMandateSignatures);
   const [syncing, setSyncing] = useState(false);
-  const sync = async () => {
+  const sync = async (quiet = false) => {
     setSyncing(true);
     try {
       const r = await refresh();
-      toast.success(`${r.updated} mandat(s) mis à jour`);
+      if (!quiet || r.updated) toast.success(`${r.updated} mandat(s) mis à jour`);
       await qc.invalidateQueries({ queryKey: ["mandates"] });
     } catch (e) {
-      toast.error((e as Error).message);
+      if (!quiet) toast.error((e as Error).message);
     }
     setSyncing(false);
   };
+  // Statuts DocuSign relus à l'ouverture puis toutes les 2 minutes.
+  useEffect(() => {
+    void sync(true);
+    const t = setInterval(() => void sync(true), 120_000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const { sign } = Route.useSearch();
+  const navigate = Route.useNavigate();
+  useEffect(() => {
+    if (!sign) return;
+    const r = rows.find((x) => x.assetId === sign);
+    if (r) { setDetailId(r.id); void navigate({ search: {}, replace: true }); }
+  }, [sign, rows, navigate]);
 
   const exportXlsx = async () => {
     const XLSX = await import("xlsx");
@@ -276,6 +291,7 @@ function MandatesPage() {
             <Button
               variant="outline"
               onClick={() => {
+                if (detail.sig && !confirm(detail.sig === "completed" ? "Ce mandat est déjà signé. Préparer un nouveau mandat à signer ?" : "Le mandat en cours de signature sera annulé et remplacé. Continuer ?")) return;
                 if (detail.assetId && (!detail.fees || !detail.feeCharge)) {
                   toast.error("Renseignez les honoraires et qui les paie avant l'envoi en signature.");
                   return;
@@ -284,7 +300,7 @@ function MandatesPage() {
                 setDetailId(null);
               }}
             >
-              <PenLine className="size-4" /> Envoyer en signature
+              <PenLine className="size-4" /> {detail.sig && detail.sig !== "prêt à envoyer" ? "Renvoyer un nouveau mandat" : "Envoyer en signature"}
             </Button>
           </>
         )}

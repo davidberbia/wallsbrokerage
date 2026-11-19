@@ -57,3 +57,24 @@ export async function getDsAccess() {
   if (!token) throw new Error("DocuSign : connexion à renouveler");
   return { api: `${row.base_uri}/restapi/v2.1/accounts/${row.account_id}`, token, email: row.account_email };
 }
+
+/** Met à jour les mandats envoyés selon DocuSign (signé ⇒ date de signature). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function syncMandateSignatures(db: any) {
+  const { data: rows } = await db.from("mandates").select("id, envelope_id, signature_status")
+    .not("envelope_id", "is", null).not("signature_status", "in", '("completed","prêt à envoyer","voided","declined")');
+  if (!rows?.length) return { updated: 0 };
+  const ds = await getDsAccess();
+  let updated = 0;
+  for (const row of rows as { id: string; envelope_id: string; signature_status: string }[]) {
+    const r = await fetch(`${ds.api}/envelopes/${row.envelope_id}`, { headers: { Authorization: `Bearer ${ds.token}` } });
+    if (!r.ok) continue;
+    const e = (await r.json()) as { status: string; completedDateTime?: string };
+    if (e.status === row.signature_status) continue;
+    const patch: { signature_status: string; status?: string; signed_at?: string } = { signature_status: e.status };
+    if (e.status === "completed") { patch.status = "signé"; patch.signed_at = e.completedDateTime || new Date().toISOString(); }
+    await db.from("mandates").update(patch).eq("id", row.id);
+    updated++;
+  }
+  return { updated };
+}

@@ -65,23 +65,8 @@ export const sendMandateForSignature = createServerFn({ method: "POST" })
 export const refreshMandateSignatures = createServerFn({ method: "POST" })
   .middleware([requireStaffAuth])
   .handler(async ({ context }) => {
-    const { data: rows } = await context.supabase.from("mandates").select("id, envelope_id, signature_status")
-      .not("envelope_id", "is", null).not("signature_status", "in", '("completed","prêt à envoyer")');
-    if (!rows?.length) return { updated: 0 };
-    const { getDsAccess } = await import("@/lib/docusign.server");
-    const ds = await getDsAccess();
-    let updated = 0;
-    for (const row of rows) {
-      const r = await fetch(`${ds.api}/envelopes/${row.envelope_id}`, { headers: { Authorization: `Bearer ${ds.token}` } });
-      if (!r.ok) continue;
-      const e = (await r.json()) as { status: string; completedDateTime?: string };
-      if (e.status === row.signature_status) continue;
-      const patch: { signature_status: string; status?: string; signed_at?: string } = { signature_status: e.status };
-      if (e.status === "completed") { patch.status = "signé"; patch.signed_at = e.completedDateTime || new Date().toISOString(); }
-      await context.supabase.from("mandates").update(patch).eq("id", row.id);
-      updated++;
-    }
-    return { updated };
+    const { syncMandateSignatures } = await import("@/lib/docusign.server");
+    return syncMandateSignatures(context.supabase);
   });
 
 const anchorTab = (anchor: string, initials: string) => ({
@@ -101,11 +86,13 @@ export const prepareMandateSignature = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: m, error } = await context.supabase.from("mandates").select("id, number, envelope_id, signature_status").eq("id", data.mandateId).maybeSingle();
     if (error || !m) throw new Error("Mandat introuvable");
-    if (m.envelope_id && m.signature_status && !["prêt à envoyer", "voided", "declined"].includes(m.signature_status)) throw new Error("Ce mandat est déjà parti en signature.");
     const { getDsAccess } = await import("@/lib/docusign.server");
     const { ANCHOR_MANDANT, ANCHOR_MANDATAIRE, ANCHOR_INIT_MANDANT, ANCHOR_INIT_MANDATAIRE } = await import("@/lib/mandate-template");
     const ds = await getDsAccess();
     const H = { Authorization: `Bearer ${ds.token}`, "Content-Type": "application/json" };
+    // Renvoi : l'ancienne enveloppe encore en cours est annulée chez DocuSign.
+    if (m.envelope_id && ["sent", "delivered", "created"].includes(m.signature_status ?? ""))
+      await fetch(`${ds.api}/envelopes/${m.envelope_id}`, { method: "PUT", headers: H, body: JSON.stringify({ status: "voided", voidedReason: "Remplacé par un nouveau mandat" }) });
     if (m.envelope_id && m.signature_status === "prêt à envoyer")
       await fetch(`${ds.api}/folders/recyclebin`, { method: "PUT", headers: H, body: JSON.stringify({ envelopeIds: [m.envelope_id] }) });
     const bytes = new TextEncoder().encode(data.html);
@@ -129,7 +116,7 @@ export const prepareMandateSignature = createServerFn({ method: "POST" })
     if (!pdf.ok) throw new Error(`DocuSign : PDF indisponible (${pdf.status})`);
     const pb = new Uint8Array(await pdf.arrayBuffer());
     let pbin = ""; for (let i = 0; i < pb.length; i += 0x8000) pbin += String.fromCharCode(...pb.subarray(i, i + 0x8000));
-    await context.supabase.from("mandates").update({ envelope_id: env.envelopeId, signature_status: "prêt à envoyer", signer_email: data.mandantEmail }).eq("id", m.id);
+    await context.supabase.from("mandates").update({ envelope_id: env.envelopeId, signature_status: "prêt à envoyer", signer_email: data.mandantEmail, signed_at: null, status: "brouillon" }).eq("id", m.id);
     return { pdfBase64: btoa(pbin) };
   });
 
