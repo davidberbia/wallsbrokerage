@@ -566,7 +566,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
       </div>
 
       {mode === "pipeline" && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid auto-rows-fr grid-cols-3 gap-2">
           <label className="rounded-sm border border-border bg-card p-3">
             <span className="text-xs text-muted-foreground">Objectif {year}</span>
             <div className="mt-1 flex items-center gap-1">
@@ -576,22 +576,21 @@ export function DealsTable({ mode }: { mode: Mode }) {
                 defaultValue={goal ? String(Math.round(goal / 1000)) : ""}
                 disabled={!canEdit}
                 onBlur={(e) => void saveGoal(String((parseNum(e.target.value) ?? 0) * 1000))}
-                className="h-9 min-w-0 font-mono"
+                className="h-9 min-w-0 font-mono text-base font-semibold"
               />
               <span className="font-mono text-base font-semibold">k€</span>
             </div>
           </label>
           {[
             ["Prévisionnel", keur(previsionnel), ""],
-            ["Pondéré", keur(suivi.pondere), goal > 0 ? pct(suivi.pondere) : ""],
+            ["Pondéré", keur(suivi.pondere), ""],
             ["Encaissé", keur(suivi.encaisse), ""],
             ["Réalisé / objectif", pct(suivi.encaisse + suivi.facture), ""],
             ["Annulé", keur(suivi.annule), ""],
-          ].map(([k, v, p]) => (
+          ].map(([k, v]) => (
             <div key={k} className="rounded-sm border border-border bg-card p-3">
               <div className="text-xs text-muted-foreground">{k}</div>
-              <div className="whitespace-nowrap font-mono text-base font-semibold">{v}</div>
-              {p && <div className="font-mono text-sm font-semibold">{p}</div>}
+              <div className="mt-1 flex h-9 items-center whitespace-nowrap font-mono text-base font-semibold">{v}</div>
             </div>
           ))}
         </div>
