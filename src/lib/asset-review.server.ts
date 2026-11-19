@@ -28,8 +28,8 @@ export async function reviewAssetDocs(admin: Admin, assetId: string) {
     return { filled: 0, files: 0 };
   }
   const fiche = Object.fromEntries(Object.entries(asset).filter(([k, v]) => v != null && String(v).trim() !== "" && !/(^id$|_id$|_at$|autofill|embedding)/.test(k)));
-  const raw = await callGeminiPartsJson<Record<string, unknown>>({ task: "relecture-actif", system: SYSTEM, parts: [...parts, { text: PROMPT(fiche) }] });
-  const r: Record<string, unknown> = { ...(raw ?? {}) };
+  const got = await callGeminiPartsJson<Record<string, unknown> | Record<string, unknown>[]>({ task: "relecture-actif", system: SYSTEM, parts: [...parts, { text: PROMPT(fiche) }] });
+  const r: Record<string, unknown> = { ...((Array.isArray(got) ? got[0] : got) ?? {}) };
   for (const k of NUMS) r[k] = num(r[k]);
   for (const [k, list] of [["asset_class", ASSET_CLASSES], ["strategy", STRATEGIES], ["region", REGIONS]] as const) if (!(list as readonly string[]).includes(String(r[k]))) r[k] = null;
   for (const [k, v] of Object.entries(r)) if (typeof v === "string" && (!v.trim() || /^null$/i.test(v.trim()))) r[k] = null;
@@ -83,11 +83,13 @@ const ADDR_SYSTEM = `Tu lis les pièces jointes (brochure, teaser, bail) d'un ac
 export async function reviewAssetAddress(admin: Admin, assetId: string) {
   const parts = await loadDocParts(admin, assetId);
   if (!parts.length) return { changed: false, files: 0 };
-  const raw = await callGeminiPartsJson<Record<string, unknown>>({
+  const got = await callGeminiPartsJson<Record<string, unknown> | Record<string, unknown>[]>({
     task: "relecture-actif",
     system: ADDR_SYSTEM,
-    parts: [...parts, { text: `Donne l'adresse du bien en JSON : {"address":"numéro et nom de rue seulement, sans code postal ni ville, ou null","postal_code":"code postal tel qu'écrit, ou null","city":"nom de la commune (jamais un nom d'agence, de vendeur ou de portefeuille), ou null"}` }],
+    parts: [...parts, { text: `Si le dossier porte sur plusieurs sites (portefeuille), donne l'adresse du premier site cité. Donne l'adresse du bien en JSON : {"address":"numéro et nom de rue seulement, sans code postal ni ville, ou null","postal_code":"code postal tel qu'écrit, ou null","city":"nom de la commune (jamais un nom d'agence, de vendeur ou de portefeuille), ou null"}` }],
   });
+  // Gemini renvoie parfois un tableau d'un seul objet : on prend le premier.
+  const raw = Array.isArray(got) ? got[0] : got;
   const clean = (v: unknown) => (typeof v === "string" && v.trim() && !/^null$/i.test(v.trim()) ? v.trim() : null);
   const address = clean(raw?.["address"]);
   const pc = clean(raw?.["postal_code"]);
