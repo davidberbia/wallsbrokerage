@@ -162,3 +162,33 @@ export const listAgentContracts = createServerFn({method:"POST"}).middleware([re
       if(path){const {data:s}=await supabaseAdmin.storage.from("agent-contracts").createSignedUrl(path,300,{download:`Contrat-cadre ${a.first_name} ${a.last_name}.pdf`});url=s?.signedUrl??null;}
       return {id:a.id,name:`${a.first_name} ${a.last_name}`,url,status:a.signature_status,signed:!!a.signed_contract_path};}));
   });
+
+/** Tableau des parts : David voit tous les agents, Ladislas seulement ceux qu'il a amenés. */
+export const agentRevenueTable = createServerFn({method:"POST"}).middleware([requireSupabaseAuth])
+  .inputValidator(d=>z.object({year:z.number().int().min(2000).max(2100)}).parse(d))
+  .handler(async({data,context})=>{
+    const {data:isAdmin}=await context.supabase.rpc("has_role",{_user_id:context.userId,_role:"admin"});
+    const {data:isManager}=await context.supabase.rpc("is_team_manager");
+    if(!isAdmin && !isManager)throw new Error("Accès réservé");
+    const {supabaseAdmin:db}=await import("@/integrations/supabase/client.server");
+    const {agentShares}=await import("@/lib/agent-shares");
+    const {dealFee}=await import("@/lib/deal-stages");
+    const {data:agents}=await db.from("commercial_agents").select("id,first_name,last_name,email,user_id,contract_fields,brought_by_ladislas").order("last_name");
+    const users:Record<string,string>={};
+    for(let page=1;page<5;page++){const {data:u}=await db.auth.admin.listUsers({page,perPage:200});for(const x of u?.users??[])if(x.email)users[x.email.toLowerCase()]=x.id;if((u?.users?.length??0)<200)break;}
+    const {data:deals}=await db.from("deals").select("owner_id,stage,paid_at,fee_amount,fee_pct,amount").eq("stage","Vendu").gte("paid_at",`${data.year}-01-01`).lte("paid_at",`${data.year}-12-31`);
+    const davidId=users["d.berbia@wallsbroker.com"];
+    const ca:Record<string,number>={};
+    for(const d of deals??[]){const k=d.owner_id??davidId??"";ca[k]=(ca[k]??0)+dealFee(d);}
+    return (agents??[]).filter(a=>isAdmin||a.brought_by_ladislas).map(a=>{
+      const uid=a.user_id??users[a.email.toLowerCase()]??null;
+      const isWb=a.email.toLowerCase()==="d.berbia@wallsbroker.com";
+      const c=uid?ca[uid]??0:0;
+      const q=Number(((a.contract_fields??{}) as {quote_agent?:string}).quote_agent)||0;
+      return {id:a.id,name:`${a.first_name} ${a.last_name}`,email:a.email,ca:c,...agentShares(c,{isWallsbroker:isWb,quoteAgent:q,broughtByLadislas:a.brought_by_ladislas})};
+    });
+  });
+
+export const deleteCommercialAgent = createServerFn({method:"POST"}).middleware([requireSuperAdmin])
+  .inputValidator(d=>z.object({id:z.string().uuid()}).parse(d))
+  .handler(async({data,context})=>{const {error}=await context.supabase.from("commercial_agents").delete().eq("id",data.id);if(error)throw new Error(error.message);return {ok:true};});

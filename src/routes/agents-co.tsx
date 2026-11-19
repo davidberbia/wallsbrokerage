@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Plus, Mail, RefreshCw, Download, FileSignature, Send } from "lucide-react";
+import { Plus, Mail, RefreshCw, Download, FileSignature, Send, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
 import { CompactRow, RecordDialog } from "@/components/CompactRow";
@@ -18,6 +18,8 @@ import {
   inviteCommercialAgent,
   prepareAgentContract,
   refreshAgentContracts,
+  agentRevenueTable,
+  deleteCommercialAgent,
   saveAgentContractFields,
   sendAgentContract,
 } from "@/lib/agents.functions";
@@ -77,28 +79,54 @@ function AgentsPage() {
   });
   const detail = agents.data?.find((a) => a.id === selected);
   const refresh = () => qc.invalidateQueries({ queryKey: ["commercial-agents"] });
-  if (!isSuperAdmin) return <p>Accès réservé au super administrateur.</p>;
+  const year = new Date().getFullYear();
+  const revenueFn = useServerFn(agentRevenueTable);
+  const delFn = useServerFn(deleteCommercialAgent);
+  const revenue = useQuery({ queryKey: ["agent-revenue", year], queryFn: () => revenueFn({ data: { year } }), retry: false });
+  if (revenue.isError && !isSuperAdmin) return <p>Accès réservé.</p>;
+  const rows = revenue.data ?? [];
+  const tot = rows.reduce((t, r) => ({ ca: t.ca + r.ca, wallsbroker: t.wallsbroker + r.wallsbroker, david: t.david + r.david, ladislas: t.ladislas + r.ladislas }), { ca: 0, wallsbroker: 0, david: 0, ladislas: 0 });
+  const k = (n: number) => `${(n / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} k€`;
+  const cols = ["CA encaissé", "Part Wallsbroker", "Part David Berbia", "Part Ladislas Crausaz"] as const;
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl">Agents Co</h1>
-        <div className="flex gap-2">
+        {isSuperAdmin && <div className="flex gap-2">
           <Button size="icon" variant="outline" className="min-h-11 min-w-11" title="Actualiser les signatures" disabled={busy}
             onClick={async () => { setBusy(true); try { await refreshSign(); await refresh(); } catch (e) { toast.error((e as Error).message); } setBusy(false); }}>
             <RefreshCw className="size-4" />
           </Button>
           <Button className="min-h-11" onClick={() => setNewOpen(true)}><Plus className="size-4" />Créer</Button>
-        </div>
+        </div>}
       </div>
-      <div className="border-y border-border">
-        {agents.data?.map((a) => {
-          const missing = missingContractFields((a.contract_fields ?? {}) as AgentContractFields);
-          return (
-            <CompactRow key={a.id} title={`${a.first_name} ${a.last_name}`} subtitle={a.sees_team ? "Responsable d'équipe agent co" : a.email || "Email manquant"}
-              summary={a.has_carte_t ? "Carte T — sans contrat" : a.signature_status ? (STATUS[a.signature_status] ?? a.signature_status) : missing.length ? `${missing.length} champ(s) à compléter` : "Contrat à préparer"}
-              onOpen={() => setSelected(a.id)} onEdit={() => setSelected(a.id)} />
-          );
-        })}
+      <div className="overflow-x-auto border-y border-border">
+        <table className="w-full min-w-[720px] text-sm">
+          <thead className="bg-muted/40 text-xs text-muted-foreground">
+            <tr><th className="px-2 py-2 text-left">Nom</th>{cols.map((c) => <th key={c} className="px-2 py-2 text-right">{c}</th>)}<th className="px-2 py-2 text-left">Email</th>{isSuperAdmin && <th />}</tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.id} className="border-t border-border">
+                <td className="px-2 py-2 font-medium">{r.name}</td>
+                {[r.ca, r.wallsbroker, r.david, r.ladislas].map((v, i) => <td key={i} className="whitespace-nowrap px-2 py-2 text-right font-mono">{k(v)}</td>)}
+                <td className="px-2 py-2 text-muted-foreground">{r.email}</td>
+                {isSuperAdmin && (
+                  <td className="whitespace-nowrap px-1 py-1 text-right">
+                    <Button size="icon" variant="ghost" className="min-h-11 min-w-11" title="Modifier" onClick={() => setSelected(r.id)}><Pencil className="size-4" /></Button>
+                    <Button size="icon" variant="ghost" className="min-h-11 min-w-11 text-destructive" title="Supprimer"
+                      onClick={async () => { if (!confirm(`Supprimer ${r.name} ?`)) return; try { await delFn({ data: { id: r.id } }); await refresh(); await revenue.refetch(); } catch (e) { toast.error((e as Error).message); } }}><Trash2 className="size-4" /></Button>
+                  </td>
+                )}
+              </tr>
+            ))}
+            <tr className="border-t-2 border-border font-semibold">
+              <td className="px-2 py-2">Total {year}</td>
+              {[tot.ca, tot.wallsbroker, tot.david, tot.ladislas].map((v, i) => <td key={i} className="whitespace-nowrap px-2 py-2 text-right font-mono">{k(v)}</td>)}
+              <td colSpan={2} />
+            </tr>
+          </tbody>
+        </table>
       </div>
       <RecordDialog title="Nouvel agent commercial" open={newOpen} onClose={() => setNewOpen(false)}>
         {newOpen && <NewAgent onCreated={async (id) => { await refresh(); setNewOpen(false); setSelected(id); }} />}

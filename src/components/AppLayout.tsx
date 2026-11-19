@@ -85,6 +85,8 @@ export function AppLayout({
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [teamManager, setTeamManager] = useState(false);
+  useEffect(() => { if (session && !isSuperAdmin) void supabase.rpc("is_team_manager").then(({ data }) => setTeamManager(Boolean(data))); }, [session, isSuperAdmin]);
   const contactTabs = CONTACT_ITEMS.filter((item) => item.admin || isBroker);
   const isContactsPage = CONTACT_ITEMS.some((item) => item.to === pathname);
   const isActiveNav = (to: string) =>
@@ -114,7 +116,7 @@ export function AppLayout({
     );
   };
   const NAV = isStaff
-    ? NAV_ITEMS.filter((item) => (item.admin || isBroker) && ((item.to !== "/agents-co" && item.to !== "/parametres") || isSuperAdmin)).map((item) =>
+    ? NAV_ITEMS.filter((item) => (item.admin || isBroker) && ((item.to !== "/agents-co" && item.to !== "/parametres") || isSuperAdmin || (item.to === "/agents-co" && teamManager))).map((item) =>
         item.label === "Contacts" ? { ...item, to: contactTabs[0]?.to ?? "/investisseurs" } : item,
       )
     : [...INVESTOR_NAV];

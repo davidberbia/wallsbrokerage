@@ -994,6 +994,7 @@ export type Database = {
         Row: {
           address: string | null
           birth_date: string | null
+          brought_by_ladislas: boolean
           contract_fields: Json
           contract_path: string | null
           created_at: string
@@ -1014,6 +1015,7 @@ export type Database = {
         Insert: {
           address?: string | null
           birth_date?: string | null
+          brought_by_ladislas?: boolean
           contract_fields?: Json
           contract_path?: string | null
           created_at?: string
@@ -1034,6 +1036,7 @@ export type Database = {
         Update: {
           address?: string | null
           birth_date?: string | null
+          brought_by_ladislas?: boolean
           contract_fields?: Json
           contract_path?: string | null
           created_at?: string
@@ -3465,6 +3468,7 @@ export type Database = {
         Returns: boolean
       }
       is_known_investor_email: { Args: { p_email: string }; Returns: boolean }
+      is_team_manager: { Args: never; Returns: boolean }
       list_deal_agents: {
         Args: never
         Returns: {
