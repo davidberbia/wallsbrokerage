@@ -111,6 +111,7 @@ function AssetsPage() {
   const [family, setFamily] = useState("all");
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [archives, setArchives] = useState(false);
+  const [vendus, setVendus] = useState(false);
   const [detail, setDetail] = useState<Asset | null>(null);
   const [editing, setEditing] = useState<Draft | null>(null);
   const [newFiles, setNewFiles] = useState<File[]>([]);
@@ -380,7 +381,13 @@ function AssetsPage() {
     onSettled: () => { void qc.invalidateQueries({ queryKey: ["assets"] }); void qc.invalidateQueries({ queryKey: ["deals"] }); },
   });
 
-  const visible = (data ?? []).filter((asset) => !!(asset as { archived_at?: string | null }).archived_at === archives && af.keep((asset as { owner_id?: string | null }).owner_id));
+  const visible = (data ?? []).filter((asset) => {
+    const archived = !!(asset as { archived_at?: string | null }).archived_at;
+    if (archives) return archived && af.keep((asset as { owner_id?: string | null }).owner_id);
+    if (archived) return false;
+    const sold = asset.status === "vendu";
+    return sold === vendus && af.keep((asset as { owner_id?: string | null }).owner_id);
+  });
   const years = assetYears(visible);
   const thisYear = new Date().getFullYear();
   const quickYears = [thisYear, thisYear - 1, thisYear - 2];
@@ -396,9 +403,12 @@ function AssetsPage() {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
         <div>
           <p className="eyebrow">Portefeuille</p>
-          <h1 className="mt-1 text-3xl">{archives ? "Archives" : "Actifs à placer"}</h1>
+          <h1 className="mt-1 text-3xl">{archives ? "Archives" : vendus ? "Vendus" : "Actifs à placer"}</h1>
         <div className="mt-2 flex flex-wrap gap-2"><AgentSelect f={af} />
-        <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={() => setArchives((a) => !a)}>
+        <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={() => { setVendus((v) => !v); setArchives(false); }}>
+          {vendus ? <><ArrowDown className="size-4 rotate-90" /> Retour aux actifs</> : <><CheckCircle2 className="size-4" /> Vendu</>}
+        </Button>
+        <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={() => { setArchives((a) => !a); setVendus(false); }}>
           {archives ? <><ArrowDown className="size-4 rotate-90" /> Retour aux actifs</> : <><Archive className="size-4" /> Archives</>}
         </Button>
         <Select value={family} onValueChange={setFamily}>
