@@ -6,7 +6,6 @@ export type AgentContractFields = {
 };
 export const REQUIRED_CONTRACT_FIELDS: [keyof AgentContractFields, string][] = [
   ["denomination", "Nom ou société"], ["adresse", "Adresse / siège"], ["siren", "SIREN"],
-  ["assureur", "Assureur RC pro"], ["rc_numero", "N° de contrat RC pro"], ["rc_echeance", "Échéance RC pro"],
   ["quote_agent", "Quote-part de l'agent"], ["date_effet", "Date d'effet"],
 ];
 export function missingContractFields(f: AgentContractFields): string[] {
@@ -15,6 +14,8 @@ export function missingContractFields(f: AgentContractFields): string[] {
   if (f.quote_agent && !(q >= 0 && q <= 100)) out.push("Quote-part entre 0 et 100");
   return out;
 }
+// L'agent s'assure seul : aucune donnée d'assurance n'est demandée.
+export const RC_CLAUSE = "L'Agent déclare être informé de l'obligation légale de disposer d'une assurance garantissant sa responsabilité civile professionnelle. Il se fait fort de la souscrire et de la maintenir à ses frais, sous sa seule et entière responsabilité, et décharge expressément WALLSBROKER de toute responsabilité ou recours à ce titre.";
 const fr = (iso?: string) => {
   if (!iso) return "";
   const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
@@ -25,7 +26,7 @@ export function contractValues(f: AgentContractFields, agentName: string, today 
   return {
     denomination: f.denomination ?? "", adresse: f.adresse ?? "", siren: f.siren ?? "",
     rsac: f.rsac?.trim() || "Non applicable",
-    assurance: [f.assureur, f.rc_numero && `contrat n° ${f.rc_numero}`, f.rc_echeance && `échéance ${fr(f.rc_echeance)}`].filter(Boolean).join(", "),
+    assurance: RC_CLAUSE,
     quote_agent: String(qa), quote_wallsbroker: String(Math.round((100 - qa) * 100) / 100),
     date_effet: fr(f.date_effet), lieu: f.lieu?.trim() || "Paris",
     date_signature: today.toLocaleDateString("fr-FR", { timeZone: "Europe/Paris" }),

@@ -55,7 +55,6 @@ type Agent = {
 };
 const STEPS: { title: string; fields: [keyof AgentContractFields, string, string?][] }[] = [
   { title: "Statut et société", fields: [["denomination", "Nom ou société"], ["adresse", "Adresse / siège social"], ["siren", "SIREN"], ["rsac", "RSAC (facultatif)"], ["qualite", "Qualité (ex. Agent commercial indépendant)"]] },
-  { title: "Assurance RC professionnelle", fields: [["assureur", "Assureur"], ["rc_numero", "N° de contrat"], ["rc_echeance", "Échéance", "date"]] },
   { title: "Rémunération", fields: [["quote_agent", "Quote-part de l'agent (%)", "number"]] },
   { title: "Prise d'effet", fields: [["date_effet", "Date d'effet", "date"], ["lieu", "Lieu de signature (Paris par défaut)"]] },
 ];
@@ -122,7 +121,7 @@ function NewAgent({ onCreated }: { onCreated: (id: string) => Promise<void> }) {
       catch (err) { toast.error((err as Error).message); }
       setBusy(false);
     }}>
-      <p className="eyebrow">Étape 1 sur 6 · Identité</p>
+      <p className="eyebrow">Étape 1 sur 5 · Identité</p>
       {([["first_name", "Prénom"], ["last_name", "Nom"], ["email", "Email"], ["phone", "Téléphone"]] as const).map(([k, l]) => (
         <div key={k} className="space-y-1">
           <Label htmlFor={`n-${k}`}>{l}</Label>
@@ -167,7 +166,7 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
       <p className="text-sm"><FileSignature className="inline size-4" /> {agent.signature_status ? (STATUS[agent.signature_status] ?? agent.signature_status) : "Contrat non préparé"}</p>
       {step < STEPS.length && !locked && (
         <div className="space-y-3">
-          <p className="eyebrow">Étape {step + 2} sur 6 · {STEPS[step]!.title}</p>
+          <p className="eyebrow">Étape {step + 2} sur 5 · {STEPS[step]!.title}</p>
           {step === 0 && (
             <>
               <Label>Email</Label><Input className="min-h-11" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
@@ -180,7 +179,7 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
               <Input className="min-h-11" type={t ?? "text"} value={fields[k] ?? ""} onChange={(e) => { const v = e.target.value; setFields({ ...fields, [k]: v }); if (k === "siren") void autoSiren(v, (r) => setFields((p) => fillEmpty(p, { denomination: r.company_name, adresse: r.address } as Partial<Record<keyof AgentContractFields, string>>))); }} />
             </div>
           ))}
-          {step === 2 && fields.quote_agent && <p className="text-sm text-muted-foreground">Wallsbroker conserve {100 - Number(fields.quote_agent)} %.</p>}
+          {step === 1 && fields.quote_agent && <p className="text-sm text-muted-foreground">Wallsbroker conserve {100 - Number(fields.quote_agent)} %.</p>}
           <div className="grid grid-cols-2 gap-2">
             <Button variant="outline" className="min-h-11" disabled={busy || step === 0} onClick={() => setStep(step - 1)}>Retour</Button>
             <Button className="min-h-11" disabled={busy} onClick={() => run(async () => { await persist(); setStep(step + 1); })}>Suivant</Button>
@@ -189,7 +188,7 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
       )}
       {(step >= STEPS.length || locked) && (
         <div className="space-y-3">
-          <p className="eyebrow">Étape 6 sur 6 · Contrat</p>
+          <p className="eyebrow">Étape 5 sur 5 · Contrat</p>
           {missing.length > 0 && !locked && <p className="text-sm text-destructive">À compléter : {missing.join(", ")}</p>}
           {!locked && (
             <Button variant="outline" className="min-h-11 w-full" disabled={busy || missing.length > 0}

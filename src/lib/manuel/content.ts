@@ -172,7 +172,7 @@ export const MANUAL_TABS: ManualTab[] = [
     routes: ["/mon-contrat"],
     intro: "Votre contrat d'agent commercial : informations, signature en ligne et téléchargement.",
     narration:
-      "Mon contrat contient votre contrat d'agent commercial avec Wallsbrokerage. Complétez vos informations : société, adresse, SIREN, RSAC et assurance de responsabilité civile professionnelle, puis touchez Générer et signer mon contrat. Vous signez en ligne par DocuSign. Une fois signé par les deux parties, vous pouvez le consulter et le télécharger à tout moment, sans pouvoir le modifier.",
+      "Mon contrat contient votre contrat d'agent commercial avec Wallsbrokerage. Complétez vos informations : société, adresse, SIREN, et RSAC, puis touchez Générer et signer mon contrat. Vous signez en ligne par DocuSign. Une fois signé par les deux parties, vous pouvez le consulter et le télécharger à tout moment, sans pouvoir le modifier.",
     marks: ["Mon contrat"],
     sections: [
       { id: "principe", title: "À quoi sert cet onglet", body: ["Chaque agent y retrouve son contrat de collaboration, consultable et téléchargeable à tout moment, mais non modifiable."] },
@@ -232,10 +232,10 @@ export const MANUAL_TABS: ManualTab[] = [
     admin: true,
     intro: "Réservé à l'administrateur : créer un agent, préparer son contrat et l'envoyer en signature.",
     narration:
-      "Agents Co est réservé à l'administrateur. Le bouton Créer lance un parcours en six étapes : identité, statut et société, assurance, rémunération, prise d'effet, puis contrat. Préparer le contrat ne l'envoie pas : l'envoi DocuSign se fait ensuite, avec confirmation. Inviter au compte vierge envoie à l'agent l'accès au CRM.",
+      "Agents Co est réservé à l'administrateur. Le bouton Créer lance un parcours en cinq étapes : identité, statut et société, rémunération, prise d'effet, puis contrat. Préparer le contrat ne l'envoie pas : l'envoi DocuSign se fait ensuite, avec confirmation. Inviter au compte vierge envoie à l'agent l'accès au CRM.",
     marks: ["Créer"],
     sections: [
-      { id: "creer", title: "Créer un agent", body: ["« Créer » ouvre le parcours : identité, statut et société, assurance RC professionnelle, rémunération (quote-part), prise d'effet, contrat. Touchez « Suivant » à chaque étape."] },
+      { id: "creer", title: "Créer un agent", body: ["« Créer » ouvre le parcours : identité, statut et société, rémunération (quote-part), prise d'effet, contrat. Touchez « Suivant » à chaque étape."] },
       { id: "contrat", title: "Préparer et envoyer le contrat", body: ["« Préparer le contrat » génère le document sans rien envoyer. « Envoyer pour signature DocuSign » l'envoie, signé d'abord par l'administrateur puis par l'agent. « Actualiser les signatures » met à jour les statuts."] },
       { id: "inviter", title: "Inviter l'agent", body: ["« Inviter au compte vierge » crée l'accès de l'agent ; le bouton devient « Compte créé » ensuite."] },
     ],

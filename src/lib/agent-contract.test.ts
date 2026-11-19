@@ -11,4 +11,8 @@ describe("contrat agent", () => {
   it("échappe les caractères spéciaux dans le Word", () => {
     expect(fillDocumentXml("<w:t>{{denomination}}</w:t>", { denomination: "A & B" })).toBe("<w:t>A &amp; B</w:t>");
   });
+  it("ne demande plus l'assurance RC pro et insère la clause Wallsbroker", () => {
+    expect(missingContractFields({})).not.toContain("Assureur RC pro");
+    expect(contractValues({}, "A B")["assurance"]).toContain("décharge expressément WALLSBROKER");
+  });
 });

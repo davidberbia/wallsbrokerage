@@ -34,9 +34,6 @@ const FIELDS: [string, string, string][] = [
   ["adresse", "Adresse / siège", "text"],
   ["siren", "SIREN", "text"],
   ["rsac", "N° RSAC (si inscrit)", "text"],
-  ["assureur", "Assureur RC pro", "text"],
-  ["rc_numero", "N° de contrat RC pro", "text"],
-  ["rc_echeance", "Échéance RC pro", "date"],
   ["date_effet", "Date d'effet souhaitée", "date"],
 ];
 
