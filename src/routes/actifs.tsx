@@ -31,6 +31,8 @@ import {
   Target,
   Trash2,
   X,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -106,6 +108,7 @@ function AssetsPage() {
   const [search, setSearch] = useState("");
   const [family, setFamily] = useState("all");
   const [year, setYear] = useState(String(new Date().getFullYear()));
+  const [archives, setArchives] = useState(false);
   const [detail, setDetail] = useState<Asset | null>(null);
   const [editing, setEditing] = useState<Draft | null>(null);
   const [newFiles, setNewFiles] = useState<File[]>([]);
@@ -299,12 +302,18 @@ function AssetsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const remove = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("assets").delete().eq("id", id);
+  // Archivage : rien n'est supprimé ; la restauration place l'actif dans l'année en cours.
+  const archive = useMutation({
+    mutationFn: async ({ id, restore }: { id: string; restore: boolean }) => {
+      const patch = restore
+        ? { archived_at: null, nas_year: new Date().getFullYear(), nas_year_manual: true }
+        : { archived_at: new Date().toISOString() };
+      const { error } = await supabase.from("assets").update(patch as never).eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["assets"] }),
+    onSuccess: (_d, v) => toast.success(v.restore ? `Restauré dans ${new Date().getFullYear()}` : "Actif archivé"),
+    onError: (e: Error) => toast.error(e.message),
+    onSettled: () => { void qc.invalidateQueries({ queryKey: ["assets"] }); void qc.invalidateQueries({ queryKey: ["nav-counts"] }); },
   });
 
   const downgrade = useMutation({
@@ -351,7 +360,7 @@ function AssetsPage() {
     onSettled: () => { void qc.invalidateQueries({ queryKey: ["assets"] }); void qc.invalidateQueries({ queryKey: ["deals"] }); },
   });
 
-  const visible = (data ?? []).filter((asset) => af.keep((asset as { owner_id?: string | null }).owner_id));
+  const visible = (data ?? []).filter((asset) => !!(asset as { archived_at?: string | null }).archived_at === archives && af.keep((asset as { owner_id?: string | null }).owner_id));
   const years = assetYears(visible);
   const thisYear = new Date().getFullYear();
   const quickYears = [thisYear, thisYear - 1, thisYear - 2];
@@ -367,8 +376,11 @@ function AssetsPage() {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
         <div>
           <p className="eyebrow">Portefeuille</p>
-          <h1 className="mt-1 text-3xl">Actifs à placer</h1>
+          <h1 className="mt-1 text-3xl">{archives ? "Archives" : "Actifs à placer"}</h1>
         <div className="mt-2 flex flex-wrap gap-2"><AgentSelect f={af} />
+        <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={() => setArchives((a) => !a)}>
+          {archives ? <><ArrowDown className="size-4 rotate-90" /> Retour aux actifs</> : <><Archive className="size-4" /> Archives</>}
+        </Button>
         <Select value={family} onValueChange={setFamily}>
           <SelectTrigger className="w-[11rem]" aria-label="Famille"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -484,13 +496,19 @@ function AssetsPage() {
             ]}
             onOpen={() => setDetail(asset)}
             onEdit={canEdit ? () => openEditor(asset) : undefined}
-            onDelete={canEdit ? () => remove.mutate(asset.id) : undefined}
-            trailing={canEdit ? (<>
+            trailing={canEdit ? (archives ? (
+              <Button variant="outline" size="icon" className="size-11" title="Désarchiver" aria-label={`Désarchiver ${asset.title}`} onClick={() => archive.mutate({ id: asset.id, restore: true })}>
+                <ArchiveRestore className="size-4" />
+              </Button>
+            ) : <>
               <Button variant="outline" size="icon" className="size-11" title="Downgrade : Lead" aria-label={`Renvoyer ${asset.title} dans les Leads`} onClick={() => { if (confirm(`Renvoyer « ${asset.title} » dans les Leads ?`)) downgrade.mutate(asset); }}>
                 <ArrowDown className="size-4" />
               </Button>
               <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${asset.title}`} onClick={() => setMergeFor(asset)}>
                 <Merge className="size-4" />
+              </Button>
+              <Button variant="ghost" size="icon" className="size-11" title="Archiver" aria-label={`Archiver ${asset.title}`} onClick={() => { if (confirm(`Archiver « ${asset.title} » ?`)) archive.mutate({ id: asset.id, restore: false }); }}>
+                <Archive className="size-4" />
               </Button>
             </>) : undefined}
           />

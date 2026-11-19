@@ -24,7 +24,7 @@ export function useNavCounts(enabled: boolean) {
         count("investors"),
         count("prospect_companies"),
         (async () => {
-          const { data } = await (supabase as any).from("assets").select("nas_year").neq("status", "prospection").limit(10000);
+          const { data } = await (supabase as any).from("assets").select("nas_year").neq("status", "prospection").is("archived_at", null).limit(10000);
           return (data ?? []) as { nas_year: number | null }[];
         })(),
         // Mêmes lignes que le tableau « Suivi des affaires » : hors Prospection et hors

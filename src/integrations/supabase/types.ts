@@ -401,6 +401,7 @@ export type Database = {
       assets: {
         Row: {
           address: string | null
+          archived_at: string | null
           asset_class: string | null
           asset_class_source: string | null
           asset_subclass: string | null
@@ -460,6 +461,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          archived_at?: string | null
           asset_class?: string | null
           asset_class_source?: string | null
           asset_subclass?: string | null
@@ -519,6 +521,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          archived_at?: string | null
           asset_class?: string | null
           asset_class_source?: string | null
           asset_subclass?: string | null
