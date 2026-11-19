@@ -2,6 +2,7 @@ import { Completion } from "@/components/Completion";
 import { useCompletion } from "@/hooks/useCompletion";
 import { useServerFn } from "@tanstack/react-start";
 import { investigateLead } from "@/lib/leads.functions";
+import { reviewAsset } from "@/lib/asset-review.functions";
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -93,6 +94,7 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
     if (data?.signedUrl) window.open(data.signedUrl, "_blank");
   };
   const research=useServerFn(investigateLead);
+  const reviewAssetFn = useServerFn(reviewAsset);
   const jobs = useQuery({
     queryKey: ["lead-jobs", id],
     queryFn: async () => {
@@ -289,7 +291,8 @@ export function DealDetail({ id, onClose, onWaiting }: { id: string; onClose: ()
             const { error } = await supabase.from("deals").update({ stage: "Disponible", last_activity_at: new Date().toISOString() }).eq("id", id).eq("stage", "Prospection");
             if (error) { toast.error(error.message); return; }
             for (const key of ["assets", "deal-assets", "lead-document-requests"]) void qc.invalidateQueries({ queryKey: [key] });
-            refresh(); toast.success("Transformé en Actif dispo"); onClose();
+            refresh(); toast.success("Transformé en Actif dispo : Gemini relit les pièces jointes"); onClose();
+            void reviewAssetFn({ data: { dealId: id } }).then((r) => { if (r.filled) toast.success(`Fiche complétée : ${r.filled} champ(s)`); void qc.invalidateQueries({ queryKey: ["assets"] }); }).catch((e) => toast.error(e instanceof Error ? e.message : "Relecture IA impossible"));
           })();
         }} />
 

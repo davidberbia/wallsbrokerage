@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { FileSpreadsheet, Merge, Plus, Sparkles } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { suggestDealMerges } from "@/lib/deal-dedup.functions";
+import { reviewAsset } from "@/lib/asset-review.functions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MergePicker } from "@/components/MergePicker";
 import { assetKindLabel, shortClassLabel, locationLabel } from "@/lib/taxonomy";
@@ -232,6 +233,7 @@ export function DealsTable({ mode }: { mode: Mode }) {
     void qc.invalidateQueries({ queryKey: ["assets"] });
   };
 
+  const reviewAssetFn = useServerFn(reviewAsset);
   const move = useMutation({
     mutationFn: async ({ id, stage }: { id: string; stage: string }) => {
       const { error } = await supabase
@@ -245,7 +247,10 @@ export function DealsTable({ mode }: { mode: Mode }) {
         old?.map((d) => (d.id === id ? { ...d, stage } : d)),
       ),
     onSuccess: (_r, v) => {
-      if (ASSET_STAGES.includes(v.stage)) toast.success("Déplacé dans « Actifs »");
+      if (ASSET_STAGES.includes(v.stage)) {
+        toast.success("Déplacé dans « Actifs » : Gemini relit les pièces jointes");
+        if (mode === "targets") void reviewAssetFn({ data: { dealId: v.id } }).then((r) => { if (r.filled) toast.success(`Fiche complétée : ${r.filled} champ(s)`); refresh(); }).catch((e) => toast.error(e instanceof Error ? e.message : "Relecture IA impossible"));
+      }
       else if (mode === "targets" && v.stage !== TARGET_STAGE)
         toast.success(`Basculé dans « Suivi des affaires » (${v.stage})`);
       if (mode === "pipeline" && v.stage === TARGET_STAGE)

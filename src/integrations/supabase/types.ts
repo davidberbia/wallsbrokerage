@@ -409,6 +409,7 @@ export type Database = {
           city: string | null
           created_at: string
           description: string | null
+          docs_reviewed_at: string | null
           ebe: number | null
           ebe_n1: number | null
           ebe_n2: number | null
@@ -466,6 +467,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          docs_reviewed_at?: string | null
           ebe?: number | null
           ebe_n1?: number | null
           ebe_n2?: number | null
@@ -523,6 +525,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           description?: string | null
+          docs_reviewed_at?: string | null
           ebe?: number | null
           ebe_n1?: number | null
           ebe_n2?: number | null
@@ -3479,6 +3482,7 @@ export type Database = {
       }
       mailscan_schedule: { Args: { _on: boolean }; Returns: undefined }
       mailscan_stop_internal: { Args: never; Returns: undefined }
+      merge_asset: { Args: { _dup: string; _keep: string }; Returns: undefined }
       owner_hidden_from_team: { Args: { _owner: string }; Returns: boolean }
       person_is_investor: {
         Args: { _email: string; _name: string }
