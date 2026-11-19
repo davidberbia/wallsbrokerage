@@ -51,7 +51,7 @@ const STATUS: Record<string, string> = {
 type Agent = {
   id: string; first_name: string; last_name: string; email: string; phone: string | null;
   user_id: string | null; contract_fields: unknown; contract_path: string | null;
-  signed_contract_path: string | null; signature_status: string | null; envelope_id: string | null; hidden_from_team?: boolean; has_carte_t?: boolean;
+  signed_contract_path: string | null; signature_status: string | null; envelope_id: string | null; hidden_from_team?: boolean; has_carte_t?: boolean; sees_team?: boolean;
 };
 const STEPS: { title: string; fields: [keyof AgentContractFields, string, string?][] }[] = [
   { title: "Statut et société", fields: [["denomination", "Nom ou société"], ["adresse", "Adresse / siège social"], ["siren", "SIREN"], ["rsac", "RSAC (facultatif)"], ["qualite", "Qualité (ex. Agent commercial indépendant)"]] },
@@ -94,7 +94,7 @@ function AgentsPage() {
         {agents.data?.map((a) => {
           const missing = missingContractFields((a.contract_fields ?? {}) as AgentContractFields);
           return (
-            <CompactRow key={a.id} title={`${a.first_name} ${a.last_name}`} subtitle={a.email || "Email manquant"}
+            <CompactRow key={a.id} title={`${a.first_name} ${a.last_name}`} subtitle={a.sees_team ? "Responsable d'équipe agent co" : a.email || "Email manquant"}
               summary={a.has_carte_t ? "Carte T — sans contrat" : a.signature_status ? (STATUS[a.signature_status] ?? a.signature_status) : missing.length ? `${missing.length} champ(s) à compléter` : "Contrat à préparer"}
               onOpen={() => setSelected(a.id)} onEdit={() => setSelected(a.id)} />
           );
@@ -163,8 +163,8 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
   };
   return (
     <div className="space-y-4">
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" defaultChecked={!!agent.hidden_from_team} disabled={busy}
+      <label className="flex min-h-11 items-center gap-2 text-sm">
+        <input type="checkbox" className="size-5" defaultChecked={!!agent.hidden_from_team} disabled={busy}
           onChange={(e) => { const v = e.target.checked; void run(async () => { const { error } = await supabase.from("commercial_agents").update({ hidden_from_team: v }).eq("id", agent.id); if (error) throw error; }, "Enregistré"); }} />
         Masqué au responsable d'équipe
       </label>
@@ -173,6 +173,7 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
           onChange={(e) => { const v = e.target.checked; void run(async () => { const { error } = await supabase.from("commercial_agents").update({ has_carte_t: v }).eq("id", agent.id); if (error) throw error; }, "Enregistré"); }} />
         Détient déjà une carte T (aucun contrat)
       </label>
+      {agent.sees_team && <p className="text-sm font-medium text-accent">Responsable d'équipe agent co</p>}
       {agent.has_carte_t ? <p className="text-sm text-muted-foreground">Aucun contrat requis : ouvrez simplement l'accès.</p> : <>
       <p className="text-sm"><FileSignature className="inline size-4" /> {agent.signature_status ? (STATUS[agent.signature_status] ?? agent.signature_status) : "Contrat non préparé"}</p>
       {step < STEPS.length && !locked && (

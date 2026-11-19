@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLinkedinPipeline } from "@/hooks/useLinkedinPipeline";
 import { useNavCounts } from "@/hooks/useNavCounts";
+import { SidebarAgentSelect } from "@/components/AgentFilter";
 import { AssistantBar } from "@/components/AssistantBar";
 import { HelpButton } from "@/components/manuel/HelpButton";
 import { Wrench } from "lucide-react";
@@ -152,6 +153,7 @@ export function AppLayout({
           <img src="/icon-192.png" alt="" className="mr-2 size-7 rounded-md" />
           <span className="truncate font-display text-base font-semibold tracking-tight text-accent">WALLSBROKERAGE</span>
         </Link>
+        {isStaff && <div className="border-b border-sidebar-border p-2"><SidebarAgentSelect /></div>}
         <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2" aria-label="Menu principal">
           {NAV.map((item) => {
             const active = item.label === "Contacts" ? isContactsPage : isActiveNav(item.to);
@@ -203,6 +205,7 @@ export function AppLayout({
                   WALLSBROKERAGE
                 </SheetTitle>
               </SheetHeader>
+              {isStaff && <div className="border-b border-sidebar-border p-2"><SidebarAgentSelect /></div>}
               <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-2">
                 {NAV.map((item) => {
                   const active = item.label === "Contacts" ? isContactsPage : isActiveNav(item.to);

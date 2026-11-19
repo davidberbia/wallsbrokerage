@@ -1,3 +1,4 @@
+import { useAgentFilter } from "@/components/AgentFilter";
 import { Completion } from "@/components/Completion";
 import { useCompletion } from "@/hooks/useCompletion";
 import { correspondents as thirdParties } from "@/lib/correspondents";
@@ -147,16 +148,8 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const assetOf = (d: { asset_id: string | null }) => (d.asset_id ? dealAssets.data?.get(d.asset_id) : undefined);
   const classOf = (d: { asset_id: string | null; name: string }) => assetOf(d)?.asset_class || null;
 
-  const agents = useQuery({
-    queryKey: ["deal-agents"],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("list_deal_agents");
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-  const [agent, setAgent] = useState("all");
-  const all = (deals.data ?? []).filter((d) => agent === "all" || d.owner_id === agent);
+  const af = useAgentFilter();
+  const all = (deals.data ?? []).filter((d) => af.keep(d.owner_id));
   const years = useMemo(() => {
     const ys = new Set<number>([thisYear, ...all.map((d) => d.vintage)]);
     return [...ys].sort((a, b) => b - a);
@@ -546,21 +539,6 @@ export function DealsTable({ mode }: { mode: Mode }) {
         </div>
       </div>}
 
-      {(agents.data?.length ?? 0) > 1 && (
-        <select
-          aria-label="Agent"
-          value={agent}
-          onChange={(e) => setAgent(e.target.value)}
-          className="min-h-11 w-full rounded-sm border border-border bg-card px-3 text-sm sm:w-64"
-        >
-          <option value="all">Tous les agents</option>
-          {agents.data!.map((a) => (
-            <option key={a.user_id} value={a.user_id}>
-              {a.name}
-            </option>
-          ))}
-        </select>
-      )}
 
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Années">
         {years.map((y) => (
