@@ -541,7 +541,7 @@ function AssetsPage() {
       <MergePicker
         open={!!mergeFor}
         title={mergeFor?.title ?? ""}
-        initialSearch={mergeFor?.city ?? ""}
+        initialSearch=""
         items={filtered.filter((a) => a.id !== mergeFor?.id).map((a) => ({ id: a.id, title: [a.city, a.title].filter(Boolean).join(" · "), subtitle: [a.reference && `N° ${a.reference}`, a.address, a.asset_class].filter(Boolean).join(" · ") }))}
         busy={mergeAssets.isPending}
         onClose={() => setMergeFor(null)}
