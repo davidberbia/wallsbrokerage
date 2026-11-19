@@ -51,7 +51,7 @@ const STATUS: Record<string, string> = {
 type Agent = {
   id: string; first_name: string; last_name: string; email: string; phone: string | null;
   user_id: string | null; contract_fields: unknown; contract_path: string | null;
-  signed_contract_path: string | null; signature_status: string | null; envelope_id: string | null; hidden_from_team?: boolean;
+  signed_contract_path: string | null; signature_status: string | null; envelope_id: string | null; hidden_from_team?: boolean; has_carte_t?: boolean;
 };
 const STEPS: { title: string; fields: [keyof AgentContractFields, string, string?][] }[] = [
   { title: "Statut et société", fields: [["denomination", "Nom ou société"], ["adresse", "Adresse / siège social"], ["siren", "SIREN"], ["rsac", "RSAC (facultatif)"], ["qualite", "Qualité (ex. Agent commercial indépendant)"]] },
@@ -95,7 +95,7 @@ function AgentsPage() {
           const missing = missingContractFields((a.contract_fields ?? {}) as AgentContractFields);
           return (
             <CompactRow key={a.id} title={`${a.first_name} ${a.last_name}`} subtitle={a.email || "Email manquant"}
-              summary={a.signature_status ? (STATUS[a.signature_status] ?? a.signature_status) : missing.length ? `${missing.length} champ(s) à compléter` : "Contrat à préparer"}
+              summary={a.has_carte_t ? "Carte T — sans contrat" : a.signature_status ? (STATUS[a.signature_status] ?? a.signature_status) : missing.length ? `${missing.length} champ(s) à compléter` : "Contrat à préparer"}
               onOpen={() => setSelected(a.id)} onEdit={() => setSelected(a.id)} />
           );
         })}
@@ -113,11 +113,12 @@ function AgentsPage() {
 function NewAgent({ onCreated }: { onCreated: (id: string) => Promise<void> }) {
   const create = useServerFn(createCommercialAgent);
   const [f, setF] = useState({ first_name: "", last_name: "", email: "", phone: "" });
+  const [carteT, setCarteT] = useState(false);
   const [busy, setBusy] = useState(false);
   return (
     <form className="space-y-3" onSubmit={async (e) => {
       e.preventDefault(); setBusy(true);
-      try { const r = await create({ data: { ...f, address: "", siren: "", birth_date: "" } }); await onCreated(r.id); }
+      try { const r = await create({ data: { ...f, address: "", siren: "", birth_date: "", has_carte_t: carteT } }); await onCreated(r.id); }
       catch (err) { toast.error((err as Error).message); }
       setBusy(false);
     }}>
@@ -128,7 +129,11 @@ function NewAgent({ onCreated }: { onCreated: (id: string) => Promise<void> }) {
           <Input id={`n-${k}`} className="min-h-11" required={k !== "phone"} type={k === "email" ? "email" : "text"} value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} />
         </div>
       ))}
-      <Button className="min-h-11 w-full" disabled={busy} type="submit">Suivant</Button>
+      <label className="flex min-h-11 items-center gap-2 text-sm">
+        <input type="checkbox" className="size-5" checked={carteT} onChange={(e) => setCarteT(e.target.checked)} />
+        Détient déjà une carte T (aucun contrat)
+      </label>
+      <Button className="min-h-11 w-full" disabled={busy} type="submit">{carteT ? "Créer" : "Suivant"}</Button>
     </form>
   );
 }
@@ -163,6 +168,12 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
           onChange={(e) => { const v = e.target.checked; void run(async () => { const { error } = await supabase.from("commercial_agents").update({ hidden_from_team: v }).eq("id", agent.id); if (error) throw error; }, "Enregistré"); }} />
         Masqué au responsable d'équipe
       </label>
+      <label className="flex min-h-11 items-center gap-2 text-sm">
+        <input type="checkbox" className="size-5" defaultChecked={!!agent.has_carte_t} disabled={busy || locked}
+          onChange={(e) => { const v = e.target.checked; void run(async () => { const { error } = await supabase.from("commercial_agents").update({ has_carte_t: v }).eq("id", agent.id); if (error) throw error; }, "Enregistré"); }} />
+        Détient déjà une carte T (aucun contrat)
+      </label>
+      {agent.has_carte_t ? <p className="text-sm text-muted-foreground">Aucun contrat requis : ouvrez simplement l'accès.</p> : <>
       <p className="text-sm"><FileSignature className="inline size-4" /> {agent.signature_status ? (STATUS[agent.signature_status] ?? agent.signature_status) : "Contrat non préparé"}</p>
       {step < STEPS.length && !locked && (
         <div className="space-y-3">
@@ -210,6 +221,7 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
           {!locked && <Button variant="ghost" className="min-h-11 w-full" onClick={() => setStep(0)}>Modifier les informations</Button>}
         </div>
       )}
+      </>}
       <Button variant="outline" className="min-h-11 w-full" disabled={busy || !!agent.user_id || !agent.email}
         onClick={() => run(() => invite({ data: { id: agent.id } }), "Invitation envoyée")}>
         <Mail className="size-4" />{agent.user_id ? "Compte créé" : "Inviter au compte vierge"}

@@ -1000,6 +1000,7 @@ export type Database = {
           email: string
           envelope_id: string | null
           first_name: string
+          has_carte_t: boolean
           hidden_from_team: boolean
           id: string
           last_name: string
@@ -1019,6 +1020,7 @@ export type Database = {
           email: string
           envelope_id?: string | null
           first_name: string
+          has_carte_t?: boolean
           hidden_from_team?: boolean
           id?: string
           last_name: string
@@ -1038,6 +1040,7 @@ export type Database = {
           email?: string
           envelope_id?: string | null
           first_name?: string
+          has_carte_t?: boolean
           hidden_from_team?: boolean
           id?: string
           last_name?: string

@@ -1,0 +1,1 @@
+ALTER TABLE public.commercial_agents ADD COLUMN IF NOT EXISTS has_carte_t boolean NOT NULL DEFAULT false;

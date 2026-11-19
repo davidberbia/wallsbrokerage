@@ -7,9 +7,9 @@ const requireSuperAdmin = createMiddleware({type:"function"}).middleware([requir
   if(error || !data)throw new Error("Réservé au super administrateur");return next();
 });
 export const createCommercialAgent = createServerFn({method:"POST"}).middleware([requireSuperAdmin])
-  .inputValidator(d=>z.object({first_name:z.string().trim().min(1).max(100),last_name:z.string().trim().min(1).max(100),email:z.string().email().max(255),phone:z.string().max(50),address:z.string().max(500),siren:z.string().regex(/^\d{9}$|^$/),birth_date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal(""))}).parse(d))
+  .inputValidator(d=>z.object({first_name:z.string().trim().min(1).max(100),last_name:z.string().trim().min(1).max(100),email:z.string().email().max(255),phone:z.string().max(50),address:z.string().max(500),siren:z.string().regex(/^\d{9}$|^$/),birth_date:z.string().regex(/^\d{4}-\d{2}-\d{2}$/).or(z.literal("")),has_carte_t:z.boolean().optional()}).parse(d))
   .handler(async({data,context})=>{
-    const {data:record,error}=await context.supabase.from("commercial_agents").insert({...data,birth_date:data.birth_date || null,siren:data.siren || null}).select("id").single();
+    const {data:record,error}=await context.supabase.from("commercial_agents").insert({...data,has_carte_t:!!data.has_carte_t,birth_date:data.birth_date || null,siren:data.siren || null}).select("id").single();
     if(error)throw new Error(error.message);
     return {id:record.id};
   });
@@ -45,6 +45,7 @@ export const saveAgentContractFields = createServerFn({method:"POST"}).middlewar
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function prepareContract(id:string,db:any){
     const {data:agent}=await db.from("commercial_agents").select("*").eq("id",id).maybeSingle();if(!agent)throw new Error("Agent introuvable");
+    if(agent.has_carte_t)throw new Error("Carte T : aucun contrat requis.");
     if(agent.envelope_id && agent.signature_status && !["created","prêt à envoyer","voided","declined"].includes(agent.signature_status))throw new Error("Contrat déjà envoyé : il ne peut plus être modifié.");
     const {missingContractFields,contractValues,fillDocumentXml}=await import("@/lib/agent-contract");
     const fields=(agent.contract_fields ?? {}) as Record<string,string>;const missing=missingContractFields(fields);
@@ -107,11 +108,12 @@ const AGENT_EDITABLE=["denomination","adresse","siren","rsac","assureur","rc_num
 export const getMyContractFields = createServerFn({method:"POST"}).middleware([requireSupabaseAuth])
   .handler(async({context})=>{
     const {supabaseAdmin}=await import("@/integrations/supabase/client.server");
-    const {data:agent}=await supabaseAdmin.from("commercial_agents").select("id,contract_fields,signature_status").eq("user_id",context.userId).maybeSingle();
+    const {data:agent}=await supabaseAdmin.from("commercial_agents").select("id,contract_fields,signature_status,has_carte_t").eq("user_id",context.userId).maybeSingle();
     if(!agent)return null;
+    if(agent.has_carte_t)return {fields:{} as Record<string,string>,missing:[] as string[],status:null as string|null,carteT:true};
     const {missingContractFields}=await import("@/lib/agent-contract");
     const fields=(agent.contract_fields ?? {}) as Record<string,string>;
-    return {fields,missing:missingContractFields(fields),status:agent.signature_status};
+    return {fields,missing:missingContractFields(fields),status:agent.signature_status,carteT:false};
   });
 export const saveMyContractFields = createServerFn({method:"POST"}).middleware([requireSupabaseAuth])
   .inputValidator(d=>z.object({fields:FieldsSchema}).parse(d))

@@ -108,7 +108,8 @@ function AgentContract() {
       <p className="eyebrow">Agent commercial</p>
       <h1 className="text-3xl">Mon contrat</h1>
       {(q.isLoading || f.isLoading) && <p className="text-sm text-muted-foreground">Chargement…</p>}
-      {f.data && editable && (
+      {f.data?.carteT && <p className="panel p-6 text-sm">Aucun contrat requis (carte T).</p>}
+      {f.data && !f.data.carteT && editable && (
         <div className="panel space-y-3 p-6">
           <p className="text-sm">Complétez vos informations pour générer votre contrat d'agent commercial et le signer en ligne.</p>
           {FIELDS.map(([k, label, type]) => (
@@ -125,7 +126,7 @@ function AgentContract() {
           {f.data.missing.length > 0 && <p className="text-xs text-muted-foreground">À compléter : {f.data.missing.join(", ")}</p>}
         </div>
       )}
-      {q.data && <ContractCard url={q.data.url} signed={q.data.signed} />}
+      {q.data && !f.data?.carteT && <ContractCard url={q.data.url} signed={q.data.signed} />}
       <div className="panel space-y-2 p-6">
         <p className="font-medium">Votre CRM travaille pour vous</p>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
