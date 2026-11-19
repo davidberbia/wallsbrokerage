@@ -94,7 +94,20 @@ export async function saveTargets(
   fees: RawFee[],
   source: string,
   date: string,
+  mail?: { id?: string; graph_id?: string },
 ): Promise<{ targets: number; fees: number; ids: string[] }> {
+  // Règle : aucun lead sans pièce jointe ; même expéditeur + même objet = lead existant.
+  if (mail && (mail.id || mail.graph_id)) {
+    let q = admin.from("mail_messages").select("id,subject,from_email,has_attachments");
+    q = mail.id ? q.eq("id", mail.id) : q.eq("graph_id", mail.graph_id!);
+    const { data: m } = await q.maybeSingle();
+    if (!m?.has_attachments) return { targets: 0, fees: 0, ids: [] };
+    if (m.subject && m.from_email) {
+      const subj = String(m.subject).replace(/^\s*((re|tr|fw|fwd)\s*:\s*)+/i, "").trim();
+      const { data: same } = await admin.from("mail_messages").select("deal_id").ilike("from_email", m.from_email).ilike("subject", `%${subj.replace(/[%_\\]/g, (c) => "\\" + c)}%`).not("deal_id", "is", null).neq("id", m.id).limit(1).maybeSingle();
+      if (same?.deal_id) return { targets: 0, fees: 0, ids: [same.deal_id] };
+    }
+  } else return { targets: 0, fees: 0, ids: [] };
   // Opportunities only: no invoice, payment or pipeline-stage writes.
   void fees;
   const {data:owner}=await admin.from("user_roles").select("user_id").eq("role","admin").limit(2);

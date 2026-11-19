@@ -225,7 +225,7 @@ export async function saveExtraction(
     await admin.from("news_items").upsert(nRows, { onConflict: "company,mail_graph_id", ignoreDuplicates: true });
     news = nRows.length;
   }
-  const t = await saveTargets(admin, ex.targets ?? [], ex.fees ?? [], opts.source ?? "email", date);
+  const t = await saveTargets(admin, ex.targets ?? [], ex.fees ?? [], opts.source ?? "email", date, { graph_id: graphId });
   if (t.ids.length) await linkTargetMail(admin, t.ids, { graph_id: graphId });
   return { contacts, comparables, news, targets: t.targets, fees: t.fees };
 }
