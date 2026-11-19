@@ -16,20 +16,8 @@ export const createCommercialAgent = createServerFn({method:"POST"}).middleware(
 export const inviteCommercialAgent = createServerFn({method:"POST"}).middleware([requireSuperAdmin])
   .inputValidator(d=>z.object({id:z.string().uuid()}).parse(d))
   .handler(async({data,context})=>{
-    const {data:agent}=await context.supabase.from("commercial_agents").select("*").eq("id",data.id).maybeSingle();
-    if(!agent || agent.user_id)throw new Error("Fiche introuvable ou compte déjà créé");
-    const {supabaseAdmin}=await import("@/integrations/supabase/client.server");
-    const {data:users,error:listError}=await supabaseAdmin.auth.admin.listUsers({page:1,perPage:1000});if(listError)throw listError;
-    if(users.users.some(u=>u.email?.toLowerCase()===agent.email.toLowerCase()))throw new Error("Un compte utilise déjà cet email ; aucun compte existant ne sera modifié.");
-    const {data:invite,error}=await supabaseAdmin.auth.admin.generateLink({type:"invite",email:agent.email,options:{redirectTo:"https://wallsbrokerage.com/reset-password"}});
-    if(error || !invite.user || !invite.properties?.action_link)throw new Error(error?.message || "Invitation impossible");
-    const {error:roleError}=await supabaseAdmin.from("user_roles").insert({user_id:invite.user.id,role:"broker"});
-    if(roleError)throw new Error("Invitation envoyée mais rôle non attribué ; compte sans accès commercial.");
-    const {error:linkError}=await context.supabase.from("commercial_agents").update({user_id:invite.user.id}).eq("id",agent.id);if(linkError)throw linkError;
-    const {agentInviteEmail}=await import("@/lib/agent-invite");const {sendBrevoMail}=await import("@/lib/brevo.server");
-    const mail=agentInviteEmail(agent.first_name,invite.properties.action_link);
-    await sendBrevoMail({to:agent.email,toName:`${agent.first_name} ${agent.last_name}`,subject:mail.subject,html:mail.html});
-    return {ok:true};
+    const {supabaseAdmin}=await import("@/integrations/supabase/client.server");const {inviteAgentAccount}=await import("@/lib/agent-access.server");
+    return inviteAgentAccount(supabaseAdmin,data.id,false);
   });
 const FieldsSchema=z.object({denomination:z.string().max(300).optional(),adresse:z.string().max(500).optional(),siren:z.string().max(20).optional(),rsac:z.string().max(100).optional(),assureur:z.string().max(200).optional(),rc_numero:z.string().max(100).optional(),rc_echeance:z.string().max(20).optional(),quote_agent:z.string().max(10).optional(),date_effet:z.string().max(20).optional(),lieu:z.string().max(100).optional(),qualite:z.string().max(100).optional()});
 export const saveAgentContractFields = createServerFn({method:"POST"}).middleware([requireSuperAdmin])
@@ -93,15 +81,9 @@ export const getMyAgentContract = createServerFn({method:"POST"}).middleware([re
     const {data,error}=await supabaseAdmin.storage.from("agent-contracts").createSignedUrl(path,300,{download:`Contrat-cadre ${agent.first_name} ${agent.last_name}.pdf`});if(error)throw new Error(error.message);
     return {url:data.signedUrl,status:agent.signature_status,signed:!!agent.signed_contract_path};
   });
-export const refreshAgentContracts=createServerFn({method:"POST"}).middleware([requireSuperAdmin]).handler(async({context})=>{
-  const {data:agents}=await context.supabase.from("commercial_agents").select("id,envelope_id,signed_contract_path").not("envelope_id","is",null).neq("signature_status","prêt à envoyer");
-  if(!agents?.length)return {updated:0};const {getDsAccess}=await import("@/lib/docusign.server");const ds=await getDsAccess();let updated=0;
-  for(const agent of agents.slice(0,20)){
-    const r=await fetch(`${ds.api}/envelopes/${agent.envelope_id}`,{headers:{Authorization:`Bearer ${ds.token}`}});if(!r.ok)throw new Error(`DocuSign : suivi indisponible (${r.status})`);
-    const envelope=await r.json() as {status:string};let path=agent.signed_contract_path;
-    if(envelope.status==="completed" && !path){const doc=await fetch(`${ds.api}/envelopes/${agent.envelope_id}/documents/combined`,{headers:{Authorization:`Bearer ${ds.token}`}});if(!doc.ok)throw new Error("Contrat signé indisponible");path=`agents/${agent.id}/signed-${agent.envelope_id}.pdf`;const {error}=await context.supabase.storage.from("agent-contracts").upload(path,await doc.arrayBuffer(),{contentType:"application/pdf",upsert:true});if(error)throw error;}
-    const {error}=await context.supabase.from("commercial_agents").update({signature_status:envelope.status,signed_contract_path:path}).eq("id",agent.id);if(error)throw error;updated++;
-  }return {updated};
+export const refreshAgentContracts=createServerFn({method:"POST"}).middleware([requireSuperAdmin]).handler(async()=>{
+  const {supabaseAdmin}=await import("@/integrations/supabase/client.server");const {syncAgentContracts}=await import("@/lib/agent-access.server");
+  return syncAgentContracts(supabaseAdmin);
 });
 // Champs que l'agent peut compléter lui-même (la quote-part reste fixée par Wallsbroker).
 const AGENT_EDITABLE=["denomination","adresse","siren","rsac","assureur","rc_numero","rc_echeance","date_effet"] as const;

@@ -224,8 +224,8 @@ function AgentContract({ agent, onChange }: { agent: Agent; onChange: () => Prom
       )}
       </>}
       <Button variant="outline" className="min-h-11 w-full" disabled={busy || !!agent.user_id || !agent.email}
-        onClick={() => run(() => invite({ data: { id: agent.id } }), "Invitation envoyée")}>
-        <Mail className="size-4" />{agent.user_id ? "Compte créé" : "Inviter au compte vierge"}
+        onClick={() => run(() => invite({ data: { id: agent.id } }), "Accès envoyés")}>
+        <Mail className="size-4" />{agent.user_id ? "Accès envoyés" : "Envoyer les accès au CRM"}
       </Button>
     </div>
   );

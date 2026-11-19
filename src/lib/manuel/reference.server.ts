@@ -27,7 +27,7 @@ Droits : agent/courtier et administrateur peuvent modifier et supprimer ; lecteu
 
 [formation] Modules avec durée et progression, « x / y modules validés · validation à 80 % », « Petit point mémoire », « Questionnaire final », « Encore n réponse(s) », « Valider mes réponses », « Module validé, bravo ! », « Retour aux modules », « Recommencer » ; meilleur score et tentatives conservés.
 
-[agents-co] Administrateur : « Créer », « Actualiser les signatures », parcours identité, Statut et société, Assurance RC professionnelle, Rémunération (quote-part fixe de l'agent), Prise d'effet, contrat ; « Retour », « Suivant », « Préparer le contrat » (n'envoie rien), « Voir le contrat préparé », « Envoyer pour signature DocuSign » (administrateur puis agent), « Contrat signé », « Modifier les informations », « Inviter au compte vierge » puis « Compte créé ».
+[agents-co] Administrateur : « Créer », « Actualiser les signatures », parcours identité, Statut et société, Rémunération (quote-part fixe de l'agent), Prise d'effet, contrat ; « Retour », « Suivant », « Préparer le contrat » (n'envoie rien), « Voir le contrat préparé », « Envoyer pour signature DocuSign » (administrateur puis agent), « Contrat signé », « Modifier les informations », « Envoyer les accès au CRM » puis « Accès envoyés » (automatique après signature complète).
 
 [parametres] Administrateur seul : Utilisateurs (DocuSign, « Créer un utilisateur en lecture seule » email + mot de passe provisoire 8 caractères min, Comptes back-office), Boîte mail (analyse des mails), Listes de référence (types d'actifs, profils investisseurs, pays, tranches de montant : ajout, renommage, suppression), Modèles de mandats.
 

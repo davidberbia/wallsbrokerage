@@ -232,12 +232,12 @@ export const MANUAL_TABS: ManualTab[] = [
     admin: true,
     intro: "Réservé à l'administrateur : créer un agent, préparer son contrat et l'envoyer en signature.",
     narration:
-      "Agents Co est réservé à l'administrateur. Le bouton Créer lance un parcours en cinq étapes : identité, statut et société, rémunération, prise d'effet, puis contrat. Préparer le contrat ne l'envoie pas : l'envoi DocuSign se fait ensuite, avec confirmation. Inviter au compte vierge envoie à l'agent l'accès au CRM.",
+      "Agents Co est réservé à l'administrateur. Le bouton Créer lance un parcours en cinq étapes : identité, statut et société, rémunération, prise d'effet, puis contrat. Préparer le contrat ne l'envoie pas : l'envoi DocuSign se fait ensuite, avec confirmation. Dès que le contrat est signé par tous, le CRM envoie automatiquement à l'agent ses accès et une copie du contrat. Pour une carte T, « Envoyer les accès au CRM » les envoie directement.",
     marks: ["Créer"],
     sections: [
       { id: "creer", title: "Créer un agent", body: ["« Créer » ouvre le parcours : identité, statut et société, rémunération (quote-part), prise d'effet, contrat. Touchez « Suivant » à chaque étape."] },
       { id: "contrat", title: "Préparer et envoyer le contrat", body: ["« Préparer le contrat » génère le document sans rien envoyer. « Envoyer pour signature DocuSign » l'envoie, signé d'abord par l'administrateur puis par l'agent. « Actualiser les signatures » met à jour les statuts."] },
-      { id: "inviter", title: "Inviter l'agent", body: ["« Inviter au compte vierge » crée l'accès de l'agent ; le bouton devient « Compte créé » ensuite."] },
+      { id: "inviter", title: "Inviter l'agent", body: ["« Envoyer les accès au CRM » crée l'accès de l'agent ; le bouton devient « Accès envoyés »."] },
     ],
   },
   {
