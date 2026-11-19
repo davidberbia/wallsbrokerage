@@ -59,6 +59,7 @@ import {
 type Deal = Tables<"deals">;
 type Mode = "targets" | "pipeline";
 
+const keur = (n: number) => `${Math.round(n / 1000).toLocaleString("fr-FR")} k€`;
 const eur = (n: number | null | undefined) =>
   n == null || n === 0
     ? "—"
@@ -207,6 +208,10 @@ export function DealsTable({ mode }: { mode: Mode }) {
   const realised = rows.filter((d) => d.stage === "Vendu").reduce((s, d) => s + dealFee(d), 0);
 
   const suivi = suiviTotals(rows);
+  // Prévisionnel : honoraires de tous les dossiers à partir du statut Offre (perdus exclus).
+  const previsionnel = rows
+    .filter((d) => ["Offre", "LOI acceptée", "Promesse", "Vendu"].includes(d.stage))
+    .reduce((t, d) => t + dealFee(d), 0);
   const goals = useQuery({
     queryKey: ["deal-goals"],
     enabled: mode === "pipeline",
@@ -561,31 +566,34 @@ export function DealsTable({ mode }: { mode: Mode }) {
       </div>
 
       {mode === "pipeline" && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="grid grid-cols-3 gap-2">
+          <label className="rounded-sm border border-border bg-card p-3">
+            <span className="text-xs text-muted-foreground">Objectif {year}</span>
+            <div className="mt-1 flex items-center gap-1">
+              <Input
+                key={`${year}-${goal}`}
+                inputMode="decimal"
+                defaultValue={goal ? String(Math.round(goal / 1000)) : ""}
+                disabled={!canEdit}
+                onBlur={(e) => void saveGoal(String((parseNum(e.target.value) ?? 0) * 1000))}
+                className="h-9 min-w-0 font-mono"
+              />
+              <span className="font-mono text-base font-semibold">k€</span>
+            </div>
+          </label>
           {[
-            ["Encaissé", eur(suivi.encaisse), ""],
-            ["Prévisionnel", eur(suivi.encours), ""],
-            ["Annulé", eur(suivi.annule), ""],
-            ["Pondéré", eur(suivi.pondere), goal > 0 ? pct(suivi.pondere) : ""],
+            ["Prévisionnel", keur(previsionnel), ""],
+            ["Pondéré", keur(suivi.pondere), goal > 0 ? pct(suivi.pondere) : ""],
+            ["Encaissé", keur(suivi.encaisse), ""],
             ["Réalisé / objectif", pct(suivi.encaisse + suivi.facture), ""],
+            ["Annulé", keur(suivi.annule), ""],
           ].map(([k, v, p]) => (
             <div key={k} className="rounded-sm border border-border bg-card p-3">
               <div className="text-xs text-muted-foreground">{k}</div>
-              <div className="font-mono text-base font-semibold">{v}</div>
+              <div className="whitespace-nowrap font-mono text-base font-semibold">{v}</div>
               {p && <div className="font-mono text-sm font-semibold">{p}</div>}
             </div>
           ))}
-          <label className="rounded-sm border border-border bg-card p-3">
-            <span className="text-xs text-muted-foreground">Objectif {year} (€)</span>
-            <Input
-              key={`${year}-${goal}`}
-              inputMode="decimal"
-              defaultValue={goal || ""}
-              disabled={!canEdit}
-              onBlur={(e) => void saveGoal(e.target.value)}
-              className="mt-1 h-9 font-mono"
-            />
-          </label>
         </div>
       )}
 
