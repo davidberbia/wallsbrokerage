@@ -12,7 +12,7 @@ import { autoSiren, fillEmpty } from "@/lib/siren-autofill";
 import { mandantText, type OwnerDetails } from "@/lib/siren";
 import { MergePicker } from "@/components/MergePicker";
 import { mergeAssetFields, ASSET_CHILD_TABLES } from "@/lib/asset-merge";
-import { Merge, Folder, ArrowDown, ArrowUp } from "lucide-react";
+import { Merge, Folder, ArrowDown, ArrowUp, Mail } from "lucide-react";
 import { AssetTransfer } from "@/components/AssetTransfer";
 import { CompactRow, CompactRowHeader, RecordDialog, RecordFacts } from "@/components/CompactRow";
 import { YearFilter } from "@/components/YearFilter";
@@ -113,6 +113,7 @@ function AssetsPage() {
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const [archives, setArchives] = useState(false);
   const [vendus, setVendus] = useState(false);
+  const [sent, setSent] = useState(false);
   const [detail, setDetail] = useState<Asset | null>(null);
   const [editing, setEditing] = useState<Draft | null>(null);
   const [newFiles, setNewFiles] = useState<File[]>([]);
@@ -382,11 +383,22 @@ function AssetsPage() {
     onSettled: () => { void qc.invalidateQueries({ queryKey: ["assets"] }); void qc.invalidateQueries({ queryKey: ["deals"] }); },
   });
 
+  const { data: sentIds } = useQuery({
+    queryKey: ["asset-sent-ids"],
+    enabled: sent,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("brochure_sends").select("asset_id").not("asset_id", "is", null);
+      if (error) throw error;
+      return new Set((data ?? []).map((r) => r.asset_id as string));
+    },
+  });
+
   const visible = (data ?? []).filter((asset) => {
     const archived = !!(asset as { archived_at?: string | null }).archived_at;
     if (archives) return archived && af.keep((asset as { owner_id?: string | null }).owner_id);
     if (archived) return false;
     const sold = asset.status === "vendu";
+    if (sent) return !sold && (sentIds?.has(asset.id) ?? false) && af.keep((asset as { owner_id?: string | null }).owner_id);
     return sold === vendus && af.keep((asset as { owner_id?: string | null }).owner_id);
   });
   const years = assetYears(visible);
@@ -396,18 +408,28 @@ function AssetsPage() {
   const filtered0 = visible.filter((asset) => matchesAssetYear(asset, year, new Date().getFullYear()) && matchesAssetSearch(asset, search) && (family === "all" || ((asset as { family?: string | null }).family ?? familyOf(asset.asset_class)) === family));
 
   const filtered = lf.apply(filtered0, (a) => ({ cls: a.asset_class, surface: a.surface, price: a.price ?? a.rent ?? null, city: splitAddress(a.address, a.city).city }));
+  if (sent) {
+    filtered.sort((a, b) => {
+      const ca = splitAddress(a.address, a.city).city;
+      const cb = splitAddress(b.address, b.city).city;
+      return ca.localeCompare(cb, "fr") || a.title.localeCompare(b.title, "fr");
+    });
+  }
 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
         <div>
           <p className="eyebrow">Portefeuille</p>
-          <h1 className="mt-1 text-3xl">{archives ? "Archives" : vendus ? "Vendus" : "Actifs à placer"}</h1>
+          <h1 className="mt-1 text-3xl">{archives ? "Archives" : vendus ? "Vendus" : sent ? "Actifs envoyés" : "Actifs à placer"}</h1>
         <div className="mt-2 flex flex-wrap gap-2"><AgentSelect f={af} />
-        <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={() => { setVendus((v) => !v); setArchives(false); }}>
+        <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={() => { setVendus((v) => !v); setArchives(false); setSent(false); }}>
           {vendus ? <><ArrowDown className="size-4 rotate-90" /> Retour aux actifs</> : <><CheckCircle2 className="size-4" /> Vendu</>}
         </Button>
-        <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={() => { setArchives((a) => !a); setVendus(false); }}>
+        <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={() => { setSent((s) => !s); setArchives(false); setVendus(false); }}>
+          {sent ? <><ArrowDown className="size-4 rotate-90" /> Retour aux actifs</> : <><Mail className="size-4" /> Envoyés</>}
+        </Button>
+        <Button variant="ghost" size="sm" className="min-h-11 text-muted-foreground" onClick={() => { setArchives((a) => !a); setVendus(false); setSent(false); }}>
           {archives ? <><ArrowDown className="size-4 rotate-90" /> Retour aux actifs</> : <><Archive className="size-4" /> Archives</>}
         </Button>
         <Select value={family} onValueChange={setFamily}>
