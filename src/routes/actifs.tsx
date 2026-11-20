@@ -515,23 +515,23 @@ function AssetsPage() {
             onOpen={() => setDetail(asset)}
             onEdit={canEdit ? () => openEditor(asset) : undefined}
             trailing={canEdit ? (archives ? (
-              <Button variant="outline" size="icon" className="size-11" title="Désarchiver" aria-label={`Désarchiver ${asset.title}`} onClick={() => archive.mutate({ id: asset.id, restore: true })}>
+              <Button variant="outline" size="icon" className="size-9 sm:size-11" title="Désarchiver" aria-label={`Désarchiver ${asset.title}`} onClick={() => archive.mutate({ id: asset.id, restore: true })}>
                 <ArchiveRestore className="size-4" />
               </Button>
             ) : <>
-              <Button variant="outline" size="icon" className="size-11" title="Upgrade : Suivi des affaires" aria-label={`Passer ${asset.title} dans le Suivi des affaires`} onClick={() => upgrade.mutate(asset)}>
+              <Button variant="outline" size="icon" className="size-9 sm:size-11" title="Upgrade : Suivi des affaires" aria-label={`Passer ${asset.title} dans le Suivi des affaires`} onClick={() => upgrade.mutate(asset)}>
                 <ArrowUp className="size-4" />
               </Button>
-              <Button variant="outline" size="icon" className="size-11" title="Downgrade : Lead" aria-label={`Renvoyer ${asset.title} dans les Leads`} onClick={() => { if (confirm(`Renvoyer « ${asset.title} » dans les Leads ?`)) downgrade.mutate(asset); }}>
+              <Button variant="outline" size="icon" className="size-9 sm:size-11" title="Downgrade : Lead" aria-label={`Renvoyer ${asset.title} dans les Leads`} onClick={() => { if (confirm(`Renvoyer « ${asset.title} » dans les Leads ?`)) downgrade.mutate(asset); }}>
                 <ArrowDown className="size-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${asset.title}`} onClick={() => setMergeFor(asset)}>
+              <Button variant="ghost" size="icon" className="size-9 sm:size-11" title="Fusionner" aria-label={`Fusionner ${asset.title}`} onClick={() => setMergeFor(asset)}>
                 <Merge className="size-4" />
               </Button>
               <AssetTransfer id={asset.id} name={asset.title} owner={(asset as { owner_id?: string | null }).owner_id} />
             </>) : undefined}
             last={canEdit && !archives ? (
-              <Button variant="ghost" size="icon" className="size-11" title="Archiver" aria-label={`Archiver ${asset.title}`} onClick={() => { if (confirm(`Archiver « ${asset.title} » ?`)) archive.mutate({ id: asset.id, restore: false }); }}>
+              <Button variant="ghost" size="icon" className="size-9 sm:size-11" title="Archiver" aria-label={`Archiver ${asset.title}`} onClick={() => { if (confirm(`Archiver « ${asset.title} » ?`)) archive.mutate({ id: asset.id, restore: false }); }}>
                 <Archive className="size-4" />
               </Button>
             ) : undefined}

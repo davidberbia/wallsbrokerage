@@ -692,10 +692,10 @@ export function DealsTable({ mode }: { mode: Mode }) {
             onOpen={() => setOpenId(d.id)}
             trailing={
               canEdit ? (<>
-                <Button variant="outline" size="icon" className="size-11" title="Downgrade : Actif" aria-label={`Renvoyer ${d.name} dans les Actifs`} onClick={() => { if (confirm(`Renvoyer « ${d.name} » dans les Actifs ?`)) move.mutate({ id: d.id, stage: "Disponible" }); }}>
+                <Button variant="outline" size="icon" className="size-9 sm:size-11" title="Downgrade : Actif" aria-label={`Renvoyer ${d.name} dans les Actifs`} onClick={() => { if (confirm(`Renvoyer « ${d.name} » dans les Actifs ?`)) move.mutate({ id: d.id, stage: "Disponible" }); }}>
                   <ArrowDown className="size-4" />
                 </Button>
-                <Button variant="ghost" size="icon" className="size-11" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={() => { setMergeFor(d); setMergePick([]); }}>
+                <Button variant="ghost" size="icon" className="size-9 sm:size-11" title="Fusionner" aria-label={`Fusionner ${d.name}`} onClick={() => { setMergeFor(d); setMergePick([]); }}>
                   <Merge className="size-4" />
                 </Button>
               </>) : undefined

@@ -18,7 +18,7 @@ export function AssetTransfer({ id, name, owner }: { id: string; name: string; o
   const recipients = useQuery({ queryKey: ["lead-recipients"], queryFn: () => getRecipients(), enabled: open });
   const others = (recipients.data ?? []).filter((a) => a.user_id !== owner);
   return <>
-    <Button variant="ghost" size="icon" className="size-11" title="Transférer" aria-label={`Transférer ${name}`} onClick={() => setOpen(true)}><Forward className="size-4" /></Button>
+    <Button variant="ghost" size="icon" className="size-9 sm:size-11" title="Transférer" aria-label={`Transférer ${name}`} onClick={() => setOpen(true)}><Forward className="size-4" /></Button>
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader><DialogTitle>Transférer à un collègue</DialogTitle></DialogHeader>

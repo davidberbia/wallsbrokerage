@@ -73,12 +73,12 @@ export function CompactRow({
   return (
     <div
       data-compact-row
-      className={`row-grid h-14 min-w-0 gap-1 border-b border-border ${tone === "success" ? "bg-success/15" : tone === "danger" ? "bg-destructive/15" : "bg-card"} px-1 last:border-b-0 sm:gap-2 sm:px-3`}
+      className={`row-grid h-auto min-h-14 min-w-0 gap-1 border-b border-border py-1 ${tone === "success" ? "bg-success/15" : tone === "danger" ? "bg-destructive/15" : "bg-card"} px-1 last:border-b-0 sm:gap-2 sm:px-3 lg:h-14 lg:py-0`}
     >
       {leading && <div className="flex shrink-0 items-center justify-center">{leading}</div>}
       <Button
         variant="ghost"
-        className="h-9 min-w-0 max-w-full flex-col items-start justify-center gap-1 overflow-hidden rounded-none pr-[196px] text-left font-normal [grid-area:title] max-lg:pl-2 lg:px-2 sm:flex-row sm:items-center sm:justify-start sm:gap-6"
+        className="h-9 min-w-0 max-w-full flex-col items-start justify-center gap-1 overflow-hidden rounded-none text-left font-normal [grid-area:title] max-lg:pl-2 lg:px-2 lg:pr-[196px] sm:flex-row sm:items-center sm:justify-start sm:gap-6"
         style={{ minWidth: 0 }}
         onClick={onOpen}
         aria-label={`Ouvrir ${title}`}
@@ -120,7 +120,7 @@ export function CompactRow({
         <Button
           variant="ghost"
           size="icon"
-          className="size-11 shrink-0"
+          className="size-9 shrink-0 sm:size-11"
           title="Modifier"
           aria-label={`Modifier ${title}`}
           onClick={onEdit}
@@ -132,7 +132,7 @@ export function CompactRow({
         <Button
           variant="ghost"
           size="icon"
-          className="size-11 shrink-0 text-destructive"
+          className="size-9 shrink-0 text-destructive sm:size-11"
           title="Supprimer"
           aria-label={`Supprimer ${title}`}
           onClick={() => {
