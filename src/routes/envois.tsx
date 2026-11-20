@@ -175,6 +175,16 @@ function SendsPage() {
   const opened = rows.filter((r) => r.opened_at).length;
   const asset = (assets.data ?? []).find((a) => a.id === assetId) ?? null;
 
+  // Le menu ne propose que les actifs envoyés par mail sur les 12 derniers mois, triés par ville puis alphabétique.
+  const sentAssetIds = new Set(
+    (sends.data ?? [])
+      .filter((r) => r.asset_id && new Date(r.sent_at) >= new Date(Date.now() - 365 * 24 * 3600 * 1000))
+      .map((r) => r.asset_id as string),
+  );
+  const assetOptions = (assets.data ?? [])
+    .filter((a) => sentAssetIds.has(a.id))
+    .sort((a, b) => (a.city ?? "").localeCompare(b.city ?? "", "fr") || a.title.localeCompare(b.title, "fr"));
+
   const resend = async (row: SendRow) => {
     const email = row.email_to ?? row.investors?.email ?? row.prospect_contacts?.email;
     if (!email) {
@@ -306,7 +316,7 @@ function SendsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Tous les actifs</SelectItem>
-              {(assets.data ?? []).map((a) => (
+              {assetOptions.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
                   {a.title}
                   {a.city ? ` — ${a.city}` : ""}
